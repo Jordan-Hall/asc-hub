@@ -49,6 +49,9 @@ func TestAscDepsFindingsView(t *testing.T) {
 		return &ascv1.ListDepFindingsResponse{
 			Findings:      []*ascv1.DepFinding{depsFinding(1, ascv1.DepSeverity_DEP_SEVERITY_HIGH, ascv1.DepFindingState_DEP_FINDING_STATE_OPEN)},
 			NextPageToken: "n_2", CountsByState: map[string]uint32{"open": 4, "dismissed": 2}, LastScan: 1_700_000_000, LastLookup: ascv1.DepLookupStatus_DEP_LOOKUP_STATUS_PARTIAL,
+			OpenBySeverity:      map[string]uint32{"critical": 0, "high": 3, "moderate": 1, "low": 0, "unknown": 0},
+			PackagesChecked:     214, PackagesUnknown: 7,
+			PackagesByEcosystem: map[string]uint32{"npm": 200, "crates.io": 14},
 		}, nil
 	}
 	page := depsGet(t, "?severity=moderate&ecosystem=npm", 2, adminAccess)
@@ -66,6 +69,24 @@ func TestAscDepsFindingsView(t *testing.T) {
 	assert.Contains(t, page.body, `data-testid="asc-deps-scan"`, "an administrator can scan")
 	assert.Contains(t, page.body, `name="_csrf" value="csrf-token-for-tests"`)
 	assert.NotContains(t, page.body, "Vulnerable dependencies", "no English literal")
+
+	assert.Contains(t, page.body, `data-testid="asc-deps-tiles"`)
+	assert.Contains(t, page.body, `data-testid="asc-deps-sev-high"`)
+	assert.Contains(t, page.body, `rp-deps-sev-fill rp-deps-sev-high" width="100"`, "the largest count fills the bar")
+	assert.Contains(t, page.body, `rp-deps-sev-fill rp-deps-sev-moderate" width="33"`)
+	assert.NotContains(t, page.body, `rp-deps-sev-fill rp-deps-sev-low"`, "a zero count draws no bar")
+	assert.Contains(t, page.body, `data-url="/user2/repo1/asc/deps/outdated"`)
+	assert.Contains(t, page.body, "asc_trust.deps.scan_partial")
+	assert.Less(t, strings.Index(page.body, ">npm<"), strings.Index(page.body, ">crates.io<"), "ecosystems are listed largest first")
+	assert.Contains(t, page.body, `data-testid="asc-dep-detail"`)
+	assert.Contains(t, page.body, `aria-controls="asc-dep-detail-1"`)
+	assert.Contains(t, page.body, `data-testid="asc-dep-tree"`)
+	assert.Contains(t, page.body, "package-lock.json")
+	assert.Contains(t, page.body, "asc_trust.deps.how_direct")
+	assert.Contains(t, page.body, `data-testid="asc-dep-propose-form"`)
+	assert.Contains(t, page.body, `name="package" value="left-pad"`)
+	assert.Contains(t, page.body, `name="ecosystem" value="npm"`)
+	assert.Contains(t, page.body, "asc_trust.deps.propose_fix")
 
 	calls := f.callsOf("DepFindings")
 	require.Len(t, calls, 1)
@@ -89,6 +110,8 @@ func TestAscDepsHidesManagementFromNonAdministrators(t *testing.T) {
 	require.Equal(t, http.StatusOK, page.status)
 	assert.NotContains(t, page.body, `data-testid="asc-deps-scan"`)
 	assert.NotContains(t, page.body, "/dismiss")
+	assert.NotContains(t, page.body, `data-testid="asc-dep-propose-form"`)
+	assert.Contains(t, page.body, `data-testid="asc-dep-detail"`, "everyone who reads the code sees why a finding matters")
 	page = depsGet(t, "?view=updates", 4, perm_model.AccessModeWrite)
 	assert.NotContains(t, page.body, `data-testid="asc-deps-propose-form"`)
 }
@@ -260,6 +283,102 @@ func TestAscDepsDismissAndReopen(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, depsPost(t, "/findings/x/dismiss", AscDepsDismiss, 2, adminAccess, url.Values{"reason": {"tolerable"}, "op": {depsOp}}, map[string]string{"id": "x"}).status)
 	assert.Equal(t, http.StatusForbidden, depsPost(t, "/findings/5/dismiss", AscDepsDismiss, 4, perm_model.AccessModeWrite, url.Values{"reason": {"tolerable"}, "op": {depsOp}}, params).status)
 	assert.Len(t, f.callsOf("DepDismiss"), n, "a refused request makes no call")
+}
+
+func TestAscDepsCleanState(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureDeps)
+	f.depFindings = func(*ascv1.ListDepFindingsRequest) (*ascv1.ListDepFindingsResponse, error) {
+		return &ascv1.ListDepFindingsResponse{LastScan: 1_700_000_000, PackagesChecked: 214, LastLookup: ascv1.DepLookupStatus_DEP_LOOKUP_STATUS_COMPLETE}, nil
+	}
+	page := depsGet(t, "", 2, adminAccess)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.Contains(t, page.body, `data-testid="asc-deps-clean"`)
+	assert.Contains(t, page.body, "asc_trust.deps.clean_title")
+	assert.NotContains(t, page.body, `data-testid="asc-deps-empty"`)
+
+	page = depsGet(t, "?state=dismissed", 2, adminAccess)
+	assert.NotContains(t, page.body, `data-testid="asc-deps-clean"`, "an empty tab is not a clean repository")
+	assert.Contains(t, page.body, `data-testid="asc-deps-empty"`)
+	page = depsGet(t, "?severity=critical", 2, adminAccess)
+	assert.NotContains(t, page.body, `data-testid="asc-deps-clean"`, "an empty filter is not a clean repository")
+}
+
+func TestAscDepsOutdated(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureDeps)
+	f.depUpdates = func(*ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error) {
+		return &ascv1.ListDepUpdatesResponse{
+			Updates: []*ascv1.DepUpdate{
+				{Ecosystem: "npm", Name: "left-pad", Current: "1.0.0", Latest: "2.0.0", Target: "1.3.0", Fixes: []string{"GHSA-aaaa"}},
+				{Ecosystem: "npm", Name: "right-pad", Current: "1.0.0", Latest: "1.1.0"},
+				{Ecosystem: "npm", Name: "mid-pad", Current: "1.0.0"},
+			},
+			Packages: 9, UnknownPackages: 2,
+		}, nil
+	}
+	outdated := func(user int64, access perm_model.AccessMode) trustPage {
+		return runTrust(t, trustReq{path: "/user2/repo1/asc/deps/outdated", user: user, access: access}, AscDepsOutdated)
+	}
+	page := outdated(4, perm_model.AccessModeRead)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.JSONEq(t, `{"outdated":2,"security":1,"unknown":2}`, page.body)
+	calls := f.callsOf("DepUpdates")
+	require.Len(t, calls, 1)
+	assert.False(t, calls[0].Req.(*ascv1.ListDepUpdatesRequest).GetSecurityOnly())
+
+	f.depUpdates = func(*ascv1.ListDepUpdatesRequest) (*ascv1.ListDepUpdatesResponse, error) {
+		return nil, status.Error(codes.Unavailable, "registry down at /srv/asc/x")
+	}
+	page = outdated(4, perm_model.AccessModeRead)
+	assert.NotEqual(t, http.StatusOK, page.status)
+	assert.Contains(t, page.body, `"error"`, "a failure is said, never drawn as zero")
+	assert.NotContains(t, page.body, "/srv/asc")
+	assert.NotContains(t, page.body, `"outdated"`)
+
+	n := len(f.callsOf("DepUpdates"))
+	assert.Equal(t, http.StatusForbidden, outdated(0, perm_model.AccessModeRead).status)
+	assert.Equal(t, http.StatusNotFound, outdated(4, perm_model.AccessModeNone).status)
+	assert.Len(t, f.callsOf("DepUpdates"), n, "a refused request makes no call")
+
+	startFakeTrust(t)
+	assert.Equal(t, http.StatusNotFound, outdated(4, perm_model.AccessModeRead).status)
+}
+
+func TestAscDepsProposeOnePackage(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureDeps)
+	f.depPropose = func(*ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error) {
+		return &ascv1.ProposeDepUpdateResponse{
+			Proposals: []*ascv1.DepProposal{{Group: "left-pad", Ref: "refs/heads/agent/deps/left-pad", Change: make([]byte, 16), Updates: []*ascv1.DepUpdate{{Name: "left-pad", Current: "1.0.0", Target: "1.3.0"}}, Files: [][]byte{[]byte("package.json")}}},
+		}, nil
+	}
+	form := url.Values{"mode": {"preview"}, "security": {"1"}, "ecosystem": {"npm"}, "package": {"left-pad"}}
+	page := depsPost(t, "/propose", AscDepsPropose, 2, adminAccess, form, nil)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	sel := f.callsOf("DepPropose")[0].Req.(*ascv1.ProposeDepUpdateRequest).GetSelectors()
+	require.Len(t, sel, 1)
+	assert.Equal(t, "npm", sel[0].GetEcosystem())
+	assert.Equal(t, "left-pad", sel[0].GetName())
+	assert.Contains(t, page.body, `name="package" value="left-pad"`, "the apply form proposes the same package")
+	assert.Contains(t, page.body, `name="ecosystem" value="npm"`)
+
+	form = url.Values{"mode": {"apply"}, "op": {depsOp}, "security": {"1"}, "ecosystem": {"npm"}, "package": {"left-pad"}}
+	page = depsPost(t, "/propose", AscDepsPropose, 2, adminAccess, form, nil)
+	assert.Equal(t, http.StatusSeeOther, page.status)
+	assert.Equal(t, "/user2/repo1/asc/deps", page.loc, "a fix proposed from a finding returns to the findings")
+	assert.Len(t, f.callsOf("DepPropose")[1].Req.(*ascv1.ProposeDepUpdateRequest).GetSelectors(), 1)
+
+	n := len(f.callsOf("DepPropose"))
+	for _, bad := range []url.Values{
+		{"mode": {"preview"}, "ecosystem": {"<npm>"}, "package": {"left-pad"}},
+		{"mode": {"preview"}, "package": {"left-pad"}},
+		{"mode": {"preview"}, "ecosystem": {"npm"}, "package": {"left\x00pad"}},
+		{"mode": {"preview"}, "ecosystem": {"npm"}, "package": {strings.Repeat("a", 513)}},
+	} {
+		assert.NotEqual(t, http.StatusOK, depsPost(t, "/propose", AscDepsPropose, 2, adminAccess, bad, nil).status)
+	}
+	assert.Len(t, f.callsOf("DepPropose"), n, "a bad package selector makes no call")
 }
 
 func TestAscDepsPageHasNoStrayEnglish(t *testing.T) {
