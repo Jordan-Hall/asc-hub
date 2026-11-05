@@ -15,6 +15,8 @@ import (
 	"forgejo.org/models/auth"
 	"forgejo.org/models/db"
 	"forgejo.org/models/organization"
+	repo_model "forgejo.org/models/repo"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/markup/markdown"
@@ -104,6 +106,56 @@ func AscGetStarted(ctx *context.Context) {
 	ctx.Data["GSMigrations"] = !setting.Repository.DisableMigrations
 	ctx.Data["GSConnectCommand"] = ascdownload.ConnectCommand(setting.AppURL)
 	ctx.HTML(http.StatusOK, tplAscGetStarted)
+}
+
+// ascGetStartedDismissed is the session key of Hide: the dashboard shows instead of the checklist until the person
+// signs in again.
+const ascGetStartedDismissed = "asc_get_started_hidden"
+
+// ascHasNoRepository reports whether the person has no repository yet: none of their own, none they collaborate on and
+// none in an organization they belong to. A lookup error reads as "has one", so the dashboard shows.
+func ascHasNoRepository(ctx *context.Context, doer *user_model.User) bool {
+	if doer.NumRepos > 0 {
+		return false
+	}
+	_, n, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
+		ListOptions: db.ListOptions{Page: 1, PageSize: 1},
+		Actor:       doer,
+		OwnerID:     doer.ID,
+		Private:     true,
+	})
+	if err != nil || n > 0 {
+		return false
+	}
+	orgs, err := organization.GetUserOrgsList(ctx, doer)
+	if err != nil {
+		return false
+	}
+	for _, o := range orgs {
+		if o.NumRepos > 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// ascGetStartedOnHome reports whether GET / shows the get started checklist instead of the dashboard (board
+// GetStarted): while the person has no repository, unless they chose Hide since they signed in.
+func ascGetStartedOnHome(ctx *context.Context) bool {
+	if hidden, _ := ctx.Session.Get(ascGetStartedDismissed).(bool); hidden {
+		return false
+	}
+	return ascHasNoRepository(ctx, ctx.Doer)
+}
+
+// AscGetStartedHide serves POST /-/get-started/hide: the dashboard shows on GET / until the person signs in again; the
+// checklist then returns while they still have no repository.
+func AscGetStartedHide(ctx *context.Context) {
+	if err := ctx.Session.Set(ascGetStartedDismissed, true); err != nil {
+		ctx.ServerError("Session.Set", err)
+		return
+	}
+	ctx.Redirect(setting.AppSubURL + "/")
 }
 
 // AscDocs serves GET /-/docs: the start page of the documentation that ships inside the hub, and its search (?q=).
