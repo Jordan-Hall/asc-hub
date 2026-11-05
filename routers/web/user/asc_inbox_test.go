@@ -6,9 +6,11 @@ package user
 import (
 	gocontext "context"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
+	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
@@ -466,4 +468,27 @@ func TestAscInboxRowState(t *testing.T) {
 	code, loc = postAscInboxState(t, user2, map[string]string{"pull": "61", "do": "restore", "back": "https://example.org/"})
 	assert.Equal(t, http.StatusSeeOther, code)
 	assert.Equal(t, "/-/asc/inbox", loc)
+}
+
+func TestAscInboxUnread(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	// user 2 has an unread notification on issue 5 and a pinned one on issue 3 in the fixtures
+	useAscInboxEntries(t,
+		&AscInboxEntry{PullID: 71, IssueID: 5, Title: "unread one", Link: "/o/r/pulls/5", RepoFullName: "o/r", Index: 5, Section: issues_model.AscInboxNeedsReview, Updated: time.Now().Add(-time.Hour), Author: "alice"},
+		&AscInboxEntry{PullID: 72, IssueID: 3, Title: "read one", Link: "/o/r/pulls/3", RepoFullName: "o/r", Index: 3, Section: issues_model.AscInboxNeedsReview, Updated: time.Now().Add(-2 * time.Hour), Author: "alice"})
+
+	// the first row is selected by default, which does not read it
+	_, body := getAscInbox(t, user2, "")
+	assert.Equal(t, 1, strings.Count(body, "is-unread"))
+	assert.Contains(t, body, "user.asc_inbox.unread")
+	n := unittest.AssertExistsAndLoadBean(t, &activities_model.Notification{ID: 4})
+	assert.Equal(t, activities_model.NotificationStatusUnread, n.Status)
+
+	// opening it reads it, as opening the pull request does
+	_, body = getAscInbox(t, user2, "?pull=71")
+	assert.NotContains(t, body, "is-unread")
+	n = unittest.AssertExistsAndLoadBean(t, &activities_model.Notification{ID: 4})
+	assert.Equal(t, activities_model.NotificationStatusRead, n.Status)
 }
