@@ -275,6 +275,17 @@ LOGIN_WAIT = 5m
 
 The counts are kept in memory by each hub process and are lost on a restart.
 
+## Passwords found in breaches
+
+With `[security] PASSWORD_CHECK_PWN = true` the hub refuses a new password that appears in the Have-I-Been-Pwned list, and the strength meter of the sign up, reset and link forms shows the rule "Not found in known data breaches" while the person types. The browser hashes the password with SHA-1 and asks the hub for `GET /-/password/range/{prefix}`, the first five hexadecimal digits only; the hub asks `https://api.pwnedpasswords.com/range/` with padding and answers the suffixes of that range, and the browser looks for its own. Neither the password nor its full hash leaves the browser, and the outside service sees only the prefix and the address of the hub. A breached password shows as Weak. The route answers 404 with the setting off, 400 for a prefix that is not five hexadecimal digits, 502 when the service cannot be reached, and 429 after 30 ranges a minute from one address; answers are never cached.
+
+The setting is off by default, because with it on a hub that cannot reach `api.pwnedpasswords.com` refuses every new password. Turn it on when the hub has internet access:
+
+```ini
+[security]
+PASSWORD_CHECK_PWN = true
+```
+
 ## Contact and policies on the About page
 
 The footer links Security, Contact, Privacy, Terms, Acceptable use, Subprocessors and Cookies to sections of `/-/about`. The page lists the cookies the hub sets (with the names in `[session] COOKIE_NAME` and `[security] COOKIE_REMEMBER_NAME`) and what the configuration hands to outside services: object storage on this server or in an S3-compatible store, and a mail server. The page is public, so it never shows a host or address of the configuration; name your providers with `SUBPROCESSORS`. These settings make the rest yours:
