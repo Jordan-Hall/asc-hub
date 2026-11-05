@@ -20,7 +20,7 @@
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?view=graph"{{if eq .HistoryView "graph"}} aria-current="true"{{end}} data-testid="history-view-graph">{{ctx.Locale.Tr "repo.commit_graph"}}</a>
 				</div>
 				{{if eq .HistoryView "graph"}}<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.RepoLink}}/{{if $isAsc}}asc/graph{{else}}graph{{end}}" data-testid="history-all-branches">{{ctx.Locale.Tr "asc_rp.graph_all_branches"}}</a>{{end}}
-				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_who"}}" data-testid="history-who" data-loading-links>
+				<div class="ds-seg ds-hide-xs" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_who"}}" data-testid="history-who" data-loading-links>
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}"{{if not .HistoryWho}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_everyone"}}</a>
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?who=people"{{if eq .HistoryWho "people"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_people"}}</a>
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?who=agents"{{if eq .HistoryWho "agents"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_agents"}}</a>
@@ -28,7 +28,52 @@
 				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.RepoLink}}/commits-export/branch/{{PathEscapeSegments .BranchName}}{{if .Keyword}}?q={{.Keyword}}{{end}}" download>{{ctx.Locale.Tr "asc_rp.export_csv"}}</a>
 			</div>
 		</div>
-		<div class="rp-histbar">
+		{{/* the phone: one chip per filter, each opens its bottom sheet */}}
+		<div class="rp-histchips ds-show-xs-only" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_filters"}}" data-testid="history-chips">
+			<button type="button" class="ds-chip rp-histchip{{if .HistoryWho}} is-on{{end}}" data-history-chip="who" aria-haspopup="dialog">{{if eq .HistoryWho "people"}}{{ctx.Locale.Tr "asc_rp.who_people"}}{{else if eq .HistoryWho "agents"}}{{ctx.Locale.Tr "asc_rp.who_agents"}}{{else}}{{ctx.Locale.Tr "asc_rp.who_everyone"}}{{end}}</button>
+			<button type="button" class="ds-chip rp-histchip{{if .TreePath}} is-on{{end}}" data-history-chip="path" aria-haspopup="dialog">{{if .TreePath}}{{.TreePath}}{{else}}{{ctx.Locale.Tr "asc_rp.chip_path"}}{{end}}</button>
+			<button type="button" class="ds-chip rp-histchip" data-history-chip="stack" aria-haspopup="dialog">{{ctx.Locale.Tr "asc_rp.chip_stack"}}: {{if .IsViewBranch}}{{.BranchName}}{{else if .IsViewTag}}{{.TagName}}{{else}}{{ShortSha .CommitID}}{{end}}</button>
+			<button type="button" class="ds-chip rp-histchip{{if or .HistoryAfter .HistoryBefore}} is-on{{end}}" data-history-chip="date" aria-haspopup="dialog">{{if and .HistoryAfter .HistoryBefore}}{{ctx.Locale.Tr "asc_rp.chip_date_range" .HistoryAfter .HistoryBefore}}{{else if .HistoryAfter}}{{ctx.Locale.Tr "asc_rp.chip_date_after" .HistoryAfter}}{{else if .HistoryBefore}}{{ctx.Locale.Tr "asc_rp.chip_date_before" .HistoryBefore}}{{else}}{{ctx.Locale.Tr "asc_rp.chip_date"}}{{end}}</button>
+		</div>
+		<dialog class="rp-sheet" data-history-sheet aria-labelledby="rp-history-sheet-h" data-repo-link="{{.RepoLink}}" data-ref-sub="{{.BranchNameSubURL}}" data-tree-path="{{.TreePath}}" data-words="{{.HistoryWords}}" data-testid="history-sheet">
+			<div class="rp-sheet-grip" aria-hidden="true"></div>
+			<h2 class="rp-sheet-h" id="rp-history-sheet-h" data-history-sheet-h></h2>
+			<div class="rp-sheet-b" data-history-part="who" data-title="{{ctx.Locale.Tr "asc_rp.history_who"}}" hidden>
+				<a class="ds-btn ds-btn-secondary rp-sheet-act" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}"{{if not .HistoryWho}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_everyone"}}</a>
+				<a class="ds-btn ds-btn-secondary rp-sheet-act" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?who=people"{{if eq .HistoryWho "people"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_people"}}</a>
+				<a class="ds-btn ds-btn-secondary rp-sheet-act" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?who=agents"{{if eq .HistoryWho "agents"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_agents"}}</a>
+			</div>
+			<form class="rp-sheet-b" data-history-part="path" data-title="{{ctx.Locale.Tr "asc_rp.chip_path"}}" hidden>
+				<div class="ds-field">
+					<label class="ds-label" for="rp-history-path">{{ctx.Locale.Tr "asc_rp.chip_path_label"}}</label>
+					<input class="ds-input ds-mono" id="rp-history-path" name="path" type="text" maxlength="4096" spellcheck="false" autocapitalize="off" value="{{.TreePath}}">
+				</div>
+				<button class="ds-btn ds-btn-primary rp-sheet-act">{{ctx.Locale.Tr "asc_rp.chip_apply"}}</button>
+				{{if .TreePath}}<a class="ds-btn ds-btn-ghost rp-sheet-act" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "asc_rp.chip_clear"}}</a>{{end}}
+			</form>
+			<form class="rp-sheet-b" data-history-part="stack" data-title="{{ctx.Locale.Tr "asc_rp.chip_stack"}}" hidden>
+				<div class="ds-field">
+					<label class="ds-label" for="rp-history-ref">{{ctx.Locale.Tr "asc_rp.chip_stack_label"}}</label>
+					<input class="ds-input ds-mono" id="rp-history-ref" name="ref" type="text" maxlength="255" spellcheck="false" autocapitalize="off" required value="{{if .IsViewBranch}}{{.BranchName}}{{end}}">
+				</div>
+				<button class="ds-btn ds-btn-primary rp-sheet-act">{{ctx.Locale.Tr "asc_rp.chip_apply"}}</button>
+			</form>
+			<form class="rp-sheet-b" data-history-part="date" data-title="{{ctx.Locale.Tr "asc_rp.chip_date"}}" hidden>
+				<div class="ds-field">
+					<label class="ds-label" for="rp-history-after">{{ctx.Locale.Tr "asc_rp.chip_date_from"}}</label>
+					<input class="ds-input" id="rp-history-after" name="after" type="date" value="{{.HistoryAfter}}">
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="rp-history-before">{{ctx.Locale.Tr "asc_rp.chip_date_to"}}</label>
+					<input class="ds-input" id="rp-history-before" name="before" type="date" value="{{.HistoryBefore}}">
+				</div>
+				{{if .TreePath}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.chip_date_whole"}}</p>{{end}}
+				<button class="ds-btn ds-btn-primary rp-sheet-act">{{ctx.Locale.Tr "asc_rp.chip_apply"}}</button>
+				{{if or .HistoryAfter .HistoryBefore}}<a class="ds-btn ds-btn-ghost rp-sheet-act" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "asc_rp.chip_clear"}}</a>{{end}}
+			</form>
+			<form method="dialog"><button class="ds-btn ds-btn-ghost rp-sheet-act">{{ctx.Locale.Tr "asc_rp.blame_close"}}</button></form>
+		</dialog>
+		<div class="rp-histbar ds-hide-xs">
 			{{template "repo/branch_dropdown" dict "root" . "ContainerClasses" "rp-ref"}}
 			{{template "repo/filepath" .}}
 		</div>

@@ -334,3 +334,40 @@ a.rp-who:hover {
 .rp-lanes circle.rp-lane-k5 { fill: #39c5cf; }
 .rp-lanes circle.rp-lane-k6 { fill: #e5534b; }
 .rp-lanes circle.rp-lane-k7 { fill: #ae7c4b; }
+
+/* Phone filter chips: one per filter, each opens its part of the bottom sheet. */
+.rp-histchips {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px 12px;
+  padding: 0 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.rp-histchip {
+  display: block;
+  flex: none;
+  max-width: 70vw;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  line-height: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.rp-histchip.is-on {
+  border-color: var(--primary-line);
+  background: var(--primary-soft, var(--surface-3));
+  color: var(--text);
+}
+
+.rp-sheet-b a[aria-current="true"] {
+  border-color: var(--primary-line);
+  font-weight: 700;
+}
