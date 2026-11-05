@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 121 |
-| ui-only-missing | 11 |
-| needs-hub-backend | 38 |
+| done | 123 |
+| ui-only-missing | 10 |
+| needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 7, M 46, L 21.
+Open rows by size: S 6, M 45, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -249,13 +249,13 @@ Open rows by size: S 7, M 46, L 21.
 | Inbox | Tabs Needs you, Waiting on others, Agents, Done with counts (hub adds Drafts) | done | `routers/web/user/asc_inbox_page.go`, `asc_inbox.tmpl` | - |
 | Inbox | Filters: All repos, Humans and agents, Sorted by | done | Repo select works; "Humans and agents" missing; "Sorted by" is static text (`wk-sort`). Add `kind` and `sort` in `ascInboxBuild` | S |
 | Inbox | Unread dot plus bold title | needs-hub-backend | No unread state (no `unread` in the template). `last_seen` per pull and user in `models/issues/asc_inbox_state.go` (migration) | M |
-| Inbox | Row hover actions (Review, Answer, Mark done, Snooze) | ui-only-missing | Rows are a link only; actions posting to `/-/asc/inbox/state` | S |
+| Inbox | Row hover actions (Review, Answer, Mark done, Snooze) | done | `templates/user/asc_inbox.tmpl` `[data-asc-row-acts]`: Review, Answer (agent rows that wait), Mark done or Restore, Snooze 4h, each posting to `/-/asc/inbox/state`; tests in `routers/web/user/asc_inbox_test.go` | S |
 | Inbox | Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | needs-hub-backend | None. `AscInboxStatePost` takes one pull; accept many, add `unwatch`, selection JS in `asc-keys.js` | M |
-| Inbox | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | needs-hub-backend | Only `pin`, `unpin`, `snooze`, `wake` exist; Done tab lists merged items. Add `done` and `restore` with expiry in `asc_inbox_state.go`; asc `inbox.proto` `SetState` covers pin and snooze only, extend it if state must live in asc | M |
+| Inbox | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | done | `done_unix` on `asc_inbox_state` (migration `v18l_asc_inbox_done.go`); `SetAscInboxDone`; `do=done` and `do=restore` in `AscInboxStatePost`; an item comes back when the pull request changes; the Done tab lists it for `AscInboxDoneKeep` (30 days); fade and once-only send in `initAscInboxDone` (`asc-keys.js`); undo toast `[data-asc-undo]` | M |
 | Inbox | Snooze menu: Later today 17:00, Tomorrow 09:00, Monday 09:00, When the checks finish, Pick a date | needs-both | Menu has 1 h, 4 h, tomorrow, week. "When the checks finish" needs a check-completion wake (asc `ci.proto` events); date picker is UI | M |
 | Inbox | Detail pane: why waiting, changed since last look, policy line (approvals 1 of 2), thread, reply box with Approve and Request changes | done | `asc_inbox.tmpl` | - |
 | Inbox | "Ask agent to change" (comment becomes an instruction for the author agent) | needs-both | Reply form has Approve, Request changes, Reply only. Hub: POST to `CreateRun` or `SendInput`; asc: instruction flag on review comments (`review.proto` `AddComment`) | L |
-| Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | needs-hub-backend | j k s p g i present; x, e need the new states; a and r submit the form with confirm | S |
+| Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | needs-hub-backend | j k s p g i e present (e: `[data-asc-done]`); x needs selection; a and r submit the form with confirm | S |
 | Inbox | Pagination "Showing 8 of 23" | done | None in `asc_inbox.tmpl`; list is capped (`ascInboxInfoRows`) | M |
 | Inbox | New items slide in from the top without jumping the list | needs-both | No live update. Hub poll or SSE; asc `inbox.proto` `Count` is poll friendly | M |
 | Inbox | States: bulk bar, inbox zero with Watch more repositories, loading skeleton | done | Empty exists; the other two missing | S |
