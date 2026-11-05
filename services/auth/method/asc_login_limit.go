@@ -69,26 +69,28 @@ func isWrongCredential(err error) bool {
 func UserSignInFrom(ctx context.Context, username, password, remoteAddr string) (*user_model.User, *auth_model.Source, error) {
 	limit, wait := setting.LoginMaxAttempts, setting.LoginWait
 	addr := ascratelimit.ClientKey(remoteAddr)
-	if left := loginAddresses.Begin(addr, limit*ascLoginAddrFactor, wait); left > 0 {
+	left, addrTry := loginAddresses.Begin(addr, limit*ascLoginAddrFactor, wait)
+	if left > 0 {
 		return nil, nil, ErrLoginWait{Wait: left}
 	}
 	account := loginName(username) + "\x00" + addr
-	if left := loginAccounts.Begin(account, limit, wait); left > 0 {
-		loginAddresses.Release(addr)
+	left, accountTry := loginAccounts.Begin(account, limit, wait)
+	if left > 0 {
+		loginAddresses.Release(addrTry)
 		return nil, nil, ErrLoginWait{Wait: left}
 	}
 	u, source, err := UserSignIn(ctx, username, password)
 	if err == nil || !isWrongCredential(err) {
 		// the password was right (a refused account is only told so with the right password), or the server failed
-		loginAddresses.Release(addr)
+		loginAddresses.Release(addrTry)
 		if err == nil || user_model.IsErrUserProhibitLogin(err) {
 			loginAccounts.Clear(account)
 		} else {
-			loginAccounts.Release(account)
+			loginAccounts.Release(accountTry)
 		}
 		return u, source, err
 	}
-	left := max(loginAccounts.Left(account), loginAddresses.Left(addr))
+	left = max(loginAccounts.Left(account), loginAddresses.Left(addr))
 	if left > 0 {
 		return nil, nil, ErrLoginWait{Wait: left}
 	}

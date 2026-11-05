@@ -9,21 +9,16 @@ import (
 	"time"
 )
 
-// Lockout counts the failures of a key, for the wait after wrong passwords: once limit tries were counted within
-// wait of the first, the key is refused for wait. Every call takes the limits, so they follow the settings.
+// Lockout counts the tries of a key, for the wait after wrong passwords: once limit tries were counted within wait of
+// the first, the key is refused for wait. Every call takes the limits, so they follow the settings.
 //
 // Its table has a size limit. When it is full it drops the key whose count started the longest ago among those not
-// waiting; a key that waits is never dropped, so a flood of names cannot end a wait. When every key waits, a new key
-// counts against one shared overflow count with OverflowFactor times the limit: the keys already counted go on as
-// before, and the tries of new keys stay bounded together instead of being refused one by one or not counted.
-// OverflowFactor is how many times the limit of a key all new keys may try together while the table is full of waits.
-const OverflowFactor = 100
-
+// waiting. When every key waits it drops the one whose wait ends soonest: each key keeps its own count, so a flood
+// never refuses or frees keys it did not count, and it only shortens the waits that were nearly over.
 type Lockout struct {
 	mu      sync.Mutex
 	items   map[string]*list.Element // key -> element of order, whose value is *lockItem
 	order   *list.List               // oldest count start at the front
-	over    lockItem                 // the shared count of new keys while the table is full of waits
 	maxKeys int
 	now     func() time.Time
 }
@@ -34,6 +29,12 @@ type lockItem struct {
 	n     int
 	limit int
 	until time.Time
+}
+
+// Ticket is a try counted by Begin, for Release. The zero Ticket is a try that was not counted.
+type Ticket struct {
+	it    *lockItem
+	start time.Time
 }
 
 // NewLockout makes an empty lockout table.
@@ -48,87 +49,80 @@ func (l *Lockout) Left(key string) time.Duration {
 	if el, ok := l.items[key]; ok {
 		return max(el.Value.(*lockItem).until.Sub(l.now()), 0)
 	}
-	if len(l.items) >= l.maxKeys {
-		return max(l.over.until.Sub(l.now()), 0)
-	}
 	return 0
 }
 
 // Begin is Left and, when key may try, counts the try before it is made, so that tries sent at the same time cannot
-// pass the limit. The try that reaches limit starts the wait; Clear or Release it when the try succeeds. limit 0
-// counts nothing.
-func (l *Lockout) Begin(key string, limit int, wait time.Duration) time.Duration {
+// pass the limit. The try that reaches limit starts the wait; Clear the key, or Release the ticket, when the try
+// turns out not to count. limit 0 counts nothing.
+func (l *Lockout) Begin(key string, limit int, wait time.Duration) (time.Duration, Ticket) {
 	if limit <= 0 {
-		return 0
+		return 0, Ticket{}
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	now := l.now()
 	el, ok := l.items[key]
 	if !ok {
-		if len(l.items) >= l.maxKeys && !l.dropOne(now) {
-			return countTry(&l.over, limit*OverflowFactor, wait, now)
+		if len(l.items) >= l.maxKeys {
+			l.dropOne(now)
 		}
 		el = l.order.PushBack(&lockItem{key: key, start: now})
 		l.items[key] = el
 	}
 	it := el.Value.(*lockItem)
-	if fresh(it, wait, now) {
-		l.order.MoveToBack(el)
-	}
-	return countTry(it, limit, wait, now)
-}
-
-// countTry counts one try of it before it is made and gives how long it still waits (0: the try may be made).
-func countTry(it *lockItem, limit int, wait time.Duration, now time.Time) time.Duration {
 	if left := it.until.Sub(now); left > 0 {
-		return left
+		return left, Ticket{}
 	}
-	if fresh(it, wait, now) {
+	if !it.until.IsZero() || now.Sub(it.start) >= wait {
+		// the wait or the window is over: a fresh count
 		it.start, it.n, it.until = now, 0, time.Time{}
+		l.order.MoveToBack(el)
 	}
 	it.n++
 	it.limit = limit
-	if it.n < limit {
-		return 0
+	if it.n >= limit {
+		// the last try may still be made; the wait applies from the next one
+		it.until = now.Add(wait)
 	}
-	// the last try may still be made; the wait applies from the next one
-	it.until = now.Add(wait)
-	return 0
+	return 0, Ticket{it: it, start: it.start}
 }
 
-// fresh says whether the next try of it starts a fresh count: its wait or its window is over.
-func fresh(it *lockItem, wait time.Duration, now time.Time) bool {
-	if !it.until.IsZero() {
-		return !it.until.After(now)
-	}
-	return now.Sub(it.start) >= wait
-}
-
-// dropOne drops the key whose count started the longest ago among those not waiting; false when every key waits.
-func (l *Lockout) dropOne(now time.Time) bool {
+// dropOne drops the key whose count started the longest ago among those not waiting, else the one whose wait ends
+// soonest.
+func (l *Lockout) dropOne(now time.Time) {
+	var soonest *list.Element
 	for el := l.order.Front(); el != nil; el = el.Next() {
-		if it := el.Value.(*lockItem); !it.until.After(now) {
-			delete(l.items, it.key)
-			l.order.Remove(el)
-			return true
+		it := el.Value.(*lockItem)
+		if !it.until.After(now) {
+			soonest = el
+			break
+		}
+		if soonest == nil || it.until.Before(soonest.Value.(*lockItem).until) {
+			soonest = el
 		}
 	}
-	return false
+	if soonest != nil {
+		delete(l.items, soonest.Value.(*lockItem).key)
+		l.order.Remove(soonest)
+	}
 }
 
-// Release gives back one try that Begin counted and that turned out not to count (it succeeded, or the server
-// failed). When that try started the wait, the wait ends again.
-func (l *Lockout) Release(key string) {
+// Release gives back the try of t, which turned out not to count (it succeeded, or the server failed). When that try
+// started the wait, the wait ends again. A try whose key was dropped or whose count started again is not given back.
+func (l *Lockout) Release(t Ticket) {
+	if t.it == nil {
+		return
+	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	it := &l.over // a key not in the table was counted in the overflow
-	if el, ok := l.items[key]; ok {
-		it = el.Value.(*lockItem)
+	el, ok := l.items[t.it.key]
+	if !ok || el.Value.(*lockItem) != t.it || !t.it.start.Equal(t.start) {
+		return
 	}
-	it.n = max(it.n-1, 0)
-	if it.n < it.limit {
-		it.until = time.Time{}
+	t.it.n = max(t.it.n-1, 0)
+	if t.it.n < t.it.limit {
+		t.it.until = time.Time{}
 	}
 }
 
