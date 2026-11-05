@@ -51,7 +51,6 @@ const (
 	tplBranches        base.TplName = "repo/settings/branches"
 	tplGithooks        base.TplName = "repo/settings/githooks"
 	tplGithookEdit     base.TplName = "repo/settings/githook_edit"
-	tplDeployKeys      base.TplName = "repo/settings/deploy_keys"
 )
 
 // SettingsCtxData is a middleware that sets all the general context data for the

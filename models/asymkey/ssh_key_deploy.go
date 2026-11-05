@@ -34,6 +34,8 @@ type DeployKey struct {
 	Content     string `xorm:"-"`
 
 	Mode perm.AccessMode `xorm:"NOT NULL DEFAULT 1"`
+	// AddedByID is the person who added the key; 0 for a key added before it was recorded.
+	AddedByID int64 `xorm:"NOT NULL DEFAULT 0"`
 
 	CreatedUnix       timeutil.TimeStamp `xorm:"created"`
 	UpdatedUnix       timeutil.TimeStamp `xorm:"updated"`
@@ -90,7 +92,7 @@ func checkDeployKey(ctx context.Context, keyID, repoID int64, name string) error
 }
 
 // addDeployKey adds new key-repo relation.
-func addDeployKey(ctx context.Context, keyID, repoID int64, name, fingerprint string, mode perm.AccessMode) (*DeployKey, error) {
+func addDeployKey(ctx context.Context, keyID, repoID, addedByID int64, name, fingerprint string, mode perm.AccessMode) (*DeployKey, error) {
 	if err := checkDeployKey(ctx, keyID, repoID, name); err != nil {
 		return nil, err
 	}
@@ -101,12 +103,18 @@ func addDeployKey(ctx context.Context, keyID, repoID int64, name, fingerprint st
 		Name:        name,
 		Fingerprint: fingerprint,
 		Mode:        mode,
+		AddedByID:   addedByID,
 	}
 	return key, db.Insert(ctx, key)
 }
 
 // AddDeployKey add new deploy key to database and authorized_keys file.
 func AddDeployKey(ctx context.Context, repoID int64, name, content string, readOnly bool) (*DeployKey, error) {
+	return AddDeployKeyBy(ctx, repoID, 0, name, content, readOnly)
+}
+
+// AddDeployKeyBy is AddDeployKey that records who added the key.
+func AddDeployKeyBy(ctx context.Context, repoID, addedByID int64, name, content string, readOnly bool) (*DeployKey, error) {
 	fingerprint, err := CalcFingerprint(content)
 	if err != nil {
 		return nil, err
@@ -144,7 +152,7 @@ func AddDeployKey(ctx context.Context, repoID int64, name, content string, readO
 		}
 	}
 
-	key, err := addDeployKey(ctx, pkey.ID, repoID, name, pkey.Fingerprint, accessMode)
+	key, err := addDeployKey(ctx, pkey.ID, repoID, addedByID, name, pkey.Fingerprint, accessMode)
 	if err != nil {
 		return nil, err
 	}

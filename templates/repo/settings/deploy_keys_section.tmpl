@@ -1,0 +1,90 @@
+{{/* The deploy keys of the access page (/settings/collaboration and /settings/keys render one layout): per key the
+title, the fingerprint, read-only or read-write, who added it and when it was last used; Add deploy key opens a dialog
+(asc-deploy-key-add.js) that posts to /settings/keys and comes back to the page it was opened from. */}}
+{{$back := ""}}{{if .PageIsSettingsCollaboration}}{{$back = "?back=access"}}{{end}}
+<h4 class="ds-card-top tw-mt-4" id="deploy-keys">
+	{{ctx.Locale.Tr "repo.settings.deploy_keys"}}
+	<div class="ui right">
+	{{if not .DisableSSH}}
+		<button type="button" class="ds-btn ds-btn-primary ds-btn-sm" data-dk-add-open>{{ctx.Locale.Tr "repo.settings.add_deploy_key"}}</button>
+	{{else}}
+		<button type="button" class="ds-btn ds-btn-primary ds-btn-sm" disabled>{{ctx.Locale.Tr "settings.ssh_disabled"}}</button>
+	{{end}}
+	</div>
+</h4>
+<div class="ds-card ds-card-b ds-card-attach" data-testid="asc-deploy-keys">
+	{{if .Deploykeys}}
+		<div class="flex-list">
+			{{range $k := .Deploykeys}}
+				<div class="flex-item" data-testid="asc-deploy-key">
+					<div class="flex-item-leading">
+						<span class="text {{if .HasRecentActivity}}green{{end}}" {{if .HasRecentActivity}}data-tooltip-content="{{ctx.Locale.Tr "settings.key_state_desc"}}"{{end}}>{{svg "octicon-key" 32}}</span>
+					</div>
+					<div class="flex-item-main">
+						<div class="flex-item-title">
+							{{.Name}}
+							{{if .IsReadOnly}}<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.dk_read_only"}}</span>{{else}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.dk_read_write"}}</span>{{end}}
+						</div>
+						<div class="flex-item-body"><code>{{.Fingerprint}}</code></div>
+						<div class="flex-item-body">
+							{{with index $.DeployKeyAdders .AddedByID}}<span data-testid="asc-deploy-key-adder">{{ctx.Locale.Tr "asc_rp.dk_added_by" .HomeLink .GetDisplayName (DateUtils.AbsoluteShort $k.CreatedUnix)}}</span>{{else}}<span>{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>{{end}}
+							·
+							{{if .HasUsed}}<span {{if .HasRecentActivity}}class="text green"{{end}}>{{ctx.Locale.Tr "asc_rp.dk_last_used" (DateUtils.TimeSince .UpdatedUnix)}}</span>{{else}}<span>{{ctx.Locale.Tr "settings.no_activity"}}</span>{{end}}
+						</div>
+					</div>
+					<div class="flex-item-trailing">
+						<button class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-url="{{$.RepoLink}}/settings/keys/delete{{$back}}" data-id="{{.ID}}" data-modal-id="delete-deploy-key">
+							{{ctx.Locale.Tr "settings.delete_key"}}
+						</button>
+					</div>
+				</div>
+			{{end}}
+		</div>
+	{{else}}
+		<p data-testid="asc-deploy-keys-empty">{{ctx.Locale.Tr "repo.settings.no_deploy_keys"}}</p>
+	{{end}}
+</div>
+
+{{if not .DisableSSH}}
+<dialog id="dk-add-dlg" class="wh-add-dlg" aria-labelledby="dk-add-title"{{if .HasError}} data-dk-add-reopen{{end}}>
+	<form class="ds-form" method="post" action="{{.RepoLink}}/settings/keys{{$back}}">
+		{{.CsrfTokenHtml}}
+		<article>
+			<header>
+				<span class="ds-grow" id="dk-add-title">{{ctx.Locale.Tr "repo.settings.add_deploy_key"}}</span>
+				<button type="button" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm" data-dk-add-close aria-label="{{ctx.Locale.Tr "asc_shell.close"}}">{{svg "dsi-x" 16}}</button>
+			</header>
+			<div class="content">
+				<p class="ds-hint">{{ctx.Locale.Tr "repo.settings.deploy_key_desc"}}</p>
+				<div class="ds-field">
+					<label class="ds-label" for="dk-add-title-input">{{ctx.Locale.Tr "repo.settings.title"}}</label>
+					<input class="ds-input" id="dk-add-title-input" name="title" value="{{.title}}" required{{if .Err_Title}} aria-invalid="true"{{end}}>
+				</div>
+				<div class="ds-field">
+					<label class="ds-label" for="dk-add-content">{{ctx.Locale.Tr "repo.settings.deploy_key_content"}}</label>
+					<textarea class="ds-textarea" id="dk-add-content" name="content" placeholder="{{ctx.Locale.Tr "settings.key_content_ssh_placeholder"}}" required spellcheck="false"{{if .Err_Content}} aria-invalid="true"{{end}}>{{.content}}</textarea>
+				</div>
+				<div class="ds-field">
+					<div class="ds-check"><input id="dk-add-writable" name="is_writable" type="checkbox" value="1"{{if .is_writable}} checked{{end}} aria-describedby="dk-add-writable-hint"><label for="dk-add-writable">{{ctx.Locale.Tr "repo.settings.is_writable"}}</label></div>
+					<p class="ds-hint" id="dk-add-writable-hint">{{ctx.Locale.Tr "repo.settings.is_writable_info"}}</p>
+				</div>
+			</div>
+			<div class="actions">
+				<button type="button" class="ds-btn ds-btn-ghost" data-dk-add-close>{{ctx.Locale.Tr "cancel"}}</button>
+				<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.add_deploy_key"}}</button>
+			</div>
+		</article>
+	</form>
+</dialog>
+{{end}}
+
+<div class="ui g-modal-confirm delete modal" id="delete-deploy-key">
+	<div class="header">
+		{{svg "octicon-trash"}}
+		{{ctx.Locale.Tr "repo.settings.deploy_key_deletion"}}
+	</div>
+	<div class="content">
+		<p>{{ctx.Locale.Tr "repo.settings.deploy_key_deletion_desc"}}</p>
+	</div>
+	{{template "base/modal_actions_confirm" .}}
+</div>
