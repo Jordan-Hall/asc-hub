@@ -231,6 +231,9 @@ Test a restore before you need one: restore the latest archive into a scratch vo
 
 ## Upgrade and rollback
 
+> [!WARNING]
+> Migrations only go forward. Without the backup of step 1, an upgrade that changed the schema cannot be rolled back.
+
 1. Take the backup above. A rollback after a schema change needs it.
 2. Set the image tag to the new commit tag and redeploy (`docker compose pull && docker compose up -d`). On start `asc serve migrate` runs first, then the hub applies its database migrations; the ASC tables are `v17b` to `v17h` (without `v17f`) in `models/forgejo_migrations`. Migrations only go forward.
 3. The hub and `asc serve` are upgraded together because they ship in one image: the `asc` binary comes from the `asc-serve` image named by the build argument `ASC_IMAGE`, and the generated `asc.v1` code the hub speaks is in `modules/ascproto`, produced from the ASC repository's `proto` directory. Never combine the hub of one tag with the `asc` of another.

@@ -342,9 +342,9 @@ Board copy not found word for word in locale, templates or scripts: A short path
 |---|---|---|---|
 | Docs home: search, Popular chips, six entry cards, "New in ASC 1.4" list, Need a person card | done | templates/asc/docs.tmpl (file) | - |
 | Docs search with grouped results (Commands, Guides), did-you-mean, no results, loading; Ctrl K... | done | services/ascdocs/commands.go, templates/asc/docs_results.tmpl, web_src/js/features/asc-docs-search.js | Results load as you type from /-/docs?q=&fragment=results; Ctrl K or / focuses the box (TestAscDocsSearch*) |
-| Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | missing (hub) | logged as not built (not re-probed) | Docs live on GitHub ($docsURL). Render docs/asc/** with the hub markdown renderer: AscDocs in routers/web/asc_public.go, new temp... |
+| Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | done | templates/asc/docs_page.tmpl, routers/web/asc_public.go `docsLead`, web_src/js/features/asc-docs.js `keepSideScroll` | Guides by section beside the article, lead, reading time, last change, callouts, steps, Previous and Next (TestAscDocsArticleLayout) |
 | OS code tabs remembered; Copy without the prompt | missing (UI) | logged as not built (not re-probed) | Reuse the initDownload tab code; localStorage key |
-| On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | docs.js (not found in tree) | the where-cell cites docs.js, not in the tree (renamed or stale text); behaviour taken from the gap file |
+| On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | web_src/js/features/asc-docs.js `initAscDocs` | Open in the hub has no place: the hub serves the docs |
 | "Was this page helpful?" Yes and No | done | `POST /-/docs/{slug}/feedback`, table `asc_docs_feedback`, ten a minute per address; counts for site administrators | `asc_docs_feedback_test.go`, `asc-docs-feedback.test.js` |
 | Mobile: Docs menu drawer, sticky "On this page" row, sticky next-page bar | partial (UI) | logged as not built (not re-probed) | "On this page" row and a next-guide link exist on a phone; the docs menu drawer is missing (the guide list sits under the article) |
 
