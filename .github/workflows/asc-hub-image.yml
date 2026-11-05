@@ -1,7 +1,8 @@
 name: asc-hub-image
 # ASC Hub, one image with the hub and asc serve (Dockerfile.allinone), on GitHub Container Registry
 # (private package):
-#   push to asc/v16 -> ghcr.io/<owner>/asc-hub:<sha12> and :asc-v16
+#   push to asc/v16 -> ghcr.io/<owner>/asc-hub:<sha12> and :asc-v16, then deployed (job deploy)
+#   a new asc-serve image on asc master starts this workflow with asc_image set (asc image.yml, job hub)
 #
 # The asc binary is copied from the published asc-serve image. Which one is decided by, in order:
 #   1. the workflow_dispatch input asc_image,
@@ -92,3 +93,33 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 # ASC Hub image build
+
+  # until the hub answers 200. Skipped while any of these is unset:
+  #   variable DEPLOY_HEALTH_URL  https URL that answers 200 once the hub is up
+  deploy:
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions: {}
+    concurrency:
+      group: asc-hub-deploy
+      cancel-in-progress: false
+    env:
+      HEALTH: ${{ vars.DEPLOY_HEALTH_URL }}
+    steps:
+        run: |
+          set -euo pipefail
+            exit 0
+          fi
+          case "$HEALTH" in https://*) ;; *) echo "::error::DEPLOY_HEALTH_URL must be https"; exit 1 ;; esac
+          tag="${GITHUB_SHA::12}"
+          curl --fail --silent --show-error --proto '=https' -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+            -d "{\"key\":\"ASC_HUB_IMAGE_TAG\",\"value\":\"$tag\"}" "$api/envs" -o /dev/null
+          curl --fail --silent --show-error --proto '=https' -X POST -H "Authorization: Bearer $TOKEN" "$api/restart" -o /dev/null
+          for _ in $(seq 1 60); do
+            code=$(curl --silent --proto '=https' -o /dev/null -w '%{http_code}' --max-time 10 "$HEALTH" || true)
+            if [ "$code" = 200 ]; then echo "::notice::deployed asc-hub $tag"; exit 0; fi
+            sleep 15
+          done
+          echo "::error::the hub did not answer 200 within 15 minutes of the restart"
+          exit 1
