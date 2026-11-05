@@ -34,7 +34,9 @@ func TestLoadDepFindingsCleansWhatThePublicSourceSends(t *testing.T) {
 		return &ascv1.ListDepFindingsResponse{
 			Findings:      []*ascv1.DepFinding{depFinding(1, ascv1.DepSeverity_DEP_SEVERITY_CRITICAL), bad, cred},
 			NextPageToken: "n_2", CountsByState: map[string]uint32{"open": 3, "dismissed": 1}, LastScan: 1_700_000_000,
-			LastLookup: ascv1.DepLookupStatus_DEP_LOOKUP_STATUS_PARTIAL,
+			LastLookup:      ascv1.DepLookupStatus_DEP_LOOKUP_STATUS_PARTIAL,
+			OpenBySeverity:  map[string]uint32{"critical": 1, "high": 2, "moderate": 0, "low": 4, "unknown": 1},
+			PackagesChecked: 214, PackagesUnknown: 300, PackagesByEcosystem: map[string]uint32{"npm": 120, "crates.io": 90, "Go\x1b": 4, "PyPI": 0},
 		}, nil
 	}
 	page, err := LoadDepFindings(userCtx(t, "tok"), c, "o/r", DepFindingsQuery{Severity: "moderate", Ecosystem: "crates.io", PageToken: "n_1"})
@@ -61,6 +63,11 @@ func TestLoadDepFindingsCleansWhatThePublicSourceSends(t *testing.T) {
 	assert.EqualValues(t, 0, page.Counts["fixed"])
 	assert.Equal(t, "partial", page.LookupKey)
 	assert.False(t, page.NeverScanned)
+	assert.Equal(t, []DepCount{{"critical", 1}, {"high", 2}, {"moderate", 0}, {"low", 4}, {"unknown", 1}}, page.OpenBySeverity, "in severity order, unknown last")
+	assert.EqualValues(t, 8, page.OpenTotal)
+	assert.EqualValues(t, 214, page.PackagesChecked)
+	assert.EqualValues(t, 214, page.PackagesUnknown, "never more unknown packages than were checked")
+	assert.Equal(t, []DepCount{{"npm", 120}, {"crates.io", 90}, {"Go", 4}}, page.PackagesByEcosystem, "most first, cleaned, empty ones left out")
 }
 
 func TestLoadDepFindingsRefusesBadInputAndBadAnswers(t *testing.T) {
@@ -111,6 +118,8 @@ func TestLoadDepUpdatesAndConfig(t *testing.T) {
 	assert.Equal(t, "info", up.Rows[0].KindTone)
 	assert.Equal(t, []string{"GHSA-2"}, up.Rows[0].Unfixed)
 	assert.EqualValues(t, 2, up.Unknown, "an unknown package is counted, never reported clean")
+	assert.Equal(t, DepOutdated{Outdated: 1, Security: 1, Unknown: 2}, up.Outdated())
+	assert.Equal(t, DepOutdated{Outdated: 1}, (&DepUpdates{Rows: []DepUpdateRow{{Name: "a", Latest: "2"}, {Name: "b", Error: "registry down"}}}).Outdated(), "a row without a newer version is not outdated")
 
 	f.depConfig = func(*ascv1.GetDepsConfigRequest) (*ascv1.GetDepsConfigResponse, error) {
 		return &ascv1.GetDepsConfigResponse{
@@ -181,6 +190,24 @@ func TestScanProposeAndDismiss(t *testing.T) {
 	_, err = ProposeDeps(userCtx(t, "tok"), c, "o/r", DepProposeQuery{DryRun: true})
 	require.NoError(t, err, "a preview needs no operation id")
 	assert.True(t, f.last(t, "DepPropose").Req.(*ascv1.ProposeDepUpdateRequest).GetDryRun())
+	assert.Empty(t, f.last(t, "DepPropose").Req.(*ascv1.ProposeDepUpdateRequest).GetSelectors(), "no package means every update")
+
+	_, err = ProposeDeps(userCtx(t, "tok"), c, "o/r", DepProposeQuery{DryRun: true, SecurityOnly: true, Ecosystem: "crates.io", Name: "time"})
+	require.NoError(t, err)
+	sel := f.last(t, "DepPropose").Req.(*ascv1.ProposeDepUpdateRequest).GetSelectors()
+	require.Len(t, sel, 1, "the fix of one finding names its package")
+	assert.Equal(t, "crates.io", sel[0].GetEcosystem())
+	assert.Equal(t, "time", sel[0].GetName())
+	n = f.count("DepPropose")
+	for name, q := range map[string]DepProposeQuery{
+		"no ecosystem": {DryRun: true, Name: "time"}, "no name": {DryRun: true, Ecosystem: "npm"},
+		"bad ecosystem": {DryRun: true, Ecosystem: "a b", Name: "x"}, "control": {DryRun: true, Ecosystem: "npm", Name: "x\x00"},
+		"long": {DryRun: true, Ecosystem: "npm", Name: strings.Repeat("a", 1000)},
+	} {
+		_, err = ProposeDeps(userCtx(t, "tok"), c, "o/r", q)
+		assert.ErrorIs(t, err, ErrBadInput, name)
+	}
+	assert.Equal(t, n, f.count("DepPropose"), "a bad package is not sent")
 
 	f.depPropose = func(*ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error) {
 		return &ascv1.ProposeDepUpdateResponse{Proposals: []*ascv1.DepProposal{{Group: "x", Ref: "refs/heads/main"}}}, nil
