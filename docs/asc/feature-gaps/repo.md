@@ -311,7 +311,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| RepoSettingsPolicy | File header: `.asc/policy.toml`, Valid chip, "Last changed by Priya Raman, 5 days ago, in change kz4np" | ui-only-missing | `H:templates/repo/settings/asc_policy.tmpl` has the chip; last-change info via `Repo.Log` path filter | S |
+| RepoSettingsPolicy | File header: `.asc/policy.toml`, Valid chip, "Last changed by Priya Raman, 5 days ago, in change kz4np" | done | `H:templates/repo/settings/asc_policy.tmpl` header: the Valid chip, the changeset it was read from and "Last changed by …, … ago, in change …" from the newest default-branch change touching `.asc/policy.toml` (`ascPolicyLastChange`, through the git backend); `asc_policy_lastchange_test.go` | S |
 | RepoSettingsPolicy | TOML editor with Check (validate), diagnostics with line, Propose change | done | `H:routers/web/repo/setting/asc_policy.go` (`/check`, `/propose`) | S |
 | RepoSettingsPolicy | Seg Form / TOML / Changes (three views of one file) | done (seen on a live hub (ui18): three tabs over one file, arrow keys move; Form fields are approvals, checks, signing, force, merge strategy and queue, agent scope, denied paths and budgets) | `asc_policy.tmpl` has a textarea and a read-only "what it means" table only | L |
 | RepoSettingsPolicy | Form: approvals stepper, check chips with Add, authors-may-approve switch, keep-approvals switch | needs-both | form needs a structured parse (`ValidatePolicyResponse.parsed`); keys `author_may_approve`, `keep_approvals_on_restack` do not exist in `A:crates/asc-core/src/policy.rs` | L |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 165 |
+| done | 166 |
 | partial | 1 |
-| ui-only-missing | 36 |
+| ui-only-missing | 35 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -438,7 +438,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsMenu | 0 | 2 | 0 | 0 | 0 |
 | RepoSettingsGeneral | 2 | 3 | 3 | 0 | 1 |
 | RepoSettingsAccess | 1 | 3 | 3 | 0 | 1 |
-| RepoSettingsPolicy | 4 | 5 | 0 | 1 | 2 |
+| RepoSettingsPolicy | 5 | 4 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
 | RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
 | RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |

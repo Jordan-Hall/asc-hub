@@ -46,6 +46,7 @@
 				{{else if .View.Present}}<span class="ast-pill ast-pill-no" data-testid="asc-policy-state">{{ctx.Locale.Tr "asc_rp.p_unusable"}}</span>
 				{{else}}<span class="ast-pill ast-pill-ro" data-testid="asc-policy-state">{{ctx.Locale.Tr "asc_rp.p_nofile"}}</span>{{end}}
 				{{if .View.Source}}<span class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.p_read_from"}} <code class="asc-trust-code">{{.View.Source}}</code></span>{{end}}
+				{{with .LastChange}}<span class="asc-trust-sub" data-testid="asc-policy-last-change">{{ctx.Locale.Tr "asc_rp.p_last_change" .Who (DateUtils.TimeSince .When) .URL .Short}}</span>{{end}}
 				<span class="ast-card-aside">{{ctx.Locale.Tr "asc_rp.p_aside"}}</span>
 			</div>
 			{{if .View.Error}}<div class="ds-banner ds-banner-warn" role="alert">{{.View.Error}}</div>{{end}}
