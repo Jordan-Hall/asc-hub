@@ -16,6 +16,7 @@ import (
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
 	"forgejo.org/models/organization"
+	"forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
@@ -100,6 +101,7 @@ type AscDashAgent struct {
 type AscDashRepo struct {
 	FullName string
 	Link     string
+	Pinned   bool // pinned to the profile of the person
 }
 
 // AscDashTeam is a team of the sidebar.
@@ -349,10 +351,33 @@ func ascDashToday(feeds activities_model.ActionList, now time.Time) activities_m
 	return out
 }
 
-// ascDashRepos lists the repositories the person works in, most recently updated first.
+// ascDashRepos lists the repositories of the work switcher: the ones the person pinned to their profile first, in
+// their order (a pin the person can no longer read is left out), then the ones they work in, most recently updated
+// first, up to ascDashMaxRepos in all.
 func ascDashRepos(ctx gocontext.Context, doer *user_model.User) []AscDashRepo {
+	out := make([]AscDashRepo, 0, ascDashMaxRepos)
+	seen := map[int64]bool{}
+	pins, err := user_model.ListAscProfilePins(ctx, doer.ID)
+	if err != nil {
+		log.Error("asc dashboard: pins of user %d: %v", doer.ID, err)
+	}
+	for _, id := range pins {
+		if len(out) == ascDashMaxRepos {
+			return out
+		}
+		r, err := repo_model.GetRepositoryByID(ctx, id)
+		if err != nil || r.IsArchived {
+			continue
+		}
+		perm, err := access.GetUserRepoPermission(ctx, r, doer)
+		if err != nil || !perm.HasAccess() {
+			continue
+		}
+		seen[r.ID] = true
+		out = append(out, AscDashRepo{FullName: r.FullName(), Link: r.Link(), Pinned: true})
+	}
 	repos, _, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
-		ListOptions: db.ListOptions{Page: 1, PageSize: ascDashMaxRepos},
+		ListOptions: db.ListOptions{Page: 1, PageSize: ascDashMaxRepos + len(seen)},
 		Actor:       doer,
 		OwnerID:     doer.ID,
 		Private:     true,
@@ -362,11 +387,15 @@ func ascDashRepos(ctx gocontext.Context, doer *user_model.User) []AscDashRepo {
 	})
 	if err != nil {
 		log.Error("asc dashboard: repositories of user %d: %v", doer.ID, err)
-		return nil
+		return out
 	}
-	out := make([]AscDashRepo, 0, len(repos))
 	for _, r := range repos {
-		out = append(out, AscDashRepo{FullName: r.FullName(), Link: r.Link()})
+		if len(out) == ascDashMaxRepos {
+			break
+		}
+		if !seen[r.ID] {
+			out = append(out, AscDashRepo{FullName: r.FullName(), Link: r.Link()})
+		}
 	}
 	return out
 }
@@ -656,4 +685,13 @@ func AscDashTodayCard(ctx *context.Context) {
 	ctx.Data["AscDashTodayKinds"] = ascFeedKinds(today)
 	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
 	ctx.HTML(http.StatusOK, tplAscDashToday)
+}
+
+// AscDashCounts serves `GET /-/asc/dash/counts`: the numbers of the work switcher of the dashboard (Inbox, My stacks,
+// Review requests, Agent runs) for the scope the person last chose (the page without a scope query), so the left list
+// stays current while the page is open (asc-dash-live.js asks with the Today card, once a minute).
+func AscDashCounts(ctx *context.Context) {
+	d := ascDashBuild(ctx, time.Now())
+	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+	ctx.JSON(http.StatusOK, map[string]int{"needs": d.NeedsCount, "stacks": d.StackCount, "reviews": d.ReviewCount, "agents": d.AgentsActive})
 }
