@@ -243,20 +243,12 @@ func SignInPost(ctx *context.Context) {
 		}
 	}
 
-	limitKey := ascLoginKey(form.UserName, ctx.RemoteAddr())
-	if wait := ascLoginWait(limitKey, time.Now()); wait > 0 {
-		ascRenderLoginWait(ctx, form, wait)
-		return
-	}
-
-	u, source, err := auth_method.UserSignIn(ctx, form.UserName, form.Password)
+	u, source, err := auth_method.UserSignInFrom(ctx, form.UserName, form.Password, ctx.RemoteAddr())
 	if err != nil {
-		if errors.Is(err, util.ErrNotExist) || errors.Is(err, util.ErrInvalidArgument) {
+		if ascRenderLoginWait(ctx, tplSignIn, &form, err) {
 			log.Warn("Failed authentication attempt for %s from %s: %v", form.UserName, ctx.RemoteAddr(), err)
-			if wait := ascLoginFailed(limitKey, time.Now()); wait > 0 {
-				ascRenderLoginWait(ctx, form, wait)
-				return
-			}
+		} else if errors.Is(err, util.ErrNotExist) || errors.Is(err, util.ErrInvalidArgument) {
+			log.Warn("Failed authentication attempt for %s from %s: %v", form.UserName, ctx.RemoteAddr(), err)
 			ctx.RenderWithErr(ascWrongPassword(ctx), tplSignIn, &form)
 		} else if user_model.IsErrEmailAlreadyUsed(err) {
 			log.Warn("Failed authentication attempt for %s from %s: %v", form.UserName, ctx.RemoteAddr(), err)
@@ -270,7 +262,6 @@ func SignInPost(ctx *context.Context) {
 		}
 		return
 	}
-	ascLoginSucceeded(limitKey)
 
 	// Now handle 2FA:
 

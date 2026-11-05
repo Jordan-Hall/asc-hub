@@ -83,11 +83,13 @@ func LinkAccount(ctx *context.Context) {
 }
 
 func handleSignInError(ctx *context.Context, userName string, ptrForm any, tmpl base.TplName, invoker string, err error) {
-	if errors.Is(err, util.ErrNotExist) {
-		ctx.RenderWithErr(ctx.Tr("form.username_password_incorrect"), tmpl, ptrForm)
+	if ascRenderLoginWait(ctx, tmpl, ptrForm, err) {
+		log.Info("Failed authentication attempt for %s from %s: %v", userName, ctx.RemoteAddr(), err)
+	} else if errors.Is(err, util.ErrNotExist) {
+		ctx.RenderWithErr(ascWrongPassword(ctx), tmpl, ptrForm)
 	} else if errors.Is(err, util.ErrInvalidArgument) {
 		ctx.Data["user_exists"] = true
-		ctx.RenderWithErr(ctx.Tr("form.username_password_incorrect"), tmpl, ptrForm)
+		ctx.RenderWithErr(ascWrongPassword(ctx), tmpl, ptrForm)
 	} else if user_model.IsErrUserProhibitLogin(err) {
 		ctx.Data["user_exists"] = true
 		log.Info("Failed authentication attempt for %s from %s: %v", userName, ctx.RemoteAddr(), err)
@@ -127,7 +129,7 @@ func LinkAccountPostSignIn(ctx *context.Context) {
 		return
 	}
 
-	u, _, err := auth_method.UserSignIn(ctx, signInForm.UserName, signInForm.Password)
+	u, _, err := auth_method.UserSignInFrom(ctx, signInForm.UserName, signInForm.Password, ctx.RemoteAddr())
 	if err != nil {
 		handleSignInError(ctx, signInForm.UserName, &signInForm, tplLinkAccount, "UserLinkAccount", err)
 		return
