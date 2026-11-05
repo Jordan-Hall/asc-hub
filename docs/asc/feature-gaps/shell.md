@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 154 |
+| done | 155 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 16 |
+| needs-hub-backend | 15 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 24, L 17.
+Open rows by size: S 0, M 23, L 17.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -100,7 +100,7 @@ Open rows by size: S 0, M 24, L 17.
 | Install | Test connection with result ("Connected to PostgreSQL 16.4" or the cause); Install disabled until it passes for server databases | done | `POST /test-db` (`routers/install/asc_dbtest.go`), `install.js` | - |
 | Install | Database error card with "Test again" and "Use SQLite instead" | done | `templates/install.tmpl`, `install.js`; the error names the field and the fix | - |
 | Install | Sticky summary rail (Database, URL, Registration) and live step progress | done | `templates/install.tmpl` rail, `install.js` | - |
-| Install | "Setting up your hub" progress page (Step n of 5) that polls, then redirects | needs-hub-backend | `SubmitInstall` runs synchronously. Run steps as a job with a status route, poll with `aria-live=polite` | M |
+| Install | "Setting up your hub" progress page (Step n of 5) that polls, then redirects | done | `SubmitInstall` counts its steps (tables, repository root, administrator) for `GET /-/install/status` (routers/install/asc_progress.go, outside the session); install.js swaps the form for templates/install_progress.tmpl when it is sent and follows the route, then the post-install page runs the merge queue step until the hub answers and shows the ready state. `TestAscInstallStatus`, `TestAscInstallProgressMarkup`, install.test.js | M |
 | Install | Post-install page: signed in as, `asc auth login --host ...` with Copy, Open the hub, Download ASC | done | `templates/post-install.tmpl`, `install.js` | - |
 | Install | Skip administrator: first registered user becomes owner | needs-hub-backend | Installer needs an admin today; add the skip path and "first user is admin" in `routers/web/auth/auth.go` | M |
 | Mobile-Install | One section per screen with progress bar, Back and Next | done | `install.tmpl`, `install.js` stepper under 768 px | - |
