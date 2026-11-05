@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 129 |
-| ui-only-missing | 4 |
+| done | 130 |
+| ui-only-missing | 3 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -155,7 +155,7 @@ Open rows by size: S 3, M 42, L 21.
 | Explore | States: loading skeleton, empty hub (New repository, Import), no results with removable filter chips and Clear filters, error with request id and Try again | done | `explore/repo_list.tmpl`: "No repositories yet" with New repository and Import a project (signed in); "Nothing matches" with the count of active filters, the removable chips and Clear filters; a failed search keeps the page and shows "We could not load this list" with the request id, Try again and Status page (`routers/web/explore/repo.go`, status 500). No skeleton: the list is server rendered. Tests `TestAscExploreLoadFailed`, `TestAscExploreEmptyHub`, `TestAscExploreNoMatch` | - |
 | Explore | Pagination "Showing 1 to 8 of 128" | done | `base/paginate.tmpl` | - |
 | Mobile-Explore | Sort and filter bottom sheet with result count on the primary button | done | `repo_search.tmpl` | - |
-| Mobile-Explore | Pull to refresh; infinite scroll after 30 rows with Load more fallback | ui-only-missing | Classic pagination only. New `explore-more.js` plus a list-fragment route | M |
+| Mobile-Explore | Pull to refresh; infinite scroll after 30 rows with Load more fallback | done | `templates/shared/ds/more.tmpl` in explore/repos.tmpl and users.tmpl; `web_src/js/features/asc-explore-more.js` loads the next pages near the list end on a phone (Load more with data saver, no observer, or a failed load); pull to refresh by `asc-pull-refresh.js` | - |
 
 ## Explore: users
 

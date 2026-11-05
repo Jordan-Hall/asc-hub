@@ -424,7 +424,7 @@ Board copy not found word for word in locale, templates or scripts: Filter repos
 | States: loading skeleton, empty hub (New repository, Import), no results with removable filter... | partial (UI) | logged as not built (not re-probed) | Empty and no-results text exist (shared/ds/empty); removable chips, skeleton and error card missing (request id: see Errors) |
 | Pagination "Showing 1 to 8 of 128" | done | templates/base/paginate.tmpl (file) | - |
 | Mobile: Sort and filter bottom sheet with result count on the primary button | done | templates/shared/repo_search.tmpl:138 | - |
-| Mobile: Pull to refresh; infinite scroll after 30 rows with Load more fallback | missing (UI) | logged as not built (not re-probed) | Classic pagination only. New explore-more.js plus a list-fragment route |
+| Mobile: Pull to refresh; infinite scroll after 30 rows with Load more fallback | done | templates/shared/ds/more.tmpl, web_src/js/features/asc-explore-more.js, asc-pull-refresh.js | - |
 
 #### ExploreOrgs (ASC Hub explore organizations)
 
