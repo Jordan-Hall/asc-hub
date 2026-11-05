@@ -53,6 +53,11 @@ func profileContext(ctx *context.Context) {
 	ctx.Data["DisableGravatar"] = setting.Config().Picture.DisableGravatar.Value(ctx)
 	ctx.Data["CooldownPeriod"] = setting.Service.UsernameCooldownPeriod
 	ctx.Data["CommonPronouns"] = commonPronouns
+	role, err := user_model.GetUserSetting(ctx, ctx.Doer.ID, user_model.SettingsKeyAscRole)
+	if err != nil {
+		log.Error("GetUserSetting(role) for user[%d]: %v", ctx.Doer.ID, err)
+	}
+	ctx.Data["AscRole"] = role
 	ctx.Data["MaxAvatarFileSize"] = setting.Avatar.MaxFileSize
 	ctx.Data["MaxAvatarWidth"] = setting.Avatar.MaxWidth
 	ctx.Data["MaxAvatarHeight"] = setting.Avatar.MaxHeight
@@ -121,6 +126,19 @@ func ProfilePost(ctx *context.Context) {
 	if err := user_service.UpdateUser(ctx, ctx.Doer, opts); err != nil {
 		ctx.ServerError("UpdateUser", err)
 		return
+	}
+
+	if ctx.Req.PostForm.Has("role") {
+		var err error
+		if role := strings.TrimSpace(form.Role); role == "" {
+			err = user_model.DeleteUserSetting(ctx, ctx.Doer.ID, user_model.SettingsKeyAscRole)
+		} else {
+			err = user_model.SetUserSetting(ctx, ctx.Doer.ID, user_model.SettingsKeyAscRole, role)
+		}
+		if err != nil {
+			ctx.ServerError("SetUserSetting", err)
+			return
+		}
 	}
 
 	if ctx.Req.PostForm.Has("tz") {
