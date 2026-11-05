@@ -68,7 +68,8 @@ func TestAscDownloadHiddenWithoutRelease(t *testing.T) {
 	// an ordinary user is not
 	user := loginUser(t, "user2")
 	ordinary := NewHTMLParser(t, user.MakeRequest(t, NewRequest(t, "GET", "/download"), http.StatusOK).Body)
-	assert.Zero(t, ordinary.doc.Find(".ds-banner-warn").Length())
+	// the held-draft note of the header is a template, not a banner of the page
+	assert.Zero(t, ordinary.doc.Find(".ds-banner-warn").Not("template *").Length())
 	assert.Equal(t, 1, ordinary.doc.Find(`[data-testid="asc-no-release"]`).Length())
 }
 
