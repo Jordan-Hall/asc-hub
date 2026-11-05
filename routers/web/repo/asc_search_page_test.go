@@ -90,6 +90,13 @@ func TestAscSearchPaging(t *testing.T) {
 	require.Positive(t, i)
 	assert.Contains(t, page.body[i:strings.Index(page.body, `class="asc-search-results"`)], ">23<", "the facets count the whole answer")
 
+	// Mobile: the facets go into the Filters sheet, whose button counts the filters set; the narrowing
+	// fields sit outside the sticky form and still belong to it.
+	assert.Contains(t, page.body, `data-testid="search-filters-sheet"`)
+	assert.Contains(t, page.body, `data-search-filters-open aria-haspopup="dialog" hidden>asc_rp.s_filters <span class="asc-count">1</span></button>`)
+	assert.Contains(t, page.body, `<input form="asc-search-form" id="asc-search-lang"`)
+	assert.Contains(t, page.body, "asc_rp.s_show_result_1", "the mock locale prints the singular key")
+
 	page = getAscSearch(t, "?q=needle&sort=path")
 	require.Equal(t, http.StatusOK, page.status)
 	assert.Contains(t, page.body, "src/f00.rs")

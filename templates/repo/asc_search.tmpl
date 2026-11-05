@@ -22,34 +22,36 @@
 				<label class="asc-scope-option"><input type="radio" name="scope" value="branches"{{if eq .AscSearchScope "branches"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_scope_branches"}}</span></label>
 				<label class="asc-scope-option"><input type="radio" name="scope" value="repos"{{if eq .AscSearchScope "repos"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_scope_repos"}}</span></label>
 			</fieldset>
+			{{if .AscSearchSort}}<input type="hidden" name="sort" value="{{.AscSearchSort}}">{{end}}
+		</form>
 			<details class="asc-search-options"{{if or .AscSearchRefInput .AscSearchPullInput .AscSearchPathInput .AscSearchLangInput .AscSearchError}} open{{end}}>
 				<summary>{{ctx.Locale.Tr "asc_rp.s_narrow"}}</summary>
 				<div class="asc-search-fields">
 					<div class="ds-field">
 						<label class="ds-label" for="asc-search-ref">{{ctx.Locale.Tr "asc_rp.s_ref"}}</label>
-						<input id="asc-search-ref" class="ds-input" name="ref" type="text" maxlength="255" value="{{.AscSearchRefInput}}" placeholder="{{.AscSearchDefaultBranch}}">
+						<input form="asc-search-form" id="asc-search-ref" class="ds-input" name="ref" type="text" maxlength="255" value="{{.AscSearchRefInput}}" placeholder="{{.AscSearchDefaultBranch}}">
 					</div>
 					<div class="ds-field">
 						<label class="ds-label" for="asc-search-pull">{{ctx.Locale.Tr "asc_rp.s_pull"}}</label>
-						<input id="asc-search-pull" class="ds-input" name="pull" type="text" inputmode="numeric" maxlength="12" value="{{.AscSearchPullInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_number"}}">
+						<input form="asc-search-form" id="asc-search-pull" class="ds-input" name="pull" type="text" inputmode="numeric" maxlength="12" value="{{.AscSearchPullInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_number"}}">
 					</div>
 					<div class="ds-field asc-search-case">
 						<div class="ds-check">
-							<input id="asc-search-diff" name="diff" type="checkbox" value="1"{{if .AscSearchStackDiff}} checked{{end}}>
+							<input form="asc-search-form" id="asc-search-diff" name="diff" type="checkbox" value="1"{{if .AscSearchStackDiff}} checked{{end}}>
 							<label for="asc-search-diff">{{ctx.Locale.Tr "asc_rp.s_diff_only"}}</label>
 						</div>
 					</div>
 					<div class="ds-field">
 						<label class="ds-label" for="asc-search-path">{{ctx.Locale.Tr "asc_rp.s_path_prefix"}}</label>
-						<input id="asc-search-path" class="ds-input" name="path" type="text" maxlength="4096" value="{{.AscSearchPathInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_whole_repo"}}">
+						<input form="asc-search-form" id="asc-search-path" class="ds-input" name="path" type="text" maxlength="4096" value="{{.AscSearchPathInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_whole_repo"}}">
 					</div>
 					<div class="ds-field">
 						<label class="ds-label" for="asc-search-lang">{{ctx.Locale.Tr "asc_rp.s_language"}}</label>
-						<input id="asc-search-lang" class="ds-input" name="lang" type="text" maxlength="40" value="{{.AscSearchLangInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_any"}}">
+						<input form="asc-search-form" id="asc-search-lang" class="ds-input" name="lang" type="text" maxlength="40" value="{{.AscSearchLangInput}}" placeholder="{{ctx.Locale.Tr "asc_rp.s_any"}}">
 					</div>
 					<div class="ds-field">
 						<label class="ds-label" for="asc-search-match">{{ctx.Locale.Tr "asc_rp.s_match"}}</label>
-						<select id="asc-search-match" class="ds-select" name="match">
+						<select form="asc-search-form" id="asc-search-match" class="ds-select" name="match">
 							<option value="literal"{{if eq .AscSearchMatch "literal"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.s_match_literal"}}</option>
 							<option value="word"{{if eq .AscSearchMatch "word"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.s_match_word"}}</option>
 							<option value="regex"{{if eq .AscSearchMatch "regex"}} selected{{end}}>{{ctx.Locale.Tr "asc_rp.s_match_regex"}}</option>
@@ -57,14 +59,12 @@
 					</div>
 					<div class="ds-field asc-search-case">
 						<div class="ds-check">
-							<input id="asc-search-case" name="case" type="checkbox" value="1"{{if .AscSearchCase}} checked{{end}}>
+							<input form="asc-search-form" id="asc-search-case" name="case" type="checkbox" value="1"{{if .AscSearchCase}} checked{{end}}>
 							<label for="asc-search-case">{{ctx.Locale.Tr "asc_rp.s_case"}}</label>
 						</div>
 					</div>
 				</div>
 			</details>
-			{{if .AscSearchSort}}<input type="hidden" name="sort" value="{{.AscSearchSort}}">{{end}}
-		</form>
 
 		{{template "repo/asc_search_loading" .}}
 		<div data-loading-body data-loading-links>
@@ -132,6 +132,7 @@
 					</p>
 					{{if .AscSearchCount}}
 						<div class="asc-search-sortbar">
+							<button type="button" class="ds-btn ds-btn-secondary asc-filters-open" data-search-filters-open aria-haspopup="dialog" hidden>{{ctx.Locale.Tr "asc_rp.s_filters"}}{{if .AscSearchFilterCount}} <span class="asc-count">{{.AscSearchFilterCount}}</span>{{end}}</button>
 							{{if .AscSearchPages.Pages}}<p class="asc-search-showing" data-testid="search-showing">{{if .AscSearchPages.More}}{{ctx.Locale.Tr "asc_rp.s_showing_more" .AscSearchPages.From .AscSearchPages.To .AscSearchPages.Total}}{{else}}{{ctx.Locale.Tr "asc_rp.s_showing" .AscSearchPages.From .AscSearchPages.To .AscSearchPages.Total}}{{end}}</p>{{end}}
 							<nav class="asc-search-sort" aria-label="{{ctx.Locale.Tr "asc_rp.s_sort"}}" data-testid="search-sort">
 								<span class="asc-muted">{{ctx.Locale.Tr "asc_rp.s_sort"}}</span>
@@ -257,6 +258,12 @@
 					{{if .AscSearchTruncated}}<div class="ds-banner">{{ctx.Locale.Tr "asc_rp.s_more"}}</div>{{end}}
 				</div>
 
+				<dialog class="rp-sheet asc-filter-sheet" data-search-filters aria-labelledby="asc-filters-h" data-testid="search-filters-sheet">
+					<div class="rp-sheet-grip" aria-hidden="true"></div>
+					<h2 class="rp-sheet-h" id="asc-filters-h">{{ctx.Locale.Tr "asc_rp.s_filters"}}</h2>
+					<div class="rp-sheet-b" data-search-filters-body></div>
+					<button type="button" class="ds-btn ds-btn-primary rp-sheet-act" data-search-filters-close>{{ctx.Locale.TrN .AscSearchCount "asc_rp.s_show_result_1" "asc_rp.s_show_results" .AscSearchCount}}</button>
+				</dialog>
 				{{if or .AscSearchSymbols .AscSearchMatched}}
 					<aside class="asc-search-panel" id="asc-search-panel" aria-label="{{ctx.Locale.Tr "asc_rp.sp_label"}}" aria-live="polite" data-loading="{{ctx.Locale.Tr "asc_rp.sp_loading"}}" data-failed="{{ctx.Locale.Tr "asc_rp.sp_failed"}}">
 						<p class="asc-muted">{{ctx.Locale.Tr "asc_rp.sp_hint"}}</p>
