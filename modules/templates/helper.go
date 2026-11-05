@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/base"
@@ -202,6 +203,13 @@ func NewFuncMap() template.FuncMap {
 				return setting.UI.DefaultTheme
 			}
 			return user.Theme
+		},
+		"AscDensity": func(user *user_model.User) string {
+			// the density saved with the account; empty for a guest, whose browser keeps it
+			if user == nil || user.ID <= 0 {
+				return ""
+			}
+			return user_model.AscDensity(db.DefaultContext, user.ID)
 		},
 		"NotificationSettings": func() map[string]any {
 			return map[string]any{
