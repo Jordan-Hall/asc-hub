@@ -1,0 +1,36 @@
+{{/*
+The "Today" card of the dashboard (board Dashboard): the activities of the last day with a filter by kind. The card
+refreshes itself from GET /-/asc/dash/today (asc-dash-live.js) and, when that cannot load, keeps its items and shows
+the offline state with Try again and the time to the next try.
+Template Attributes:
+* AscDashToday: the activities of the last day
+* AscDashTodayKinds: the kind of each activity (push, change, comment)
+*/}}
+<section class="ds-card wk-card" aria-labelledby="wk-today-title" data-asc-dash-today="{{AppSubUrl}}/-/asc/dash/today">
+	<div class="ds-card-h"><h2 id="wk-today-title">{{ctx.Locale.Tr "user.asc_dash.today"}}</h2></div>
+	<div class="wk-today-err" data-asc-dash-offline hidden>
+		<div class="ds-banner ds-banner-err" role="alert"><span aria-hidden="true">{{svg "dsi-wifi-off" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "user.asc_dash.offline"}}</div></div>
+		<div class="wk-today-retry">
+			<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-asc-dash-retry>{{ctx.Locale.Tr "user.asc_dash.try_again"}}</button>
+			<span class="ds-t-small ds-c-2" data-asc-dash-countdown data-template="{{ctx.Locale.Tr "user.asc_dash.retrying" "%d"}}"></span>
+		</div>
+	</div>
+	{{if .AscDashToday}}
+		<div class="wk-feedbar">
+			<div class="ds-chips" data-feed-filter="#wk-feed" role="group" aria-label="{{ctx.Locale.Tr "asc_work.dash_feed_filter"}}">
+				<button type="button" class="ds-chip-filter is-on" data-kind="" aria-pressed="true">{{ctx.Locale.Tr "asc_work.dash_feed_all"}}</button>
+				<button type="button" class="ds-chip-filter" data-kind="push" aria-pressed="false">{{ctx.Locale.Tr "asc_work.dash_feed_push"}}</button>
+				<button type="button" class="ds-chip-filter" data-kind="change" aria-pressed="false">{{ctx.Locale.Tr "asc_work.dash_feed_change"}}</button>
+				<button type="button" class="ds-chip-filter" data-kind="comment" aria-pressed="false">{{ctx.Locale.Tr "asc_work.dash_feed_comment"}}</button>
+			</div>
+			<p class="ds-sr" role="status" data-feed-count data-template="{{ctx.Locale.Tr "asc_work.dash_feed_shown" "%d"}}"></p>
+		</div>
+		<ul class="wk-feed" id="wk-feed">
+			{{range $i, $a := .AscDashToday}}
+				<li data-feed-item data-kind="{{index $.AscDashTodayKinds $i}}">{{template "user/dashboard/feed_sentence" $a}}</li>
+			{{end}}
+		</ul>
+	{{else}}
+		<p class="wk-quiet">{{ctx.Locale.Tr "user.asc_dash.today_none"}}</p>
+	{{end}}
+</section>

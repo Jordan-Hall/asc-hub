@@ -22,6 +22,23 @@
   min-width: 0;
 }
 
+/* the Today card when its activity cannot load (asc-dash-live.js) */
+.wk-today-err {
+  display: grid;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.wk-today-err[hidden] {
+  display: none;
+}
+
+.wk-today-retry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .wk-dash-main .wk-head {
   margin-bottom: 14px;
 }
