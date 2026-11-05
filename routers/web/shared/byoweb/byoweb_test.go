@@ -412,11 +412,28 @@ func TestStorageLifecycleActions(t *testing.T) {
 
 		// A new name is not a new place: the stored credentials stay.
 		form.Set("prefix", "other/")
+		verifies := len(f.CallsTo("VerifyTarget"))
 		r = run(t, StorageUpdate, userLevel(t), http.MethodPost, form, id)
-		require.Equal(t, http.StatusSeeOther, r.resp.Code, r.body())
+		require.Equal(t, http.StatusOK, r.resp.Code, r.body())
 		req := f.CallsTo("UpdateTarget")[0].Req.(*ascv1.UpdateStorageTargetRequest)
 		assert.Equal(t, "other/", req.GetPrefix())
 		assert.Nil(t, req.Credentials)
+		// Save and test: the saved target is tested at once, and the page shows both results.
+		assert.Len(t, f.CallsTo("VerifyTarget"), verifies+1)
+		body := r.body()
+		assert.Contains(t, body, `data-testid="asc-storage-saved"`)
+		assert.Contains(t, body, `data-testid="asc-verify-result"`)
+		assert.Contains(t, body, tr(t, "ascbyo.storage.detail.verify_ok"))
+		assert.Contains(t, body, tr(t, "ascbyo.storage.detail.save_test"))
+	})
+	t.Run("a saved target that fails its test says both", func(t *testing.T) {
+		f.VerifyBad = true
+		defer func() { f.VerifyBad = false }()
+		form := url.Values{"name": {"life"}, "endpoint": {"https://s3.example.com"}, "region": {"eu"}, "bucket": {"bucket-life"}, "prefix": {"third/"}, "addressing": {"auto"}}
+		r := run(t, StorageUpdate, userLevel(t), http.MethodPost, form, id)
+		require.Equal(t, http.StatusOK, r.resp.Code, r.body())
+		assert.Contains(t, r.body(), `data-testid="asc-storage-saved"`)
+		assert.Contains(t, r.body(), tr(t, "ascbyo.storage.detail.verify_failed"))
 	})
 	t.Run("a new place without new credentials is refused", func(t *testing.T) {
 		form := url.Values{"name": {"life"}, "endpoint": {"https://s3.example.com"}, "region": {"eu"}, "bucket": {"new-bucket-name"}, "prefix": {"other/"}, "addressing": {"auto"}}
