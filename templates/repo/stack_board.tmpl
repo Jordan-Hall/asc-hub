@@ -41,7 +41,7 @@
 	{{end}}
 	{{if .StackRows}}
 		<div class="ds-card rp-stack-card" data-stack-scope>
-			<ul class="rp-rows" data-stack-rows>
+			<ul class="rp-rows" data-stack-rows data-stack-live="{{.Repository.ID}}">
 				{{range .StackRows}}{{template "repo/stack_row" .}}{{end}}
 			</ul>
 			<p class="rp-quiet rp-stack-none" data-stack-none hidden>{{ctx.Locale.Tr "asc_rp.f_none"}}</p>
