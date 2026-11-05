@@ -275,6 +275,12 @@ LOGIN_WAIT = 5m
 
 The counts are kept in memory by each hub process and are lost on a restart.
 
+## Passkeys
+
+With ASC on, the sign in page has Sign in with a passkey under the form. The browser offers the passkeys it holds for the hub, the person unlocks one (fingerprint, face or the PIN of the device) and is signed in with no name, no password and no second step: the key must verify the person, which stands for both. A key that only shows presence is refused, and so is an account that is inactive or may not sign in. Each challenge takes one answer. Keep me signed in applies as it does to the password.
+
+Security keys added under Settings, Security while ASC is on are asked to be passkeys, so the device keeps one for the account; a device that cannot registers a plain security key, which still works as the second step but not on this button. A key added before needs to be added again to sign in with it. Passkeys are bound to `[server] DOMAIN`: changing the domain makes every key stop working.
+
 ## Passwords found in breaches
 
 With `[security] PASSWORD_CHECK_PWN = true` the hub refuses a new password that appears in the Have-I-Been-Pwned list, and the strength meter of the sign up, reset and link forms shows the rule "Not found in known data breaches" while the person types. The browser hashes the password with SHA-1 and asks the hub for `GET /-/password/range/{prefix}`, the first five hexadecimal digits only; the hub asks `https://api.pwnedpasswords.com/range/` with padding and answers the suffixes of that range, and the browser looks for its own. Neither the password nor its full hash leaves the browser, and the outside service sees only the prefix and the address of the hub. A breached password shows as Weak. The route answers 404 with the setting off, 400 for a prefix that is not five hexadecimal digits, 502 when the service cannot be reached, and 429 after 30 ranges a minute from one address; answers are never cached.
