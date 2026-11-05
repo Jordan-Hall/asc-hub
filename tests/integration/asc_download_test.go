@@ -99,6 +99,15 @@ func TestAscDownloadPage(t *testing.T) {
 	assert.Contains(t, body, "https://example.org/asc/releases/1.4.0")
 	assert.NotContains(t, strings.ToLower(doc.doc.Find("main, [role=main]").Text()), "forgejo")
 
+	// a phone gets a bar with the download for this system and a way to the other systems, and file cards with the size and a signature link
+	sticky := doc.doc.Find("[data-asc-dl-sticky]")
+	require.Equal(t, 1, sticky.Length())
+	assert.Equal(t, setting.AppURL+"-/download/asc-1.4.0-x86_64-pc-windows-msvc.msi", sticky.Find("a.ds-btn-primary").AttrOr("href", ""))
+	assert.Equal(t, "#asc-dl-systems", sticky.Find("a.site-dl-sticky-more").AttrOr("href", ""))
+	assert.Equal(t, 1, doc.doc.Find("#asc-dl-systems").Length())
+	assert.Positive(t, doc.doc.Find("tr.site-dl-row .site-dl-msize").Length())
+	assert.Equal(t, doc.doc.Find("tr.site-dl-row .site-dl-sig").Length(), doc.doc.Find("tr.site-dl-row .site-dl-sig[title='Signature file']").Length())
+
 	// the linux visitor gets the linux tab and the install script flow
 	doc = NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download").SetHeader("User-Agent", uaLinux), http.StatusOK).Body)
 	assert.Equal(t, "linux", doc.doc.Find("[data-asc-download]").AttrOr("data-active-os", ""))
