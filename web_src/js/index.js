@@ -63,7 +63,7 @@ import {initDsToast} from './features/ds-toast.js';
 import {initLivePreview, initImagePreview, initLayoutToggle, initPasswordStrength} from './features/ds-forms.js';
 import {initPrefs} from './features/ds-prefs.js';
 import {initBulk} from './features/ds-bulk.js';
-import {initAscKeys, initAscInboxBadge} from './features/asc-keys.js';
+import {initAscKeys, initAscInboxBadge, initAscInboxDone} from './features/asc-keys.js';
 import {initAscPush} from './features/asc-push.js';
 import {initAscSignup} from './features/asc-signup.js';
 import {initAscPassword} from './features/asc-password.js';
@@ -255,6 +255,7 @@ onDomReady(() => {
   initPrefs();
   initBulk();
   initAscKeys();
+  initAscInboxDone();
   initAscPush();
   initAscSignup();
   initAscPassword();

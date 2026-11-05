@@ -214,6 +214,16 @@
   }
 }
 
+.wk-irow.is-leaving {
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.wk-undo {
+  width: auto;
+  margin: 0 0 12px;
+}
+
 .wk-irow.is-checked {
   background: var(--primary-tint);
 }
