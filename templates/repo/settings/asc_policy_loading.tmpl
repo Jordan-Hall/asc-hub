@@ -1,0 +1,13 @@
+{{/* Shown by asc-page-loading.js in the place of the policy while asc checks, reviews or saves it: the file header, the three tabs and the fields keep their place. */}}
+<section class="ast-card ast-policy-sk" role="status" data-loading-skel data-testid="asc-policy-loading" hidden>
+	<span class="ds-sr">{{ctx.Locale.Tr "asc_rp.p_loading"}}</span>
+	<div class="ast-card-head" aria-hidden="true">
+		<span class="ds-sk ast-policy-sk-title"></span>
+		<span class="ds-sk ast-policy-sk-pill"></span>
+		<span class="ds-sk ast-policy-sk-source"></span>
+	</div>
+	<div class="ast-policy-sk-tabs" aria-hidden="true">{{range 3}}<span class="ds-sk ast-policy-sk-tab"></span>{{end}}</div>
+	<div class="ast-policy-sk-fields" aria-hidden="true">
+		{{range 4}}<div class="ast-policy-sk-field"><span class="ds-sk ds-settings-sk-label"></span><span class="ds-sk ds-settings-sk-input"></span></div>{{end}}
+	</div>
+</section>

@@ -175,6 +175,49 @@
   padding: 12px 14px;
 }
 
+/* the policy while asc checks, reviews or saves it (asc_policy_loading.tmpl) */
+.ast-policy-sk-title {
+  width: 140px;
+  height: 16px;
+}
+
+.ast-policy-sk-pill {
+  width: 52px;
+  height: 18px;
+  border-radius: 9px;
+}
+
+.ast-policy-sk-source {
+  width: 180px;
+  height: 12px;
+}
+
+.ast-policy-sk-tabs {
+  display: flex;
+  gap: 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.ast-policy-sk-tab {
+  width: 64px;
+  height: 14px;
+}
+
+.ast-policy-sk-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 560px;
+  padding: 16px 14px;
+}
+
+.ast-policy-sk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .ast-card-foot {
   padding: 0 14px 12px;
 }
