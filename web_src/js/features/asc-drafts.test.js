@@ -1,8 +1,11 @@
-import {draftKey, packDraft, unpackDraft, initAscDrafts} from './asc-drafts.js';
+import {draftKey, packDraft, unpackDraft, initAscDrafts, hasDrafts} from './asc-drafts.js';
 
 function memory() {
   const m = new Map();
-  return {getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k), m};
+  return {
+    getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k),
+    key: (i) => Array.from(m.keys())[i] ?? null, get length() { return m.size }, m,
+  };
 }
 
 function page(initial = '') {
@@ -64,4 +67,63 @@ test('blocked storage costs only the draft', () => {
   const area = page();
   expect(() => initAscDrafts(document, blocked, '/p')).not.toThrow();
   area.dispatchEvent(new Event('input'));
+});
+
+const note = '<template data-asc-draft-offline><div role="status"><div>Your edit is saved on this device and will be sent when the connection returns.</div><button type="button">Retry now</button></div></template>';
+
+test('a form sent offline is held with its draft, says so, and is sent when the connection returns', () => {
+  const store = memory();
+  const area = page();
+  document.body.insertAdjacentHTML('beforeend', note);
+  let online = false;
+  initAscDrafts(document, store, '/a/b/issues/3', () => online);
+  const sent = vi.fn((e) => e.preventDefault());
+  document.addEventListener('submit', sent);
+  area.value = 'written on a train';
+
+  area.form.requestSubmit();
+  expect(sent).not.toHaveBeenCalled();
+  expect(unpackDraft(store.getItem(draftKey('/a/b/issues/3', 'content')))).toBe('written on a train');
+  const held = area.form.querySelector('[data-asc-draft-held]');
+  expect(held.getAttribute('role')).toBe('status');
+  expect(held.textContent).toContain('Your edit is saved on this device');
+
+  // Retry now while still offline: nothing goes
+  held.querySelector('button').click();
+  expect(sent).not.toHaveBeenCalled();
+
+  online = true;
+  window.dispatchEvent(new Event('online'));
+  expect(sent).toHaveBeenCalledTimes(1);
+  expect(area.form.querySelector('[data-asc-draft-held]')).toBeNull();
+  expect(store.m.size).toBe(0);
+  document.removeEventListener('submit', sent);
+});
+
+test('Retry now sends a held form at once when the connection is back', () => {
+  const store = memory();
+  const area = page();
+  document.body.insertAdjacentHTML('beforeend', note);
+  let online = false;
+  initAscDrafts(document, store, '/p', () => online);
+  const sent = vi.fn((e) => e.preventDefault());
+  document.addEventListener('submit', sent);
+  area.value = 'x';
+  area.form.requestSubmit();
+  area.form.requestSubmit();
+  expect(area.form.querySelectorAll('[data-asc-draft-held]')).toHaveLength(1);
+  online = true;
+  area.form.querySelector('[data-asc-draft-held] button').click();
+  expect(sent).toHaveBeenCalledTimes(1);
+  document.removeEventListener('submit', sent);
+});
+
+test('the offline page knows whether a draft is kept', () => {
+  const store = memory();
+  expect(hasDrafts(store)).toBe(false);
+  store.setItem('other', '1');
+  expect(hasDrafts(store)).toBe(false);
+  store.setItem(draftKey('/p', 'content'), packDraft('x'));
+  expect(hasDrafts(store)).toBe(true);
+  expect(hasDrafts({get length() { throw new Error('blocked') }})).toBe(false);
 });
