@@ -260,6 +260,10 @@ forgejo admin user create --admin --username asc-admin --email admin@example.org
 
 The command prints a generated password once. It also accepts `--password`, but a password in an argument is visible in `ps` and shell history, so use `--random-password`. To get an access token for `asc auth login` at the same time the command has `--access-token`, `--access-token-name` and `--access-token-scopes`.
 
+## Get started for new accounts
+
+A signed-in person who owns no repository, collaborates on none and belongs to no organization with one gets the Get started checklist at `/` instead of the dashboard. Hide (the cross beside the heading) shows the dashboard until they sign in again; the checklist returns while they still have no repository. Once a repository exists, `/` is the dashboard. The checklist stays at `/-/get-started` for everyone.
+
 ## Contact and policies on the About page
 
 The footer links Security, Contact, Privacy, Terms, Acceptable use, Subprocessors and Cookies to sections of `/-/about`. The page lists the cookies the hub sets (with the names in `[session] COOKIE_NAME` and `[security] COOKIE_REMEMBER_NAME`) and what the configuration hands to outside services: object storage on this server or in an S3-compatible store, and a mail server. The page is public, so it never shows a host or address of the configuration; name your providers with `SUBPROCESSORS`. These settings make the rest yours:

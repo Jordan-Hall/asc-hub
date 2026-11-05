@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 147 |
+| done | 150 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 23 |
+| needs-hub-backend | 20 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 31, L 17.
+Open rows by size: S 0, M 28, L 17.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -48,7 +48,7 @@ Open rows by size: S 0, M 31, L 17.
 | Shell | Keyboard shortcuts overlay (`?`, "All shortcuts") | done | No handler in `asc-keys.js`; dialog listing the keys of the page | S |
 | Shell | Footer: full footer on public pages (four groups, version, Based on Forgejo, language, theme switch), one-line footer when signed in | done | `templates/base/footer_content.tmpl` | - |
 | Shell | Footer links: Stacks and changes, Agent runs, Changelog, CLI reference, REST API, MCP server, Status, Security, Contact, Privacy, Terms, Acceptable use, Subprocessors, Cookies | done | `footer_content.tmpl` links the docs pages `stacks-and-operations`, `agents`, `cli`, `mcp`, the docs "New in ASC" list (`#docs-new`), `/-/status` and the About sections `#security`, `#contact`, `#privacy`, `#terms`, `#acceptable-use`, `#subprocessors`, `#cookies`; test `routers/web/asc_about_test.go` | - |
-| Shell | "All systems operational" status in the footer | needs-hub-backend | Not present. Cached value from `/healthcheck` plus asc serve health, or a configured status URL; `footer_content.tmpl` | M |
+| Shell | "All systems operational" status in the footer | done | `modules/templates/asc_status.go` (`AscSystemStatus`, set from `asctrust.FooterStatus` in `routers/init.go`), `.ds-footer-status` in `footer_content.tmpl`, `/-/status` page. Audit 2026-11-05: found built | - |
 | Shell | "Rendered in 18 ms" in the footer | done | Behind `ShowFooterTemplateLoadTime`; enable it in the asc `app.ini` template | S |
 
 ## Main (landing, signed out)
@@ -110,7 +110,7 @@ Open rows by size: S 0, M 31, L 17.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | GetStarted | Four-step checklist with `aria-current=step`, done as a word | done | `templates/asc/get_started.tmpl` at `/-/get-started` | - |
-| GetStarted | Shown on `GET /` for a signed-in person with no repositories; dismissible; returns while none exist | needs-hub-backend | Nothing links to `/-/get-started` or `/user/welcome`; `routers/web/home.go` and `asc_dashboard.go` do not branch on `NumRepos == 0`. Branch there; dismiss flag as a user setting | M |
+| GetStarted | Shown on `GET /` for a signed-in person with no repositories; dismissible; returns while none exist | done | `routers/web/home.go` (`ascGetStartedOnHome`), `routers/web/asc_public.go` (`ascHasNoRepository`: no own, collaborative or organization repository; `POST /-/get-started/hide`). Hide is kept in the session, so the checklist returns at the next sign-in while no repository exists | - |
 | GetStarted | Two parallel first-run pages (`asc/get_started.tmpl`, `user/asc_welcome.tmpl` with old `hub-` classes) | done | Merge into one page that follows the board; delete `user/asc_welcome.tmpl` and `routers/web/asc_welcome.go` | S |
 | GetStarted | Step 2 ticks by itself when the first CLI sign-in arrives, no reload | needs-hub-backend | `GSConnected` is "has an access token" at render time. Add a status route (token last used by the asc CLI) and a poll in a new `asc-welcome.js`; progress bar updates | M |
 | GetStarted | Import step with source tabs and progress "Reading history 12,408 commits" | needs-hub-backend | Links to `/repo/migrate` today. Inline form plus migration-task polling (`routers/web/repo/migrate.go`, `services/migrations`) | L |
@@ -151,7 +151,7 @@ Open rows by size: S 0, M 31, L 17.
 | Explore | Changeset count on a row ("3,812 changesets") | needs-both | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add `RepoStats` or cache in `services/ascsync` | M |
 | Explore | Contributor avatar stack on a row (people and agents) | needs-hub-backend | Not present. Top contributors from `models/activities` or `repo_model.GetContributors`, cached per repo; agents depend on the agent directory below | M |
 | Explore | Row actions on hover or focus-within: Copy clone command, Star | done | Neither on the row. Buttons with `data-clipboard-text` (`asc clone host/owner/name`) and the existing star action | S |
-| Explore | Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can see | needs-hub-backend | `explore/rail.tmpl` has only the clone card. Trending: weekly merged pull count per repo (`models/issues/pull.go` query, cached); topics: `repo_model.FindTopics` (`routers/web/explore/topic.go`) | M |
+| Explore | Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can see | done | `templates/explore/rail.tmpl` (Trending this week, Popular topics, clone card), `models/repo/asc_trending.go` (weekly count, refreshed by a cron task). Audit 2026-11-05: found built | - |
 | Explore | States: loading skeleton, empty hub (New repository, Import), no results with removable filter chips and Clear filters, error with request id and Try again | done | `explore/repo_list.tmpl`: "No repositories yet" with New repository and Import a project (signed in); "Nothing matches" with the count of active filters, the removable chips and Clear filters; a failed search keeps the page and shows "We could not load this list" with the request id, Try again and Status page (`routers/web/explore/repo.go`, status 500). No skeleton: the list is server rendered. Tests `TestAscExploreLoadFailed`, `TestAscExploreEmptyHub`, `TestAscExploreNoMatch` | - |
 | Explore | Pagination "Showing 1 to 8 of 128" | done | `base/paginate.tmpl` | - |
 | Mobile-Explore | Sort and filter bottom sheet with result count on the primary button | done | `repo_search.tmpl` | - |

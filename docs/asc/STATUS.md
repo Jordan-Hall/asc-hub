@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 187, partial 30, missing 100. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 190, partial 30, missing 97. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -404,7 +404,7 @@ Board copy not found word for word in locale, templates or scripts: Error and sy
 
 #### Explore (ASC Hub explore repositories)
 
-Area shell/settings. Rows 15: done 8, partial 2, missing 5. Copy found in the hub: 68% of 144 copy strings (mobile twin 77%). Template(s): navbar.tmpl, repo_list.tmpl, repos.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 15: done 9, partial 2, missing 4. Copy found in the hub: 68% of 144 copy strings (mobile twin 77%). Template(s): navbar.tmpl, repo_list.tmpl, repos.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Filter repositories; Has open stacks; repositories, sorted by recent activity; The hosted checkout: cart, address, payment and confirmation, built for sub-sec...; Updated Yesterday; design-tokens.
 
@@ -420,7 +420,7 @@ Board copy not found word for word in locale, templates or scripts: Filter repos
 | Changeset count on a row ("3,812 changesets") | missing (hub+asc) | logged as not built (not re-probed) | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add RepoStats or cache in services/ascsync |
 | Contributor avatar stack on a row (people and agents) | partial (hub) | logged as not built (not re-probed) | Not present. Top contributors from models/activities or repo_model.GetContributors, cached per repo; agents depend on the agent d... |
 | Row actions on hover or focus-within: Copy clone command, Star | done | see where-cell | the where-cell cites asc clone host/owner/name, not in the tree (renamed or stale text); behaviour taken from the gap file |
-| Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can... | missing (hub) | logged as not built (not re-probed) | explore/rail.tmpl has only the clone card. Trending: weekly merged pull count per repo (models/issues/pull.go query, cached); top... |
+| Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can... | done | templates/explore/rail.tmpl, models/repo/asc_trending.go | - |
 | States: loading skeleton, empty hub (New repository, Import), no results with removable filter... | partial (UI) | logged as not built (not re-probed) | Empty and no-results text exist (shared/ds/empty); removable chips, skeleton and error card missing (request id: see Errors) |
 | Pagination "Showing 1 to 8 of 128" | done | templates/base/paginate.tmpl (file) | - |
 | Mobile: Sort and filter bottom sheet with result count on the primary button | done | templates/shared/repo_search.tmpl:138 | - |
@@ -465,14 +465,14 @@ Board copy not found word for word in locale, templates or scripts: The people a
 
 #### GetStarted (ASC Hub get started)
 
-Area shell/settings. Rows 10: done 4, partial 1, missing 5. Copy found in the hub: 54% of 85 copy strings (mobile twin 57%). Template(s): home.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 10: done 5, partial 1, missing 4. Copy found in the hub: 54% of 85 copy strings (mobile twin 57%). Template(s): home.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Your hub is empty. Let's fix that.; Four steps from nothing to your first reviewed stack. Skip any step; this page...; Sign the command line in and trust this device. The command line is how you wor...; Start a new repository; Import an existing project; Invite teammates.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Four-step checklist with aria-current=step, done as a word | done | templates/asc/get_started.tmpl:1 | the where-cell cites aria-current=step, not in the tree (renamed or stale text); behaviour taken from the gap file |
-| Shown on GET / for a signed-in person with no repositories; dismissible; returns while none ex... | missing (hub) | logged as not built (not re-probed) | Nothing links to /-/get-started or /user/welcome; routers/web/home.go and asc_dashboard.go do not branch on NumRepos == 0. Branch... |
+| Shown on GET / for a signed-in person with no repositories; dismissible; returns while none ex... | done | routers/web/home.go, routers/web/asc_public.go (ascHasNoRepository, POST /-/get-started/hide), templates/asc/get_started.tmpl | Hide lasts until the next sign-in (session) |
 | Two parallel first-run pages (asc/get_started.tmpl, user/asc_welcome.tmpl with old hub- classe... | done | user/asc_welcome.tmpl (not found in tree) | the where-cell cites user/asc_welcome.tmpl, routers/web/asc_welcome.go, not in the tree (renamed or stale text); behaviour taken... |
 | Step 2 ticks by itself when the first CLI sign-in arrives, no reload | missing (hub) | logged as not built (not re-probed) | GSConnected is "has an access token" at render time. Add a status route (token last used by the asc CLI) and a poll in a new asc-... |
 | Import step with source tabs and progress "Reading history 12,408 commits" | missing (hub) | logged as not built (not re-probed) | Links to /repo/migrate today. Inline form plus migration-task polling (routers/web/repo/migrate.go, services/migrations) |
@@ -684,7 +684,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Shell (ASC Hub shell: header, menus, palette, footer)
 
-Area shell/settings. Rows 23: done 18, partial 1, missing 4. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
+Area shell/settings. Rows 23: done 19, partial 1, missing 3. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
 
 Board copy not found word for word in locale, templates or scripts: Four links, one clear way in; Search always one key away, Inbox always one click away; Account, create and notifications; New changeset; Mark all read; approved Backoff with jitter.
 
@@ -711,7 +711,7 @@ Board copy not found word for word in locale, templates or scripts: Four links, 
 | Keyboard shortcuts overlay (?, "All shortcuts") | done | web_src/js/features/asc-keys.js (file) | - |
 | Footer: full footer on public pages (four groups, version, Based on Forgejo, language, theme s... | done | templates/base/footer_content.tmpl:1 | - |
 | Footer links: Stacks and changes, Agent runs, Changelog, CLI reference, REST API, MCP server,... | missing (UI) | absent: Acceptable use, Subprocessors, MCP server not in locale or templates/base | Today: Download, Explore, Users, Organizations, Docs, Operations, API, Why, Licenses. Add links (docs pages or [asc] settings URL... |
-| "All systems operational" status in the footer | missing (hub) | absent: no systems-operational status in locale, templates/base or routers/web | Not present. Cached value from /healthcheck plus asc serve health, or a configured status URL; footer_content.tmpl |
+| "All systems operational" status in the footer | done | modules/templates/asc_status.go, routers/init.go, templates/base/footer_content.tmpl (.ds-footer-status) | - |
 | "Rendered in 18 ms" in the footer | done | see where-cell | - |
 
 #### UserSettingsAI (ASC Hub settings: ai keys)
