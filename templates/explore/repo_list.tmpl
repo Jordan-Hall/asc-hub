@@ -50,7 +50,7 @@
 				<div class="ds-li-aside ds-hide-md"><a class="ds-chip ds-chip-info" href="{{.Link}}/pulls">{{ctx.Locale.TrPluralString $open "explore.open_stacks_n" (ctx.Locale.PrettyNumber $open)}}</a></div>
 			{{end}}
 			{{if or AscEnabled (and $.IsSigned (not $.DisableStars) $.StarredRepos)}}
-			<div class="ds-row-acts">
+			<div class="ds-row-acts{{if $.AscRowMenu}} has-row-menu{{end}}">
 				{{if AscEnabled}}
 				<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-clipboard-text="asc clone {{AscHubHost}}/{{.FullName}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_shell.clone_copied"}}" aria-label="{{ctx.Locale.Tr "asc_shell.row_copy_clone_for" .FullName}}">{{svg "dsi-copy" 16}}<span class="ds-row-act-text">{{ctx.Locale.Tr "asc_shell.row_copy_clone"}}</span></button>
 				{{end}}
@@ -63,6 +63,25 @@
 					</form>
 				{{end}}
 				</div>
+				{{if $.AscRowMenu}}
+				{{/* on a phone the same actions sit in the row menu */}}
+				<details class="wk-menu ds-row-menu" data-asc-row-menu>
+					<summary class="ds-btn ds-btn-ghost ds-btn-icon" aria-label="{{ctx.Locale.Tr "asc_shell.row_menu_for" .FullName}}">{{svg "dsi-dots" 18}}</summary>
+					<div class="wk-menu-list" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.row_menu_for" .FullName}}">
+						{{if AscEnabled}}
+						<button type="button" class="wk-menu-item" data-clipboard-text="asc clone {{AscHubHost}}/{{.FullName}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_shell.clone_copied"}}">{{ctx.Locale.Tr "asc_shell.row_copy_clone"}}</button>
+						{{end}}
+						{{if and $.IsSigned (not $.DisableStars) $.StarredRepos}}
+							{{$starred := index $.StarredRepos .ID}}
+							<form action="{{.Link}}/action/{{if $starred}}unstar{{else}}star{{end}}" method="post">
+								{{$.CsrfTokenHtml}}
+								<input type="hidden" name="redirect_to" value="{{$.CurrentURL}}">
+								<button type="submit" class="wk-menu-item" aria-pressed="{{if $starred}}true{{else}}false{{end}}">{{if $starred}}{{ctx.Locale.Tr "repo.unstar"}}{{else}}{{ctx.Locale.Tr "repo.star"}}{{end}}</button>
+							</form>
+						{{end}}
+					</div>
+				</details>
+				{{end}}
 			{{end}}
 		</li>
 	{{end}}

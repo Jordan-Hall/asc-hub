@@ -113,6 +113,7 @@ import {initAscDraft} from './features/asc-draft.js';
 import {initAscWhere} from './features/asc-where.js';
 import {initAscAudit} from './features/asc-audit.js';
 import {initAscListLoading} from './features/asc-list-loading.js';
+import {initAscRowMenus} from './features/asc-row-menu.js';
 import {initAscNewChangeDraft} from './features/asc-newchange-draft.js';
 import {initRepoIssueDialog} from './features/repo-issue-dialog.js';
 import {initAscResponsiveDetails} from './features/asc-responsive-details.js';
@@ -306,6 +307,7 @@ onDomReady(() => {
   initAscWhere();
   initAscAudit();
   initAscListLoading();
+  initAscRowMenus();
   initRepoIssueDialog(document, initAscNewChangeDraft());
   initAscResponsiveDetails();
   initAscInboxBadge();
