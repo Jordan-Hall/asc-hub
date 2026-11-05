@@ -76,6 +76,7 @@ func Contexter() func(next http.Handler) http.Handler {
 				"DbTypeNames":    dbTypeNames,
 				"EnvConfigKeys":  envConfigKeys,
 				"CustomConfFile": setting.CustomConf,
+				"DbErrField":     "",
 				"AllLangs":       translation.AllLangs(),
 
 				"PasswordHashAlgorithms": hash.RecommendedHashAlgorithms,
@@ -177,28 +178,30 @@ func checkDatabase(ctx *context.Context, form *forms.InstallForm) bool {
 			ctx.Data["Err_DbType"] = true
 			ctx.RenderWithErr(ctx.Tr("install.sqlite3_not_available", "https://forgejo.org/download#installation-from-binary"), tplInstall, form)
 		} else {
-			ctx.Data["Err_DbSetting"] = true
-			ctx.RenderWithErr(ctx.Tr("install.invalid_db_setting", err), tplInstall, form)
+			ascDbFailed(ctx, err, form.DbType)
+			ctx.RenderWithErr(ctx.Tr("asc_install.db_fail", ascDbTarget(form.DbType, form.DbHost, form.DbPath), err), tplInstall, form)
 		}
 		return false
 	}
 
 	err = db_install.CheckDatabaseConnection()
 	if err != nil {
-		ctx.Data["Err_DbSetting"] = true
-		ctx.RenderWithErr(ctx.Tr("install.invalid_db_setting", err), tplInstall, form)
+		ascDbFailed(ctx, err, form.DbType)
+		ctx.RenderWithErr(ctx.Tr("asc_install.db_fail", ascDbTarget(form.DbType, form.DbHost, form.DbPath), err), tplInstall, form)
 		return false
 	}
 
 	hasPostInstallationUser, err := db_install.HasPostInstallationUsers()
 	if err != nil {
-		ctx.Data["Err_DbSetting"] = true
+		ascDbFailed(ctx, err, form.DbType)
+		ctx.Data["DbErrTable"] = true
 		ctx.RenderWithErr(ctx.Tr("install.invalid_db_table", "user", err), tplInstall, form)
 		return false
 	}
 	dbMigrationVersion, err := db_install.GetMigrationVersion()
 	if err != nil {
-		ctx.Data["Err_DbSetting"] = true
+		ascDbFailed(ctx, err, form.DbType)
+		ctx.Data["DbErrTable"] = true
 		ctx.RenderWithErr(ctx.Tr("install.invalid_db_table", "version", err), tplInstall, form)
 		return false
 	}
@@ -364,7 +367,8 @@ func SubmitInstall(ctx *context.Context) {
 	// Wrap migrations.Migrate into a function of type func(db.Engine) error to fix diagnostics.
 	if err = db.InitEngineWithMigration(ctx, gitea_migrations.WrapperMigrate); err != nil {
 		db.UnsetDefaultEngine()
-		ctx.Data["Err_DbSetting"] = true
+		ascDbFailed(ctx, err, form.DbType)
+		ctx.Data["DbErrTable"] = true
 		ctx.RenderWithErr(ctx.Tr("install.invalid_db_setting", err), tplInstall, &form)
 		return
 	}
@@ -587,6 +591,7 @@ func SubmitInstall(ctx *context.Context) {
 			ctx.RenderWithErr(ctx.Tr("install.save_config_failed", err), tplInstall, &form)
 			return
 		}
+		ctx.Data["AscSignedInAs"] = u.Name
 	}
 
 	setting.ClearEnvConfigKeys()
