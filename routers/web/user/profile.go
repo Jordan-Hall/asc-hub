@@ -181,7 +181,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	ascProfileCounts(ctx)
 	if ctx.ContextUser.IsIndividual() {
 		// being online is activity: it follows the same switch as the rest of the person's activity
-		ctx.Data["AscOnline"] = activities_model.ActivityReadable(ctx.ContextUser, ctx.Doer) && ascpresence.Online(ctx, ctx.ContextUser.ID)
+		ctx.Data["AscOnline"] = !shared_user.AscPrivateLimited(ctx) && activities_model.ActivityReadable(ctx.ContextUser, ctx.Doer) && ascpresence.Online(ctx, ctx.ContextUser.ID)
 	}
 	switch dataTab {
 	case "followers":

@@ -1376,6 +1376,15 @@ func isUserVisibleToViewerCond(viewer *User) builder.Cond {
 				Where(builder.Eq{"`team_user`.uid": viewer.ID})))
 }
 
+// AscProfileLimited reports whether viewer sees the private profile of the person u in the limited form (board
+// Profile, private state): the name and the repositories they share. Only the person and administrators see more.
+func AscProfileLimited(u, viewer *User) bool {
+	if !u.IsIndividual() || !u.Visibility.IsPrivate() {
+		return false
+	}
+	return viewer == nil || !(viewer.IsAdmin || viewer.ID == u.ID)
+}
+
 // IsUserVisibleToViewer check if viewer is able to see user profile
 func IsUserVisibleToViewer(ctx context.Context, u, viewer *User) bool {
 	if viewer != nil && (viewer.IsAdmin || viewer.ID == u.ID) {

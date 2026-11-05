@@ -7,6 +7,7 @@ import (
 	"time"
 
 	activities_model "forgejo.org/models/activities"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/markup/markdown"
 	"forgejo.org/services/context"
@@ -26,6 +27,11 @@ func ShowUserFeedAtom(ctx *context.Context) {
 
 // showUserFeed show user activity as RSS / Atom feed
 func showUserFeed(ctx *context.Context, formatType string) {
+	// a private profile shows its activity to the person and administrators only, like the profile page
+	if user_model.AscProfileLimited(ctx.ContextUser, ctx.Doer) {
+		ctx.NotFound("showUserFeed", nil)
+		return
+	}
 	includePrivate := ctx.IsSigned && (ctx.Doer.IsAdmin || ctx.Doer.ID == ctx.ContextUser.ID)
 
 	actions, _, err := activities_model.GetFeeds(ctx, activities_model.GetFeedsOptions{

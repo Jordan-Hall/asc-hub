@@ -40,10 +40,7 @@ func prepareContextForCommonProfile(ctx *context.Context) {
 // a repository, is neither the person nor an administrator. Such a viewer sees the name and the repositories they
 // share.
 func AscPrivateLimited(ctx *context.Context) bool {
-	if !ctx.ContextUser.IsIndividual() || !ctx.ContextUser.Visibility.IsPrivate() {
-		return false
-	}
-	return !ctx.IsSigned || !(ctx.Doer.IsAdmin || ctx.Doer.ID == ctx.ContextUser.ID)
+	return user_model.AscProfileLimited(ctx.ContextUser, ctx.Doer)
 }
 
 // PrepareContextForProfileBigAvatar set the context for big avatar view on the profile page
