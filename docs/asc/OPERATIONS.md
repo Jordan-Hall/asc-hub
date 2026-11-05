@@ -243,6 +243,10 @@ Test a restore before you need one: restore the latest archive into a scratch vo
 
 Upstream releases, security ones first, are merged into `asc/v16` before an image is built; the procedure, with its checks, is in [FORK.md](FORK.md).
 
+## Setting up in the browser
+
+A hub without `[security] INSTALL_LOCK = true` opens the first run form. When the form is sent the page shows Setting up your hub, Step n of 5: database tables created, repository root checked, creating the administrator account, starting the merge queue, opening your hub. The page asks `GET /-/install/status` (`{"done": n, "total": 5}`, never cached, no session) for the first three; the post-install page then waits for the hub to answer on its own and shows ASC Hub is ready. The route exists only while the installer runs: a hub that is set up answers it 404.
+
 ## First administrator
 
 Set `ASC_HUB_ADMIN_EMAIL` (and optionally `ASC_HUB_ADMIN_USER`, default `asc-admin`) on the first start. After the hub answers, the entrypoint creates the administrator with a generated password and writes it to `/var/lib/gitea/bootstrap/admin-password` (mode 0600), then leaves a marker so it does not run again:
