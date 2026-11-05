@@ -10,9 +10,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/base"
+	"forgejo.org/modules/git"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers/web/shared/trustweb"
@@ -66,6 +68,44 @@ type ascPolicyPage struct {
 	Org *asctrust.OrgPolicyView
 	// Proposed is set when the change was made but its pull request could not be opened yet.
 	Proposed *ascProposed
+	// LastChange is the newest change of the default branch that touched the policy file; nil when there is none.
+	LastChange *ascPolicyChange
+}
+
+// ascPolicyChange is the file header's "Last changed by ..., ... ago, in change ...".
+type ascPolicyChange struct {
+	Who   string
+	When  time.Time
+	Short string
+	URL   string
+}
+
+// ascPolicyFile is the path of the policy in the repository.
+const ascPolicyFile = ".asc/policy.toml"
+
+// ascPolicyLastChange reads the newest change of the default branch that touched path. The header is a note, so any
+// failure leaves it out.
+func ascPolicyLastChange(ctx *context.Context, repo *repo_model.Repository, path string) *ascPolicyChange {
+	gr := ctx.Repo.GitRepo
+	if gr == nil || repo.IsEmpty || repo.DefaultBranch == "" {
+		return nil
+	}
+	head, err := gr.GetBranchCommit(repo.DefaultBranch)
+	if err != nil {
+		return nil
+	}
+	be, err := gr.Backend()
+	if err != nil {
+		return nil
+	}
+	for c, err := range be.Log(ctx, git.LogQuery{From: []git.ObjectID{head.ID}, Paths: []string{path}, Limit: 1}) {
+		if err != nil || c == nil || c.Author == nil {
+			return nil
+		}
+		id := c.ID.String()
+		return &ascPolicyChange{Who: c.Author.Name, When: c.Author.When, Short: id[:10], URL: repo.Link() + "/commit/" + id}
+	}
+	return nil
 }
 
 type ascProposed struct {
@@ -158,6 +198,9 @@ func ascPolicyLoad(ctx *context.Context, repo *repo_model.Repository, name strin
 	p.Strategies = asctrust.MergeStrategies
 	p.Diff = asctrust.LineDiff(page.View.Text, p.Draft)
 	p.Maintainers = asctrust.MaintainerNames(page.View.Text)
+	if page.View.Present {
+		p.LastChange = ascPolicyLastChange(ctx, repo, ascPolicyFile)
+	}
 	return http.StatusOK, true
 }
 
