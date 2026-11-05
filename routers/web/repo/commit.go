@@ -149,6 +149,17 @@ func Commits(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, tplCommits)
 }
 
+// historySearchWords is the search without its after: and before: words.
+func historySearchWords(query string) string {
+	var kept []string
+	for w := range strings.FieldsSeq(query) {
+		if !strings.HasPrefix(w, "after:") && !strings.HasPrefix(w, "before:") {
+			kept = append(kept, w)
+		}
+	}
+	return strings.Join(kept, " ")
+}
+
 // historyFilterMax bounds the commits the people / agents filter of the history reads.
 var historyFilterMax = 500
 
@@ -273,6 +284,10 @@ func SearchCommits(ctx *context.Context) {
 	ctx.Data["Commits"] = git_model.ParseCommitsWithStatus(ctx, commits, ctx.Repo.Repository)
 
 	ctx.Data["Keyword"] = query
+	// the phone's Date chip shows and edits the range; the words stay the search
+	ctx.Data["HistoryAfter"] = opts.After
+	ctx.Data["HistoryBefore"] = opts.Before
+	ctx.Data["HistoryWords"] = historySearchWords(query)
 	if all {
 		ctx.Data["All"] = true
 	}

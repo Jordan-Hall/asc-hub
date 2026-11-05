@@ -139,7 +139,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | History | Graph key legend | done | `asc_graph.tmpl` | S |
 | History | "Show 25 older changes" on-demand load (44 px button on mobile) | done | pager/`AscGraphNextURL` | S |
 | History | States: loading skeleton, no results with explanation and Clear filters, partial-data banner with Retry | done | `H:templates/repo/commits_table.tmpl`: a skeleton while the next page, filter or search loads (`commits_loading.tmpl`); no results under the people / agents filter says so and offers Clear filters; the partial banner is for that filter, which reads the newest 500 changes (the hub has no index lag), and offers "Show all changes" in place of Retry; `asc_history_states_test.go` | M |
-| History | Mobile rail-and-node list, chips open a bottom sheet for Path, Stack, date | ui-only-missing | `commits.tmpl`, sheet component | M |
+| History | Mobile rail-and-node list, chips open a bottom sheet for Path, Stack, date | done | `commits.tmpl`: under 640px a chip row (who, Path, Stack, Date) replaces the bar; each chip opens its part of one bottom sheet (`asc-history-sheet.js`); Date searches with `after:` / `before:` and keeps the other words; sheets close on a drag down or a backdrop tap (`asc-sheet.js`); tests `TestHistoryPhoneChips`, `asc-history-sheet.test.js`, `asc-sheet.test.js` | M |
 
 ## Refs
 
@@ -395,8 +395,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Mobile-Repo | Stack cards replacing the table; filter chips that snap; pull to refresh; sticky Clone and New stack | needs-hub-backend | as the desktop rows; chips and pull to refresh in `home_cards.tmpl` and a script | M |
-| Mobile-Code | Avatar column for blame, tap opens the change sheet (swipe down closes), Files sheet, long-press range select with Share | ui-only-missing | see Code rows | M |
-| Mobile-History | Rail-and-node list, chips open a bottom sheet, 44 px older-changes button | ui-only-missing | see History rows | M |
+| Mobile-Code | Avatar column for blame, tap opens the change sheet (swipe down closes), Files sheet, long-press range select with Share | done | `blame.tmpl` + `asc-blame-sheet.js` (row 103); drag-down close in `asc-sheet.js`; the Files sheet is the `rp-tree` panel | M |
+| Mobile-History | Rail-and-node list, chips open a bottom sheet, 44 px older-changes button | done | rows 130, 140 and 142 | M |
 | Mobile-Search | Sticky search, Filters bottom sheet, cards with reason first | ui-only-missing | see Search rows | M |
 | Mobile-Releases | New release as a bottom sheet; channel chips | ui-only-missing | see Releases rows | M |
 | Mobile-NewRepo | Name check after 300 ms, Start from keeps typed values, sticky primary | needs-hub-backend | see NewRepo rows | M |

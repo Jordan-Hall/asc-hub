@@ -113,3 +113,50 @@ func TestHistoryGraphView(t *testing.T) {
 	data, _ = history("?view=graph&who=people")
 	assert.Nil(t, data["HistoryLanes"], "a filtered page has the List only")
 }
+
+func TestHistoryPhoneChips(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	page := func(set func(d map[string]any)) string {
+		return renderPart(t, "repo/commits", func(d map[string]any) {
+			d["PageIsCommits"] = true
+			d["CommitCount"] = 0
+			d["BranchName"] = "master"
+			d["BranchNameSubURL"] = "branch/master"
+			d["IsViewBranch"] = true
+			d["CommitID"] = "abc"
+			d["TreeNames"] = []string{}
+			d["Paths"] = []string{}
+			set(d)
+		})
+	}
+	plain := page(func(map[string]any) {})
+	assert.Contains(t, plain, `data-testid="history-chips"`)
+	for _, chip := range []string{"who", "path", "stack", "date"} {
+		assert.Contains(t, plain, `data-history-chip="`+chip+`"`)
+		assert.Contains(t, plain, `data-history-part="`+chip+`"`)
+	}
+	assert.Contains(t, plain, "asc_rp.chip_stack: master")
+	assert.Contains(t, plain, `data-ref-sub="branch/master"`)
+	assert.Contains(t, plain, "rp-histbar ds-hide-xs", "the chips replace the desktop bar on a phone")
+	assert.NotContains(t, plain, "asc_rp.chip_clear")
+
+	dated := page(func(d map[string]any) {
+		d["HistoryAfter"] = "2026-01-02"
+		d["HistoryBefore"] = "2026-02-01"
+		d["HistoryWords"] = "fix <x>"
+		d["Keyword"] = "after:2026-01-02 before:2026-02-01 fix <x>"
+	})
+	assert.Contains(t, dated, "asc_rp.chip_date_range")
+	assert.Contains(t, dated, `value="2026-01-02"`)
+	assert.Contains(t, dated, `data-words="fix &lt;x&gt;"`)
+	assert.Contains(t, dated, "asc_rp.chip_clear")
+
+	path := page(func(d map[string]any) { d["TreePath"] = "docs/a.md" })
+	assert.Contains(t, path, `data-tree-path="docs/a.md"`)
+	assert.Contains(t, path, "asc_rp.chip_date_whole", "dates do not keep the path, and the sheet says so")
+}
+
+func TestHistorySearchWords(t *testing.T) {
+	assert.Equal(t, "fix author:ada", historySearchWords("after:2026-01-01  fix before:2026-02-01 author:ada"))
+	assert.Empty(t, historySearchWords("after:2026-01-01"))
+}
