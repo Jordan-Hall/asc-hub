@@ -434,6 +434,15 @@ func Action(ctx *context.Context) {
 		}
 	}
 
+	// a plain form, such as Follow on a row of the people directory, goes back to the page it came from
+	if to := ctx.FormString("redirect_to"); to != "" && (action == "follow" || action == "unfollow") && ctx.Req.Header.Get("HX-Request") != "true" {
+		if err != nil {
+			ctx.Flash.Error(ctx.Tr("user.follow_blocked_user"))
+		}
+		ctx.RedirectToFirst(to, ctx.ContextUser.HomeLink())
+		return
+	}
+
 	if ctx.ContextUser.IsIndividual() {
 		shared_user.PrepareContextForProfileBigAvatar(ctx)
 		ctx.Data["IsHTMX"] = true
