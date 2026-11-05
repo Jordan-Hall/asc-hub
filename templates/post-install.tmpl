@@ -1,4 +1,4 @@
-{{/* Post-install page (board Install, "Done: post-install"). It is rendered ready; install.js shows the waiting state and polls data-ins-poll until the hub answers, then shows the ready state again. */}}
+{{/* Post-install page (board Install, "Done: post-install"). It is rendered ready; install.js shows the waiting state, the install progress with its first three steps done and the merge queue starting, and polls data-ins-poll until the hub answers, then shows the ready state again. */}}
 {{template "base/head" .}}
 <header class="ds-hdr ds-hdr-lg ins-bar" role="banner">
 	<div class="ds-topbar ds-topbar-static">
@@ -10,9 +10,8 @@
 	<div class="ds-container st-wrap">
 		<section class="st-card ins-done" aria-live="polite" data-ins-poll="{{AppSubUrl}}/user/login">
 			<div class="ds-stack ds-stack-8" data-ins-wait hidden>
-				<h1 class="ds-t-h2" tabindex="-1">{{ctx.Locale.Tr "asc_install.post_h"}}</h1>
-				<p class="st-text">{{ctx.Locale.Tr "asc_install.post_t"}}</p>
-				<progress class="ds-bar ins-wait" aria-label="{{ctx.Locale.Tr "asc_install.post_h"}}"></progress>
+				<h1 class="ds-t-h3" tabindex="-1">{{ctx.Locale.Tr "asc_install.post_h"}}</h1>
+				{{template "install_progress" dict "Done" 3}}
 			</div>
 			<div class="ds-stack ds-stack-16" data-ins-ready data-testid="post-install-connect">
 				<div>

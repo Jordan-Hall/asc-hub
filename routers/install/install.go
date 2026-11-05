@@ -233,6 +233,7 @@ func SubmitInstall(ctx *context.Context) {
 	}
 
 	var err error
+	ascInstallDone.Store(0)
 
 	form := *web.GetForm(ctx).(*forms.InstallForm)
 
@@ -550,6 +551,16 @@ func SubmitInstall(ctx *context.Context) {
 	if err := common.InitDBEngine(ctx); err != nil {
 		log.Fatal("ORM engine initialization failed: %v", err)
 	}
+	ascInstallDone.Store(1)
+
+	// the repository root the hub starts with, as the saved configuration names it
+	if err := os.MkdirAll(setting.RepoRootPath, os.ModePerm); err != nil {
+		setting.InstallLock = false
+		ctx.Data["Err_RepoRootPath"] = true
+		ctx.RenderWithErr(ctx.Tr("install.invalid_repo_path", err), tplInstall, &form)
+		return
+	}
+	ascInstallDone.Store(2)
 
 	// Create admin account
 	if len(form.AdminName) > 0 {
@@ -593,6 +604,8 @@ func SubmitInstall(ctx *context.Context) {
 		}
 		ctx.Data["AscSignedInAs"] = u.Name
 	}
+
+	ascInstallDone.Store(3)
 
 	setting.ClearEnvConfigKeys()
 	log.Info("First-time run install finished!")

@@ -1,4 +1,4 @@
-{{/* First run setup (board Install, Mobile-Install). Posts once to "/". The script web_src/js/features/install.js needs: .page-content.install, #db_type (change event), [data-db-setting-for], #db_host #db_user #db_name, #app_url, #domain, the data-ins-* hooks (database test, summary rail, steps, phone stepper), and the wrappers #offline-mode #disable-gravatar #federated-avatar-lookup #enable-openid-signin #enable-openid-signup #disable-registration #enable-captcha (each holding one checkbox). */}}
+{{/* First run setup (board Install, Mobile-Install). Posts once to "/". The script web_src/js/features/install.js needs: .page-content.install, #db_type (change event), [data-db-setting-for], #db_host #db_user #db_name, #app_url, #domain, the data-ins-* hooks (database test, summary rail, steps, phone stepper, and data-ins-running: the progress shown while the form is sent, which asks /-/install/status), and the wrappers #offline-mode #disable-gravatar #federated-avatar-lookup #enable-openid-signin #enable-openid-signup #disable-registration #enable-captcha (each holding one checkbox). */}}
 {{template "base/head" .}}
 <header class="ds-hdr ds-hdr-lg ins-bar" role="banner">
 	<div class="ds-topbar ds-topbar-static">
@@ -16,6 +16,12 @@
 
 		{{if not .Err_DbSetting}}{{template "base/alert" .}}{{end}}
 
+		<section class="ds-card ins-card ins-running" data-ins-running data-url="{{AppSubUrl}}/-/install/status" aria-live="polite" aria-labelledby="ins-run-h" hidden>
+			<div class="ds-card-b ds-stack ds-stack-8">
+				<h2 class="ds-t-h4" id="ins-run-h" tabindex="-1">{{ctx.Locale.Tr "asc_install.post_h"}}</h2>
+				{{template "install_progress" dict "Done" 0}}
+			</div>
+		</section>
 		<div class="ds-split ins-split">
 			<div class="ds-min0 ins-main">
 				<div class="ins-mstep" data-ins-mstep data-label="{{ctx.Locale.Tr "asc_install.mstep" "{n}" "{total}"}}" hidden>
