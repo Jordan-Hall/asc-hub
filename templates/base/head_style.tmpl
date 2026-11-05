@@ -1,23 +1,30 @@
 <link rel="stylesheet" href="{{AssetUrlPrefix}}/css/index.css?v={{AssetVersion}}">
 {{$theme := ThemeName .SignedUser}}
 {{if StringUtils.HasPrefix $theme "asc-"}}
-{{/* Light and dark are both linked, so the colour mode can change without a reload. The dark sheet comes last and wins when its media query is on. The script below sets the mode and the density before the first paint: the saved choice of this browser, else the account theme, else the system. Buttons with data-ds-theme-set (system, light or dark) and data-ds-density-set (comfy or compact) change them. */}}
+{{/* Light and dark are both linked, so the colour mode can change without a reload. The dark sheet comes last and wins when its media query is on. The script below sets the mode and the density before the first paint: for a signed-in person the theme and density of the account (copied to this browser, so a choice made elsewhere follows them), for a guest the saved choice of this browser, else the system. A change of a signed-in person is saved with the account by asc-prefs.js. Buttons with data-ds-theme-set (system, light or dark) and data-ds-density-set (comfy or compact) change them. */}}
 <link rel="stylesheet" id="asc-theme-light" href="{{AssetUrlPrefix}}/css/theme-asc-light.css?v={{AssetVersion}}">
 <link rel="stylesheet" id="asc-theme-dark" href="{{AssetUrlPrefix}}/css/theme-asc-dark.css?v={{AssetVersion}}" media="{{if eq $theme "asc-light"}}not all{{else if eq $theme "asc-dark"}}all{{else}}(prefers-color-scheme: dark){{end}}">
+{{if .IsSigned}}<meta name="asc-prefs" content="{{AppSubUrl}}/-/asc/prefs" data-failed="{{ctx.Locale.Tr "asc_shell.prefs_failed"}}">{{end}}
 <script>
 	(function () {
 		var root = document.documentElement;
 		var dark = document.getElementById('asc-theme-dark');
 		var order = ['system', 'light', 'dark'];
 		var account = {{$theme}};
+		var signed = {{if .IsSigned}}true{{else}}false{{end}};
+		var accountDensity = {{AscDensity .SignedUser}};
 		var mode = null;
 		var density = null;
 		try { mode = window.localStorage.getItem('asc-theme-mode'); } catch (e) { /* storage can be blocked */ }
 		try { density = window.localStorage.getItem('asc-density'); } catch (e) { /* storage can be blocked */ }
-		if (order.indexOf(mode) < 0) {
+		if (signed || order.indexOf(mode) < 0) {
 			mode = account === 'asc-light' ? 'light' : account === 'asc-dark' ? 'dark' : 'system';
 		}
+		if (signed) { density = accountDensity; }
 		if (density !== 'compact') { density = 'comfy'; }
+		if (signed) {
+			try { window.localStorage.setItem('asc-theme-mode', mode); window.localStorage.setItem('asc-density', density); } catch (e) { /* storage can be blocked */ }
+		}
 		try { if (window.localStorage.getItem('asc-pref-motion') === '1') { root.setAttribute('data-pref-motion', 'on'); } } catch (e) { /* storage can be blocked */ }
 		function press(sel, attr, value) {
 			var all = document.querySelectorAll(sel);

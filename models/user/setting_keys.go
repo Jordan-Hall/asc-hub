@@ -12,6 +12,9 @@ const (
 	// SettingsKeyAscRole is the setting key for the role the person shows on their profile ("Staff engineer"); no value:
 	// no role line part
 	SettingsKeyAscRole = "asc.role"
+	// SettingsKeyAscDensity is the setting key for the row density of the person ("comfy" or "compact"; no value:
+	// comfy)
+	SettingsKeyAscDensity = "asc.density"
 	// SettingsKeyDiffWhitespaceBehavior is the setting key for whitespace behavior of diff
 	SettingsKeyDiffWhitespaceBehavior = "diff.whitespace_behaviour"
 	// SettingsKeyShowOutdatedComments is the setting key whether or not to show outdated comments in PRs
