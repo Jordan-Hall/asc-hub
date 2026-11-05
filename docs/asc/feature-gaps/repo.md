@@ -243,8 +243,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | InsightsPeople | Contributors table: landed, reviews given, median review, 12-week sparkline, share, role, "Agent run by Priya Raman" | done | agent ownership from `Agents`/`AgentTokens`; counts as above; replaces `contributors.tmpl`;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl (people_weeks, run_by, people_share) | L |
 | InsightsPeople | Who writes the code (46/54) with "every agent change approved by a person" sentence | done | same statistics;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl (who_writes, who_split, ins_all_approved) | M |
 | InsightsPeople | Review load list ("Agents never review") | done | review counts per reviewer;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl:58 review_load, agents_never_review | S |
-| InsightsPeople | Rows open the person or the agent run | ui-only-missing | links in new template | S |
-| InsightsPeople | Empty, loading, partial-data states | ui-only-missing | new template;; Audit 2026-10-30 (part built): Empty state is there; loading and partial-data states were not found. | S |
+| InsightsPeople | Rows open the person or the agent run | done | links in new template | S |
+| InsightsPeople | Empty, loading, partial-data states | done | new template;; Audit 2026-10-30 (part built): Empty state is there; loading and partial-data states were not found. | S |
 
 ## GitNote
 
