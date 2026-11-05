@@ -336,6 +336,19 @@
   min-height: 20rem;
 }
 
+/* the Changes view: who reviews a change of the policy */
+.ast-policy-review {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius);
+  background: var(--color-box-header);
+}
+
+.ast-policy-review > p {
+  margin: 0 0 6px;
+}
+
 .ast-meaning-title {
   margin: 0 0 8px;
   font-size: 0.95rem;

@@ -318,7 +318,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsPolicy | Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person approves every agent change" | needs-both | schema has `default_scope`, `denied_paths`, `max_runtime_seconds`, `budgets.max_tokens`; no `human_approval`; UI mapping minutes to seconds;; Audit 2026-10-30 (part built): Agents section exists as text areas and numbers; the approvals stepper, check chips and switches of the board were not found. | L |
 | RepoSettingsPolicy | Merge queue section: use queue, batch size, checks after merge | done (seen on a live hub (ui20): use queue, batch size (1 to 20) and checks after merge, written as [merge] queue, batch and post_merge_checks) | `[merge] queue` exists; `batch` and `post_merge_checks` do not (`A:crates/asc-serve` merge queue, `proto/asc/v1/mergequeue.proto`) | L |
 | RepoSettingsPolicy | Live file beside the form with changed lines flashing (+/-) | done (seen on a live hub (ui20): the file as it would be, changed lines marked + and -, beside the Form view) | client-side diff against `GetSource.text` | M |
-| RepoSettingsPolicy | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewers (Priya Raman and Diego Alvarez) | ui-only-missing | `Policy.Propose` response and maintainers from `GetPolicy.roles`;; Audit 2026-10-30 (was marked done, part missing): Marked done; the Changing policy is a change panel naming reviewers was not found. | M |
+| RepoSettingsPolicy | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewers (Priya Raman and Diego Alvarez) | done | `H:templates/repo/settings/asc_policy.tmpl` Changes view: the line diff of the pending edit and a "Changing policy is a change" panel listing the maintainers named in the policy as reviewers (or saying none is named); `TestAscPolicyChangesReviewers` | M |
 | RepoSettingsPolicy | TOML error state: "Line 11: max_minutes must be a whole number", form disabled while invalid | done | diagnostics list (`asc-policy-diagnostics`); form disable does not apply because there is no form | S |
 | RepoSettingsPolicy | Read-only state for non-maintainers with names to ask | done (the page shows a banner naming the maintainers and disables the form; the page itself is for repository administrators, checked by the unit tests of the template data, not seen with a second account) | route needs repo admin (`registerAscTrustRepoSettingsRoutes`); readers cannot see the page; show read-only for readers with maintainers from `GetPolicy` | M |
 | RepoSettingsPolicy | After-propose state: "Proposed as change kz9fw. Waiting for one approval" with Open change | done | `p_proposed` | S |
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 166 |
+| done | 167 |
 | partial | 1 |
-| ui-only-missing | 35 |
+| ui-only-missing | 34 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -438,7 +438,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsMenu | 0 | 2 | 0 | 0 | 0 |
 | RepoSettingsGeneral | 2 | 3 | 3 | 0 | 1 |
 | RepoSettingsAccess | 1 | 3 | 3 | 0 | 1 |
-| RepoSettingsPolicy | 5 | 4 | 0 | 1 | 2 |
+| RepoSettingsPolicy | 6 | 3 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
 | RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
 | RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |
