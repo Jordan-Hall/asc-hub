@@ -7,12 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	auth_model "forgejo.org/models/auth"
-	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascratelimit"
 	"forgejo.org/modules/setting"
@@ -21,10 +19,13 @@ import (
 )
 
 // The wait after wrong passwords (board Onboarding). After [security] LOGIN_MAX_ATTEMPTS wrong passwords for one
-// account from one address, that account is refused from that address for LOGIN_WAIT; an address that sends
-// ascLoginAddrFactor times as many wrong passwords, whatever the names, waits too. The account is the person the name
-// typed resolves to (the username or any activated email of theirs), else the name itself, so every spelling counts
-// the same. Counting per account and address keeps a stranger from locking a person out from elsewhere. Every
+// name from one address, that name is refused from that address for LOGIN_WAIT; an address that sends
+// ascLoginAddrFactor times as many wrong passwords, whatever the names, waits too. The name counts as typed (trimmed,
+// in lower case) and is not looked up: a count shared by a username and an email would tell a stranger which email
+// belongs to which account. The address count bounds the tries across the names of one person. Both counts are taken
+// before the password is checked, so tries sent at the same time cannot pass them; a try that succeeds or that the
+// server fails gives its address try back. Counting per name and address keeps a stranger from locking a person out
+// from elsewhere. Every
 // password sign-in goes through UserSignInFrom: the sign-in page, linking an account, connecting an OpenID and basic
 // authentication. The tables are in memory, per process.
 
@@ -50,18 +51,9 @@ func ResetLoginWaits() {
 	loginAccounts, loginAddresses = ascratelimit.NewLockout(), ascratelimit.NewLockout()
 }
 
-// loginAccount is the account a typed name counts against.
-func loginAccount(ctx context.Context, name string) string {
-	name = strings.ToLower(strings.TrimSpace(name))
-	if strings.Contains(name, "@") {
-		email := user_model.EmailAddress{LowerEmail: name}
-		if has, err := db.GetEngine(ctx).Get(&email); err == nil && has {
-			return "uid:" + strconv.FormatInt(email.UID, 10)
-		}
-	} else if u, err := user_model.GetUserByName(ctx, name); err == nil {
-		return "uid:" + strconv.FormatInt(u.ID, 10)
-	}
-	return "name:" + name
+// loginName is the key a typed name counts against.
+func loginName(name string) string {
+	return "name:" + strings.ToLower(strings.TrimSpace(name))
 }
 
 // isWrongCredential says whether a sign-in failed on the name or the password (and not on the server).
@@ -72,27 +64,31 @@ func isWrongCredential(err error) bool {
 }
 
 // UserSignInFrom is UserSignIn for a sign-in sent from remoteAddr, with the wait after wrong passwords: it answers
-// ErrLoginWait instead of checking the password while the account or the address waits, and when this wrong password
+// ErrLoginWait instead of checking the password while the name or the address waits, and when this wrong password
 // starts the wait.
 func UserSignInFrom(ctx context.Context, username, password, remoteAddr string) (*user_model.User, *auth_model.Source, error) {
 	limit, wait := setting.LoginMaxAttempts, setting.LoginWait
 	addr := ascratelimit.ClientKey(remoteAddr)
-	if left := loginAddresses.Left(addr); left > 0 {
+	if left := loginAddresses.Begin(addr, limit*ascLoginAddrFactor, wait); left > 0 {
 		return nil, nil, ErrLoginWait{Wait: left}
 	}
-	account := loginAccount(ctx, username) + "\x00" + addr
+	account := loginName(username) + "\x00" + addr
 	if left := loginAccounts.Begin(account, limit, wait); left > 0 {
+		loginAddresses.Release(addr)
 		return nil, nil, ErrLoginWait{Wait: left}
 	}
 	u, source, err := UserSignIn(ctx, username, password)
 	if err == nil || !isWrongCredential(err) {
 		// the password was right (a refused account is only told so with the right password), or the server failed
+		loginAddresses.Release(addr)
 		if err == nil || user_model.IsErrUserProhibitLogin(err) {
 			loginAccounts.Clear(account)
+		} else {
+			loginAccounts.Release(account)
 		}
 		return u, source, err
 	}
-	left := max(loginAccounts.Left(account), loginAddresses.Fail(addr, limit*ascLoginAddrFactor, wait))
+	left := max(loginAccounts.Left(account), loginAddresses.Left(addr))
 	if left > 0 {
 		return nil, nil, ErrLoginWait{Wait: left}
 	}
