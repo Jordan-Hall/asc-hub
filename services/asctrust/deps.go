@@ -4,9 +4,11 @@
 package asctrust
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -35,6 +37,8 @@ const (
 	// maxDepErrors bounds the lookup errors the page lists.
 	maxDepErrors = 20
 	maxDepURL    = 512
+	// maxDepEcosystems bounds the ecosystems the summary lists.
+	maxDepEcosystems = 32
 )
 
 // DepSeverityKeys are the severities in the order the filter lists them, with the Tone of the pill of each.
@@ -268,6 +272,19 @@ type DepFindingsPage struct {
 	LastScan     time.Time
 	LookupKey    string
 	NeverScanned bool
+	// Summary of the last scan of trunk: open findings per severity (in the order of DepSeverityKeys, then those the
+	// source gave no severity), the packages checked, per ecosystem (most first), and how many could not be looked up.
+	OpenBySeverity      []DepCount
+	OpenTotal           uint32
+	PackagesChecked     uint32
+	PackagesUnknown     uint32
+	PackagesByEcosystem []DepCount
+}
+
+// DepCount is a count under a key: a severity key or an ecosystem name.
+type DepCount struct {
+	Key string
+	N   uint32
 }
 
 // CheckEcosystem checks an ecosystem name taken from a form: the OSV spelling, short plain text.
@@ -329,6 +346,30 @@ func LoadDepFindings(ctx context.Context, conn grpc.ClientConnInterface, repoNam
 	} else {
 		page.NeverScanned = true
 	}
+	bySev := resp.GetOpenBySeverity()
+	for _, k := range DepSeverityKeys {
+		page.OpenBySeverity = append(page.OpenBySeverity, DepCount{Key: k.Key, N: bySev[k.Key]})
+		page.OpenTotal += bySev[k.Key]
+	}
+	if n := bySev["unknown"]; n > 0 {
+		page.OpenBySeverity = append(page.OpenBySeverity, DepCount{Key: "unknown", N: n})
+		page.OpenTotal += n
+	}
+	page.PackagesChecked, page.PackagesUnknown = resp.GetPackagesChecked(), min(resp.GetPackagesUnknown(), resp.GetPackagesChecked())
+	for eco, n := range resp.GetPackagesByEcosystem() {
+		if c := depText(eco, 64); c != "" && n > 0 {
+			page.PackagesByEcosystem = append(page.PackagesByEcosystem, DepCount{Key: c, N: n})
+		}
+		if len(page.PackagesByEcosystem) == maxDepEcosystems {
+			break
+		}
+	}
+	slices.SortFunc(page.PackagesByEcosystem, func(a, b DepCount) int {
+		if a.N != b.N {
+			return cmp.Compare(b.N, a.N)
+		}
+		return strings.Compare(a.Key, b.Key)
+	})
 	for _, f := range resp.GetFindings() {
 		row, err := depFindingRow(f)
 		if err != nil {
@@ -377,6 +418,27 @@ type DepUpdates struct {
 	// Packages is how many packages were looked at, Unknown how many registries could not be asked.
 	Packages, Unknown uint32
 	Errors            []string
+}
+
+// DepOutdated is the summary of the newer versions: how many packages have one, how many of those fix an open finding,
+// and how many packages could not be looked up.
+type DepOutdated struct {
+	Outdated, Security, Unknown uint32
+}
+
+// Outdated counts the rows of u that have a newer version.
+func (u *DepUpdates) Outdated() DepOutdated {
+	out := DepOutdated{Unknown: u.Unknown}
+	for _, r := range u.Rows {
+		if r.Target == "" && r.Latest == "" {
+			continue
+		}
+		out.Outdated++
+		if len(r.Fixes) > 0 {
+			out.Security++
+		}
+	}
+	return out
 }
 
 // LoadDepUpdates asks for the newer versions. securityOnly keeps those that fix an open finding.
@@ -539,6 +601,8 @@ type DepProposeQuery struct {
 	MaxKind      string // a key of DepKindKeys; "" means the repository's own limit
 	DryRun       bool
 	Op           string
+	// Ecosystem and Name, when Name is set, limit the proposal to that one package (the fix of one finding).
+	Ecosystem, Name string
 }
 
 // DepProposal is one change that a proposal makes (or would make).
@@ -577,11 +641,20 @@ func ProposeDeps(ctx context.Context, conn grpc.ClientConnInterface, repoName st
 		}
 		callCtx = ascclient.WithOpID(ctx, id)
 	}
+	req := &ascv1.ProposeDepUpdateRequest{Repo: RepoRef(repoName), SecurityOnly: q.SecurityOnly, MaxKind: kind, DryRun: q.DryRun}
+	if q.Name != "" || q.Ecosystem != "" {
+		eco, err := CheckEcosystem(q.Ecosystem)
+		if err != nil {
+			return nil, err
+		}
+		if eco == "" || q.Name == "" || len(q.Name) > maxNameBytes || CleanText(q.Name, maxNameBytes) != q.Name {
+			return nil, fmt.Errorf("%w: package", ErrBadInput)
+		}
+		req.Selectors = []*ascv1.DepSelector{{Ecosystem: eco, Name: q.Name}}
+	}
 	cctx, cancel := context.WithTimeout(callCtx, 5*time.Minute)
 	defer cancel()
-	resp, err := ascv1.NewDepsServiceClient(conn).ProposeUpdate(cctx, &ascv1.ProposeDepUpdateRequest{
-		Repo: RepoRef(repoName), SecurityOnly: q.SecurityOnly, MaxKind: kind, DryRun: q.DryRun,
-	})
+	resp, err := ascv1.NewDepsServiceClient(conn).ProposeUpdate(cctx, req)
 	if err != nil {
 		return nil, err
 	}
