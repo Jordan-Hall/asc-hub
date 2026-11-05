@@ -61,6 +61,13 @@
   font-size: 14.5px;
 }
 
+/* "@priya · Staff engineer · Payments team · London" */
+.wk-pf-line2 > span + span::before {
+  content: "·";
+  margin-inline-end: 10px;
+  color: var(--text-3);
+}
+
 .wk-pf-desc {
   grid-row: 3;
   color: var(--text-b);
