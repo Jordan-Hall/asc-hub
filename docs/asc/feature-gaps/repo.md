@@ -277,8 +277,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| RepoSettingsMenu | One left menu with groups Repository (General, Access N, Rules, Policy, Branches and stacks), Automation (Webhooks N, Secrets and variables), Data (Storage, AI keys), Safety (Secret scanning, Audit log) and count badges | ui-only-missing | `H:templates/repo/settings/navbar.tmpl` has General / Code / Integrations / BYO / Policy groups with Forgejo pages (Units, Collaboration, Git hooks, LFS, Actions runners) and no counts | M |
-| RepoSettingsMenu | Mobile root list with status per row ("1 failing"), "Find a setting" search over names and descriptions, danger zone entry, back arrow keeping scroll | ui-only-missing | `snav_*` templates have no search or status; new `settings` index partial | M |
+| RepoSettingsMenu | One left menu with groups Repository (General, Access N, Rules, Policy, Branches and stacks), Automation (Webhooks N, Secrets and variables), Data (Storage, AI keys), Safety (Secret scanning, Audit log) and count badges | done | `H:templates/repo/settings/navbar.tmpl` has General / Code / Integrations / BYO / Policy groups with Forgejo pages (Units, Collaboration, Git hooks, LFS, Actions runners) and no counts | M |
+| RepoSettingsMenu | Mobile root list with status per row ("1 failing"), "Find a setting" search over names and descriptions, danger zone entry, back arrow keeping scroll | done | `snav_*` templates have no search or status; new `settings` index partial | M |
 
 ## RepoSettingsGeneral
 
