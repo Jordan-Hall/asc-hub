@@ -286,7 +286,7 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 		log.Error("asc dashboard: inbox marks of user %d: %v", doer.ID, err)
 		states = nil
 	}
-	groups, _ := ascInboxGroup(entries, states, now)
+	groups, _, _ := ascInboxGroup(entries, states, now)
 	var actionable []*AscInboxEntry
 	for _, g := range groups {
 		if !ascDashActionable(g.Section) {

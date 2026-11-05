@@ -102,6 +102,7 @@ type AscInboxDetail struct {
 	FilesURL  string
 	Pinned    bool
 	Snoozed   bool
+	Done      bool // the person marked it done: the pane offers Restore instead of Mark done
 	Info      *AscInboxInfo
 	Return    string // the tab, kept after a mark
 }
@@ -121,8 +122,9 @@ type AscInboxPage struct {
 	Total    int
 	NextURL  string // the first row that is not selected, for the phone's "open next" button
 	Return   string
-	Explicit bool // the person picked a row (the address names a listed pull request): a phone then shows its pane instead of the list
-	DayOne   bool // the list is empty and the person has no repository yet
+	Explicit bool           // the person picked a row (the address names a listed pull request): a phone then shows its pane instead of the list
+	DayOne   bool           // the list is empty and the person has no repository yet
+	Undo     *AscInboxEntry // the item just marked done, for the toast that can take it back
 }
 
 // ascInboxDay names the day of t for the headings of the list: today, yesterday or the date.
@@ -199,7 +201,7 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 	if err != nil {
 		return nil, err
 	}
-	groups, snoozed := ascInboxGroup(entries, states, now)
+	groups, snoozed, done := ascInboxGroup(entries, states, now)
 
 	p := &AscInboxPage{Tab: tab, Snoozed: snoozed, Return: tab}
 	p.Kind, p.Sort = ascInboxFilterOf(ctx.FormString("kind"), []string{"humans", "agents"}), ascInboxFilterOf(ctx.FormString("sort"), []string{"oldest", "repo"})
@@ -217,6 +219,22 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 					repoSet[e.RepoFullName] = true
 				}
 				inTab = append(inTab, g.Entries...)
+			}
+		}
+	}
+	// the Done tab lists what the person marked done, the latest first, then what was merged
+	counts[ascInboxTabDone] += len(done)
+	if tab == ascInboxTabDone {
+		for _, e := range done {
+			repoSet[e.RepoFullName] = true
+		}
+		inTab = append(slices.Clone(done), inTab...)
+	}
+	if undo := ctx.FormInt64("undo"); undo > 0 {
+		for _, e := range done {
+			if e.PullID == undo {
+				p.Undo = e
+				break
 			}
 		}
 	}
@@ -333,7 +351,7 @@ func ascAgentDashRow(l translation.Locale, a *AscDashAgent) AscDashRow {
 // ascInboxDetailFor builds the pane of a selected pull request row.
 func ascInboxDetailFor(ctx *context.Context, row AscInboxRow, tab string) *AscInboxDetail {
 	e := row.Entry
-	d := &AscInboxDetail{Row: row, Return: tab, Pinned: e.Pinned}
+	d := &AscInboxDetail{Row: row, Return: tab, Pinned: e.Pinned, Done: !e.DoneAt.IsZero()}
 	d.Info = ascInboxInfoLoad(ctx, e)
 	d.Row.Dash = ascDashRowFor(ctx.Locale, e, d.Info)
 	if e.Section == issues_model.AscInboxNeedsReview {
@@ -441,7 +459,7 @@ func ascInboxSnoozeUntil(choice string, now time.Time) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-// AscInboxStatePost serves `POST /-/asc/inbox/state`: pin, unpin, snooze or wake one pull request of the
+// AscInboxStatePost serves `POST /-/asc/inbox/state`: pin, unpin, snooze, wake, mark done or restore one pull request of the
 // signed-in person's inbox. The marks are the doer's own; the pull request must be one the inbox loader lists
 // for the doer, which re-checks read access, so a pull request id of someone else's repository changes nothing.
 func AscInboxStatePost(ctx *context.Context) {
@@ -471,9 +489,21 @@ func AscInboxStatePost(ctx *context.Context) {
 		ctx.NotFound("AscInboxStatePost", nil)
 		return
 	}
+	back := ascInboxURL(ascInboxTabOf(ctx.FormString("tab")), "", 0)
 	var pinned *bool
 	var until *time.Time
 	switch ctx.FormString("do") {
+	case "done", "restore":
+		done := ctx.FormString("do") == "done"
+		if _, err := issues_model.SetAscInboxDone(ctx, ctx.Doer.ID, pullID, done, now); err != nil {
+			ctx.ServerError("SetAscInboxDone", err)
+			return
+		}
+		if done {
+			back += ascInboxSep(back) + "undo=" + strconv.FormatInt(pullID, 10)
+		}
+		ctx.Redirect(back)
+		return
 	case "pin":
 		v := true
 		pinned = &v
@@ -498,7 +528,15 @@ func AscInboxStatePost(ctx *context.Context) {
 		ctx.ServerError("SetAscInboxState", err)
 		return
 	}
-	ctx.Redirect(ascInboxURL(ascInboxTabOf(ctx.FormString("tab")), "", 0))
+	ctx.Redirect(back)
+}
+
+// ascInboxSep is the separator that adds a query value to u.
+func ascInboxSep(u string) string {
+	if strings.Contains(u, "?") {
+		return "&"
+	}
+	return "?"
 }
 
 // ascInboxCountTTL is how long the header badge reuses a count, in seconds. The count costs a walk over the
@@ -535,7 +573,7 @@ func AscInboxCount(ctx *context.Context) {
 		ctx.ServerError("ListAscInboxStates", err)
 		return
 	}
-	groups, _ := ascInboxGroup(entries, states, now)
+	groups, _, _ := ascInboxGroup(entries, states, now)
 	count := 0
 	for _, g := range groups {
 		if ascDashActionable(g.Section) {
