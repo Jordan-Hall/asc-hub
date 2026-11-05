@@ -13,12 +13,20 @@
 				{{template "explore/user_list" .}}
 				{{template "base/paginate" .}}
 			</div>
-			{{if and .PageIsExploreOrganizations .IsSigned .SignedUser.CanCreateOrganization}}
-				<aside class="ds-rail ds-only-desktop" aria-label="{{ctx.Locale.Tr "new_org.link"}}">
-					<div class="ds-callout">
+			{{if .PageIsExploreOrganizations}}
+				<aside class="ds-rail ds-only-desktop ds-stack-24" aria-label="{{ctx.Locale.Tr "asc_shell.orgs_rail_label"}}">
+					{{if and .IsSigned .SignedUser.CanCreateOrganization}}
+					<div class="ds-callout" data-asc-orgs-start>
 						<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.start_org_title"}}</h2>
 						<p class="ds-t-small ds-c-2 ds-mt-8">{{ctx.Locale.Tr "explore.start_org_lead"}}</p>
 						<a class="ds-btn ds-btn-primary ds-mt-12" href="{{AppSubUrl}}/org/create">{{ctx.Locale.Tr "new_org.link"}}</a>
+					</div>
+					{{end}}
+					<div class="ds-card" data-asc-orgs-verified>
+						<div class="ds-card-b">
+						<h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_shell.orgs_verified_title"}}</h2>
+						<p class="ds-t-small ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_shell.orgs_verified_text"}}</p>
+						</div>
 					</div>
 				</aside>
 			{{end}}
