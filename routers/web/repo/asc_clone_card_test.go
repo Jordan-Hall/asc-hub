@@ -48,6 +48,17 @@ func TestHomeCloneCard(t *testing.T) {
 	assert.Contains(t, page, "asc clone https://hub.example/user2/repo1.git")
 	assert.Contains(t, page, `data-clipboard-text="asc clone https://hub.example/user2/repo1.git`+"\n"+`cd repo1`+"\n"+`asc create asc_rp.clonecard_branch -a -m &#34;asc_rp.clonecard_message&#34;`+"\n"+`asc submit"`)
 	assert.Contains(t, page, `data-testid="clone-card-hide"`)
+	assert.Contains(t, page, `data-testid="gitnote-off"`, "the bridge is off unless the hub says otherwise")
+
+	withGit := renderPart(t, "repo/home_cards", func(d map[string]any) {
+		d["HomeCloneCard"] = true
+		d["AscGitAccess"] = true
+		d["CloneButtonOriginLink"] = &repo_model.CloneLink{HTTPS: "https://hub.example/user2/repo1.git"}
+	})
+	assert.Contains(t, withGit, `<details class="asc-git-compat rp-gitnote">`, "the git note follows the asc commands in the card")
+	assert.Contains(t, withGit, `data-clipboard-target="#rp-clonecard-git-url"`)
+	assert.Contains(t, withGit, `id="rp-clonecard-git-url"`, "its copy target does not clash with the one in the clone sheet")
+	assert.NotContains(t, withGit, `id="rp-git-clone-url"`)
 
 	assert.NotContains(t, renderPart(t, "repo/home_cards", func(map[string]any) {}), "clone-card")
 
