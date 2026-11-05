@@ -424,3 +424,34 @@ a.rp-ref-name:hover {
 .rp-form-title + .ds-c-2 {
   margin-bottom: 16px;
 }
+
+/* the download rail: one line per platform, then the other files */
+.rp-platforms {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-platforms li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 2px 8px;
+}
+
+.rp-platform {
+  grid-column: 1 / -1;
+  font-weight: 600;
+}
+
+.rp-platforms a {
+  overflow-wrap: anywhere;
+}
+
+.rp-platforms .ds-copy {
+  min-width: 32px;
+  min-height: 32px;
+}
