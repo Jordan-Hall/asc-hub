@@ -414,3 +414,32 @@ func TestAscInboxDone(t *testing.T) {
 	_, body = getAscInbox(t, user2, "")
 	assert.Contains(t, body, "pull=51")
 }
+
+func TestAscInboxUnwatch(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	// pull request 2 is issue 3 in the fixtures
+	useAscInboxEntries(t, &AscInboxEntry{PullID: 2, Title: "watched one", Link: "/o/r/pulls/2", RepoFullName: "o/r", Index: 2, Section: issues_model.AscInboxNeedsReview, Updated: time.Now().Add(-time.Hour), Author: "alice"})
+
+	// the bulk bar has Mark done, Snooze and Unwatch, and a ticked box that clears the selection
+	_, body := getAscInbox(t, user2, "")
+	assert.Contains(t, body, "data-bulk-unselect")
+	assert.Contains(t, body, `{"do":"done"`)
+	assert.Contains(t, body, `{"do":"unwatch"`)
+	assert.NotContains(t, body, `{"do":"pin"`)
+
+	code, loc := postAscInboxState(t, user2, map[string]string{"pull": "2", "do": "unwatch", "tab": "needs"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Equal(t, "/-/asc/inbox", loc)
+	iw, exists, err := issues_model.GetIssueWatch(db.DefaultContext, user2.ID, 3)
+	require.NoError(t, err)
+	assert.True(t, exists)
+	assert.False(t, iw.IsWatching)
+
+	// off the inbox, in Done
+	_, body = getAscInbox(t, user2, "")
+	assert.NotContains(t, body, "pull=2\"")
+	_, body = getAscInbox(t, user2, "?tab=done")
+	assert.Contains(t, body, "watched one")
+}
