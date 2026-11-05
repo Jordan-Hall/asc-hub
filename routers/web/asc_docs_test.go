@@ -139,3 +139,57 @@ func TestAscDocsSearchFragmentIsTheResultsAlone(t *testing.T) {
 	assert.NotContains(t, body, "<html")
 	assert.NotContains(t, body, "data-asc-docs-live")
 }
+
+func TestAscDocsArticleLayout(t *testing.T) {
+	pages := ascdocs.Pages()
+	require.Greater(t, len(pages), 2)
+	render := func(slug string) (map[string]any, string) {
+		ctx, resp := contexttest.MockContext(t, "GET /-/docs/"+slug)
+		ctx.SetParams(":slug", slug)
+		ctx.Render = templates.HTMLRenderer()
+		AscDocsPage(ctx)
+		require.Equal(t, http.StatusOK, resp.Code, slug)
+		return ctx.Data, resp.Body.String()
+	}
+
+	// the first guide goes back to the documentation home, the last has no Next
+	data, body := render(pages[0].Slug)
+	assert.Nil(t, data["DocsPrev"])
+	assert.Equal(t, pages[1], data["DocsNext"])
+	assert.Contains(t, body, `class="site-pager-prev" href="/-/docs"`)
+	assert.Contains(t, body, `rel="next"`)
+	data, body = render(pages[len(pages)-1].Slug)
+	assert.Equal(t, pages[len(pages)-2], data["DocsPrev"])
+	assert.Nil(t, data["DocsNext"])
+	assert.Contains(t, body, `rel="prev"`)
+	assert.NotContains(t, body, `rel="next"`)
+
+	// the guides by section with the page open marked, the summary, reading time and last change, On this page as a nav
+	page := pages[2]
+	data, body = render(page.Slug)
+	assert.Contains(t, body, `data-asc-docs-side`)
+	assert.Contains(t, body, `href="/-/docs/`+page.Slug+`" aria-current="page"`)
+	for _, s := range ascdocs.Sections() {
+		assert.Contains(t, body, `<h2 class="ds-t-eyebrow">`+template.HTMLEscapeString(s.Name)+`</h2>`)
+	}
+	assert.Contains(t, body, `<div class="site-lead">`)
+	assert.Contains(t, body, `class="site-meta`)
+	assert.Equal(t, page.Updated, data["DocsPage"].(ascdocs.Page).Updated)
+	assert.Contains(t, body, `aria-labelledby="site-toc-title"`)
+
+	// a callout keeps its bold label
+	_, body = render("operate")
+	assert.Contains(t, body, `attention-header attention-warning`)
+	assert.Contains(t, body, `<strong class="attention-warning">`)
+}
+
+func TestAscDocsLead(t *testing.T) {
+	lead, rest := docsLead("\nASC is one binary.\nIt verifies itself.\n\n## Before you start\n")
+	assert.Equal(t, "ASC is one binary.\nIt verifies itself.", lead)
+	assert.Equal(t, "## Before you start\n", rest)
+	for _, md := range []string{"## A heading\n\ntext", "- a list\n", "> [!NOTE]\n> x", "| a | b |\n", "```sh\nx\n```", "<!-- x -->", "1. step\n", ""} {
+		lead, rest = docsLead(md)
+		assert.Empty(t, lead, md)
+		assert.Equal(t, md, rest)
+	}
+}

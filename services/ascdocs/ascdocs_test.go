@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"forgejo.org/services/ascdocs"
 
@@ -93,4 +94,16 @@ func TestEditURLPointsAtTheSourceFile(t *testing.T) {
 	assert.True(t, strings.HasPrefix(u, "https://"))
 	assert.Contains(t, u, "/edit/")
 	assert.True(t, strings.HasSuffix(u, "/docs/asc/README.md"))
+}
+
+func TestEveryPageHasItsLastChangeAndReadingTime(t *testing.T) {
+	require.NoError(t, ascdocs.Err())
+	for _, p := range ascdocs.Pages() {
+		assert.False(t, p.Updated.IsZero(), "%s has no date in content/updated.json: run make docs-sync", p.File)
+		assert.False(t, p.Updated.After(time.Now()), "%s is dated in the future", p.File)
+		assert.GreaterOrEqual(t, p.Minutes, 1, p.File)
+	}
+	page, _, ok := ascdocs.Get("cli")
+	require.True(t, ok)
+	assert.Greater(t, page.Minutes, 1, "a long reference reads in more than a minute")
 }
