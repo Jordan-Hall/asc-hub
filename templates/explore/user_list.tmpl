@@ -64,6 +64,14 @@
 		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" "?" "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
 	{{else if .PageIsExploreUsers}}
 		{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_shell.nopeople_title") "Body" (ctx.Locale.Tr "asc_shell.nopeople_text"))}}
+	{{else if .PageIsExploreOrganizations}}
+		<div data-asc-orgs-empty>
+		{{if and .IsSigned .SignedUser.CanCreateOrganization}}
+			{{template "shared/ds/empty" (dict "Icon" "building" "Title" (ctx.Locale.Tr "asc_shell.noorgs_title") "Body" (ctx.Locale.Tr "asc_shell.noorgs_text") "PrimaryHref" (print AppSubUrl "/org/create") "PrimaryLabel" (ctx.Locale.Tr "new_org.link"))}}
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "building" "Title" (ctx.Locale.Tr "asc_shell.noorgs_title") "Body" (ctx.Locale.Tr "asc_shell.noorgs_text"))}}
+		{{end}}
+		</div>
 	{{else}}
 		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
 	{{end}}
