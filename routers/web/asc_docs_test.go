@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"forgejo.org/modules/templates"
+	"forgejo.org/services/ascdocs"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -92,4 +94,48 @@ func TestAscPaletteNeedsAQueryOfTheRightLength(t *testing.T) {
 		assert.JSONEq(t, `{"groups":[]}`, resp.Body.String(), "query %d bytes", len(q))
 		assert.Equal(t, "private, no-store", resp.Header().Get("Cache-Control"))
 	}
+}
+
+func TestAscDocsSearchGroupsCommandsAndGuides(t *testing.T) {
+	ctx, resp := contexttest.MockContext(t, "GET /-/docs?q=submit")
+	ctx.Req.Form = url.Values{"q": {"submit"}}
+	AscDocs(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	cmds, ok := ctx.Data["DocsCommands"].([]ascdocs.Command)
+	require.True(t, ok)
+	require.NotEmpty(t, cmds)
+	assert.Equal(t, "asc submit", cmds[0].Name)
+	assert.NotEmpty(t, ctx.Data["DocsHits"])
+	assert.Empty(t, ctx.Data["DocsSuggest"])
+
+	// the reference page carries the heading the command links to
+	ctx, resp = contexttest.MockContext(t, "GET /-/docs/cli")
+	ctx.SetParams(":slug", "cli")
+	AscDocsPage(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	assert.Contains(t, string(ctx.Data["DocsHTML"].(template.HTML)), `id="user-content-`+cmds[0].Anchor+`"`)
+}
+
+func TestAscDocsSearchWithoutResultsSuggestsAWord(t *testing.T) {
+	ctx, resp := contexttest.MockContext(t, "GET /-/docs?q=rebse")
+	ctx.Req.Form = url.Values{"q": {"rebse"}}
+	AscDocs(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	assert.Empty(t, ctx.Data["DocsCommands"])
+	assert.Empty(t, ctx.Data["DocsHits"])
+	assert.Equal(t, "rebase", ctx.Data["DocsSuggest"])
+}
+
+func TestAscDocsSearchFragmentIsTheResultsAlone(t *testing.T) {
+	ctx, resp := contexttest.MockContext(t, "GET /-/docs?q=submit&fragment=results")
+	ctx.Req.Form = url.Values{"q": {"submit"}, "fragment": {"results"}}
+	ctx.Render = templates.HTMLRenderer()
+	AscDocs(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, "private, no-store", resp.Header().Get("Cache-Control"))
+	body := resp.Body.String()
+	assert.Contains(t, body, "data-asc-docs-results")
+	assert.Contains(t, body, "/-/docs/cli#6-stacks-of-changes")
+	assert.NotContains(t, body, "<html")
+	assert.NotContains(t, body, "data-asc-docs-live")
 }
