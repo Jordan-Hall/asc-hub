@@ -46,6 +46,7 @@ type Resolver func(ctx *context.Context) *Level
 //	POST /asc/ai/keys/{id}/shares                  share the key (account and organization keys; aishares.go)
 //	POST /asc/ai/keys/{id}/shares/{share}/revoke   take a share back
 //	POST /asc/ai/keys/{id}/caps                    warning percentage and stop rule of the cap
+//	GET  /asc/menu-status                          statuses of the Storage and AI keys entries of the menu, as JSON
 func Routes(m *web.Route, resolve Resolver) {
 	h := func(fn func(*context.Context, *Level)) func(*context.Context) {
 		return func(ctx *context.Context) {
@@ -93,6 +94,7 @@ func Routes(m *web.Route, resolve Resolver) {
 			})
 			m.Post("/features/{feature}", h(AIFeature))
 		})
+		m.Get("/menu-status", h(MenuStatus))
 	})
 }
 
