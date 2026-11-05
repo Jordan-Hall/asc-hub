@@ -553,3 +553,27 @@
     color: #fff;
   }
 }
+
+/* a private profile seen by someone who shares repositories with the person: the name and those repositories */
+.wk-pf-private {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+}
+
+.wk-pf-private-ic {
+  display: inline-flex;
+  flex: none;
+  color: var(--text-2);
+}
+
+.wk-pf-private p {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.wk-pf-private strong {
+  color: var(--text);
+}

@@ -24,9 +24,9 @@ func TestAscOrgRepoList(t *testing.T) {
 
 	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/org3"), http.StatusOK).Body)
 	page.AssertElement(t, "#repo-search-form[data-asc-list-filter]", true)
-	page.AssertElement(t, ".wk-org-list[data-asc-list-main] > [data-asc-list-loading][hidden][role=status][aria-busy=true]", true)
+	page.AssertElement(t, ".wk-list-main[data-asc-list-main] > [data-asc-list-loading][hidden][role=status][aria-busy=true]", true)
 	assert.Equal(t, 4, page.Find("[data-asc-list-loading] .wk-sk-row").Length())
-	page.AssertElement(t, ".wk-org-list[data-asc-list-main] > .ds-repolist", true)
+	page.AssertElement(t, ".wk-list-main[data-asc-list-main] > .ds-repolist", true)
 
 	rows := page.Find(".ds-repo-row")
 	assert.Positive(t, rows.Length())

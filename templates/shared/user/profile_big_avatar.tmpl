@@ -7,7 +7,11 @@ routers/web/user/profile.go answers those actions with this same template.
 	{{template "base/alert" .}}
 {{end}}
 
-{{$showFollow := and .IsSigned (ne .SignedUserID .ContextUser.ID)}}
+{{$showFollow := and .IsSigned (ne .SignedUserID .ContextUser.ID) (not .AscAsVisitor)}}
+{{/* the person on their own profile, also while they view it as a visitor */}}
+{{$owner := or (eq .SignedUserID .ContextUser.ID) .AscAsVisitor}}
+{{/* a viewer of a private profile who is not the person sees the name only (AscPrivateLimited) */}}
+{{$limited := .AscPrivateLimited}}
 
 <div id="profile-avatar-card" class="wk-pf-card" hx-swap="morph">
 	<div class="wk-pf-av">
@@ -25,13 +29,16 @@ routers/web/user/profile.go answers those actions with this same template.
 		</div>
 		<div class="wk-pf-line2">
 			<span>@{{.ContextUser.Name}}</span>
-			{{with .ContextUser.GetPronouns .IsSigned}}<span>{{.}}</span>{{end}}
+			{{if not $limited}}
+			{{with .ContextUser.GetPronouns (and .IsSigned (not .AscAsVisitor))}}<span>{{.}}</span>{{end}}
 			{{with .AscProfileRole}}<span data-asc-pf-role>{{.}}</span>{{end}}
 			{{with .AscProfileTeams}}<span data-asc-pf-team>{{ctx.Locale.Tr "user.asc_profile.team_line" (index . 0).Name}}</span>{{end}}
 			{{if .ContextUser.Location}}
 				<span>{{.ContextUser.Location}}{{if .ContextUserLocationMapURL}} <a href="{{.ContextUserLocationMapURL}}" rel="nofollow noreferrer" data-tooltip-content="{{ctx.Locale.Tr "user.show_on_map"}}" aria-label="{{ctx.Locale.Tr "user.show_on_map"}}">{{svg "dsi-external" 12}}</a>{{end}}</span>
 			{{end}}
+			{{end}}
 		</div>
+		{{if not $limited}}
 		{{if $.RenderedDescription}}<div class="wk-pf-desc render-content markup">{{$.RenderedDescription}}</div>{{end}}
 		<div class="wk-pf-stats">
 			<a href="{{.ContextUser.HomeLink}}?tab=followers">{{ctx.Locale.TrN .NumFollowers "user.followers_one" "user.followers_few" .NumFollowers}}</a>
@@ -50,8 +57,14 @@ routers/web/user/profile.go answers those actions with this same template.
 				{{end}}
 			</ul>
 		{{end}}
+		{{end}}
 	</div>
 	<div class="wk-pf-actions">
+		{{if $owner}}
+			{{/* the owner view: Edit profile, and a toggle that shows the profile as a visitor sees it */}}
+			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings" data-asc-pf-edit>{{ctx.Locale.Tr "profile.edit.link"}}</a>
+			<a class="ds-btn {{if .AscAsVisitor}}ds-btn-primary{{else}}ds-btn-ghost{{end}}" role="button" aria-pressed="{{if .AscAsVisitor}}true{{else}}false{{end}}" href="{{.ContextUser.HomeLink}}{{if not .AscAsVisitor}}?visitor=1{{end}}" data-asc-pf-visitor>{{svg "dsi-eye" 16}}{{ctx.Locale.Tr "user.asc_profile.view_as_visitor"}}</a>
+		{{end}}
 		{{if $showFollow}}
 			<div class="wk-pf-primary" hx-target="#profile-avatar-card" hx-indicator="#profile-avatar-card">
 				{{if .IsFollowing}}

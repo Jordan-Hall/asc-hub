@@ -4,8 +4,36 @@
 	{{template "shared/user/asc_profile_band" .}}
 	<div class="ds-container ds-container-wide wk-pf-body">
 		{{template "base/alert" .}}
-		{{$activityVisible := or .IsAdmin (eq .SignedUserID .ContextUser.ID) (not .ContextUser.KeepActivityPrivate)}}
-		{{if eq .TabName "overview"}}
+		{{$activityVisible := or (and .IsAdmin (not .AscAsVisitor)) (eq .SignedUserID .ContextUser.ID) (not .ContextUser.KeepActivityPrivate)}}
+		{{$owner := eq .SignedUserID .ContextUser.ID}}
+		{{/* the band and the tabs stay; a tab, a search, a sort or a page shows skeleton cards until the page loads (asc-list-loading.js) */}}
+		<div class="wk-list-main" data-asc-list-main>
+		<div class="wk-list-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "loading"}}" data-asc-list-loading hidden>
+			<div class="ds-card">
+				<ul class="ds-list">
+					<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+					<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+				</ul>
+			</div>
+			<div class="ds-card">
+				<ul class="ds-list">
+					<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+					<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+					<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+				</ul>
+			</div>
+		</div>
+		{{if .AscPrivateLimited}}
+			<div class="ds-card wk-pf-private" role="note" data-asc-pf-private>
+				<span class="wk-pf-private-ic" aria-hidden="true">{{svg "dsi-lock" 20}}</span>
+				<p>{{ctx.Locale.Tr "user.asc_profile.private_text" (or .ContextUser.FullName .ContextUser.Name)}}</p>
+			</div>
+		{{end}}
+		{{if and .AscPrivateLimited (ne .TabName "repositories")}}
+			{{/* the name and the repositories the viewer shares with the person, on every tab */}}
+			{{template "explore/repo_list" .}}
+			{{template "base/paginate" .}}
+		{{else if eq .TabName "overview"}}
 			<div class="ds-split wk-pf-split">
 				<div class="ds-min0 wk-pf-main">
 					{{if .AscProfileWork}}
@@ -30,7 +58,19 @@
 							</ul>
 						</section>
 					{{end}}
-					{{if or .AscPins (eq .SignedUserID .ContextUser.ID)}}
+					{{$noHeat := or (not .AscHeat) (eq .AscHeat.Total 0)}}
+					{{$bare := and (not .AscPins) $noHeat $activityVisible}}
+					{{if $bare}}
+						{{/* no pins and no contributions: one inline empty row, with its action for the person */}}
+						<section class="ds-card" aria-labelledby="wk-pf-empty-title" data-asc-pf-empty>
+							<div class="ds-empty wk-empty-in">
+								<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-bookmark" 32}}</span>
+								<h2 id="wk-pf-empty-title">{{ctx.Locale.Tr "user.asc_profile.empty_title"}}</h2>
+								<p>{{ctx.Locale.Tr "user.asc_profile.empty_text"}}</p>
+								{{if $owner}}<div class="ds-empty-acts"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings/pins">{{ctx.Locale.Tr "user.asc_profile.empty_pin"}}</a></div>{{end}}
+							</div>
+						</section>
+					{{else if or .AscPins $owner}}
 						<section class="ds-card" aria-labelledby="wk-pins-title">
 							<div class="ds-card-h">
 								<h2 id="wk-pins-title">{{ctx.Locale.Tr "asc_work.pf_pinned"}}</h2>
@@ -62,7 +102,7 @@
 						</div>
 					{{end}}
 					{{if $activityVisible}}
-						{{if .AscHeat}}
+						{{if and .AscHeat (not $bare)}}
 							<section class="ds-card" aria-labelledby="wk-heat-title">
 								<div class="ds-card-h">
 									<h2 id="wk-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2>
@@ -192,7 +232,7 @@
 				{{end}}
 			</p>
 			{{else}}
-				{{if .IsAdmin}}
+				{{if and .IsAdmin (not .AscAsVisitor)}}
 				<div id="visibility-hint" class="ds-banner ds-mb-16" role="status">
 					<div class="ds-banner-body">
 					{{if or .ContextUser.KeepActivityPrivate (eq .ContextUser.Visibility 2)}}
@@ -243,6 +283,7 @@
 			{{template "explore/repo_list" .}}
 			{{template "base/paginate" .}}
 		{{end}}
+		</div>
 	</div>
 </div>
 
