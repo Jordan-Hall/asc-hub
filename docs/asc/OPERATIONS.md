@@ -264,6 +264,17 @@ The command prints a generated password once. It also accepts `--password`, but 
 
 A signed-in person who owns no repository, collaborates on none and belongs to no organization with one gets the Get started checklist at `/` instead of the dashboard. Hide (the cross beside the heading) shows the dashboard until they sign in again; the checklist returns while they still have no repository. Once a repository exists, `/` is the dashboard. The checklist stays at `/-/get-started` for everyone.
 
+## The wait after wrong passwords
+
+After five wrong passwords for one account from one address, the hub refuses that account from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The account is the person the typed name resolves to, so the username and every activated email count together. One address that gets ten times as many wrong across names waits too. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
+
+```ini
+LOGIN_MAX_ATTEMPTS = 5 ; 0 turns the wait off
+LOGIN_WAIT = 5m
+```
+
+The counts are kept in memory by each hub process and are lost on a restart.
+
 ## Contact and policies on the About page
 
 The footer links Security, Contact, Privacy, Terms, Acceptable use, Subprocessors and Cookies to sections of `/-/about`. The page lists the cookies the hub sets (with the names in `[session] COOKIE_NAME` and `[security] COOKIE_REMEMBER_NAME`) and what the configuration hands to outside services: object storage on this server or in an S3-compatible store, and a mail server. The page is public, so it never shows a host or address of the configuration; name your providers with `SUBPROCESSORS`. These settings make the rest yours:

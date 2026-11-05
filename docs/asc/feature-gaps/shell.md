@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 150 |
+| done | 151 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 20 |
+| needs-hub-backend | 19 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 28, L 17.
+Open rows by size: S 0, M 27, L 17.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -76,7 +76,7 @@ Open rows by size: S 0, M 28, L 17.
 | Onboarding | Sign in form: username or email, Forgot password, password with Show toggle, Keep me signed in, CLI hint | done | `signin_inner.tmpl`, `ds-shell.js` `onRevealClick`; the CLI hint (`user/auth/cli_hint.tmpl`) teaches `asc clone` with no login step and the device code a private repository asks for | - |
 | Onboarding | "Sign in with a passkey" (discoverable credentials) | needs-hub-backend | Only 2FA security keys exist (`webauthn.tmpl`); no passkey login route anywhere in `routers`. Add begin and finish routes in `routers/web/auth/webauthn.go` and the button in `signin_inner.tmpl` | M |
 | Onboarding | Single sign-on button under the primary action | done | `oauth_container.tmpl` renders configured sources | - |
-| Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | needs-hub-backend | No login throttle in `routers/web/auth/auth.go` or `modules/setting`. Counter per user and IP in cache, message with the wait | M |
+| Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | done | `services/auth/method/asc_login_limit.go` (`UserSignInFrom`: per account and address, before the password check, address cap across names; used by sign-in, link account, OpenID connect and basic auth), `modules/ascratelimit/lockout.go`, `[security] LOGIN_MAX_ATTEMPTS` and `LOGIN_WAIT` (`OPERATIONS.md`). In memory per process | - |
 | Onboarding | Sign up: username with live "Your handle: @name" and blur validation | done | `signup_inner.tmpl` has a plain field. Add handler in `web_src/js/features/user-auth.js`; a name-availability route does not exist, add one in `routers/web/auth/auth.go` (then needs-hub-backend S) | M |
 | Onboarding | Sign up: optional Full name | done | Not in `signup_inner.tmpl` or `forms.RegisterForm`; set `User.FullName` in `SignUpPost` | S |
 | Onboarding | Sign up: strength meter and three live rules (12 characters, letters and numbers, not found in breaches) | needs-hub-backend | No meter in `web_src`. Rules and meter in `user-auth.js`; breach rule is server side: `PASSWORD_CHECK_PWN` exists (`modules/setting/security.go`, default off, runs on submit only). Add `POST /user/password/check` (k-anonymity range query), default it on | M |

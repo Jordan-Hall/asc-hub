@@ -56,7 +56,7 @@ Other findings that cross boards:
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
-- **auth**: 6 boards, 40 rows, done 25, partial 4, missing 11. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
+- **auth**: 6 boards, 40 rows, done 26, partial 4, missing 10. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
 
 Cross-cutting mobile rows (not tied to one board) are counted in the area they belong to and listed in section 6.
 
@@ -1762,7 +1762,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Onboarding (ASC Hub sign in and sign up)
 
-Area auth. Rows 19: done 12, partial 3, missing 4. Copy found in the hub: 57% of 111 copy strings (mobile twin 51%). Template(s): activate.tmpl, forgot_passwd.tmpl, grant.tmpl, reset_passwd.tmpl, signin.tmpl, signup.tmpl, twofa.tmpl, webauthn.tmpl. Mobile twin: yes.
+Area auth. Rows 19: done 13, partial 3, missing 3. Copy found in the hub: 57% of 111 copy strings (mobile twin 51%). Template(s): activate.tmpl, forgot_passwd.tmpl, grant.tmpl, reset_passwd.tmpl, signin.tmpl, signup.tmpl, twofa.tmpl, webauthn.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Quiet, fast, and honest about errors; Sign in to ASC Hub; Keep me signed in on this device; Sign in with a passkey; Signing in from the CLI?; . This page will ask you to approve the device..
 
@@ -1772,7 +1772,7 @@ Board copy not found word for word in locale, templates or scripts: Quiet, fast,
 | Sign in form: username or email, Forgot password, password with Show toggle, Keep me signed in... | partial | templates/user/auth/signin_inner.tmpl:36 | Form is there; the CLI hint teaches the up-front asc auth login --prompt with a pasted token, not on-demand per-repository sign-i... |
 | "Sign in with a passkey" (discoverable credentials) | missing (hub) | absent: no passkey or discoverable-credential code in routers/web/auth, templates/user/auth | Only 2FA security keys exist (webauthn.tmpl); no passkey login route anywhere in routers. Add begin and finish routes in routers/... |
 | Single sign-on button under the primary action | done | templates/user/auth/oauth_container.tmpl (file) | - |
-| Rate limit ("after 5 attempts we wait 5 minutes") | missing (hub) | absent: no login attempt counter in routers/web/auth/auth.go, services/auth, modules/setting/securi... | No login throttle in routers/web/auth/auth.go or modules/setting. Counter per user and IP in cache, message with the wait |
+| Rate limit ("after 5 attempts we wait 5 minutes") | done | services/auth/method/asc_login_limit.go, modules/ascratelimit/lockout.go, routers/web/auth/asc_login_limit.go | Counts are in memory per process |
 | Sign up: username with live "Your handle: @name" and blur validation | done | templates/user/auth/signup_inner.tmpl (file) | - |
 | Sign up: optional Full name | done | templates/user/auth/signup_inner.tmpl (file) | - |
 | Sign up: strength meter and three live rules (12 characters, letters and numbers, not found in... | missing (hub) | absent: no strength or rules code in asc-signup.js or signup_inner.tmpl | No meter in web_src. Rules and meter in user-auth.js; breach rule is server side: PASSWORD_CHECK_PWN exists (modules/setting/secu... |
