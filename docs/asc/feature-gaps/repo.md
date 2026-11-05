@@ -216,15 +216,15 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | Dependencies | Views Findings / Updates / Configuration (`?view=`) | done | `H:templates/repo/asc_deps.tmpl`, `H:routers/web/repo/asc_deps.go` | S |
 | Dependencies | Scan now, refresh advisory data, last-scan line, lookup-incomplete banner | done | `asc_deps.tmpl` | S |
-| Dependencies | Summary tiles: findings by severity bar chart with text table, Outdated 11 (3 with security fix), Packages 214 by ecosystem, Last scan 2 h "Complete, 3 of 3 sources" | ui-only-missing | `DepsService.ListFindings/ListUpdates` give the counts; add tile row to `asc_deps.tmpl` | M |
+| Dependencies | Summary tiles: findings by severity bar chart with text table, Outdated 11 (3 with security fix), Packages 214 by ecosystem, Last scan 2 h "Complete, 3 of 3 sources" | done | `DepsService.ListFindings/ListUpdates` give the counts; add tile row to `asc_deps.tmpl` | M |
 | Dependencies | Severity chips All / Critical / High / Medium / Low with counts, Show dismissed | done | state tabs and min-severity select | S |
-| Dependencies | Finding row expands (aria-expanded): "Why it matters", "How it gets in" text tree, Propose fix | ui-only-missing | rows are flat in `asc_deps.tmpl` (path is one line); render the path as a tree and add per-finding Propose fix posting to `/asc/deps/propose` | M |
+| Dependencies | Finding row expands (aria-expanded): "Why it matters", "How it gets in" text tree, Propose fix | done | rows are flat in `asc_deps.tmpl` (path is one line); render the path as a tree and add per-finding Propose fix posting to `/asc/deps/propose` | M |
 | Dependencies | Dismiss with required reason and note, Reopen, "until Dec 1" expiry | done | `AscDepsDismiss`; reasons + note present, expiry date not verified | S |
 | Dependencies | Updates table: package, current, latest, kind, security, proposal link (Change kq2nv) or Propose | done | `asc_deps.tmpl` updates view | S |
 | Dependencies | Propose updates panel: Security fixes only, Largest jump, Most proposals, 5-stack limit, Preview, Propose | done | `asc_deps.tmpl`, `asc_deps_plan.tmpl` | S |
 | Dependencies | Configuration view: ecosystems, schedule ("Weekly, Mondays 06:00 UTC, next run in 4 days"), threshold, grouping, ignored, "Propose a change" to `.asc/deps.toml` | done | `asc_deps.tmpl` (read-only list); "Propose a change" button not verified | S |
 | Dependencies | Scan running state with real progress bar ("About 20 seconds left") | needs-asc-backend | `DepsService.Scan` is unary (`A:proto/asc/v1/deps.proto`); add a scan status/progress RPC or stream, hub polling | M |
-| Dependencies | No findings state ("Checked 214 packages 2 hours ago against 3 sources") | ui-only-missing | `asc_deps.tmpl` prints a short empty line | S |
+| Dependencies | No findings state ("Checked 214 packages 2 hours ago against 3 sources") | done | `asc_deps.tmpl` prints a short empty line | S |
 | Dependencies | Never scanned state with package count | done | `never_scanned` banner (count not shown) | S |
 | Dependencies | Unsupported ecosystem ("2 files are not scanned. tools/build.zig.zon") | done | `unsupported` banner (file names not listed) | S |
 | Dependencies | Advisory text plain, https-only links | done | cleaned in `H:services/asctrust` | S |
