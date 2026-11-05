@@ -341,7 +341,7 @@ Board copy not found word for word in locale, templates or scripts: A short path
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Docs home: search, Popular chips, six entry cards, "New in ASC 1.4" list, Need a person card | done | templates/asc/docs.tmpl (file) | - |
-| Docs search with grouped results (Commands, Guides), did-you-mean, no results, loading; Ctrl K... | missing (hub) | logged as not built (not re-probed) | Index over docs/asc/*.md and the CLI reference built at start (new modules/ascdocs) plus GET /-/docs/search?q=; JS list |
+| Docs search with grouped results (Commands, Guides), did-you-mean, no results, loading; Ctrl K... | done | services/ascdocs/commands.go, templates/asc/docs_results.tmpl, web_src/js/features/asc-docs-search.js | Results load as you type from /-/docs?q=&fragment=results; Ctrl K or / focuses the box (TestAscDocsSearch*) |
 | Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | missing (hub) | logged as not built (not re-probed) | Docs live on GitHub ($docsURL). Render docs/asc/** with the hub markdown renderer: AscDocs in routers/web/asc_public.go, new temp... |
 | OS code tabs remembered; Copy without the prompt | missing (UI) | logged as not built (not re-probed) | Reuse the initDownload tab code; localStorage key |
 | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | docs.js (not found in tree) | the where-cell cites docs.js, not in the tree (renamed or stale text); behaviour taken from the gap file |
