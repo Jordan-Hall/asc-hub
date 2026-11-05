@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 113 |
-| ui-only-missing | 19 |
+| done | 116 |
+| ui-only-missing | 16 |
 | needs-hub-backend | 38 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 13, M 48, L 21.
+Open rows by size: S 11, M 47, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -131,10 +131,10 @@ Open rows by size: S 13, M 48, L 21.
 | Download | Connect card, access-token alternative, Verify your download, release key | done | `download.tmpl` aside | - |
 | Download | Editor extensions | done | `download.tmpl` | - |
 | Download | System requirements card | done | No `system_req` string; add to the aside | S |
-| Download | Release notes link, Older releases | ui-only-missing | Release notes and build-from-source exist. "Older releases" missing: `modules/ascdownload/manifest.go` holds one manifest, add a release index | M |
+| Download | Release notes link, Older releases | done | "Older releases" links the GitHub releases page, or for a local or fetched release the manifest's `releases_url` (https only, `modules/ascdownload/manifest.go`); test `TestAscDownloadPage` | - |
 | Download | States: No release yet (build from source, admin note), system not detected | done | `download.tmpl` | - |
-| Download | Loading releases skeleton | ui-only-missing | Page is server rendered; only needed if offers load client side | S |
-| Download | "Signature check failed" and "verified" banners | ui-only-missing | Board shows guidance copy, not a live check (a browser cannot verify minisign without a library). Decide: explainer card, or a WASM minisign check of a chosen file (M) | S |
+| Download | Loading releases skeleton | done | Not shown by design: the page is server rendered and the release is read and cached on the server (`ascdownload.Cached`, `SharedGitHubSource`), so no client-side loading state exists; a skeleton would show a state that never happens | - |
+| Download | "Signature check failed" and "verified" banners | done | Guidance in the Verify card under the command: what a verified and a failed `minisign -V` mean, the failed one says delete and do not run (`download.tmpl` `[data-asc-dl-outcome]`, keys `asc_download.sig_*`); test `TestAscDownloadPage` | - |
 | Mobile-Download | Sticky bottom bar "Download for your system"; files as cards | done | `download.tmpl` `[data-asc-dl-sticky]` (Download for the system, More); under 640 px each file row is a card with kind and size, hash with Copy and a signature icon, Download (`site.css`) | - |
 
 ## Explore: repositories
