@@ -114,10 +114,16 @@ func TestLockoutTableNeverDropsAWait(t *testing.T) {
 
 	l.Begin("other", 1, time.Minute)
 	l.Begin("third", 1, time.Minute)
-	assert.Zero(t, l.Begin("new", 1, time.Minute), "when every key waits a new key may try, uncounted")
-	assert.Zero(t, l.Left("new"), "and does not wait")
+	// when every key waits, new keys share one overflow count of OverflowFactor times the limit
+	for i := 0; i < OverflowFactor; i++ {
+		assert.Zero(t, l.Begin(fmt.Sprint("new", i), 1, time.Minute), "new try %d may be made", i)
+	}
+	assert.Equal(t, time.Minute, l.Left("new"), "the overflow waits once its tries are used")
+	assert.Equal(t, time.Minute, l.Begin("another", 1, time.Minute), "and refuses a further new key")
 	assert.Len(t, l.items, 3)
 	assert.Equal(t, time.Minute, l.Left("victim"), "the waits are kept")
+	l.Release("new0")
+	assert.Zero(t, l.Left("new"), "a try given back ends the overflow wait")
 
 	at = at.Add(time.Minute)
 	assert.Zero(t, l.Begin("new", 3, time.Minute), "a key whose wait is over may be dropped")
