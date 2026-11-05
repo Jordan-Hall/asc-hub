@@ -1,10 +1,19 @@
 {{/* A list of changes: one row each with the author, the hash and the time, joined by a line (board History). */}}
 {{$commitRepoLink := $.RepoLink}}{{if $.CommitRepoLink}}{{$commitRepoLink = $.CommitRepoLink}}{{end}}
-<ol class="rp-hist commit-list" id="commits-table" data-asc-list data-density="comfy">
+<ol class="rp-hist commit-list{{if $.HistoryLanes}} is-graph{{end}}" id="commits-table" data-asc-list data-density="comfy"{{if $.HistoryLanes}} style="--rp-lanes-w: {{$.HistoryLanesWidth}}px"{{end}}>
 	{{range .Commits}}
 		{{$userName := .Author.Name}}
 		<li class="rp-commit" data-asc-row tabindex="-1" data-asc-id="{{.ID}}">
+			{{$lane := ""}}{{if $.HistoryLanes}}{{$lane = index $.HistoryLanes .ID.String}}{{end}}
+			{{if $lane}}
+				<svg class="rp-lanes" width="{{$.HistoryLanesWidth}}" height="100%" aria-hidden="true" focusable="false">
+					{{range $lane.Lines}}<line class="rp-lane-k{{.Color}}" x1="{{.X1}}" y1="{{.Y1}}" x2="{{.X2}}" y2="{{.Y2}}"/>{{end}}
+					<circle class="rp-lane-node rp-lane-k{{$lane.NodeColor}}" cx="{{$lane.NodeX}}" cy="25" r="5"/>{{if $lane.Merge}}<circle class="rp-lane-hole" cx="{{$lane.NodeX}}" cy="25" r="2"/>{{end}}
+				</svg>
+				<span class="rp-lanes-col" aria-hidden="true"></span>
+			{{else}}
 			<span class="rp-node{{if gt .ParentCount 1}} is-merge{{end}}" aria-hidden="true"></span>
+			{{end}}
 			<div class="rp-commit-main">
 				<div class="rp-commit-title">
 					{{$commitLink := printf "%s/commit/%s" $commitRepoLink (PathEscape .ID.String)}}
