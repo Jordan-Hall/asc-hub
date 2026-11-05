@@ -93,6 +93,9 @@ func prepareAscDownload(ctx *context.Context) bool {
 		}
 	} else {
 		m, err = ascdownload.Cached(setting.Asc.DownloadDir, setting.Asc.DownloadBaseURL == "")
+		if err == nil && m.ReleasesURL != "" {
+			ctx.Data["AscReleasesURL"] = m.ReleasesURL
+		}
 	}
 	isAdmin := ctx.IsSigned && ctx.Doer != nil && ctx.Doer.IsAdmin
 	if err != nil {

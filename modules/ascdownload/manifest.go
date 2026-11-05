@@ -82,7 +82,9 @@ type Manifest struct {
 	Version         string `json:"version"`
 	ReleasedAt      string `json:"released_at,omitempty"`
 	ReleaseNotesURL string `json:"release_notes_url,omitempty"`
-	Files           []File `json:"files"`
+	// ReleasesURL is the page that lists every release, for "Older releases".
+	ReleasesURL string `json:"releases_url,omitempty"`
+	Files       []File `json:"files"`
 	// Checksums is the name of a SHA256SUMS style file and ChecksumsSignature the name of its signature.
 	Checksums          string `json:"checksums,omitempty"`
 	ChecksumsSignature string `json:"checksums_signature,omitempty"`
@@ -148,6 +150,9 @@ func (m *Manifest) Validate() error {
 	}
 	if m.ReleaseNotesURL != "" && !validHTTPSURL(m.ReleaseNotesURL) {
 		return errors.New("release_notes_url must be an https URL")
+	}
+	if m.ReleasesURL != "" && !validHTTPSURL(m.ReleasesURL) {
+		return errors.New("releases_url must be an https URL")
 	}
 	for name, u := range map[string]string{"extensions.vscode": m.Extensions.VSCode, "extensions.jetbrains": m.Extensions.JetBrains} {
 		if u != "" && !validHTTPSURL(u) {

@@ -56,6 +56,7 @@ func TestValidateRejects(t *testing.T) {
 		"notes http":          func(m *Manifest) { m.ReleaseNotesURL = "http://example.org" },
 		"notes javascript":    func(m *Manifest) { m.ReleaseNotesURL = "javascript:alert(1)" },
 		"notes credentials":   func(m *Manifest) { m.ReleaseNotesURL = "https://u:p@example.org" },
+		"releases http":       func(m *Manifest) { m.ReleasesURL = "http://example.org/releases" },
 		"notes space":         func(m *Manifest) { m.ReleaseNotesURL = "https://example.org/a b" },
 		"vscode":              func(m *Manifest) { m.Extensions.VSCode = "vscode:extension/x" },
 		"key":                 func(m *Manifest) { m.MinisignPublicKey = "RW' ; rm -rf /" },
