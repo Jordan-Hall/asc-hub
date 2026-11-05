@@ -187,7 +187,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | No-results state with "Search all branches / All repositories" actions | done | `asc_search.tmpl` shows a plain banner | S |
 | Search | Not available (503) for meaning search with "Use Text search" and "Open storage settings" | done | `s_err_503` banner exists; add actions | S |
 | Search | Rate limited (429) keeps the query | done | `s_err_429` | S |
-| Search | Loading state | ui-only-missing | skeleton | S |
+| Search | Loading state | done | `repo/asc_search_loading.tmpl`: a new search, a facet or an example query shows three result cards while the page loads (`asc-page-loading.js`); test `TestSearchLoadingState` | S |
 | Search | `/` focuses search in the repository | done | `ds-shell.js` | S |
 | Search | Mobile: sticky search with mode and scope, Filters bottom sheet, results as cards | ui-only-missing | `asc_search.tmpl` + sheet component | M |
 
