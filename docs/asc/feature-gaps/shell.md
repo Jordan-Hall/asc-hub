@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 151 |
+| done | 152 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 19 |
+| needs-hub-backend | 18 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 27, L 17.
+Open rows by size: S 0, M 26, L 17.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -76,11 +76,11 @@ Open rows by size: S 0, M 27, L 17.
 | Onboarding | Sign in form: username or email, Forgot password, password with Show toggle, Keep me signed in, CLI hint | done | `signin_inner.tmpl`, `ds-shell.js` `onRevealClick`; the CLI hint (`user/auth/cli_hint.tmpl`) teaches `asc clone` with no login step and the device code a private repository asks for | - |
 | Onboarding | "Sign in with a passkey" (discoverable credentials) | needs-hub-backend | Only 2FA security keys exist (`webauthn.tmpl`); no passkey login route anywhere in `routers`. Add begin and finish routes in `routers/web/auth/webauthn.go` and the button in `signin_inner.tmpl` | M |
 | Onboarding | Single sign-on button under the primary action | done | `oauth_container.tmpl` renders configured sources | - |
-| Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | done | `services/auth/method/asc_login_limit.go` (`UserSignInFrom`: per account and address, before the password check, address cap across names; used by sign-in, link account, OpenID connect and basic auth), `modules/ascratelimit/lockout.go`, `[security] LOGIN_MAX_ATTEMPTS` and `LOGIN_WAIT` (`OPERATIONS.md`). In memory per process | - |
+| Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | done | `services/auth/method/asc_login_limit.go` (`UserSignInFrom`: per typed name and address, counted before the password check, address cap across names; used by sign-in, link account, OpenID connect and basic auth), `modules/ascratelimit/lockout.go`, `[security] LOGIN_MAX_ATTEMPTS` and `LOGIN_WAIT` (`OPERATIONS.md`). In memory per process | - |
 | Onboarding | Sign up: username with live "Your handle: @name" and blur validation | done | `signup_inner.tmpl` has a plain field. Add handler in `web_src/js/features/user-auth.js`; a name-availability route does not exist, add one in `routers/web/auth/auth.go` (then needs-hub-backend S) | M |
 | Onboarding | Sign up: optional Full name | done | Not in `signup_inner.tmpl` or `forms.RegisterForm`; set `User.FullName` in `SignUpPost` | S |
 | Onboarding | Sign up: strength meter and three live rules (12 characters, letters and numbers, not found in breaches) | needs-hub-backend | No meter in `web_src`. Rules and meter in `user-auth.js`; breach rule is server side: `PASSWORD_CHECK_PWN` exists (`modules/setting/security.go`, default off, runs on submit only). Add `POST /user/password/check` (k-anonymity range query), default it on | M |
-| Onboarding | Sign up: "I agree to the Terms and the Privacy policy" | needs-hub-backend | Not in the form. Needs Terms and Privacy URLs, a required checkbox and a stored acceptance | M |
+| Onboarding | Sign up: "I agree to the Terms and the Privacy policy" | done | `signup_inner.tmpl` required box linking `/-/about#terms` and `#privacy` (or `[asc] POLICIES_URL`), `routers/web/auth/asc_terms.go` (refused without it on sign up and link account sign up), `models/user/asc_terms.go` (`asc_terms_acceptance`, migration `v18o`); test `tests/integration/asc_signup_terms_test.go` | - |
 | Onboarding | Sign up has no retyped password on the board; the hub form asks for one | done | Drop the retype field (Show replaces it); relax `forms.RegisterForm` | S |
 | Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | done | `twofa.tmpl` six-box field, "Use a recovery code", and "Use a security key instead" to `/user/webauthn` when the person has a key (`HasSecurityKey` in `routers/web/auth/2fa.go`); test `asc_twofa_test.go` | - |
 | Onboarding | CLI device approval: code entry, confirm with device name, Authorise or Deny, expiry, wrong-code and rate-limit states; hub device-code store and `POST /login/device/code`, `POST /login/device/token` (RFC 8628) | done | `models/auth/asc_device_code.go`, `routers/web/auth/asc_device.go`, `templates/user/auth/asc_device.tmpl`; asc side is Phase 3 | - |

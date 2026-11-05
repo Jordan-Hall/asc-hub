@@ -288,6 +288,8 @@ The footer links Security, Contact, Privacy, Terms, Acceptable use, Subprocessor
 
 The addresses must be plain (`security@example.org`, no display name), the URL `https` without credentials and the entries without control characters; anything else stops the hub at start.
 
+The sign up form (and the form that makes an account while linking an outside sign-in) has the box "I agree to the Terms and the Privacy policy". Its links go to `POLICIES_URL` when it is set, else to the `#terms` and `#privacy` sections of `/-/about`. An account is only made with the box ticked, and the hub keeps when each person agreed in the table `asc_terms_acceptance` (removed with the account). Accounts made by an administrator, by automatic registration from an outside sign-in or before this box existed have no record.
+
 ## Checks after a deploy
 
 Run the smoke test from any machine that can reach the hub. It needs `curl`, `git` 2.31 or later (plus `ssh` and `ssh-keygen` only when you check SSH), and an access token of a test user with the scopes `write:repository` and `write:user` (Settings, Applications):
