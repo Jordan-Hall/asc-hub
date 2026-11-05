@@ -602,3 +602,14 @@
     display: none;
   }
 }
+
+/* An agent on the access page: a violet ring on its avatar and what the policy lets it write. */
+.rp-agent-mark img {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--agent);
+}
+
+.rp-agent-scope {
+  color: var(--text-2);
+  font-size: 12px;
+}

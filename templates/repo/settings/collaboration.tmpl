@@ -9,13 +9,16 @@
 				{{range .Collaborators}}
 					<div class="flex-item tw-items-center">
 						<div class="flex-item-leading">
-							<a href="{{.HomeLink}}" aria-label="{{.GetDisplayName}}">{{ctx.AvatarUtils.Avatar . 32}}</a>
+							<a href="{{.HomeLink}}" aria-label="{{.GetDisplayName}}"{{if .IsBot}} class="rp-agent-mark"{{end}}>{{ctx.AvatarUtils.Avatar . 32}}</a>
 						</div>
 						<div class="flex-item-main">
 							<div class="flex-item-title">
 								{{template "shared/user/name" .}}
 								{{if .IsBot}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
 							</div>
+							{{if and .IsBot $.AgentScope}}
+							<div class="flex-item-body rp-agent-scope">{{if $.AgentScope.Off}}{{ctx.Locale.Tr "asc_rp.agent_scope_off"}}{{else}}{{ctx.Locale.Tr "asc_rp.agent_scope" $.AgentScope.Paths}}{{end}}</div>
+							{{end}}
 						</div>
 						<div class="flex-item-trailing">
 							<div class="flex-text-block">

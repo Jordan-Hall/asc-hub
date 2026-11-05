@@ -34,6 +34,7 @@ func Collaboration(ctx *context.Context) {
 		return
 	}
 	ctx.Data["Collaborators"] = users
+	ctx.Data["AgentScope"] = ascAgentScope(ctx, users)
 
 	teams, err := organization.GetRepoTeams(ctx, ctx.Repo.Repository)
 	if err != nil {
