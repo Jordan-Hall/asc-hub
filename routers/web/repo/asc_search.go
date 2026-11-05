@@ -168,6 +168,7 @@ type ascSearchQuery struct {
 	scope         string // version, change, stack, branches or repos
 	rawPull       string
 	stackDiff     bool
+	sort          string // empty for best match, or ascSearchSortPath
 
 	path  string
 	lang  string
@@ -243,6 +244,14 @@ func AscSearch(ctx *context.Context) {
 		return
 	}
 
+	// The facets count the whole answer; the page, and what is looked up for it, is one slice of it.
+	count := len(res.files) + len(res.symbols) + len(res.chunks)
+	ctx.Data["AscSearchLangFacets"], ctx.Data["AscSearchDirFacets"] = ascSearchFacets(ctx.Repo.RepoLink, q, res)
+	ctx.Data["AscSearchBranchFacets"] = ascSearchBranchFacets(ctx.Repo.RepoLink, q, res)
+	ascSearchSort(q, &res)
+	ctx.Data["AscSearchPages"] = ascSearchPage(ctx.Repo.RepoLink, q, ctx.FormInt("page"), &res)
+	ctx.Data["AscSearchSorts"] = ascSearchSorts(ctx.Repo.RepoLink, q)
+
 	if len(targets) == 1 && q.scope == ascSearchScopeVersion {
 		ctx.Data["AscSearchMatched"] = ascSearchDefinitions(callCtx, api, targets[0].scope, ctx.Repo.RepoLink, q, &res)
 		ascSearchChanged(ctx, ascv1.NewRepoClient(conn), callCtx, name, q, res.files)
@@ -255,11 +264,9 @@ func AscSearch(ctx *context.Context) {
 	ctx.Data["AscSearchChunks"] = res.chunks
 	ctx.Data["AscSearchTruncated"] = res.truncated
 	ctx.Data["AscSearchModel"] = res.model
-	ctx.Data["AscSearchCount"] = len(res.files) + len(res.symbols) + len(res.chunks)
+	ctx.Data["AscSearchCount"] = count
 	ctx.Data["AscSearchFailed"] = failed
 	ctx.Data["AscSearchTargets"] = len(targets)
-	ctx.Data["AscSearchLangFacets"], ctx.Data["AscSearchDirFacets"] = ascSearchFacets(ctx.Repo.RepoLink, q, res)
-	ctx.Data["AscSearchBranchFacets"] = ascSearchBranchFacets(ctx.Repo.RepoLink, q, res)
 
 	// The coverage note is advice about the answer, so its failure never fails the page. It is read for the
 	// first place searched; an all-branches search says so.
@@ -283,6 +290,7 @@ func ascSearchShowQuery(ctx *context.Context, q ascSearchQuery) {
 	ctx.Data["AscSearchScope"] = q.scope
 	ctx.Data["AscSearchPullInput"] = q.rawPull
 	ctx.Data["AscSearchStackDiff"] = q.stackDiff
+	ctx.Data["AscSearchSort"] = q.sort
 }
 
 // ascSearchRawQuery reads the query string without trusting it: what it returns is only echoed into the form.
@@ -305,6 +313,9 @@ func ascSearchRawQuery(ctx *context.Context) ascSearchQuery {
 		scope:         ascSearchScopeOK(short("scope")),
 		rawPull:       short("pull"),
 		stackDiff:     ctx.FormBool("diff"),
+	}
+	if short("sort") == ascSearchSortPath {
+		q.sort = ascSearchSortPath
 	}
 	switch q.mode {
 	case ascSearchModeLexical, ascSearchModeSymbol, ascSearchModeSemantic:

@@ -181,7 +181,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | "Symbols matched: RetryPolicy, retry" line | done | repository search (`ascSearchDefinitions`) and the all-repositories search (`definitions`) | S |
 | Search | Code intelligence side panel (definition, signature, Go to definition, references, Called from, cross-repo callers) | done | `H:routers/web/repo/asc_search_panel.go`: `GET /{repo}/asc/search/panel` fragment from `ascsearch.Panel` (CodeIntel fallback), cross-repo rows only for readable repositories; `asc-search-panel.js` loads it into the right column at 1200 px and wider | L |
 | Search | Coverage line ("Indexed at e91b0d4, 99.2% of files; 4 files too large, listed in settings") | done | `asc_search.tmpl` coverage block (percent and lag); link to settings is missing | S |
-| Search | Sort: best match, pagination "Showing 4 of 38", page links | ui-only-missing | `asc_search.tmpl` has a Truncated banner only | M |
+| Search | Sort: best match, pagination "Showing 4 of 38", page links | done | `H:routers/web/repo/asc_search_page.go`: Best match or Path sort, pages of 10 over the bounded answer with "Showing 11–20 of 38" (of more than N when asc cut it); facets count the whole answer | M |
 | Search | "The other two kinds of search" teaser (Text and Symbol hits for the same query) | ui-only-missing | run two cheap queries in `asc_search.go`; fragment | M |
 | Search | First-visit state with example queries | done (seen on a live hub (ui28): three example searches that open Meaning search) | `asc_search.tmpl` | S |
 | Search | No-results state with "Search all branches / All repositories" actions | done | `asc_search.tmpl` shows a plain banner | S |

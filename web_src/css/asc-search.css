@@ -209,6 +209,32 @@
   line-height: 1.5;
 }
 
+.asc-search-sortbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.asc-search-showing {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-light-2);
+}
+
+.asc-search-sort,
+.asc-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.asc-pages {
+  justify-content: center;
+}
+
 .asc-group {
   display: flex;
   flex-direction: column;
@@ -414,6 +440,20 @@
   .asc-chip.active {
     border-color: var(--color-primary);
   }
+}
+
+/* the sort and page chips keep their pill look beside the results */
+.asc-search-sort .asc-chip,
+.asc-pages .asc-chip {
+  min-height: 44px;
+  padding-inline: 14px;
+  border-color: var(--color-secondary-dark-2);
+  border-radius: 999px;
+}
+
+.asc-search-sort .asc-chip.active,
+.asc-pages .asc-chip.active {
+  border-color: var(--color-primary);
 }
 
 /* the code intelligence panel: the right column on a wide screen */
