@@ -88,7 +88,28 @@ function initPreInstall(page) {
   initDbTest(form, progress);
   initPhoneStepper(form);
   initRunning(form);
+  initAdmin(form);
   progress.update();
+}
+
+const adminFields = ['admin_name', 'admin_email', 'admin_passwd', 'admin_confirm_passwd'];
+
+// initAdmin keeps the administrator optional: once one of its fields is filled all four are needed, and with no
+// administrator self-registration must stay open, so the first person to register owns the hub.
+function initAdmin(form) {
+  const card = form.querySelector('[data-ins-admin]');
+  const closed = document.getElementById('disable_registration');
+  if (!card || !closed) return;
+  const fields = adminFields.map((id) => document.getElementById(id)).filter(Boolean);
+  const sync = () => {
+    const any = fields.some((el) => el.value !== '');
+    for (const el of fields) el.required = any;
+    fields[0].setCustomValidity(closed.checked && !any ? card.getAttribute('data-skip-err') : '');
+  };
+  // on the form, so a box that another box clears (the exclusive options) is seen too
+  form.addEventListener('input', sync);
+  form.addEventListener('change', sync);
+  sync();
 }
 
 function box(id) {
