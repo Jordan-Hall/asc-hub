@@ -45,6 +45,7 @@ const (
 	Workspace_Conflicts_FullMethodName    = "/asc.v1.Workspace/Conflicts"
 	Workspace_CommitGraph_FullMethodName  = "/asc.v1.Workspace/CommitGraph"
 	Workspace_ReadFile_FullMethodName     = "/asc.v1.Workspace/ReadFile"
+	Workspace_Inputs_FullMethodName       = "/asc.v1.Workspace/Inputs"
 )
 
 // WorkspaceClient is the client API for Workspace service.
@@ -80,6 +81,7 @@ type WorkspaceClient interface {
 	Conflicts(ctx context.Context, in *WsConflictsRequest, opts ...grpc.CallOption) (*WsConflictsResponse, error)
 	CommitGraph(ctx context.Context, in *WsCommitGraphRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CommitGraphResponse], error)
 	ReadFile(ctx context.Context, in *WsReadFileRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ReadFileResponse], error)
+	Inputs(ctx context.Context, in *WsInputsRequest, opts ...grpc.CallOption) (*WsInputsResponse, error)
 }
 
 type workspaceClient struct {
@@ -413,6 +415,16 @@ func (c *workspaceClient) ReadFile(ctx context.Context, in *WsReadFileRequest, o
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Workspace_ReadFileClient = grpc.ServerStreamingClient[ReadFileResponse]
 
+func (c *workspaceClient) Inputs(ctx context.Context, in *WsInputsRequest, opts ...grpc.CallOption) (*WsInputsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WsInputsResponse)
+	err := c.cc.Invoke(ctx, Workspace_Inputs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkspaceServer is the server API for Workspace service.
 // All implementations should embed UnimplementedWorkspaceServer
 // for forward compatibility.
@@ -446,6 +458,7 @@ type WorkspaceServer interface {
 	Conflicts(context.Context, *WsConflictsRequest) (*WsConflictsResponse, error)
 	CommitGraph(*WsCommitGraphRequest, grpc.ServerStreamingServer[CommitGraphResponse]) error
 	ReadFile(*WsReadFileRequest, grpc.ServerStreamingServer[ReadFileResponse]) error
+	Inputs(context.Context, *WsInputsRequest) (*WsInputsResponse, error)
 }
 
 // UnimplementedWorkspaceServer should be embedded to have
@@ -532,6 +545,9 @@ func (UnimplementedWorkspaceServer) CommitGraph(*WsCommitGraphRequest, grpc.Serv
 }
 func (UnimplementedWorkspaceServer) ReadFile(*WsReadFileRequest, grpc.ServerStreamingServer[ReadFileResponse]) error {
 	return status.Error(codes.Unimplemented, "method ReadFile not implemented")
+}
+func (UnimplementedWorkspaceServer) Inputs(context.Context, *WsInputsRequest) (*WsInputsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Inputs not implemented")
 }
 func (UnimplementedWorkspaceServer) testEmbeddedByValue() {}
 
@@ -972,6 +988,24 @@ func _Workspace_ReadFile_Handler(srv interface{}, stream grpc.ServerStream) erro
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Workspace_ReadFileServer = grpc.ServerStreamingServer[ReadFileResponse]
 
+func _Workspace_Inputs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WsInputsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServer).Inputs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Workspace_Inputs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServer).Inputs(ctx, req.(*WsInputsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Workspace_ServiceDesc is the grpc.ServiceDesc for Workspace service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1054,6 +1088,10 @@ var Workspace_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Conflicts",
 			Handler:    _Workspace_Conflicts_Handler,
+		},
+		{
+			MethodName: "Inputs",
+			Handler:    _Workspace_Inputs_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

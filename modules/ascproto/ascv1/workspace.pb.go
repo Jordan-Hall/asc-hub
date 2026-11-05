@@ -141,6 +141,58 @@ func (WatchEvent_Kind) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{9, 0}
 }
 
+type WsInputEntry_Kind int32
+
+const (
+	WsInputEntry_KIND_TREE WsInputEntry_Kind = 0
+	WsInputEntry_KIND_FILE WsInputEntry_Kind = 1
+	WsInputEntry_KIND_EXEC WsInputEntry_Kind = 2
+	WsInputEntry_KIND_LINK WsInputEntry_Kind = 3
+)
+
+// Enum value maps for WsInputEntry_Kind.
+var (
+	WsInputEntry_Kind_name = map[int32]string{
+		0: "KIND_TREE",
+		1: "KIND_FILE",
+		2: "KIND_EXEC",
+		3: "KIND_LINK",
+	}
+	WsInputEntry_Kind_value = map[string]int32{
+		"KIND_TREE": 0,
+		"KIND_FILE": 1,
+		"KIND_EXEC": 2,
+		"KIND_LINK": 3,
+	}
+)
+
+func (x WsInputEntry_Kind) Enum() *WsInputEntry_Kind {
+	p := new(WsInputEntry_Kind)
+	*p = x
+	return p
+}
+
+func (x WsInputEntry_Kind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (WsInputEntry_Kind) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_workspace_proto_enumTypes[2].Descriptor()
+}
+
+func (WsInputEntry_Kind) Type() protoreflect.EnumType {
+	return &file_asc_v1_workspace_proto_enumTypes[2]
+}
+
+func (x WsInputEntry_Kind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use WsInputEntry_Kind.Descriptor instead.
+func (WsInputEntry_Kind) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{52, 0}
+}
+
 // Plugin messages [audit: plugin-api-undefined]. Ids are 20-byte git SHA-1s (§11.1). workspace.proto imports
 // asc/v1/repo.proto (DiffFormat, LogRequest, DiffResponse, LogResponse, BlameResponse) and asc/v1/projects.proto
 // (AffectedRequest, AffectedResponse, §12A.8).
@@ -3271,6 +3323,187 @@ func (x *WsStagePath) GetPath() []byte {
 }
 
 // ReadFileResponse is repo.proto's; the stream chunks the content (total_size is the whole file). A missing object is hydrated through the tiers; the work tree is never read.
+type WsInputsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	WsId  string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	Paths [][]byte               `protobuf:"bytes,2,rep,name=paths,proto3" json:"paths,omitempty"`
+	// empty = the whole tree
+	AllowMissing  bool `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	DigestOnly    bool `protobuf:"varint,4,opt,name=digest_only,json=digestOnly,proto3" json:"digest_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsInputsRequest) Reset() {
+	*x = WsInputsRequest{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsInputsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsInputsRequest) ProtoMessage() {}
+
+func (x *WsInputsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsInputsRequest.ProtoReflect.Descriptor instead.
+func (*WsInputsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *WsInputsRequest) GetWsId() string {
+	if x != nil {
+		return x.WsId
+	}
+	return ""
+}
+
+func (x *WsInputsRequest) GetPaths() [][]byte {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
+func (x *WsInputsRequest) GetAllowMissing() bool {
+	if x != nil {
+		return x.AllowMissing
+	}
+	return false
+}
+
+func (x *WsInputsRequest) GetDigestOnly() bool {
+	if x != nil {
+		return x.DigestOnly
+	}
+	return false
+}
+
+type WsInputEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          WsInputEntry_Kind      `protobuf:"varint,1,opt,name=kind,proto3,enum=asc.v1.WsInputEntry_Kind" json:"kind,omitempty"`
+	Id            []byte                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Path          []byte                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"` // empty = the root
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsInputEntry) Reset() {
+	*x = WsInputEntry{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsInputEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsInputEntry) ProtoMessage() {}
+
+func (x *WsInputEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsInputEntry.ProtoReflect.Descriptor instead.
+func (*WsInputEntry) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *WsInputEntry) GetKind() WsInputEntry_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return WsInputEntry_KIND_TREE
+}
+
+func (x *WsInputEntry) GetId() []byte {
+	if x != nil {
+		return x.Id
+	}
+	return nil
+}
+
+func (x *WsInputEntry) GetPath() []byte {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+type WsInputsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Digest        []byte                 `protobuf:"bytes,1,opt,name=digest,proto3" json:"digest,omitempty"`
+	Entries       []*WsInputEntry        `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"` // none with digest_only
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WsInputsResponse) Reset() {
+	*x = WsInputsResponse{}
+	mi := &file_asc_v1_workspace_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WsInputsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WsInputsResponse) ProtoMessage() {}
+
+func (x *WsInputsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_workspace_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WsInputsResponse.ProtoReflect.Descriptor instead.
+func (*WsInputsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *WsInputsResponse) GetDigest() []byte {
+	if x != nil {
+		return x.Digest
+	}
+	return nil
+}
+
+func (x *WsInputsResponse) GetEntries() []*WsInputEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
 type WsCommitGraphRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
@@ -3282,7 +3515,7 @@ type WsCommitGraphRequest struct {
 
 func (x *WsCommitGraphRequest) Reset() {
 	*x = WsCommitGraphRequest{}
-	mi := &file_asc_v1_workspace_proto_msgTypes[51]
+	mi := &file_asc_v1_workspace_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3294,7 +3527,7 @@ func (x *WsCommitGraphRequest) String() string {
 func (*WsCommitGraphRequest) ProtoMessage() {}
 
 func (x *WsCommitGraphRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_workspace_proto_msgTypes[51]
+	mi := &file_asc_v1_workspace_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3307,7 +3540,7 @@ func (x *WsCommitGraphRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WsCommitGraphRequest.ProtoReflect.Descriptor instead.
 func (*WsCommitGraphRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{51}
+	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *WsCommitGraphRequest) GetWsId() string {
@@ -3573,7 +3806,25 @@ const file_asc_v1_workspace_proto_rawDesc = "" +
 	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\"=\n" +
 	"\vWsStagePath\x12\x14\n" +
 	"\x05stage\x18\x01 \x01(\rR\x05stage\x12\x18\n" +
-	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\"x\n" +
+	"\x04path\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\"\x88\x01\n" +
+	"\x0fWsInputsRequest\x12\x13\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12\x1a\n" +
+	"\x05paths\x18\x02 \x03(\fB\x04\xa8\xbb\x18\x03R\x05paths\x12#\n" +
+	"\rallow_missing\x18\x03 \x01(\bR\fallowMissing\x12\x1f\n" +
+	"\vdigest_only\x18\x04 \x01(\bR\n" +
+	"digestOnly\"\xb1\x01\n" +
+	"\fWsInputEntry\x12-\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x19.asc.v1.WsInputEntry.KindR\x04kind\x12\x14\n" +
+	"\x02id\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\x02id\x12\x18\n" +
+	"\x04path\x18\x03 \x01(\fB\x04\xa8\xbb\x18\x03R\x04path\"B\n" +
+	"\x04Kind\x12\r\n" +
+	"\tKIND_TREE\x10\x00\x12\r\n" +
+	"\tKIND_FILE\x10\x01\x12\r\n" +
+	"\tKIND_EXEC\x10\x02\x12\r\n" +
+	"\tKIND_LINK\x10\x03\"`\n" +
+	"\x10WsInputsResponse\x12\x1c\n" +
+	"\x06digest\x18\x01 \x01(\fB\x04\xa8\xbb\x18\x01R\x06digest\x12.\n" +
+	"\aentries\x18\x02 \x03(\v2\x14.asc.v1.WsInputEntryR\aentries\"x\n" +
 	"\x14WsCommitGraphRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x120\n" +
 	"\x05query\x18\x02 \x01(\v2\x1a.asc.v1.CommitGraphRequestR\x05query\x12\x19\n" +
@@ -3582,7 +3833,7 @@ const file_asc_v1_workspace_proto_rawDesc = "" +
 	"SwitchMode\x12\x14\n" +
 	"\x10SWITCH_MODE_SAFE\x10\x00\x12\x15\n" +
 	"\x11SWITCH_MODE_MERGE\x10\x01\x12\x15\n" +
-	"\x11SWITCH_MODE_FORCE\x10\x022\xd8\f\n" +
+	"\x11SWITCH_MODE_FORCE\x10\x022\x95\r\n" +
 	"\tWorkspace\x12;\n" +
 	"\x06Status\x12\x17.asc.v1.WsStatusRequest\x1a\x18.asc.v1.WsStatusResponse\x125\n" +
 	"\x04Diff\x12\x15.asc.v1.WsDiffRequest\x1a\x14.asc.v1.DiffResponse0\x01\x122\n" +
@@ -3609,7 +3860,8 @@ const file_asc_v1_workspace_proto_rawDesc = "" +
 	"\tWorktrees\x12\x1a.asc.v1.WsWorktreesRequest\x1a\x1b.asc.v1.WsWorktreesResponse\x12D\n" +
 	"\tConflicts\x12\x1a.asc.v1.WsConflictsRequest\x1a\x1b.asc.v1.WsConflictsResponse\x12J\n" +
 	"\vCommitGraph\x12\x1c.asc.v1.WsCommitGraphRequest\x1a\x1b.asc.v1.CommitGraphResponse0\x01\x12A\n" +
-	"\bReadFile\x12\x19.asc.v1.WsReadFileRequest\x1a\x18.asc.v1.ReadFileResponse0\x01By\n" +
+	"\bReadFile\x12\x19.asc.v1.WsReadFileRequest\x1a\x18.asc.v1.ReadFileResponse0\x01\x12;\n" +
+	"\x06Inputs\x12\x17.asc.v1.WsInputsRequest\x1a\x18.asc.v1.WsInputsResponseBy\n" +
 	"\n" +
 	"com.asc.v1B\x0eWorkspaceProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -3625,168 +3877,176 @@ func file_asc_v1_workspace_proto_rawDescGZIP() []byte {
 	return file_asc_v1_workspace_proto_rawDescData
 }
 
-var file_asc_v1_workspace_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_workspace_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
+var file_asc_v1_workspace_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_asc_v1_workspace_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
 var file_asc_v1_workspace_proto_goTypes = []any{
 	(SwitchMode)(0),              // 0: asc.v1.SwitchMode
 	(WatchEvent_Kind)(0),         // 1: asc.v1.WatchEvent.Kind
-	(*WsStatusRequest)(nil),      // 2: asc.v1.WsStatusRequest
-	(*WsFileStatus)(nil),         // 3: asc.v1.WsFileStatus
-	(*WsStatusResponse)(nil),     // 4: asc.v1.WsStatusResponse
-	(*WsDiffRequest)(nil),        // 5: asc.v1.WsDiffRequest
-	(*WsLogRequest)(nil),         // 6: asc.v1.WsLogRequest
-	(*WsBlameRequest)(nil),       // 7: asc.v1.WsBlameRequest
-	(*WsAffectedRequest)(nil),    // 8: asc.v1.WsAffectedRequest
-	(*WsAffectedResponse)(nil),   // 9: asc.v1.WsAffectedResponse
-	(*WatchRequest)(nil),         // 10: asc.v1.WatchRequest
-	(*WatchEvent)(nil),           // 11: asc.v1.WatchEvent
-	(*WsStageRequest)(nil),       // 12: asc.v1.WsStageRequest
-	(*WsStageResponse)(nil),      // 13: asc.v1.WsStageResponse
-	(*WsSearchRequest)(nil),      // 14: asc.v1.WsSearchRequest
-	(*WsSymbolsRequest)(nil),     // 15: asc.v1.WsSymbolsRequest
-	(*WsSemanticRequest)(nil),    // 16: asc.v1.WsSemanticRequest
-	(*WsIndexStatusRequest)(nil), // 17: asc.v1.WsIndexStatusRequest
-	(*PingRequest)(nil),          // 18: asc.v1.PingRequest
-	(*PingResponse)(nil),         // 19: asc.v1.PingResponse
-	(*MountRequest)(nil),         // 20: asc.v1.MountRequest
-	(*MountResponse)(nil),        // 21: asc.v1.MountResponse
-	(*UnmountRequest)(nil),       // 22: asc.v1.UnmountRequest
-	(*UnmountResponse)(nil),      // 23: asc.v1.UnmountResponse
-	(*SwitchRequest)(nil),        // 24: asc.v1.SwitchRequest
-	(*SwitchResponse)(nil),       // 25: asc.v1.SwitchResponse
-	(*JournalRequest)(nil),       // 26: asc.v1.JournalRequest
-	(*JournalResponse)(nil),      // 27: asc.v1.JournalResponse
-	(*ClearJournalRequest)(nil),  // 28: asc.v1.ClearJournalRequest
-	(*ClearJournalResponse)(nil), // 29: asc.v1.ClearJournalResponse
-	(*DehydrateRequest)(nil),     // 30: asc.v1.DehydrateRequest
-	(*DehydrateResponse)(nil),    // 31: asc.v1.DehydrateResponse
-	(*PrefetchRequest)(nil),      // 32: asc.v1.PrefetchRequest
-	(*PrefetchResponse)(nil),     // 33: asc.v1.PrefetchResponse
-	(*StatsRequest)(nil),         // 34: asc.v1.StatsRequest
-	(*HydrationCount)(nil),       // 35: asc.v1.HydrationCount
-	(*StatsResponse)(nil),        // 36: asc.v1.StatsResponse
-	(*ShutdownRequest)(nil),      // 37: asc.v1.ShutdownRequest
-	(*ShutdownResponse)(nil),     // 38: asc.v1.ShutdownResponse
-	(*WsStacksRequest)(nil),      // 39: asc.v1.WsStacksRequest
-	(*StackTrunk)(nil),           // 40: asc.v1.StackTrunk
-	(*StackEntry)(nil),           // 41: asc.v1.StackEntry
-	(*WsStack)(nil),              // 42: asc.v1.WsStack
-	(*WsStacksResponse)(nil),     // 43: asc.v1.WsStacksResponse
-	(*WsWorktreesRequest)(nil),   // 44: asc.v1.WsWorktreesRequest
-	(*WsWorktree)(nil),           // 45: asc.v1.WsWorktree
-	(*WsWorktreesResponse)(nil),  // 46: asc.v1.WsWorktreesResponse
-	(*WsConflictsRequest)(nil),   // 47: asc.v1.WsConflictsRequest
-	(*WsConflict)(nil),           // 48: asc.v1.WsConflict
-	(*WsConflictsResponse)(nil),  // 49: asc.v1.WsConflictsResponse
-	(*WsReadFileRequest)(nil),    // 50: asc.v1.WsReadFileRequest
-	(*WsRevPath)(nil),            // 51: asc.v1.WsRevPath
-	(*WsStagePath)(nil),          // 52: asc.v1.WsStagePath
-	(*WsCommitGraphRequest)(nil), // 53: asc.v1.WsCommitGraphRequest
-	(DiffFormat)(0),              // 54: asc.v1.DiffFormat
-	(*LogRequest)(nil),           // 55: asc.v1.LogRequest
-	(*AffectedRequest)(nil),      // 56: asc.v1.AffectedRequest
-	(*AffectedResponse)(nil),     // 57: asc.v1.AffectedResponse
-	(*SearchRequest)(nil),        // 58: asc.v1.SearchRequest
-	(*SymbolsRequest)(nil),       // 59: asc.v1.SymbolsRequest
-	(*SemanticRequest)(nil),      // 60: asc.v1.SemanticRequest
-	(*IndexStatusRequest)(nil),   // 61: asc.v1.IndexStatusRequest
-	(*Signature)(nil),            // 62: asc.v1.Signature
-	(*ReviewState)(nil),          // 63: asc.v1.ReviewState
-	(ConflictKind)(0),            // 64: asc.v1.ConflictKind
-	(*CommitGraphRequest)(nil),   // 65: asc.v1.CommitGraphRequest
-	(*DiffResponse)(nil),         // 66: asc.v1.DiffResponse
-	(*LogResponse)(nil),          // 67: asc.v1.LogResponse
-	(*BlameResponse)(nil),        // 68: asc.v1.BlameResponse
-	(*SearchResponse)(nil),       // 69: asc.v1.SearchResponse
-	(*SymbolsResponse)(nil),      // 70: asc.v1.SymbolsResponse
-	(*SemanticResponse)(nil),     // 71: asc.v1.SemanticResponse
-	(*IndexStatusResponse)(nil),  // 72: asc.v1.IndexStatusResponse
-	(*CommitGraphResponse)(nil),  // 73: asc.v1.CommitGraphResponse
-	(*ReadFileResponse)(nil),     // 74: asc.v1.ReadFileResponse
+	(WsInputEntry_Kind)(0),       // 2: asc.v1.WsInputEntry.Kind
+	(*WsStatusRequest)(nil),      // 3: asc.v1.WsStatusRequest
+	(*WsFileStatus)(nil),         // 4: asc.v1.WsFileStatus
+	(*WsStatusResponse)(nil),     // 5: asc.v1.WsStatusResponse
+	(*WsDiffRequest)(nil),        // 6: asc.v1.WsDiffRequest
+	(*WsLogRequest)(nil),         // 7: asc.v1.WsLogRequest
+	(*WsBlameRequest)(nil),       // 8: asc.v1.WsBlameRequest
+	(*WsAffectedRequest)(nil),    // 9: asc.v1.WsAffectedRequest
+	(*WsAffectedResponse)(nil),   // 10: asc.v1.WsAffectedResponse
+	(*WatchRequest)(nil),         // 11: asc.v1.WatchRequest
+	(*WatchEvent)(nil),           // 12: asc.v1.WatchEvent
+	(*WsStageRequest)(nil),       // 13: asc.v1.WsStageRequest
+	(*WsStageResponse)(nil),      // 14: asc.v1.WsStageResponse
+	(*WsSearchRequest)(nil),      // 15: asc.v1.WsSearchRequest
+	(*WsSymbolsRequest)(nil),     // 16: asc.v1.WsSymbolsRequest
+	(*WsSemanticRequest)(nil),    // 17: asc.v1.WsSemanticRequest
+	(*WsIndexStatusRequest)(nil), // 18: asc.v1.WsIndexStatusRequest
+	(*PingRequest)(nil),          // 19: asc.v1.PingRequest
+	(*PingResponse)(nil),         // 20: asc.v1.PingResponse
+	(*MountRequest)(nil),         // 21: asc.v1.MountRequest
+	(*MountResponse)(nil),        // 22: asc.v1.MountResponse
+	(*UnmountRequest)(nil),       // 23: asc.v1.UnmountRequest
+	(*UnmountResponse)(nil),      // 24: asc.v1.UnmountResponse
+	(*SwitchRequest)(nil),        // 25: asc.v1.SwitchRequest
+	(*SwitchResponse)(nil),       // 26: asc.v1.SwitchResponse
+	(*JournalRequest)(nil),       // 27: asc.v1.JournalRequest
+	(*JournalResponse)(nil),      // 28: asc.v1.JournalResponse
+	(*ClearJournalRequest)(nil),  // 29: asc.v1.ClearJournalRequest
+	(*ClearJournalResponse)(nil), // 30: asc.v1.ClearJournalResponse
+	(*DehydrateRequest)(nil),     // 31: asc.v1.DehydrateRequest
+	(*DehydrateResponse)(nil),    // 32: asc.v1.DehydrateResponse
+	(*PrefetchRequest)(nil),      // 33: asc.v1.PrefetchRequest
+	(*PrefetchResponse)(nil),     // 34: asc.v1.PrefetchResponse
+	(*StatsRequest)(nil),         // 35: asc.v1.StatsRequest
+	(*HydrationCount)(nil),       // 36: asc.v1.HydrationCount
+	(*StatsResponse)(nil),        // 37: asc.v1.StatsResponse
+	(*ShutdownRequest)(nil),      // 38: asc.v1.ShutdownRequest
+	(*ShutdownResponse)(nil),     // 39: asc.v1.ShutdownResponse
+	(*WsStacksRequest)(nil),      // 40: asc.v1.WsStacksRequest
+	(*StackTrunk)(nil),           // 41: asc.v1.StackTrunk
+	(*StackEntry)(nil),           // 42: asc.v1.StackEntry
+	(*WsStack)(nil),              // 43: asc.v1.WsStack
+	(*WsStacksResponse)(nil),     // 44: asc.v1.WsStacksResponse
+	(*WsWorktreesRequest)(nil),   // 45: asc.v1.WsWorktreesRequest
+	(*WsWorktree)(nil),           // 46: asc.v1.WsWorktree
+	(*WsWorktreesResponse)(nil),  // 47: asc.v1.WsWorktreesResponse
+	(*WsConflictsRequest)(nil),   // 48: asc.v1.WsConflictsRequest
+	(*WsConflict)(nil),           // 49: asc.v1.WsConflict
+	(*WsConflictsResponse)(nil),  // 50: asc.v1.WsConflictsResponse
+	(*WsReadFileRequest)(nil),    // 51: asc.v1.WsReadFileRequest
+	(*WsRevPath)(nil),            // 52: asc.v1.WsRevPath
+	(*WsStagePath)(nil),          // 53: asc.v1.WsStagePath
+	(*WsInputsRequest)(nil),      // 54: asc.v1.WsInputsRequest
+	(*WsInputEntry)(nil),         // 55: asc.v1.WsInputEntry
+	(*WsInputsResponse)(nil),     // 56: asc.v1.WsInputsResponse
+	(*WsCommitGraphRequest)(nil), // 57: asc.v1.WsCommitGraphRequest
+	(DiffFormat)(0),              // 58: asc.v1.DiffFormat
+	(*LogRequest)(nil),           // 59: asc.v1.LogRequest
+	(*AffectedRequest)(nil),      // 60: asc.v1.AffectedRequest
+	(*AffectedResponse)(nil),     // 61: asc.v1.AffectedResponse
+	(*SearchRequest)(nil),        // 62: asc.v1.SearchRequest
+	(*SymbolsRequest)(nil),       // 63: asc.v1.SymbolsRequest
+	(*SemanticRequest)(nil),      // 64: asc.v1.SemanticRequest
+	(*IndexStatusRequest)(nil),   // 65: asc.v1.IndexStatusRequest
+	(*Signature)(nil),            // 66: asc.v1.Signature
+	(*ReviewState)(nil),          // 67: asc.v1.ReviewState
+	(ConflictKind)(0),            // 68: asc.v1.ConflictKind
+	(*CommitGraphRequest)(nil),   // 69: asc.v1.CommitGraphRequest
+	(*DiffResponse)(nil),         // 70: asc.v1.DiffResponse
+	(*LogResponse)(nil),          // 71: asc.v1.LogResponse
+	(*BlameResponse)(nil),        // 72: asc.v1.BlameResponse
+	(*SearchResponse)(nil),       // 73: asc.v1.SearchResponse
+	(*SymbolsResponse)(nil),      // 74: asc.v1.SymbolsResponse
+	(*SemanticResponse)(nil),     // 75: asc.v1.SemanticResponse
+	(*IndexStatusResponse)(nil),  // 76: asc.v1.IndexStatusResponse
+	(*CommitGraphResponse)(nil),  // 77: asc.v1.CommitGraphResponse
+	(*ReadFileResponse)(nil),     // 78: asc.v1.ReadFileResponse
 }
 var file_asc_v1_workspace_proto_depIdxs = []int32{
-	3,  // 0: asc.v1.WsStatusResponse.files:type_name -> asc.v1.WsFileStatus
-	54, // 1: asc.v1.WsDiffRequest.format:type_name -> asc.v1.DiffFormat
-	55, // 2: asc.v1.WsLogRequest.query:type_name -> asc.v1.LogRequest
-	56, // 3: asc.v1.WsAffectedRequest.query:type_name -> asc.v1.AffectedRequest
-	57, // 4: asc.v1.WsAffectedResponse.result:type_name -> asc.v1.AffectedResponse
+	4,  // 0: asc.v1.WsStatusResponse.files:type_name -> asc.v1.WsFileStatus
+	58, // 1: asc.v1.WsDiffRequest.format:type_name -> asc.v1.DiffFormat
+	59, // 2: asc.v1.WsLogRequest.query:type_name -> asc.v1.LogRequest
+	60, // 3: asc.v1.WsAffectedRequest.query:type_name -> asc.v1.AffectedRequest
+	61, // 4: asc.v1.WsAffectedResponse.result:type_name -> asc.v1.AffectedResponse
 	1,  // 5: asc.v1.WatchEvent.kind:type_name -> asc.v1.WatchEvent.Kind
-	4,  // 6: asc.v1.WsStageResponse.status:type_name -> asc.v1.WsStatusResponse
-	58, // 7: asc.v1.WsSearchRequest.query:type_name -> asc.v1.SearchRequest
-	59, // 8: asc.v1.WsSymbolsRequest.query:type_name -> asc.v1.SymbolsRequest
-	60, // 9: asc.v1.WsSemanticRequest.query:type_name -> asc.v1.SemanticRequest
-	61, // 10: asc.v1.WsIndexStatusRequest.query:type_name -> asc.v1.IndexStatusRequest
+	5,  // 6: asc.v1.WsStageResponse.status:type_name -> asc.v1.WsStatusResponse
+	62, // 7: asc.v1.WsSearchRequest.query:type_name -> asc.v1.SearchRequest
+	63, // 8: asc.v1.WsSymbolsRequest.query:type_name -> asc.v1.SymbolsRequest
+	64, // 9: asc.v1.WsSemanticRequest.query:type_name -> asc.v1.SemanticRequest
+	65, // 10: asc.v1.WsIndexStatusRequest.query:type_name -> asc.v1.IndexStatusRequest
 	0,  // 11: asc.v1.SwitchRequest.mode:type_name -> asc.v1.SwitchMode
-	35, // 12: asc.v1.StatsResponse.by_path:type_name -> asc.v1.HydrationCount
-	35, // 13: asc.v1.StatsResponse.by_process:type_name -> asc.v1.HydrationCount
-	62, // 14: asc.v1.StackEntry.author:type_name -> asc.v1.Signature
-	63, // 15: asc.v1.StackEntry.review:type_name -> asc.v1.ReviewState
-	41, // 16: asc.v1.WsStack.changes:type_name -> asc.v1.StackEntry
-	40, // 17: asc.v1.WsStacksResponse.trunks:type_name -> asc.v1.StackTrunk
-	42, // 18: asc.v1.WsStacksResponse.stacks:type_name -> asc.v1.WsStack
-	45, // 19: asc.v1.WsWorktreesResponse.worktrees:type_name -> asc.v1.WsWorktree
-	64, // 20: asc.v1.WsConflict.kind:type_name -> asc.v1.ConflictKind
-	48, // 21: asc.v1.WsConflictsResponse.conflicts:type_name -> asc.v1.WsConflict
-	51, // 22: asc.v1.WsReadFileRequest.rev_path:type_name -> asc.v1.WsRevPath
-	52, // 23: asc.v1.WsReadFileRequest.stage:type_name -> asc.v1.WsStagePath
-	65, // 24: asc.v1.WsCommitGraphRequest.query:type_name -> asc.v1.CommitGraphRequest
-	2,  // 25: asc.v1.Workspace.Status:input_type -> asc.v1.WsStatusRequest
-	5,  // 26: asc.v1.Workspace.Diff:input_type -> asc.v1.WsDiffRequest
-	6,  // 27: asc.v1.Workspace.Log:input_type -> asc.v1.WsLogRequest
-	7,  // 28: asc.v1.Workspace.Blame:input_type -> asc.v1.WsBlameRequest
-	8,  // 29: asc.v1.Workspace.Affected:input_type -> asc.v1.WsAffectedRequest
-	10, // 30: asc.v1.Workspace.Watch:input_type -> asc.v1.WatchRequest
-	12, // 31: asc.v1.Workspace.Stage:input_type -> asc.v1.WsStageRequest
-	14, // 32: asc.v1.Workspace.Search:input_type -> asc.v1.WsSearchRequest
-	15, // 33: asc.v1.Workspace.Symbols:input_type -> asc.v1.WsSymbolsRequest
-	16, // 34: asc.v1.Workspace.Semantic:input_type -> asc.v1.WsSemanticRequest
-	17, // 35: asc.v1.Workspace.IndexStatus:input_type -> asc.v1.WsIndexStatusRequest
-	18, // 36: asc.v1.Workspace.Ping:input_type -> asc.v1.PingRequest
-	20, // 37: asc.v1.Workspace.Mount:input_type -> asc.v1.MountRequest
-	22, // 38: asc.v1.Workspace.Unmount:input_type -> asc.v1.UnmountRequest
-	24, // 39: asc.v1.Workspace.Switch:input_type -> asc.v1.SwitchRequest
-	26, // 40: asc.v1.Workspace.Journal:input_type -> asc.v1.JournalRequest
-	28, // 41: asc.v1.Workspace.ClearJournal:input_type -> asc.v1.ClearJournalRequest
-	30, // 42: asc.v1.Workspace.Dehydrate:input_type -> asc.v1.DehydrateRequest
-	32, // 43: asc.v1.Workspace.Prefetch:input_type -> asc.v1.PrefetchRequest
-	34, // 44: asc.v1.Workspace.Stats:input_type -> asc.v1.StatsRequest
-	37, // 45: asc.v1.Workspace.Shutdown:input_type -> asc.v1.ShutdownRequest
-	39, // 46: asc.v1.Workspace.Stacks:input_type -> asc.v1.WsStacksRequest
-	44, // 47: asc.v1.Workspace.Worktrees:input_type -> asc.v1.WsWorktreesRequest
-	47, // 48: asc.v1.Workspace.Conflicts:input_type -> asc.v1.WsConflictsRequest
-	53, // 49: asc.v1.Workspace.CommitGraph:input_type -> asc.v1.WsCommitGraphRequest
-	50, // 50: asc.v1.Workspace.ReadFile:input_type -> asc.v1.WsReadFileRequest
-	4,  // 51: asc.v1.Workspace.Status:output_type -> asc.v1.WsStatusResponse
-	66, // 52: asc.v1.Workspace.Diff:output_type -> asc.v1.DiffResponse
-	67, // 53: asc.v1.Workspace.Log:output_type -> asc.v1.LogResponse
-	68, // 54: asc.v1.Workspace.Blame:output_type -> asc.v1.BlameResponse
-	9,  // 55: asc.v1.Workspace.Affected:output_type -> asc.v1.WsAffectedResponse
-	11, // 56: asc.v1.Workspace.Watch:output_type -> asc.v1.WatchEvent
-	13, // 57: asc.v1.Workspace.Stage:output_type -> asc.v1.WsStageResponse
-	69, // 58: asc.v1.Workspace.Search:output_type -> asc.v1.SearchResponse
-	70, // 59: asc.v1.Workspace.Symbols:output_type -> asc.v1.SymbolsResponse
-	71, // 60: asc.v1.Workspace.Semantic:output_type -> asc.v1.SemanticResponse
-	72, // 61: asc.v1.Workspace.IndexStatus:output_type -> asc.v1.IndexStatusResponse
-	19, // 62: asc.v1.Workspace.Ping:output_type -> asc.v1.PingResponse
-	21, // 63: asc.v1.Workspace.Mount:output_type -> asc.v1.MountResponse
-	23, // 64: asc.v1.Workspace.Unmount:output_type -> asc.v1.UnmountResponse
-	25, // 65: asc.v1.Workspace.Switch:output_type -> asc.v1.SwitchResponse
-	27, // 66: asc.v1.Workspace.Journal:output_type -> asc.v1.JournalResponse
-	29, // 67: asc.v1.Workspace.ClearJournal:output_type -> asc.v1.ClearJournalResponse
-	31, // 68: asc.v1.Workspace.Dehydrate:output_type -> asc.v1.DehydrateResponse
-	33, // 69: asc.v1.Workspace.Prefetch:output_type -> asc.v1.PrefetchResponse
-	36, // 70: asc.v1.Workspace.Stats:output_type -> asc.v1.StatsResponse
-	38, // 71: asc.v1.Workspace.Shutdown:output_type -> asc.v1.ShutdownResponse
-	43, // 72: asc.v1.Workspace.Stacks:output_type -> asc.v1.WsStacksResponse
-	46, // 73: asc.v1.Workspace.Worktrees:output_type -> asc.v1.WsWorktreesResponse
-	49, // 74: asc.v1.Workspace.Conflicts:output_type -> asc.v1.WsConflictsResponse
-	73, // 75: asc.v1.Workspace.CommitGraph:output_type -> asc.v1.CommitGraphResponse
-	74, // 76: asc.v1.Workspace.ReadFile:output_type -> asc.v1.ReadFileResponse
-	51, // [51:77] is the sub-list for method output_type
-	25, // [25:51] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	36, // 12: asc.v1.StatsResponse.by_path:type_name -> asc.v1.HydrationCount
+	36, // 13: asc.v1.StatsResponse.by_process:type_name -> asc.v1.HydrationCount
+	66, // 14: asc.v1.StackEntry.author:type_name -> asc.v1.Signature
+	67, // 15: asc.v1.StackEntry.review:type_name -> asc.v1.ReviewState
+	42, // 16: asc.v1.WsStack.changes:type_name -> asc.v1.StackEntry
+	41, // 17: asc.v1.WsStacksResponse.trunks:type_name -> asc.v1.StackTrunk
+	43, // 18: asc.v1.WsStacksResponse.stacks:type_name -> asc.v1.WsStack
+	46, // 19: asc.v1.WsWorktreesResponse.worktrees:type_name -> asc.v1.WsWorktree
+	68, // 20: asc.v1.WsConflict.kind:type_name -> asc.v1.ConflictKind
+	49, // 21: asc.v1.WsConflictsResponse.conflicts:type_name -> asc.v1.WsConflict
+	52, // 22: asc.v1.WsReadFileRequest.rev_path:type_name -> asc.v1.WsRevPath
+	53, // 23: asc.v1.WsReadFileRequest.stage:type_name -> asc.v1.WsStagePath
+	2,  // 24: asc.v1.WsInputEntry.kind:type_name -> asc.v1.WsInputEntry.Kind
+	55, // 25: asc.v1.WsInputsResponse.entries:type_name -> asc.v1.WsInputEntry
+	69, // 26: asc.v1.WsCommitGraphRequest.query:type_name -> asc.v1.CommitGraphRequest
+	3,  // 27: asc.v1.Workspace.Status:input_type -> asc.v1.WsStatusRequest
+	6,  // 28: asc.v1.Workspace.Diff:input_type -> asc.v1.WsDiffRequest
+	7,  // 29: asc.v1.Workspace.Log:input_type -> asc.v1.WsLogRequest
+	8,  // 30: asc.v1.Workspace.Blame:input_type -> asc.v1.WsBlameRequest
+	9,  // 31: asc.v1.Workspace.Affected:input_type -> asc.v1.WsAffectedRequest
+	11, // 32: asc.v1.Workspace.Watch:input_type -> asc.v1.WatchRequest
+	13, // 33: asc.v1.Workspace.Stage:input_type -> asc.v1.WsStageRequest
+	15, // 34: asc.v1.Workspace.Search:input_type -> asc.v1.WsSearchRequest
+	16, // 35: asc.v1.Workspace.Symbols:input_type -> asc.v1.WsSymbolsRequest
+	17, // 36: asc.v1.Workspace.Semantic:input_type -> asc.v1.WsSemanticRequest
+	18, // 37: asc.v1.Workspace.IndexStatus:input_type -> asc.v1.WsIndexStatusRequest
+	19, // 38: asc.v1.Workspace.Ping:input_type -> asc.v1.PingRequest
+	21, // 39: asc.v1.Workspace.Mount:input_type -> asc.v1.MountRequest
+	23, // 40: asc.v1.Workspace.Unmount:input_type -> asc.v1.UnmountRequest
+	25, // 41: asc.v1.Workspace.Switch:input_type -> asc.v1.SwitchRequest
+	27, // 42: asc.v1.Workspace.Journal:input_type -> asc.v1.JournalRequest
+	29, // 43: asc.v1.Workspace.ClearJournal:input_type -> asc.v1.ClearJournalRequest
+	31, // 44: asc.v1.Workspace.Dehydrate:input_type -> asc.v1.DehydrateRequest
+	33, // 45: asc.v1.Workspace.Prefetch:input_type -> asc.v1.PrefetchRequest
+	35, // 46: asc.v1.Workspace.Stats:input_type -> asc.v1.StatsRequest
+	38, // 47: asc.v1.Workspace.Shutdown:input_type -> asc.v1.ShutdownRequest
+	40, // 48: asc.v1.Workspace.Stacks:input_type -> asc.v1.WsStacksRequest
+	45, // 49: asc.v1.Workspace.Worktrees:input_type -> asc.v1.WsWorktreesRequest
+	48, // 50: asc.v1.Workspace.Conflicts:input_type -> asc.v1.WsConflictsRequest
+	57, // 51: asc.v1.Workspace.CommitGraph:input_type -> asc.v1.WsCommitGraphRequest
+	51, // 52: asc.v1.Workspace.ReadFile:input_type -> asc.v1.WsReadFileRequest
+	54, // 53: asc.v1.Workspace.Inputs:input_type -> asc.v1.WsInputsRequest
+	5,  // 54: asc.v1.Workspace.Status:output_type -> asc.v1.WsStatusResponse
+	70, // 55: asc.v1.Workspace.Diff:output_type -> asc.v1.DiffResponse
+	71, // 56: asc.v1.Workspace.Log:output_type -> asc.v1.LogResponse
+	72, // 57: asc.v1.Workspace.Blame:output_type -> asc.v1.BlameResponse
+	10, // 58: asc.v1.Workspace.Affected:output_type -> asc.v1.WsAffectedResponse
+	12, // 59: asc.v1.Workspace.Watch:output_type -> asc.v1.WatchEvent
+	14, // 60: asc.v1.Workspace.Stage:output_type -> asc.v1.WsStageResponse
+	73, // 61: asc.v1.Workspace.Search:output_type -> asc.v1.SearchResponse
+	74, // 62: asc.v1.Workspace.Symbols:output_type -> asc.v1.SymbolsResponse
+	75, // 63: asc.v1.Workspace.Semantic:output_type -> asc.v1.SemanticResponse
+	76, // 64: asc.v1.Workspace.IndexStatus:output_type -> asc.v1.IndexStatusResponse
+	20, // 65: asc.v1.Workspace.Ping:output_type -> asc.v1.PingResponse
+	22, // 66: asc.v1.Workspace.Mount:output_type -> asc.v1.MountResponse
+	24, // 67: asc.v1.Workspace.Unmount:output_type -> asc.v1.UnmountResponse
+	26, // 68: asc.v1.Workspace.Switch:output_type -> asc.v1.SwitchResponse
+	28, // 69: asc.v1.Workspace.Journal:output_type -> asc.v1.JournalResponse
+	30, // 70: asc.v1.Workspace.ClearJournal:output_type -> asc.v1.ClearJournalResponse
+	32, // 71: asc.v1.Workspace.Dehydrate:output_type -> asc.v1.DehydrateResponse
+	34, // 72: asc.v1.Workspace.Prefetch:output_type -> asc.v1.PrefetchResponse
+	37, // 73: asc.v1.Workspace.Stats:output_type -> asc.v1.StatsResponse
+	39, // 74: asc.v1.Workspace.Shutdown:output_type -> asc.v1.ShutdownResponse
+	44, // 75: asc.v1.Workspace.Stacks:output_type -> asc.v1.WsStacksResponse
+	47, // 76: asc.v1.Workspace.Worktrees:output_type -> asc.v1.WsWorktreesResponse
+	50, // 77: asc.v1.Workspace.Conflicts:output_type -> asc.v1.WsConflictsResponse
+	77, // 78: asc.v1.Workspace.CommitGraph:output_type -> asc.v1.CommitGraphResponse
+	78, // 79: asc.v1.Workspace.ReadFile:output_type -> asc.v1.ReadFileResponse
+	56, // 80: asc.v1.Workspace.Inputs:output_type -> asc.v1.WsInputsResponse
+	54, // [54:81] is the sub-list for method output_type
+	27, // [27:54] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_workspace_proto_init() }
@@ -3808,8 +4068,8 @@ func file_asc_v1_workspace_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_workspace_proto_rawDesc), len(file_asc_v1_workspace_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   52,
+			NumEnums:      3,
+			NumMessages:   55,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

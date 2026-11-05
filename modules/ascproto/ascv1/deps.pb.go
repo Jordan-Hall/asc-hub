@@ -917,6 +917,8 @@ type ListDepFindingsResponse struct {
 	LastLookup          DepLookupStatus        `protobuf:"varint,6,opt,name=last_lookup,json=lastLookup,proto3,enum=asc.v1.DepLookupStatus" json:"last_lookup,omitempty"`
 	PackagesChecked     uint32                 `protobuf:"varint,7,opt,name=packages_checked,json=packagesChecked,proto3" json:"packages_checked,omitempty"`                                                                                         // distinct packages the last scan of trunk checked; 0 when there is none
 	PackagesByEcosystem map[string]uint32      `protobuf:"bytes,8,rep,name=packages_by_ecosystem,json=packagesByEcosystem,proto3" json:"packages_by_ecosystem,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"` // of those, per OSV ecosystem name; the values add up to `packages_checked`; empty for a scan recorded before this field existed
+	OpenBySeverity      map[string]uint32      `protobuf:"bytes,9,rep,name=open_by_severity,json=openBySeverity,proto3" json:"open_by_severity,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`                // open findings of the repository per severity ("critical", "high", "moderate", "low", "unknown"); every key is present
+	PackagesUnknown     uint32                 `protobuf:"varint,10,opt,name=packages_unknown,json=packagesUnknown,proto3" json:"packages_unknown,omitempty"`                                                                                        // of `packages_checked`, how many the last scan could not look up
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -1005,6 +1007,20 @@ func (x *ListDepFindingsResponse) GetPackagesByEcosystem() map[string]uint32 {
 		return x.PackagesByEcosystem
 	}
 	return nil
+}
+
+func (x *ListDepFindingsResponse) GetOpenBySeverity() map[string]uint32 {
+	if x != nil {
+		return x.OpenBySeverity
+	}
+	return nil
+}
+
+func (x *ListDepFindingsResponse) GetPackagesUnknown() uint32 {
+	if x != nil {
+		return x.PackagesUnknown
+	}
+	return 0
 }
 
 type DepUpdate struct {
@@ -2391,7 +2407,7 @@ const file_asc_v1_deps_proto_rawDesc = "" +
 	"\x04name\x18\x05 \x01(\tR\x04name\x12\x14\n" +
 	"\x05limit\x18\x06 \x01(\rR\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\a \x01(\tR\tpageToken\"\xf0\x04\n" +
+	"page_token\x18\a \x01(\tR\tpageToken\"\xbd\x06\n" +
 	"\x17ListDepFindingsResponse\x12.\n" +
 	"\bfindings\x18\x01 \x03(\v2\x12.asc.v1.DepFindingR\bfindings\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12Z\n" +
@@ -2401,11 +2417,17 @@ const file_asc_v1_deps_proto_rawDesc = "" +
 	"\vlast_lookup\x18\x06 \x01(\x0e2\x17.asc.v1.DepLookupStatusR\n" +
 	"lastLookup\x12)\n" +
 	"\x10packages_checked\x18\a \x01(\rR\x0fpackagesChecked\x12l\n" +
-	"\x15packages_by_ecosystem\x18\b \x03(\v28.asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntryR\x13packagesByEcosystem\x1a@\n" +
+	"\x15packages_by_ecosystem\x18\b \x03(\v28.asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntryR\x13packagesByEcosystem\x12]\n" +
+	"\x10open_by_severity\x18\t \x03(\v23.asc.v1.ListDepFindingsResponse.OpenBySeverityEntryR\x0eopenBySeverity\x12)\n" +
+	"\x10packages_unknown\x18\n" +
+	" \x01(\rR\x0fpackagesUnknown\x1a@\n" +
 	"\x12CountsByStateEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\rR\x05value:\x028\x01\x1aF\n" +
 	"\x18PackagesByEcosystemEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\rR\x05value:\x028\x01\x1aA\n" +
+	"\x13OpenBySeverityEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\rR\x05value:\x028\x01\"\xda\x02\n" +
 	"\tDepUpdate\x12\x1c\n" +
@@ -2574,7 +2596,7 @@ func file_asc_v1_deps_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_deps_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_asc_v1_deps_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_asc_v1_deps_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_asc_v1_deps_proto_goTypes = []any{
 	(DepSeverity)(0),                  // 0: asc.v1.DepSeverity
 	(DepFindingState)(0),              // 1: asc.v1.DepFindingState
@@ -2608,66 +2630,68 @@ var file_asc_v1_deps_proto_goTypes = []any{
 	nil,                               // 29: asc.v1.ScanDepsResponse.PackagesByEcosystemEntry
 	nil,                               // 30: asc.v1.ListDepFindingsResponse.CountsByStateEntry
 	nil,                               // 31: asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntry
-	(*RepoRef)(nil),                   // 32: asc.v1.RepoRef
+	nil,                               // 32: asc.v1.ListDepFindingsResponse.OpenBySeverityEntry
+	(*RepoRef)(nil),                   // 33: asc.v1.RepoRef
 }
 var file_asc_v1_deps_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.DepAdvisory.severity:type_name -> asc.v1.DepSeverity
 	6,  // 1: asc.v1.DepFinding.advisory:type_name -> asc.v1.DepAdvisory
 	1,  // 2: asc.v1.DepFinding.state:type_name -> asc.v1.DepFindingState
 	4,  // 3: asc.v1.DepFinding.dismiss_reason:type_name -> asc.v1.DepDismissReason
-	32, // 4: asc.v1.ScanDepsRequest.repo:type_name -> asc.v1.RepoRef
+	33, // 4: asc.v1.ScanDepsRequest.repo:type_name -> asc.v1.RepoRef
 	5,  // 5: asc.v1.ScanDepsResponse.files:type_name -> asc.v1.DepFileResult
 	7,  // 6: asc.v1.ScanDepsResponse.findings:type_name -> asc.v1.DepFinding
 	3,  // 7: asc.v1.ScanDepsResponse.lookup:type_name -> asc.v1.DepLookupStatus
 	29, // 8: asc.v1.ScanDepsResponse.packages_by_ecosystem:type_name -> asc.v1.ScanDepsResponse.PackagesByEcosystemEntry
-	32, // 9: asc.v1.ListDepFindingsRequest.repo:type_name -> asc.v1.RepoRef
+	33, // 9: asc.v1.ListDepFindingsRequest.repo:type_name -> asc.v1.RepoRef
 	1,  // 10: asc.v1.ListDepFindingsRequest.states:type_name -> asc.v1.DepFindingState
 	0,  // 11: asc.v1.ListDepFindingsRequest.min_severity:type_name -> asc.v1.DepSeverity
 	7,  // 12: asc.v1.ListDepFindingsResponse.findings:type_name -> asc.v1.DepFinding
 	30, // 13: asc.v1.ListDepFindingsResponse.counts_by_state:type_name -> asc.v1.ListDepFindingsResponse.CountsByStateEntry
 	3,  // 14: asc.v1.ListDepFindingsResponse.last_lookup:type_name -> asc.v1.DepLookupStatus
 	31, // 15: asc.v1.ListDepFindingsResponse.packages_by_ecosystem:type_name -> asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntry
-	2,  // 16: asc.v1.DepUpdate.kind:type_name -> asc.v1.DepUpdateKind
-	32, // 17: asc.v1.ListDepUpdatesRequest.repo:type_name -> asc.v1.RepoRef
-	12, // 18: asc.v1.ListDepUpdatesResponse.updates:type_name -> asc.v1.DepUpdate
-	32, // 19: asc.v1.ProposeDepUpdateRequest.repo:type_name -> asc.v1.RepoRef
-	15, // 20: asc.v1.ProposeDepUpdateRequest.selectors:type_name -> asc.v1.DepSelector
-	2,  // 21: asc.v1.ProposeDepUpdateRequest.max_kind:type_name -> asc.v1.DepUpdateKind
-	12, // 22: asc.v1.DepProposal.updates:type_name -> asc.v1.DepUpdate
-	17, // 23: asc.v1.ProposeDepUpdateResponse.proposals:type_name -> asc.v1.DepProposal
-	18, // 24: asc.v1.ProposeDepUpdateResponse.skipped:type_name -> asc.v1.DepSkipped
-	2,  // 25: asc.v1.DepIgnore.kinds:type_name -> asc.v1.DepUpdateKind
-	2,  // 26: asc.v1.DepGroup.kinds:type_name -> asc.v1.DepUpdateKind
-	0,  // 27: asc.v1.DepsConfig.severity_threshold:type_name -> asc.v1.DepSeverity
-	2,  // 28: asc.v1.DepsConfig.max_kind:type_name -> asc.v1.DepUpdateKind
-	21, // 29: asc.v1.DepsConfig.groups:type_name -> asc.v1.DepGroup
-	20, // 30: asc.v1.DepsConfig.ignore:type_name -> asc.v1.DepIgnore
-	32, // 31: asc.v1.SetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
-	22, // 32: asc.v1.SetDepsConfigRequest.config:type_name -> asc.v1.DepsConfig
-	32, // 33: asc.v1.GetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
-	22, // 34: asc.v1.GetDepsConfigResponse.config:type_name -> asc.v1.DepsConfig
-	32, // 35: asc.v1.DismissDepFindingRequest.repo:type_name -> asc.v1.RepoRef
-	4,  // 36: asc.v1.DismissDepFindingRequest.reason:type_name -> asc.v1.DepDismissReason
-	7,  // 37: asc.v1.DismissDepFindingResponse.finding:type_name -> asc.v1.DepFinding
-	8,  // 38: asc.v1.DepsService.Scan:input_type -> asc.v1.ScanDepsRequest
-	10, // 39: asc.v1.DepsService.ListFindings:input_type -> asc.v1.ListDepFindingsRequest
-	13, // 40: asc.v1.DepsService.ListUpdates:input_type -> asc.v1.ListDepUpdatesRequest
-	16, // 41: asc.v1.DepsService.ProposeUpdate:input_type -> asc.v1.ProposeDepUpdateRequest
-	23, // 42: asc.v1.DepsService.SetConfig:input_type -> asc.v1.SetDepsConfigRequest
-	25, // 43: asc.v1.DepsService.GetConfig:input_type -> asc.v1.GetDepsConfigRequest
-	27, // 44: asc.v1.DepsService.Dismiss:input_type -> asc.v1.DismissDepFindingRequest
-	9,  // 45: asc.v1.DepsService.Scan:output_type -> asc.v1.ScanDepsResponse
-	11, // 46: asc.v1.DepsService.ListFindings:output_type -> asc.v1.ListDepFindingsResponse
-	14, // 47: asc.v1.DepsService.ListUpdates:output_type -> asc.v1.ListDepUpdatesResponse
-	19, // 48: asc.v1.DepsService.ProposeUpdate:output_type -> asc.v1.ProposeDepUpdateResponse
-	24, // 49: asc.v1.DepsService.SetConfig:output_type -> asc.v1.SetDepsConfigResponse
-	26, // 50: asc.v1.DepsService.GetConfig:output_type -> asc.v1.GetDepsConfigResponse
-	28, // 51: asc.v1.DepsService.Dismiss:output_type -> asc.v1.DismissDepFindingResponse
-	45, // [45:52] is the sub-list for method output_type
-	38, // [38:45] is the sub-list for method input_type
-	38, // [38:38] is the sub-list for extension type_name
-	38, // [38:38] is the sub-list for extension extendee
-	0,  // [0:38] is the sub-list for field type_name
+	32, // 16: asc.v1.ListDepFindingsResponse.open_by_severity:type_name -> asc.v1.ListDepFindingsResponse.OpenBySeverityEntry
+	2,  // 17: asc.v1.DepUpdate.kind:type_name -> asc.v1.DepUpdateKind
+	33, // 18: asc.v1.ListDepUpdatesRequest.repo:type_name -> asc.v1.RepoRef
+	12, // 19: asc.v1.ListDepUpdatesResponse.updates:type_name -> asc.v1.DepUpdate
+	33, // 20: asc.v1.ProposeDepUpdateRequest.repo:type_name -> asc.v1.RepoRef
+	15, // 21: asc.v1.ProposeDepUpdateRequest.selectors:type_name -> asc.v1.DepSelector
+	2,  // 22: asc.v1.ProposeDepUpdateRequest.max_kind:type_name -> asc.v1.DepUpdateKind
+	12, // 23: asc.v1.DepProposal.updates:type_name -> asc.v1.DepUpdate
+	17, // 24: asc.v1.ProposeDepUpdateResponse.proposals:type_name -> asc.v1.DepProposal
+	18, // 25: asc.v1.ProposeDepUpdateResponse.skipped:type_name -> asc.v1.DepSkipped
+	2,  // 26: asc.v1.DepIgnore.kinds:type_name -> asc.v1.DepUpdateKind
+	2,  // 27: asc.v1.DepGroup.kinds:type_name -> asc.v1.DepUpdateKind
+	0,  // 28: asc.v1.DepsConfig.severity_threshold:type_name -> asc.v1.DepSeverity
+	2,  // 29: asc.v1.DepsConfig.max_kind:type_name -> asc.v1.DepUpdateKind
+	21, // 30: asc.v1.DepsConfig.groups:type_name -> asc.v1.DepGroup
+	20, // 31: asc.v1.DepsConfig.ignore:type_name -> asc.v1.DepIgnore
+	33, // 32: asc.v1.SetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
+	22, // 33: asc.v1.SetDepsConfigRequest.config:type_name -> asc.v1.DepsConfig
+	33, // 34: asc.v1.GetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
+	22, // 35: asc.v1.GetDepsConfigResponse.config:type_name -> asc.v1.DepsConfig
+	33, // 36: asc.v1.DismissDepFindingRequest.repo:type_name -> asc.v1.RepoRef
+	4,  // 37: asc.v1.DismissDepFindingRequest.reason:type_name -> asc.v1.DepDismissReason
+	7,  // 38: asc.v1.DismissDepFindingResponse.finding:type_name -> asc.v1.DepFinding
+	8,  // 39: asc.v1.DepsService.Scan:input_type -> asc.v1.ScanDepsRequest
+	10, // 40: asc.v1.DepsService.ListFindings:input_type -> asc.v1.ListDepFindingsRequest
+	13, // 41: asc.v1.DepsService.ListUpdates:input_type -> asc.v1.ListDepUpdatesRequest
+	16, // 42: asc.v1.DepsService.ProposeUpdate:input_type -> asc.v1.ProposeDepUpdateRequest
+	23, // 43: asc.v1.DepsService.SetConfig:input_type -> asc.v1.SetDepsConfigRequest
+	25, // 44: asc.v1.DepsService.GetConfig:input_type -> asc.v1.GetDepsConfigRequest
+	27, // 45: asc.v1.DepsService.Dismiss:input_type -> asc.v1.DismissDepFindingRequest
+	9,  // 46: asc.v1.DepsService.Scan:output_type -> asc.v1.ScanDepsResponse
+	11, // 47: asc.v1.DepsService.ListFindings:output_type -> asc.v1.ListDepFindingsResponse
+	14, // 48: asc.v1.DepsService.ListUpdates:output_type -> asc.v1.ListDepUpdatesResponse
+	19, // 49: asc.v1.DepsService.ProposeUpdate:output_type -> asc.v1.ProposeDepUpdateResponse
+	24, // 50: asc.v1.DepsService.SetConfig:output_type -> asc.v1.SetDepsConfigResponse
+	26, // 51: asc.v1.DepsService.GetConfig:output_type -> asc.v1.GetDepsConfigResponse
+	28, // 52: asc.v1.DepsService.Dismiss:output_type -> asc.v1.DismissDepFindingResponse
+	46, // [46:53] is the sub-list for method output_type
+	39, // [39:46] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_deps_proto_init() }
@@ -2683,7 +2707,7 @@ func file_asc_v1_deps_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_deps_proto_rawDesc), len(file_asc_v1_deps_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   27,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
