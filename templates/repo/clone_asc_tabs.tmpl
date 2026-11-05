@@ -1,4 +1,5 @@
-{{/* The git compatibility note (board GitNote): one collapsed disclosure after the asc commands. Needs AscGitAccess and CloneButtonOriginLink. */}}
+{{/* The git compatibility note (board GitNote): one collapsed disclosure after the asc commands. Needs AscGitAccess and CloneButtonOriginLink; NoteID names the copy target when the note shows twice on a page. */}}
+{{$id := or .NoteID "rp-git-clone-url"}}
 {{if $.AscGitAccess}}
 <details class="asc-git-compat rp-gitnote">
 	<summary>
@@ -9,10 +10,10 @@
 	<div class="rp-gitnote-body">
 		<p>{{ctx.Locale.Tr "repo.clone_with_git_help"}}{{if not SSHEnabled}} {{ctx.Locale.Tr "repo.clone_https_only_help"}}{{end}}</p>
 		<div class="ds-term">
-			<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-target="#rp-git-clone-url">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+			<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-target="#{{$id}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 			<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> git clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></div>
 		</div>
-		<input type="text" class="js-clone-url ds-sr" id="rp-git-clone-url" data-clone-prefix="git clone " value="git clone {{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
+		<input type="text" class="js-clone-url ds-sr" id="{{$id}}" data-clone-prefix="git clone " value="git clone {{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
 		<p class="rp-quiet" data-testid="gitnote-token-hint">{{ctx.Locale.Tr "asc_rp.gitnote_token_hint"}}</p>
 	</div>
 </details>

@@ -22,6 +22,7 @@
 <span class="ds-pr">$</span> asc create {{ctx.Locale.Tr "asc_rp.clonecard_branch"}} -a -m "{{ctx.Locale.Tr "asc_rp.clonecard_message"}}"
 <span class="ds-pr">$</span> asc submit</div>
 		</div>
+		{{template "repo/clone_asc_tabs" (dict "AscGitAccess" .AscGitAccess "CloneButtonOriginLink" .CloneButtonOriginLink "NoteID" "rp-clonecard-git-url")}}
 		{{if AscDownloadAvailable}}<p class="rp-clonecard-act"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_rp.install_asc"}}</a></p>{{end}}
 	</div>
 </section>

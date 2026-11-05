@@ -85,6 +85,24 @@ func TestAscBranchlessPage(t *testing.T) {
 		assert.Contains(t, html, `value="branchless" checked`, "the mode asc reports is the one selected")
 	})
 
+	t.Run("with branches on, the git note is inline; with branchless it is not", func(t *testing.T) {
+		api.resp, api.err = &ascv1.RepoConfigResponse{Branchless: false}, nil
+		ctx, resp := branchlessCtx(t, 1, 2, "asc")
+		ctx.Data["AscGitAccess"] = true
+		ctx.Data["CloneButtonOriginLink"] = &repo_model.CloneLink{HTTPS: "https://hub.example/user2/repo1.git"}
+		AscBranchless(ctx)
+		html := resp.Body.String()
+		assert.Contains(t, html, `data-testid="asc-branchless-gitnote"`)
+		assert.Contains(t, html, "git clone https://hub.example/user2/repo1.git")
+
+		api.resp = &ascv1.RepoConfigResponse{Branchless: true}
+		ctx, resp = branchlessCtx(t, 1, 2, "asc")
+		ctx.Data["AscGitAccess"] = true
+		ctx.Data["CloneButtonOriginLink"] = &repo_model.CloneLink{HTTPS: "https://hub.example/user2/repo1.git"}
+		AscBranchless(ctx)
+		assert.NotContains(t, resp.Body.String(), `data-testid="asc-branchless-gitnote"`)
+	})
+
 	post := func(t *testing.T, userID int64, backend, mode string) (*context.Context, *httptest.ResponseRecorder) {
 		t.Helper()
 		ctx, resp := branchlessCtx(t, 1, userID, backend)
