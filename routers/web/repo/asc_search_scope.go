@@ -4,6 +4,7 @@
 package repo
 
 import (
+	"cmp"
 	gocontext "context"
 	"errors"
 	"net/http"
@@ -409,4 +410,42 @@ func ascSearchFacets(repoLink string, q ascSearchQuery, res ascSearchResult) (la
 		})
 	}
 	return langs, dirs
+}
+
+// ascSearchBranchFacets counts the hits of an all-branches search by branch, most first, as links that
+// search that one branch. Another scope looks at one place, so it has none.
+func ascSearchBranchFacets(repoLink string, q ascSearchQuery, res ascSearchResult) []ascSearchFacet {
+	if q.scope != ascSearchScopeBranches {
+		return nil
+	}
+	counts := map[string]int{}
+	var order []string
+	count := func(brs []ascSearchBranch) {
+		for _, b := range brs {
+			if _, seen := counts[b.Name]; !seen {
+				order = append(order, b.Name)
+			}
+			counts[b.Name]++
+		}
+	}
+	for _, f := range res.files {
+		count(f.Branches)
+	}
+	for _, s := range res.symbols {
+		count(s.Branches)
+	}
+	for _, c := range res.chunks {
+		count(c.Branches)
+	}
+	out := make([]ascSearchFacet, 0, len(order))
+	for _, name := range order {
+		out = append(out, ascSearchFacet{
+			Name: name, Count: counts[name],
+			URL: ascSearchURL(repoLink, q, map[string]string{"scope": "", "ref": name, "pull": "", "diff": ""}),
+		})
+	}
+	slices.SortStableFunc(out, func(a, b ascSearchFacet) int {
+		return cmp.Or(cmp.Compare(b.Count, a.Count), cmp.Compare(a.Name, b.Name))
+	})
+	return out
 }

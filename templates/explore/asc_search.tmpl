@@ -64,6 +64,26 @@
 							{{if .AscOwner}}<li><a class="asc-chip active" href="#asc-search-form" aria-current="true">Owner {{.AscOwner}}</a></li>{{end}}
 						</ul>
 					</section>
+					{{if .AscRepoFacets}}
+						<section data-testid="search-facet-repo">
+							<h2 class="asc-facet-title">Repository</h2>
+							<ul class="asc-facet-list">
+								{{range .AscRepoFacets}}
+									<li><a class="asc-chip" href="{{.URL}}"><span>{{.Name}}</span><span class="asc-count">{{.Count}}</span></a></li>
+								{{end}}
+							</ul>
+							{{if .AscRepoFacetsMore}}
+								<details class="asc-facet-more">
+									<summary>{{len .AscRepoFacetsMore}} more</summary>
+									<ul class="asc-facet-list">
+										{{range .AscRepoFacetsMore}}
+											<li><a class="asc-chip" href="{{.URL}}"><span>{{.Name}}</span><span class="asc-count">{{.Count}}</span></a></li>
+										{{end}}
+									</ul>
+								</details>
+							{{end}}
+						</section>
+					{{end}}
 					{{if .AscLangFacets}}
 						<section>
 							<h2 class="asc-facet-title">Language</h2>

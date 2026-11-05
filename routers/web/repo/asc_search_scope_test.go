@@ -67,6 +67,12 @@ func TestAscSearchAllBranches(t *testing.T) {
 	assert.Contains(t, page.body, `asc_rp.s_on <a class="tw-font-mono" href="/user2/repo1/src/branch/master">master</a> <a class="tw-font-mono" href="/user2/repo1/src/branch/branch2">branch2</a>`)
 	assert.Contains(t, page.body, "asc_rp.s_read_for", "the coverage note names the place it was read for")
 	assert.Equal(t, "refs/heads/master", fake.statuses[0].GetScope().GetRev(), "the coverage is read for the first branch, the default one")
+	// The Branch facet counts the hits of each branch and searches that branch alone.
+	assert.Contains(t, page.body, `data-testid="search-facet-branch"`)
+	assert.Contains(t, page.body, `<span>branch2</span><span class="asc-count">3</span>`)
+	assert.Contains(t, page.body, `<span>master</span><span class="asc-count">2</span>`)
+	assert.Less(t, strings.Index(page.body, "<span>branch2</span>"), strings.Index(page.body, "<span>master</span>"), "most hits first")
+	assert.Contains(t, page.body, `href="/user2/repo1/asc/search?match=literal&amp;mode=lexical&amp;q=needle&amp;ref=branch2"`)
 
 	t.Run("a branch asc does not know adds nothing and is no failure", func(t *testing.T) {
 		fake.search = func(req *ascv1.SearchRequest) ([]*ascv1.SearchResponse, error) {
@@ -232,6 +238,7 @@ func TestAscSearchFacetsAndForm(t *testing.T) {
 	assert.Contains(t, page.body, `id="asc-search-pull"`)
 	assert.Contains(t, page.body, `id="asc-search-diff"`)
 	assert.Contains(t, page.body, "asc_rp.s_scope_version (master)")
+	assert.NotContains(t, page.body, `data-testid="search-facet-branch"`, "one place searched: no Branch facet")
 }
 
 func TestAscSearchURLs(t *testing.T) {
