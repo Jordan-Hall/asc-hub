@@ -490,6 +490,11 @@ func AscInboxStatePost(ctx *context.Context) {
 		return
 	}
 	back := ascInboxURL(ascInboxTabOf(ctx.FormString("tab")), "", 0)
+	dash := ctx.FormString("back") == "dash"
+	if dash {
+		// a row of the dashboard: back to the dashboard, which has no undo toast
+		back = setting.AppSubURL + "/"
+	}
 	var pinned *bool
 	var until *time.Time
 	switch ctx.FormString("do") {
@@ -499,7 +504,7 @@ func AscInboxStatePost(ctx *context.Context) {
 			ctx.ServerError("SetAscInboxDone", err)
 			return
 		}
-		if done {
+		if done && !dash {
 			back += ascInboxSep(back) + "undo=" + strconv.FormatInt(pullID, 10)
 		}
 		ctx.Redirect(back)

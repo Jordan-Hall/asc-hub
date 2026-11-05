@@ -6,7 +6,8 @@ Template Attributes:
 */}}
 {{$d := .AscDash}}
 <div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-dash">
-	<div class="ds-container ds-container-xl wk-dash-grid">
+	<div class="ds-ptr" data-asc-ptr aria-hidden="true">{{svg "dsi-refresh" 20}}</div>
+	<div class="ds-container ds-container-xl wk-dash-grid" data-asc-pull-refresh>
 		<nav class="wk-dash-menu" aria-label="{{ctx.Locale.Tr "user.asc_dash.sidebar"}}">
 			<div class="ds-sidenav">
 				<h2 class="ds-grp">{{ctx.Locale.Tr "user.asc_dash.work"}}</h2>
@@ -58,9 +59,10 @@ Template Attributes:
 					{{if $d.Rows}}<span class="ds-card-sub ds-ml-auto ds-hide-md">{{ctx.Locale.Tr "user.asc_dash.keys_hint"}}</span>{{end}}
 				</div>
 				{{if $d.Rows}}
-					<ul class="wk-needs" data-asc-list>
+					<ul class="wk-needs" data-asc-list data-asc-swipe>
 						{{range $d.Rows}}
-							<li class="wk-need">
+							<li class="wk-need"{{if .PullID}} data-asc-swipe-row{{end}}>
+								{{if .PullID}}{{template "user/asc_row_state" (dict "PullID" .PullID "Back" "dash" "Csrf" $.CsrfTokenHtml)}}{{end}}
 								<span class="ds-dot ds-dot-{{if eq .Tone "amber"}}warn{{else if eq .Tone "red"}}err{{else if eq .Tone "green"}}ok{{end}} wk-need-dot" aria-hidden="true"></span>
 								<div class="wk-need-main">
 									<div class="wk-need-title">

@@ -79,14 +79,15 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"unwatch","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.unwatch"}}</button>
 					</span>
 				</div>
-				<ul class="wk-ilist" data-asc-list>
+				<ul class="wk-ilist" data-asc-list data-asc-swipe>
 					{{$day := ""}}
 					{{range $p.Rows}}
 						{{if and .Day (ne .Day $day)}}
 							{{$day = .Day}}
 							<li class="wk-iday">{{.Day}}</li>
 						{{end}}
-						<li class="wk-irow{{if .Selected}} is-selected{{end}}"{{if .Entry}} data-bulk-row{{end}}>
+						<li class="wk-irow{{if .Selected}} is-selected{{end}}"{{if .Entry}} data-bulk-row data-asc-swipe-row{{end}}>
+							{{if .Entry}}{{template "user/asc_row_state" (dict "PullID" .Entry.PullID "Tab" $p.Tab "Csrf" $.CsrfTokenHtml)}}{{end}}
 							<span class="ds-dot ds-dot-{{if eq .Dash.Tone "amber"}}warn{{else if eq .Dash.Tone "red"}}err{{else if eq .Dash.Tone "green"}}ok{{else if eq .Dash.Tone "violet"}}agent{{end}} wk-irow-dot" aria-hidden="true"></span>
 							<div class="wk-irow-main">
 								<a class="wk-irow-link" href="{{.URL}}" data-asc-row{{if .Entry}} data-section="{{.Entry.Section}}"{{else}} data-section="agent"{{end}}{{if .Selected}} aria-current="true"{{end}}>{{.Dash.Title}}</a>

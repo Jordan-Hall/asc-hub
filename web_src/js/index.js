@@ -77,6 +77,7 @@ import {initAscDocs} from './features/asc-docs.js';
 import {initAscDocsFeedback} from './features/asc-docs-feedback.js';
 import {initAscCodeBoxes} from './features/asc-codeboxes.js';
 import {initAscOffline} from './features/asc-offline.js';
+import {initAscRowSwipe} from './features/asc-row-swipe.js';
 import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscGotoLine} from './features/asc-goto-line.js';
 import {initAscSearchPanel} from './features/asc-search-panel.js';
@@ -300,6 +301,7 @@ onDomReady(() => {
   initAscAppliedToast();
   initAscOps();
   initAscChecksSwipe();
+  initAscRowSwipe();
   initAscPullRefresh();
   initAscExploreMore();
   initAscConfirmSheet();
