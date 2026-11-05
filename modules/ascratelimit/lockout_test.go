@@ -47,20 +47,25 @@ func TestLockoutClearAndWindow(t *testing.T) {
 	assert.Zero(t, l.Left("a"))
 }
 
-func TestLockoutFailCountsAfterTheTry(t *testing.T) {
+func TestLockoutReleaseGivesTheTryBack(t *testing.T) {
 	l := NewLockout()
 	at := time.Unix(1000, 0)
 	l.now = func() time.Time { return at }
-	assert.Zero(t, l.Fail("ip", 2, time.Minute))
-	assert.Equal(t, time.Minute, l.Fail("ip", 2, time.Minute), "the failure that reaches the limit starts the wait")
-	assert.Equal(t, time.Minute, l.Left("ip"))
+	assert.Zero(t, l.Begin("ip", 2, time.Minute))
+	l.Release("ip")
+	assert.Zero(t, l.Begin("ip", 2, time.Minute))
+	assert.Zero(t, l.Left("ip"), "the given back try did not count")
+	assert.Zero(t, l.Begin("ip", 2, time.Minute))
+	assert.Equal(t, time.Minute, l.Left("ip"), "the try that reaches the limit starts the wait")
+	l.Release("ip")
+	assert.Zero(t, l.Left("ip"), "giving that try back ends the wait")
+	l.Release("unknown")
 }
 
 func TestLockoutOffCountsNothing(t *testing.T) {
 	l := NewLockout()
 	for i := 0; i < 10; i++ {
 		assert.Zero(t, l.Begin("a", 0, time.Minute))
-		assert.Zero(t, l.Fail("a", 0, time.Minute))
 	}
 	assert.Zero(t, l.Left("a"))
 }
@@ -89,8 +94,30 @@ func TestLockoutTableIsBounded(t *testing.T) {
 	l := NewLockout()
 	l.maxKeys = 4
 	for i := 0; i < 10; i++ {
-		l.Fail(fmt.Sprint(i), 3, time.Minute)
+		l.Begin(fmt.Sprint(i), 3, time.Minute)
 	}
 	assert.Len(t, l.items, 4)
 	assert.Equal(t, 4, l.order.Len())
+}
+
+func TestLockoutTableNeverDropsAWait(t *testing.T) {
+	l := NewLockout()
+	l.maxKeys = 3
+	at := time.Unix(1000, 0)
+	l.now = func() time.Time { return at }
+	l.Begin("victim", 1, time.Minute)
+	for i := 0; i < 10; i++ {
+		l.Begin(fmt.Sprint(i), 3, time.Minute)
+	}
+	assert.Equal(t, time.Minute, l.Left("victim"), "a flood of new keys does not end a wait")
+	assert.Len(t, l.items, 3)
+
+	l.Begin("other", 1, time.Minute)
+	l.Begin("third", 1, time.Minute)
+	assert.Equal(t, time.Minute, l.Begin("new", 3, time.Minute), "when every key waits a new key is refused")
+	assert.Zero(t, l.Left("new"))
+
+	at = at.Add(time.Minute)
+	assert.Zero(t, l.Begin("new", 3, time.Minute), "a key whose wait is over may be dropped")
+	assert.Len(t, l.items, 3)
 }
