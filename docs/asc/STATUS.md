@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 196, partial 29, missing 92. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 197, partial 29, missing 91. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -508,7 +508,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Install (ASC Hub first-run setup)
 
-Area shell/settings. Rows 8: done 7, partial 0, missing 1. Copy found in the hub: 57% of 84 copy strings (mobile twin 47%). Template(s): install.tmpl, install_progress.tmpl, post-install.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 8: done 8, partial 0, missing 0. Copy found in the hub: 57% of 84 copy strings (mobile twin 47%). Template(s): install.tmpl, install_progress.tmpl, post-install.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Installation guide; SQLite is fine for a team of ten. Choose PostgreSQL for more.; One file. No server to run.; For teams and production.; Test connection; Connected to PostgreSQL 16.4.
 
@@ -520,7 +520,7 @@ Board copy not found word for word in locale, templates or scripts: Installation
 | Sticky summary rail (Database, URL, Registration) and live step progress | done | install.tmpl ins-rail, install.js initProgress; install.test.js | - |
 | "Setting up your hub" progress page (Step n of 5) that polls, then redirects | done | `GET /-/install/status` (routers/install/asc_progress.go), templates/install_progress.tmpl, install.js setRun; `TestAscInstallStatus`, `TestAscInstallProgressMarkup` | - |
 | Post-install page: signed in as, asc auth login --host ... with Copy, Open the hub, Download ASC | done | templates/post-install.tmpl; `TestAscPostInstallPage` | - |
-| Skip administrator: first registered user becomes owner | missing (hub) | logged as not built (not re-probed) | Installer needs an admin today; add the skip path and "first user is admin" in routers/web/auth/auth.go |
+| Skip administrator: first registered user becomes owner | done | templates/install.tmpl data-ins-admin, install.js initAdmin, routers/web/auth/auth.go handleUserCreated; `TestAscFirstUserOwnsTheHub` | - |
 | Mobile: One section per screen with progress bar, Back and Next | done | install.js initPhoneStepper under 768 px; install.test.js | - |
 
 #### Main (ASC Hub landing)
