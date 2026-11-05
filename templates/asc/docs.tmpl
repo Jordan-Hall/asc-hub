@@ -52,7 +52,7 @@
 		<div class="ds-container site-two site-two-wide">
 			{{if .DocsNew}}
 			<article class="ds-card">
-				<div class="ds-card-h"><h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_new"}}</h2></div>
+				<div class="ds-card-h"><h2 class="ds-t-h4" id="docs-new">{{ctx.Locale.Tr "asc_site.docs_new"}}</h2></div>
 				<ul class="ds-list">
 					{{range .DocsNew}}
 						<li class="ds-li"><div class="ds-li-main"><span class="ds-chip ds-chip-outline">{{.Kind}}</span> <a class="ds-li-title" href="{{AppSubUrl}}/-/docs/{{.Slug}}">{{.Title}}</a><div class="ds-li-sub">{{.Summary}}</div></div><time class="ds-t-small ds-c-2" datetime="{{.Date}}">{{.Date}}</time></li>

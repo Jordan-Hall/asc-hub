@@ -4,6 +4,8 @@
     {"slug": "stacks-and-operations", "file": "STACK-OPERATIONS.md", "title": "Stacks and operations", "summary": "How a feature becomes small reviewable changes, and how to undo, restack and recover.", "section": "Work"},
     {"slug": "agents", "file": "AGENTS-UI.md", "title": "Run an agent safely", "summary": "Scope, budget, checkpoints and audit for every run.", "section": "Work"},
     {"slug": "workflows", "file": "WORKFLOWS.md", "title": "Write a workflow", "summary": "Triggers, steps, limits and the switch of a repository workflow.", "section": "Work"},
+    {"slug": "cli", "file": "CLI.md", "title": "Command reference", "summary": "Every asc command with one example you can run.", "section": "Reference"},
+    {"slug": "mcp", "file": "MCP.md", "title": "MCP server tools", "summary": "The tools asc serves to an agent over MCP, their arguments and limits.", "section": "Reference"},
     {"slug": "storage-and-keys", "file": "STORAGE-AND-KEYS.md", "title": "Storage and keys", "summary": "Bring your own AI keys and S3-compatible storage.", "section": "Configure"},
     {"slug": "operate", "file": "OPERATIONS.md", "title": "Operate the hub", "summary": "Deploy, back up, restore and update the hub.", "section": "Operate"},
     {"slug": "architecture", "file": "ARCHITECTURE.md", "title": "Architecture", "summary": "How the hub, asc serve and the bridge talk to each other.", "section": "Operate"},
