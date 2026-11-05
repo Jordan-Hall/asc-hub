@@ -48,6 +48,23 @@ func TestPagesChangelogAndPopularSearchesPointAtRealContent(t *testing.T) {
 	}
 }
 
+func TestSectionsGroupEveryPageOnce(t *testing.T) {
+	sections := ascdocs.Sections()
+	require.NotEmpty(t, sections)
+	assert.Equal(t, "Get started", sections[0].Name)
+	seen := map[string]bool{}
+	count := 0
+	for _, s := range sections {
+		assert.False(t, seen[s.Name], "section %q shows once", s.Name)
+		seen[s.Name] = true
+		for _, p := range s.Pages {
+			assert.Equal(t, s.Name, p.Section)
+			count++
+		}
+	}
+	assert.Len(t, ascdocs.Pages(), count)
+}
+
 func TestSearch(t *testing.T) {
 	hits := ascdocs.Search("merge queue", 5)
 	require.NotEmpty(t, hits)
