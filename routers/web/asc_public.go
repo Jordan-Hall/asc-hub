@@ -234,11 +234,11 @@ func ascDocsInstall(ctx *context.Context) []AscDocsTOCItem {
 // ascServiceWorker is the script that shows the notifications of the hub and opens the page a click is for. It reads
 // the message the hub sent (title, body, a path of the hub), and opens only a path on this site.
 const ascServiceWorker = `"use strict";
-const CACHE = "asc-offline-v1";
+const CACHE = "asc-offline-v2";
 const OFFLINE = new URL("-/offline", self.registration.scope).href;
 
-// The offline page and its style sheets are kept when the worker is installed, so a hub that cannot be reached shows
-// a page that looks like the hub and not an error of the browser.
+// The offline page with its style sheets and scripts is kept when the worker is installed, so a hub that cannot be
+// reached shows a page that looks like the hub and not an error of the browser, and says when an edit is kept.
 async function precache() {
   const cache = await caches.open(CACHE);
   const res = await fetch(OFFLINE, {credentials: "omit"});
@@ -251,6 +251,10 @@ async function precache() {
       const m = tag.match(/href=["']([^"']+)["']/);
       if (m) hrefs.push(new URL(m[1], OFFLINE).href);
     }
+  }
+  for (const tag of html.match(/<script[^>]*src=[^>]*>/g) || []) {
+    const m = tag.match(/src=["']([^"']+)["']/);
+    if (m) hrefs.push(new URL(m[1], OFFLINE).href);
   }
   await Promise.all(hrefs.filter((h) => new URL(h).origin === self.location.origin).map((h) => cache.add(h).catch(() => {})));
 }

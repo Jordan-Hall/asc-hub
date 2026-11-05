@@ -131,6 +131,10 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 </header>
 
 {{/* ================= overlays ================= */}}
+{{if .IsSigned}}
+{{/* the note of a form held while the device is offline (asc-drafts.js, board Errors) */}}
+<template data-asc-draft-offline><div class="ds-banner ds-banner-warn ds-mb-16" role="status">{{svg "dsi-alert" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "asc_err.text_offline_draft"}}</div><button type="button" class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "asc_err.retry_now"}}</button></div></template>
+{{end}}
 <div class="ds-scrim" id="ds-scrim" data-ds-close></div>
 
 {{/* the menu drawer (phone and tablet) */}}

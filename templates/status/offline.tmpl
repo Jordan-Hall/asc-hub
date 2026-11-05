@@ -4,9 +4,10 @@
 		<section class="st-card" aria-labelledby="st-title">
 			<span class="st-ic" aria-hidden="true">{{svg "dsi-alert" 40}}</span>
 			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title_offline"}}</h1>
-			<p class="st-text">{{ctx.Locale.Tr "asc_err.text_offline"}}</p>
+			<p class="st-text" data-asc-offline-text>{{ctx.Locale.Tr "asc_err.text_offline"}}</p>
+			<p class="st-text" data-asc-offline-draft hidden>{{ctx.Locale.Tr "asc_err.text_offline_draft"}}</p>
 			<div class="st-actions">
-				<a class="ds-btn ds-btn-primary" href="">{{ctx.Locale.Tr "asc_err.try_again"}}</a>
+				<a class="ds-btn ds-btn-primary" href="">{{ctx.Locale.Tr "asc_err.retry_now"}}</a>
 			</div>
 		</section>
 	</div>
