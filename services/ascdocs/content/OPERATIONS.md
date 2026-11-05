@@ -39,8 +39,8 @@ The README has the one-service file. Notes for a real deployment:
 3. Publish no SSH port. Git over SSH is off by default; to use it, see [Git over SSH](#git-over-ssh-optional).
 4. `DISABLE_REGISTRATION` is `true` and `INSTALL_LOCK` is `true` unless you set them. With the lock on there is no web installer; the installer would write a literal internal token into `app.ini`, which conflicts with the token file.
 5. The volume at `/var/lib/gitea` must belong to uid 1000. A named volume does (the image creates the directory with that owner). For a bind mount run `chown -R 1000:1000 <directory>` first; on Kubernetes set `fsGroup: 1000` and `runAsUser: 1000`. The container does not fix ownership itself, because it runs without privileges; it stops and says which path is wrong.
-6. A read-only root filesystem needs `/tmp` as a tmpfs (the hub's temporary directory is `/tmp/gitea`) and `/var/lib/gitea` as a volume. [STAGING.md](STAGING.md) runs the hub-only image that way with all capabilities dropped and `no-new-privileges`. The all-in-one image writes nowhere else, but it has not been run with those options by us.
-7. The image's health check needs both programs: `GET /api/healthz` on the hub and `GET /readyz` on `asc serve`. `/readyz` fails when the database of `asc serve` does not answer or its outbox lags. The check runs every 30 seconds and the container is marked unhealthy after three failures; the first 120 seconds are a grace period. Docker itself does not restart an unhealthy container: `restart: unless-stopped` restarts it when a program exits, and an orchestrator that acts on health (Coolify, Swarm, Kubernetes with an exec probe of `/usr/local/bin/asc-hub-healthcheck`) does the rest.
+6. A read-only root filesystem needs `/tmp` as a tmpfs (the hub's temporary directory is `/tmp/gitea`) and `/var/lib/gitea` as a volume. The all-in-one image writes nowhere else.
+7. The image's health check needs both programs: `GET /api/healthz` on the hub and `GET /readyz` on `asc serve`. `/readyz` fails when the database of `asc serve` does not answer or its outbox lags. The check runs every 30 seconds and the container is marked unhealthy after three failures; the first 120 seconds are a grace period. Docker itself does not restart an unhealthy container: `restart: unless-stopped` restarts it when a program exits, and an orchestrator that acts on health (Swarm, Kubernetes with an exec probe of `/usr/local/bin/asc-hub-healthcheck`) does the rest.
 8. The check reads the same port variables as the entrypoint. If you set `FORGEJO__server__PROTOCOL=https` for the hub's own listener, the check, which speaks plain http, fails; terminate TLS in the proxy.
 
 ### Variables read by the entrypoint
@@ -106,7 +106,7 @@ Only if the host can open an extra port. With `ASC_HUB_SSH_ENABLE=true` the entr
 | `SSH_PORT` | `2222` | Port shown in clone addresses; it must equal the host port you publish. |
 | `SSH_DOMAIN` | host of `ROOT_URL` | Host name shown in clone addresses. |
 
-Add the published port to the Compose file (`"<host port>:2222"`, with `SSH_PORT=<host port>`) and open it in the firewall. Coolify's HTTP proxy does not carry SSH. These three variables are ignored (the entrypoint logs a warning) while `ASC_HUB_SSH_ENABLE` is not `true`. In a hub run without the image, set `[asc] SSH_ENABLED = true` (default `false`); with `[asc] ENABLED = true` and `SSH_ENABLED = false` the hub forces `[server] DISABLE_SSH = true`.
+Add the published port to the Compose file (`"<host port>:2222"`, with `SSH_PORT=<host port>`) and open it in the firewall. An HTTP-only reverse proxy does not carry SSH. These three variables are ignored (the entrypoint logs a warning) while `ASC_HUB_SSH_ENABLE` is not `true`. In a hub run without the image, set `[asc] SSH_ENABLED = true` (default `false`); with `[asc] ENABLED = true` and `SSH_ENABLED = false` the hub forces `[server] DISABLE_SSH = true`.
 
 ## Events from asc serve to the hub
 
@@ -140,7 +140,7 @@ The call is the same trust as the hooks and `authz`: both programs read **one** 
 
   `[forgejo] url` is the address of the hub inside the private network, not the public one. With the variable form, `INTERNAL_TOKEN` itself in the environment works for the hub but puts the secret in `docker inspect`; use the file.
 - **Compose.** Declare a top-level `secrets: asc_internal_token: { file: ./secrets/asc_internal_token }` and list it under `secrets:` of both services; the file is then `/run/secrets/asc_internal_token` in each.
-- **Coolify.** Add a file mount (or a persistent storage file) with the token at `/run/secrets/asc_internal_token` on **both** services of the resource, and the two variables above in the environment of the hub. The domain you give the hub in Coolify exposes `/api/internal/...` too; every call there needs the token, but block the prefix at the proxy anyway when the proxy offers a path rule (`/api/internal` is only for the private network).
+- **Behind a proxy.** The public domain of the hub exposes `/api/internal/...` too; every call there needs the token, but block the prefix at the proxy anyway when the proxy offers a path rule (`/api/internal` is only for the private network).
 - **Rotation.** Make a new token, replace the file for both, restart both. A call with the old token answers 403, which is a final answer for `asc serve` (it does not retry a 4xx), so events sent between the change of the two files are lost; rotate in a quiet moment.
 - **Check.** With the token in `$T`: `curl -sS -X POST -H "Authorization: Bearer $T" -H 'content-type: application/json' -d '{"event":"merge_queue","repo":"OWNER/NAME","users":["LOGIN"],"title":"test"}' http://hub:3000/api/internal/asc/event` answers `{"notified":1}` when LOGIN can read the repository, and 403 without the token. A 404 means `[asc] ENABLED` is off.
 
@@ -148,19 +148,6 @@ The call is the same trust as the hooks and `authz`: both programs read **one** 
 
 - **Hub image and `asc serve` as two services.** Build `Dockerfile.rootless` (no `asc serve` inside), run `asc serve` from the ASC distribution as a second service in the hub's network namespace (`network_mode: "service:hub"`), and set the `[asc]` keys, the internal token and the shared repository directory yourself. The contract: `[asc] SERVER_URL` is where the hub dials; both read the same internal token (`[security] INTERNAL_TOKEN_URI`, a `file://` URI); `asc serve` asks the hub at `/api/internal/asc/authz` (and `/ssh-key`, `/request-merge`) what a credential may do; with `BRIDGE = eager`, `asc serve` needs the hub's `git/repositories` directory read-write at the same path and the same user id. The configuration of `asc serve` itself is documented with `asc serve`. The backup tool and the lock below belong to the all-in-one image only.
 - **Separate hosts.** Use `https` for `[asc] SERVER_URL`; the hub's client refuses plain `http` to a host that is not loopback.
-
-## Coolify
-
-The ASC repository ships the Compose file for this image in `deploy/coolify/asc-hub-allinone.compose.yml`. Create a **Docker Compose** resource from it, or from the one-service file in the README:
-
-1. Set the resource's domain on the `hub` service, port 3000, so Coolify's proxy terminates TLS and routes to it. Coolify's magic variable for that is `SERVICE_FQDN_<SERVICE>_3000` (the file uses `SERVICE_FQDN_HUB_3000` for the service `hub`). Set `ROOT_URL` to the same https address.
-2. Publish no SSH port: Coolify's HTTP proxy carries HTTPS only, and the file does not publish one. Clients use `asc auth login --host <hub>` and HTTPS clones. (Git over SSH is optional; see [Git over SSH](#git-over-ssh-optional).)
-3. Keep all state in the one named volume at `/var/lib/gitea`, so redeploys keep the data, the secrets and the `asc serve` state.
-4. Set the image tag in an environment variable that the compose file requires (`${VAR:?message}`), and change it per deploy. Do not use a moving tag.
-5. Set `ASC_HUB_ADMIN_EMAIL` for the first deploy, read the password file once from the Coolify terminal, change the password, delete the file.
-6. Keep every secret (S3 keys, database URL) in Coolify's environment, never in the file. `tests/allinone/compose_test.go` checks a Compose file against the image: set `ASC_ALLINONE_COMPOSE_FILES` to its path and run `go test ./tests/allinone/`. It fails for an unpinned or unguarded image tag, a variable the image does not read, a literal value for a variable that looks like a secret, a missing `ROOT_URL`, a published SSH port without `ASC_HUB_SSH_ENABLE: "true"` (or a published one that does not match `SSH_PORT`), a `stop_grace_period` under 30 seconds, no restart policy, a state path that is not a named volume, and privileged mode.
-
-[STAGING.md](STAGING.md) describes the older staging resource, with the hub-only image and SQLite; its compose file belongs to the ASC repository, not this one.
 
 ## Volumes
 

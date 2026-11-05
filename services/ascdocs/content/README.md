@@ -50,7 +50,7 @@ ASC Hub is built on the work of the Forgejo and Gitea contributors. The top-leve
 
 ## Run it
 
-- Staging: [STAGING.md](STAGING.md). The default `APP_NAME` is `ASC Hub` (`FORGEJO__DEFAULT__APP_NAME`).
+- The default `APP_NAME` is `ASC Hub` (`FORGEJO__DEFAULT__APP_NAME`).
 - Theme: [THEME.md](THEME.md).
 
 ## Upstream policy and names
