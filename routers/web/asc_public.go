@@ -58,13 +58,60 @@ func AscOffline(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, "status/offline")
 }
 
+// ascStarted is what the checklist of Get started can see of a person: whether the command line has signed in, a
+// repository exists and they belong to an organization, and how many of the four steps that makes.
+type ascStarted struct {
+	Connected bool `json:"connected"`
+	HasRepo   bool `json:"-"`
+	HasOrg    bool `json:"-"`
+	Done      int  `json:"done"`
+	Total     int  `json:"total"`
+}
+
+// ascStartedOf reads the steps of doer from the database.
+func ascStartedOf(ctx *context.Context, doer *user_model.User) (ascStarted, error) {
+	tokens, err := db.Count[auth.AccessToken](ctx, auth.ListAccessTokensOptions{UserID: doer.ID})
+	if err != nil {
+		return ascStarted{}, err
+	}
+	orgs, err := organization.GetUserOrgsList(ctx, doer)
+	if err != nil {
+		return ascStarted{}, err
+	}
+	st := ascStarted{Connected: tokens > 0, HasRepo: doer.NumRepos > 0, HasOrg: len(orgs) > 0, Total: 4}
+	// the command line has signed in, so it is installed and connected: two steps; the third is a repository, the
+	// fourth a team (an organization the person belongs to)
+	if st.Connected {
+		st.Done += 2
+	}
+	if st.HasRepo {
+		st.Done++
+	}
+	if st.HasOrg {
+		st.Done++
+	}
+	return st, nil
+}
+
+// AscGetStartedStatus answers GET /-/get-started/status: the steps as JSON, which the open checklist asks for while
+// it waits for the first sign-in of the command line, so step 2 ticks without a reload.
+func AscGetStartedStatus(ctx *context.Context) {
+	st, err := ascStartedOf(ctx, ctx.Doer)
+	if err != nil {
+		ctx.ServerError("ascStartedOf", err)
+		return
+	}
+	ctx.Resp.Header().Set("Cache-Control", "no-store")
+	ctx.JSON(http.StatusOK, st)
+}
+
 // AscGetStarted serves GET /-/get-started: the checklist of a person whose hub is new. It marks a step done only
 // when the hub can see it is: a repository exists, an access token exists.
 func AscGetStarted(ctx *context.Context) {
 	doer := ctx.Doer
-	tokens, err := db.Count[auth.AccessToken](ctx, auth.ListAccessTokensOptions{UserID: doer.ID})
+	st, err := ascStartedOf(ctx, doer)
 	if err != nil {
-		ctx.ServerError("CountAccessTokens", err)
+		ctx.ServerError("ascStartedOf", err)
 		return
 	}
 	keys, err := db.Count[asymkey.PublicKey](ctx, asymkey.FindPublicKeyOptions{OwnerID: doer.ID})
@@ -73,26 +120,7 @@ func AscGetStarted(ctx *context.Context) {
 		return
 	}
 	prepareAscDownload(ctx)
-	done := 0
-	connected := tokens > 0
-	hasRepo := doer.NumRepos > 0
-	// the command line has signed in, so it is installed and connected: two steps; the third is a repository, the
-	// fourth a team (an organization the person belongs to)
-	if connected {
-		done += 2
-	}
-	if hasRepo {
-		done++
-	}
-	orgs, err := organization.GetUserOrgsList(ctx, doer)
-	if err != nil {
-		ctx.ServerError("GetUserOrgsList", err)
-		return
-	}
-	hasOrg := len(orgs) > 0
-	if hasOrg {
-		done++
-	}
+	connected, hasRepo, hasOrg, done := st.Connected, st.HasRepo, st.HasOrg, st.Done
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_site.started_title")
 	ctx.Data["PageIsAscGetStarted"] = true
 	ctx.Data["GSName"] = doer.GetDisplayName()
