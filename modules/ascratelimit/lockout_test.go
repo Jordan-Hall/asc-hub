@@ -114,8 +114,10 @@ func TestLockoutTableNeverDropsAWait(t *testing.T) {
 
 	l.Begin("other", 1, time.Minute)
 	l.Begin("third", 1, time.Minute)
-	assert.Equal(t, time.Minute, l.Begin("new", 3, time.Minute), "when every key waits a new key is refused")
-	assert.Zero(t, l.Left("new"))
+	assert.Zero(t, l.Begin("new", 1, time.Minute), "when every key waits a new key may try, uncounted")
+	assert.Zero(t, l.Left("new"), "and does not wait")
+	assert.Len(t, l.items, 3)
+	assert.Equal(t, time.Minute, l.Left("victim"), "the waits are kept")
 
 	at = at.Add(time.Minute)
 	assert.Zero(t, l.Begin("new", 3, time.Minute), "a key whose wait is over may be dropped")
