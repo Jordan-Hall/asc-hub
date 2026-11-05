@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
 	"forgejo.org/modules/translation"
+	"forgejo.org/modules/user"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -78,4 +80,45 @@ func TestAscInstallProgressMarkup(t *testing.T) {
 	assert.Contains(t, wait, ">Setting up your hub</h1>")
 	assert.Contains(t, wait, `data-ins-run data-done="3"`)
 	assert.Equal(t, 5, strings.Count(wait, "data-ins-run-step"))
+}
+
+func TestAscInstallAdministratorCard(t *testing.T) {
+	translation.InitLocales(context.Background())
+	r := Routes()
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
+	body := w.Body.String()
+	i := strings.Index(body, `id="ins-admin"`)
+	require.Positive(t, i)
+	card := body[i : i+strings.Index(body[i:], "</section>")]
+	assert.Contains(t, card, `data-ins-admin data-skip-err="You cannot disable user self-registration without creating an administrator account."`)
+	assert.Contains(t, card, ">Administrator account</h2>")
+	assert.Contains(t, card, "The first account owns the hub. You can skip it and register as the first user.")
+	assert.Contains(t, card, `<label for="register_confirm">Require email confirmation for new accounts</label>`)
+	assert.Contains(t, card, `>Disable self-registration (invite only)</label>`)
+	assert.NotContains(t, card, " required", "the administrator can be skipped")
+	assert.Equal(t, 1, strings.Count(body, `id="disable_registration"`))
+	assert.Equal(t, 1, strings.Count(body, `id="register_confirm"`))
+}
+
+func TestAscInstallSkipNeedsOpenRegistration(t *testing.T) {
+	// no administrator and registration closed: nobody could sign in, so the form is refused
+	translation.InitLocales(context.Background())
+	defer test.MockVariableValue(&setting.Database, setting.Database)()
+	r := Routes()
+	form := url.Values{
+		"db_type": {"sqlite3"}, "db_path": {filepath.Join(t.TempDir(), "hub.db")},
+		"app_name": {"ASC Hub"}, "repo_root_path": {t.TempDir()}, "run_user": {user.CurrentUsername()}, "domain": {"hub.example.org"},
+		"http_port": {"3000"}, "app_url": {"https://hub.example.org/"}, "log_root_path": {t.TempDir()}, "password_algorithm": {"pbkdf2"},
+		"disable_registration": {"on"},
+	}
+	req := httptest.NewRequest("POST", "/", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+	body := w.Body.String()
+	assert.Contains(t, body, "You cannot disable user self-registration without creating an administrator account.")
+	assert.Contains(t, body, `<label for="disable_registration" class="ds-c-err">`)
+	assert.False(t, setting.InstallLock)
 }
