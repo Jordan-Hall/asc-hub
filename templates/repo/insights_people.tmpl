@@ -1,17 +1,26 @@
 {{/* The People board of an asc repository: who landed, who reviewed, who writes the code. Dot: page data. */}}
 {{with .AscPeople}}
-<div class="rp-ins" data-testid="asc-people">
+<div class="rp-ins" data-ins-board data-testid="asc-people">
 	<div class="rp-ins-head">
 		<div>
 			<h2 class="rp-h1">{{ctx.Locale.Tr "repo.activity.navbar.contributors"}}</h2>
 			<p class="rp-sub">{{ctx.Locale.Tr "asc_rp.people_sub"}}</p>
 		</div>
-		<div class="ds-seg ds-seg-mini" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.ins_range"}}">
+		<div class="ds-seg ds-seg-mini" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.ins_range"}}" data-ins-segs>
 			<a href="?range=7d"{{if eq .Range "7d"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_7d"}}</a>
 			<a href="?range=30d"{{if eq .Range "30d"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_30d"}}</a>
 			<a href="?range=year"{{if eq .Range "year"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.ins_year"}}</a>
 		</div>
 	</div>
+	<p class="tw-sr-only" role="status" data-ins-status data-loading="{{ctx.Locale.TrString "asc_rp.ins_loading"}}"></p>
+	<template data-ins-skeleton>
+		<div class="rp-ins-skel" aria-hidden="true" data-testid="asc-people-loading">
+			<div class="ds-card rp-ins-card"><span class="ds-sk rp-ins-skel-title"></span><span class="ds-sk rp-ins-skel-line"></span></div>
+			<div class="ds-card rp-ins-card"><span class="ds-sk rp-ins-skel-title"></span><span class="ds-sk rp-ins-skel-row"></span><span class="ds-sk rp-ins-skel-row"></span><span class="ds-sk rp-ins-skel-row"></span><span class="ds-sk rp-ins-skel-row"></span><span class="ds-sk rp-ins-skel-row"></span><span class="ds-sk rp-ins-skel-row"></span></div>
+		</div>
+	</template>
+	<div class="rp-ins-body" data-ins-body>
+	{{if .Partial}}<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-people-partial">{{ctx.Locale.Tr "asc_rp.people_partial"}}</div>{{end}}
 	{{if .Truncated}}<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.Tr "asc_rp.ins_truncated"}}</div>{{end}}
 	{{if .HasAgentPct}}
 	<section class="ds-card rp-ins-card" aria-labelledby="rp-who-h">
@@ -39,8 +48,8 @@
 					{{range .Rows}}
 					<tr>
 						<th scope="row">
-							{{if .Agent}}<a class="ds-mono" href="{{$.RepoLink}}/asc/agents">{{.Name}}</a> <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{if .RunBy}}<span class="rp-quiet"> {{ctx.Locale.Tr "asc_rp.run_by" .RunBy}}</span>{{end}}
-							{{else if .User}}<a href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>
+							{{if .Agent}}{{if .RunsLink}}<a class="ds-mono" href="{{.RunsLink}}" data-testid="asc-people-agent">{{.Name}}</a>{{else}}<span class="ds-mono">{{.Name}}</span>{{end}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{if .RunBy}}<span class="rp-quiet"> {{ctx.Locale.Tr "asc_rp.run_by" .RunBy}}</span>{{end}}
+							{{else if .User}}<a href="{{.User.HomeLink}}" data-testid="asc-people-person">{{.User.GetDisplayName}}</a>
 							{{else}}{{.Name}}{{end}}
 						</th>
 						<td class="ds-r ds-num">{{.Landed}}</td>
@@ -64,7 +73,8 @@
 		{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.ins_no_reviews"}}</p>{{end}}
 	</section>
 	{{else}}
-	<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_rp.ins_empty_title") "Body" (ctx.Locale.Tr "asc_rp.ins_empty_body"))}}</div>
+	<div class="ds-card" data-testid="asc-people-empty">{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_rp.people_empty_title") "Body" (ctx.Locale.Tr "asc_rp.people_empty_body"))}}</div>
 	{{end}}
+	</div>
 </div>
 {{end}}

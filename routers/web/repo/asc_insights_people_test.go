@@ -62,3 +62,41 @@ func TestPeopleRender(t *testing.T) {
 	assert.Contains(t, body, "<polyline")
 	assert.Contains(t, body, "asc_rp.agents_never_review")
 }
+
+func renderPeople(t *testing.T, pg *insPeoplePage) string {
+	t.Helper()
+	ctx, resp := contexttest.MockContext(t, "/user2/repo1/activity/contributors")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadRepo(t, ctx, 1)
+	ctx.Data["RepoLink"] = ctx.Repo.RepoLink
+	ctx.Data["AscPeople"] = pg
+	ctx.HTML(http.StatusOK, "repo/insights_people")
+	require.Equal(t, http.StatusOK, resp.Code, resp.Body.String())
+	return resp.Body.String()
+}
+
+func TestLinkAgentRuns(t *testing.T) {
+	rows := []insPerson{{Name: "coder-2", Agent: true}, {Name: "bad name/..", Agent: true}, {Name: "priya"}}
+	linkAgentRuns("/user2/repo1", rows)
+	assert.Equal(t, "/user2/repo1/asc/agents?agent=coder-2", rows[0].RunsLink)
+	assert.Empty(t, rows[1].RunsLink, "a name the runs page refuses gets no link")
+	assert.Empty(t, rows[2].RunsLink, "a person links to the profile, never to runs")
+}
+
+func TestPeopleRenderStates(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	rows := []insPerson{{Name: "coder-2", Agent: true, Landed: 4, RunsLink: "/user2/repo1/asc/agents?agent=coder-2"}, {Name: "bot x", Agent: true, Landed: 1}}
+	body := renderPeople(t, &insPeoplePage{Range: "30d", Partial: true, Rows: rows})
+	assert.Contains(t, body, `data-testid="asc-people-partial"`)
+	assert.Contains(t, body, "asc_rp.people_partial")
+	assert.NotContains(t, body, "asc_rp.who_writes", "a missing figure is left out, never drawn as zero")
+	assert.Contains(t, body, `href="/user2/repo1/asc/agents?agent=coder-2"`, "an agent row opens its runs")
+	assert.Contains(t, body, `<span class="ds-mono">bot x</span>`)
+	assert.Contains(t, body, "<template data-ins-skeleton>")
+	assert.Contains(t, body, "data-ins-segs")
+
+	body = renderPeople(t, &insPeoplePage{Range: "7d"})
+	assert.Contains(t, body, `data-testid="asc-people-empty"`)
+	assert.Contains(t, body, "asc_rp.people_empty_title")
+	assert.NotContains(t, body, `data-testid="asc-people-partial"`)
+}

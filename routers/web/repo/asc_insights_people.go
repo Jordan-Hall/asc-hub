@@ -5,6 +5,7 @@ package repo
 
 import (
 	gocontext "context"
+	"net/url"
 	"sort"
 
 	repo_model "forgejo.org/models/repo"
@@ -12,6 +13,7 @@ import (
 	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/log"
+	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
@@ -28,6 +30,7 @@ type insPerson struct {
 	Agent     bool
 	RunBy     string
 	User      *user_model.User // nil when the account is unknown or not visible to the viewer
+	RunsLink  string           // for an agent: its runs in this repository, newest first; empty for a name the runs page refuses
 	Landed    int
 	Reviews   int
 	MedianMin int
@@ -46,6 +49,7 @@ type insPeoplePage struct {
 	AllApproved bool
 	Range       string
 	Truncated   bool
+	Partial     bool // the contributors loaded but the statistics did not: who writes the code is left out
 }
 
 // personRows maps the answer of asc to rows. A share is a fraction of 1; the bar is a whole percent.
@@ -114,8 +118,11 @@ func prepareAscPeople(ctx *context.Context) {
 	pg := &insPeoplePage{Range: key, Truncated: resp.GetTruncated()}
 	pg.Rows = personRows(resp.GetContributors())
 	linkPeople(ctx, repo, pg.Rows, resp.GetContributors())
+	linkAgentRuns(repo.Link(), pg.Rows)
 	pg.ReviewLoad = reviewLoadOf(pg.Rows)
-	if st, _ := fetchInsightsStats(ctx, repo, insWhoEveryone, days); st != nil {
+	st, _ := fetchInsightsStats(ctx, repo, insWhoEveryone, days)
+	pg.Partial = st == nil
+	if st != nil {
 		people, agents := int(st.GetLandedByPeople()), int(st.GetLandedByAgents())
 		if people+agents > 0 {
 			pg.HasAgentPct, pg.AgentPct = true, agents*100/(people+agents)
@@ -124,6 +131,15 @@ func prepareAscPeople(ctx *context.Context) {
 		}
 	}
 	ctx.Data["AscPeople"] = pg
+}
+
+// linkAgentRuns links each agent row to the runs of that agent in the repository.
+func linkAgentRuns(repoLink string, rows []insPerson) {
+	for i := range rows {
+		if rows[i].Agent && ascagentui.ValidAgentName(rows[i].Name) {
+			rows[i].RunsLink = repoLink + "/asc/agents?agent=" + url.QueryEscape(rows[i].Name)
+		}
+	}
 }
 
 // linkPeople attaches the hub account to a person row when the hub knows it and the viewer may see it.
