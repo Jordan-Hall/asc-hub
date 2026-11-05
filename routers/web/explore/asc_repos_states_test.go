@@ -106,3 +106,22 @@ func TestAscExploreUsersLoadFailed(t *testing.T) {
 	assert.Contains(t, card.Text(), "request id 7f3a91")
 	assert.Equal(t, "?q=maya", card.Find("a.ds-btn-primary").AttrOr("href", ""))
 }
+
+func TestAscExploreOrgsEmptyHub(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	defer test.MockVariableValue(&searchUsers, func(_ stdctx.Context, _ *user_model.SearchUserOptions) ([]*user_model.User, int64, error) {
+		return nil, 0, nil
+	})()
+	_, doc := ascExploreRender(t, Organizations, "/explore/organizations", 2)
+	empty := doc.Find("[data-asc-orgs-empty]")
+	require.Equal(t, 1, empty.Length())
+	assert.Contains(t, empty.Text(), "No organizations yet")
+	assert.Equal(t, "/org/create", empty.Find("a.ds-btn-primary").AttrOr("href", ""))
+	assert.Equal(t, 1, doc.Find("[data-asc-orgs-start]").Length())
+	assert.Contains(t, doc.Find("[data-asc-orgs-verified]").Text(), "What a verified badge means")
+
+	_, doc = ascExploreRender(t, Organizations, "/explore/organizations", 0)
+	assert.Zero(t, doc.Find("[data-asc-orgs-empty] a.ds-btn").Length(), "a visitor is offered no New organization")
+	assert.Zero(t, doc.Find("[data-asc-orgs-start]").Length())
+	assert.Equal(t, 1, doc.Find("[data-asc-orgs-verified]").Length())
+}
