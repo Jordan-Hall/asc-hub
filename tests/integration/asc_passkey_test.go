@@ -191,6 +191,22 @@ func TestAscPasskeySignIn(t *testing.T) {
 		session.MakeRequest(t, NewRequestWithJSON(t, "POST", "/user/webauthn/passkey/login", key4.answer(t, challenge, true, 1)), http.StatusForbidden)
 	})
 
+	t.Run("SourceOff", func(t *testing.T) {
+		// user8 comes from a sign in source that an administrator turned off: the passkey is refused, as the password is
+		src := createRemoteAuthSource(t, "passkey-source", "https://example.org/", "")
+		_, err := db.GetEngine(db.DefaultContext).ID(src.ID).Cols("is_active").Update(&auth_model.Source{IsActive: false})
+		require.NoError(t, err)
+		user8 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 8})
+		key8 := newPasskey(t, user8)
+		user8.LoginSource = src.ID
+		user8.LoginType = auth_model.Remote
+		require.NoError(t, user_model.UpdateUserCols(db.DefaultContext, user8, "login_source", "login_type"))
+		session := emptyTestSession(t)
+		challenge := passkeyChallenge(t, session)
+		session.MakeRequest(t, NewRequestWithJSON(t, "POST", "/user/webauthn/passkey/login", key8.answer(t, challenge, true, 1)), http.StatusForbidden)
+		session.MakeRequest(t, NewRequest(t, "GET", "/user/settings"), http.StatusSeeOther)
+	})
+
 	t.Run("Register", func(t *testing.T) {
 		// user1 has no key, so the password signs in
 		session := loginUser(t, "user1")
