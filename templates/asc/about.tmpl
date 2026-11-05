@@ -83,14 +83,87 @@
 		</div>
 	</section>
 
-	<section class="ds-land-sec ds-land-sec-flush" aria-labelledby="about-contact">
+	<section class="ds-land-sec" id="security" aria-labelledby="about-security">
+		<div class="ds-container site-two">
+			<div>
+				<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.about_sec_eyebrow"}}</p>
+				<h2 class="ds-land-h2" id="about-security">{{ctx.Locale.Tr "asc_site.about_sec_h"}}</h2>
+				<p class="ds-land-p">{{ctx.Locale.Tr "asc_site.about_sec_t"}}</p>
+				<p class="site-links">
+					{{if .AboutSecurityEmail}}
+					<a class="ds-btn ds-btn-primary" href="mailto:{{.AboutSecurityEmail}}" data-testid="about-security-report">{{ctx.Locale.Tr "asc_site.about_sec_report_email" .AboutSecurityEmail}}</a>
+					{{else}}
+					<a class="ds-btn ds-btn-primary" href="https://github.com/Jordan-Hall/asc-hub/security/advisories/new" target="_blank" rel="noopener noreferrer" data-testid="about-security-report">{{ctx.Locale.Tr "asc_site.about_sec_report"}}</a>
+					{{end}}
+					<a class="ds-link" href="https://github.com/Jordan-Hall/asc-hub/security/policy" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.about_sec_policy"}}</a>
+				</p>
+			</div>
+			<ul class="site-checks">
+				<li><span class="ds-c-link" aria-hidden="true">{{svg "dsi-check" 16}}</span><div><b>{{ctx.Locale.Tr "asc_site.about_sec1_h"}}</b><p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_site.about_sec1_t"}}</p></div></li>
+				<li><span class="ds-c-link" aria-hidden="true">{{svg "dsi-check" 16}}</span><div><b>{{ctx.Locale.Tr "asc_site.about_sec2_h"}}</b><p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_site.about_sec2_t"}}</p></div></li>
+				<li><span class="ds-c-link" aria-hidden="true">{{svg "dsi-check" 16}}</span><div><b>{{ctx.Locale.Tr "asc_site.about_sec3_h"}}</b><p class="ds-c-2 ds-t-small">{{ctx.Locale.Tr "asc_site.about_sec3_t"}}</p></div></li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="ds-land-sec ds-land-sec-flush" aria-labelledby="about-legal">
+		<div class="ds-container">
+			<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.about_legal_eyebrow"}}</p>
+			<h2 class="ds-land-h2" id="about-legal">{{ctx.Locale.Tr "asc_site.about_legal_h" .AboutHost}}</h2>
+			<p class="ds-land-p">{{ctx.Locale.Tr "asc_site.about_legal_t"}}{{if .AboutPoliciesURL}} <a class="ds-link" href="{{.AboutPoliciesURL}}" target="_blank" rel="noopener noreferrer" data-testid="about-policies">{{ctx.Locale.Tr "asc_site.about_legal_full"}}</a>{{end}}</p>
+			<div class="ds-land-cards site-three">
+				<article class="ds-land-card" id="privacy"><h3>{{ctx.Locale.Tr "asc_site.about_privacy_h"}}</h3><p>{{ctx.Locale.Tr "asc_site.about_privacy_t"}}</p><p>{{ctx.Locale.Tr "asc_site.about_privacy_t2"}}</p></article>
+				<article class="ds-land-card" id="terms"><h3>{{ctx.Locale.Tr "asc_site.about_terms_h"}}</h3><p>{{ctx.Locale.Tr "asc_site.about_terms_t"}}</p><p>{{ctx.Locale.Tr "asc_site.about_terms_t2"}}</p></article>
+				<article class="ds-land-card" id="acceptable-use"><h3>{{ctx.Locale.Tr "asc_site.about_aup_h"}}</h3><p>{{ctx.Locale.Tr "asc_site.about_aup_t"}}</p><p>{{ctx.Locale.Tr "asc_site.about_aup_t2"}}</p></article>
+			</div>
+		</div>
+	</section>
+
+	<section class="ds-land-sec ds-land-sec-flush" aria-label="{{ctx.Locale.Tr "asc_site.about_sp_h"}}">
+		<div class="ds-container site-two site-two-wide">
+			<article class="ds-card" id="subprocessors">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.about_sp_h"}}</h2>
+					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.about_sp_t"}}</p>
+					<ul class="ds-list" data-testid="about-subprocessors">
+						{{range .AboutServices}}
+						<li class="ds-li"><div class="ds-li-main"><span class="ds-li-title">{{ctx.Locale.Tr .Kind}}</span><div class="ds-li-sub">{{if .Where}}<code>{{.Where}}</code>{{else}}{{ctx.Locale.Tr "asc_site.about_sp_here"}}{{end}}</div></div></li>
+						{{end}}
+						<li class="ds-li"><div class="ds-li-main"><span class="ds-li-title">{{ctx.Locale.Tr "asc_site.about_sp_ai"}}</span><div class="ds-li-sub">{{ctx.Locale.Tr "asc_site.about_sp_ai_t"}}</div></div></li>
+					</ul>
+				</div>
+			</article>
+			<article class="ds-card" id="cookies">
+				<div class="ds-card-b">
+					<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_site.about_cookies_h"}}</h2>
+					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.about_cookies_t"}}</p>
+					<div class="ds-table-wrap" role="region" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_site.about_cookies_h"}}">
+						<table class="ds-table ds-table-stack" data-testid="about-cookies">
+							<thead><tr><th scope="col">{{ctx.Locale.Tr "asc_site.about_cookie_col_name"}}</th><th scope="col">{{ctx.Locale.Tr "asc_site.about_cookie_col_purpose"}}</th><th scope="col">{{ctx.Locale.Tr "asc_site.about_cookie_col_life"}}</th></tr></thead>
+							<tbody>
+								{{range .AboutCookies}}
+								<tr><th scope="row"><code>{{.Name}}</code></th><td class="ds-c-2" data-label="{{ctx.Locale.Tr "asc_site.about_cookie_col_purpose"}}">{{ctx.Locale.Tr .Purpose}}</td><td data-label="{{ctx.Locale.Tr "asc_site.about_cookie_col_life"}}">{{ctx.Locale.Tr .Life}}</td></tr>
+								{{end}}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</article>
+		</div>
+	</section>
+
+	<section class="ds-land-sec ds-land-sec-flush" id="contact" aria-labelledby="about-contact">
 		<div class="ds-container">
 			<div class="ds-callout site-contact">
 				<div>
 					<h2 class="ds-t-h2" id="about-contact">{{ctx.Locale.Tr "asc_site.about_contact_h"}}</h2>
 					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.about_contact_t"}}</p>
 				</div>
-				<a class="ds-btn ds-btn-primary" href="https://github.com/Jordan-Hall/asc-hub/issues" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.about_contact"}}</a>
+				{{if .AboutContactEmail}}
+				<a class="ds-btn ds-btn-primary" href="mailto:{{.AboutContactEmail}}" data-testid="about-contact">{{ctx.Locale.Tr "asc_site.about_contact_email" .AboutContactEmail}}</a>
+				{{else}}
+				<a class="ds-btn ds-btn-primary" href="https://github.com/Jordan-Hall/asc-hub/issues" target="_blank" rel="noopener noreferrer" data-testid="about-contact">{{ctx.Locale.Tr "asc_site.about_contact"}}</a>
+				{{end}}
 			</div>
 		</div>
 	</section>

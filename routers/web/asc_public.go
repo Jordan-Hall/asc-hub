@@ -34,6 +34,7 @@ const (
 // AscAbout serves GET /-/about.
 func AscAbout(ctx *context.Context) {
 	prepareAscDownload(ctx)
+	ascAboutData(ctx)
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_site.about_title")
 	ctx.Data["PageIsAscAbout"] = true
 	ctx.HTML(http.StatusOK, tplAscAbout)

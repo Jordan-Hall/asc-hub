@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net"
+	"net/mail"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -79,6 +80,15 @@ var Asc = struct {
 	// read from the file named by FORWARDED_KEY_URI. The hub makes no access tokens for its web pages; without the
 	// key those pages cannot call asc serve and say so.
 	ForwardedKey []byte `ini:"-"`
+	// ContactEmail is where the About page sends people who want to reach the operator of this hub. Empty sends them
+	// to the issues of ASC Hub instead.
+	ContactEmail string `ini:"CONTACT_EMAIL"`
+	// SecurityEmail is where the About page asks for security reports about this hub; empty means ContactEmail, and
+	// with both empty the report goes to the private advisories of ASC Hub.
+	SecurityEmail string `ini:"SECURITY_EMAIL"`
+	// PoliciesURL is an https page of the operator with the full privacy policy, terms and acceptable use policy of
+	// this hub. The About page links it next to its own summary.
+	PoliciesURL string `ini:"POLICIES_URL"`
 }{}
 
 // Values of [asc] WRITER and [asc] BRIDGE.
@@ -122,6 +132,9 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.SSHEnabled = false
 	Asc.AutoOpenRunPulls = true
 	Asc.ForwardedKey = nil
+	Asc.ContactEmail = ""
+	Asc.SecurityEmail = ""
+	Asc.PoliciesURL = ""
 	sec := rootCfg.Section("asc")
 	if err := sec.MapTo(&Asc); err != nil {
 		log.Fatal("Failed to map [asc] settings: %v", err)
@@ -135,6 +148,9 @@ func loadAscFrom(rootCfg ConfigProvider) {
 		log.Fatal("Invalid [asc] FORWARDED_KEY: %v", err)
 	}
 	Asc.ForwardedKey = key
+	if err := normaliseAscSite(); err != nil {
+		log.Fatal("Invalid [asc] site settings: %v", err)
+	}
 	if !Asc.Enabled {
 		return
 	}
@@ -312,6 +328,35 @@ func normaliseAscDownloadSource() error {
 	}
 	if strings.IndexFunc(Asc.DownloadSourceToken, func(r rune) bool { return r <= ' ' || r == 0x7f }) >= 0 {
 		return fmt.Errorf("DOWNLOAD_SOURCE_TOKEN has a space or a control character")
+	}
+	return nil
+}
+
+// normaliseAscSite checks the contact and policy settings of the About page: plain addresses and an https page.
+func normaliseAscSite() error {
+	for _, f := range []struct {
+		key string
+		v   *string
+	}{{"CONTACT_EMAIL", &Asc.ContactEmail}, {"SECURITY_EMAIL", &Asc.SecurityEmail}} {
+		*f.v = strings.TrimSpace(*f.v)
+		if *f.v == "" {
+			continue
+		}
+		a, err := mail.ParseAddress(*f.v)
+		if err != nil || a.Name != "" || a.Address != *f.v {
+			return fmt.Errorf("%s %q is not a plain email address", f.key, *f.v)
+		}
+	}
+	if Asc.SecurityEmail == "" {
+		Asc.SecurityEmail = Asc.ContactEmail
+	}
+	Asc.PoliciesURL = strings.TrimSpace(Asc.PoliciesURL)
+	if Asc.PoliciesURL == "" {
+		return nil
+	}
+	u, err := url.Parse(Asc.PoliciesURL)
+	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil {
+		return fmt.Errorf("POLICIES_URL %q must be an https URL without credentials", Asc.PoliciesURL)
 	}
 	return nil
 }

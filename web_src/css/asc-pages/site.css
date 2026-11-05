@@ -34,8 +34,23 @@
   font-weight: 700;
 }
 
-.site .site-four {
+.site .site-four,
+.site .site-three {
   margin-top: 28px;
+}
+
+.site .site-three .ds-land-card p + p {
+  margin-top: 8px;
+}
+
+.site [id="security"],
+.site [id="privacy"],
+.site [id="terms"],
+.site [id="acceptable-use"],
+.site [id="subprocessors"],
+.site [id="cookies"],
+.site [id="contact"] {
+  scroll-margin-top: 80px;
 }
 
 .site .site-chips {
@@ -275,6 +290,10 @@
 
   .site .site-four {
     grid-template-columns: repeat(4, 1fr);
+  }
+
+  .site .site-three {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
