@@ -1,3 +1,4 @@
+/* stylelint-disable csstools/value-no-unknown-custom-properties -- the design tokens are defined in asc-ds/tokens.css */
 /* Public site pages: about, documentation start, get started. They compose the design system (asc-ds) and the
    landing page pieces; only the arrangement is here. Mobile first. */
 
@@ -199,6 +200,23 @@
   background: var(--ok);
   border-color: var(--ok);
   color: #fff;
+}
+
+.site-started .site-step-body,
+.site-started .site-import {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+}
+
+.site-started .site-import-run {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
 }
 
 .site-started .site-wait {
