@@ -9,15 +9,15 @@ Template Attributes:
 	<div class="ds-ptr" data-asc-ptr aria-hidden="true">{{svg "dsi-refresh" 20}}</div>
 	<div class="ds-container ds-container-xl wk-dash-grid" data-asc-pull-refresh>
 		<nav class="wk-dash-menu" aria-label="{{ctx.Locale.Tr "user.asc_dash.sidebar"}}">
-			<div class="ds-sidenav">
+			<div class="ds-sidenav" data-asc-dash-counts="{{AppSubUrl}}/-/asc/dash/counts">
 				<h2 class="ds-grp">{{ctx.Locale.Tr "user.asc_dash.work"}}</h2>
 				{{if $d.InboxLink}}
-					<a href="{{$d.InboxLink}}" aria-current="page" data-asc-inbox-link><span>{{ctx.Locale.Tr "user.asc_inbox"}}</span><span class="ds-count">{{$d.NeedsCount}}</span></a>
+					<a href="{{$d.InboxLink}}" aria-current="page" data-asc-inbox-link><span>{{ctx.Locale.Tr "user.asc_inbox"}}</span><span class="ds-count" data-asc-live-count="needs">{{$d.NeedsCount}}</span></a>
 				{{end}}
-				<a href="{{AppSubUrl}}/pulls?type=created_by&state=open"><span>{{ctx.Locale.Tr "user.asc_dash.my_stacks"}}</span><span class="ds-count">{{$d.StackCount}}</span></a>
-				<a href="{{AppSubUrl}}/pulls?type=review_requested&state=open"><span>{{ctx.Locale.Tr "user.asc_dash.review_requests"}}</span><span class="ds-count">{{$d.ReviewCount}}</span></a>
+				<a href="{{AppSubUrl}}/pulls?type=created_by&state=open"><span>{{ctx.Locale.Tr "user.asc_dash.my_stacks"}}</span><span class="ds-count" data-asc-live-count="stacks">{{$d.StackCount}}</span></a>
+				<a href="{{AppSubUrl}}/pulls?type=review_requested&state=open"><span>{{ctx.Locale.Tr "user.asc_dash.review_requests"}}</span><span class="ds-count" data-asc-live-count="reviews">{{$d.ReviewCount}}</span></a>
 				{{if $d.AgentsOn}}
-					<a href="{{AppSubUrl}}/-/asc/agents"><span>{{ctx.Locale.Tr "user.asc_dash.agent_runs"}}</span><span class="ds-count">{{$d.AgentsActive}}</span></a>
+					<a href="{{AppSubUrl}}/-/asc/agents"><span>{{ctx.Locale.Tr "user.asc_dash.agent_runs"}}</span><span class="ds-count" data-asc-live-count="agents">{{$d.AgentsActive}}</span></a>
 				{{end}}
 				<h2 class="ds-grp">{{ctx.Locale.Tr "user.asc_dash.repositories"}}</h2>
 				{{range $i, $r := $d.Repos}}
@@ -55,7 +55,7 @@ Template Attributes:
 			<section class="ds-card wk-card" aria-labelledby="wk-needs-title">
 				<div class="ds-card-h">
 					<h2 id="wk-needs-title">{{ctx.Locale.Tr "user.asc_dash.needs_you"}}</h2>
-					<span class="ds-chip ds-chip-warn">{{$d.NeedsCount}}</span>
+					<span class="ds-chip ds-chip-warn" data-asc-live-count="needs">{{$d.NeedsCount}}</span>
 					{{if $d.Rows}}<span class="ds-card-sub ds-ml-auto ds-hide-md">{{ctx.Locale.Tr "user.asc_dash.keys_hint"}}</span>{{end}}
 				</div>
 				{{if $d.Rows}}

@@ -1992,6 +1992,50 @@ body.ds-lock {
   margin: 4px 0 0;
 }
 
+/* the owner's cards and the Customize rows move by drag (asc-pins.js) */
+.wk-pin[draggable="true"],
+.wk-pin-row[draggable="true"] {
+  cursor: grab;
+}
+
+.wk-pin.is-dragging,
+.wk-pin-row.is-dragging {
+  opacity: 0.5;
+}
+
+.wk-pin-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.wk-pin-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px 6px 12px;
+}
+
+.wk-pin-row + .wk-pin-row {
+  border-top: 1px solid var(--line);
+}
+
+.wk-pin-row .ds-check {
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-pin-move {
+  display: flex;
+  gap: 4px;
+}
+
+.wk-pins-dialog {
+  width: min(560px, calc(100vw - 32px));
+}
+
 /* documentation: popular searches, results, the article with its table of contents */
 .site-popular {
   display: flex;

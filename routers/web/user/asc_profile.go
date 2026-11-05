@@ -368,4 +368,5 @@ func ascProfileOverview(ctx *context.Context) {
 	ctx.Data["AscProfileWork"] = ascProfileWork(ctx, person, ctx.Doer, ctx.Locale)
 	ctx.Data["AscProfileRepos"], ctx.Data["AscProfileFocus"] = ascProfileRepos(ctx, person, ctx.Doer)
 	ctx.Data["AscPins"] = ascProfilePins(ctx, person, ctx.Doer)
+	ascProfilePinForm(ctx)
 }

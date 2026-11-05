@@ -10,10 +10,31 @@ export function retryDelay(failures) {
 }
 
 /**
+ * Puts the numbers of the work switcher (GET /-/asc/dash/counts) on every [data-asc-live-count] of the page. A failed
+ * load keeps the numbers shown: the Today card states the offline state.
+ */
+export async function refreshCounts(doc, load) {
+  const url = doc.querySelector('[data-asc-dash-counts]')?.getAttribute('data-asc-dash-counts');
+  if (!url) return;
+  try {
+    const resp = await load(url, {cache: 'no-store'});
+    if (!resp.ok) return;
+    const counts = await resp.json();
+    for (const el of doc.querySelectorAll('[data-asc-live-count]')) {
+      const n = counts[el.getAttribute('data-asc-live-count')];
+      if (Number.isInteger(n)) el.textContent = String(n);
+    }
+  } catch {
+    // keep the numbers shown
+  }
+}
+
+/**
  * The "Today" card of the dashboard (templates/user/dashboard/asc_today.tmpl, board Dashboard): it loads itself again
  * every minute while the page is in view and nobody uses the card (focus in it, or a filter other than All). When a
  * load fails it keeps its items and shows the offline state, with Try again and the seconds to the next try; each
- * next try waits longer, and the connection coming back tries at once.
+ * next try waits longer, and the connection coming back tries at once. Each load also refreshes the counts of the work
+ * switcher.
  */
 export function initAscDashLive({doc = document, win = window, load = GET, refreshMs = REFRESH_MS} = {}) {
   let card = doc.querySelector('[data-asc-dash-today]');
@@ -83,6 +104,7 @@ export function initAscDashLive({doc = document, win = window, load = GET, refre
       card = node;
       initAscFeedFilter(card);
       failures = 0;
+      await refreshCounts(doc, load);
       if (byHand) {
         // Try again is gone with the old card: the focus goes to the heading of the new one
         const heading = card.querySelector('h2');

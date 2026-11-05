@@ -1,0 +1,37 @@
+{{/*
+The Customize list of pinned repositories, on the settings page and in the Customize dialog of the profile. The pinned
+ones come first in the order of the profile; the order of the checked boxes is the order saved. Each row moves by drag
+or by Move up and Move down (web_src/js/features/asc-pins.js); without script the rows keep their order.
+Template Attributes:
+* PinRows: []user.AscPinRow
+* PinMax: how many may be pinned
+* Inline: the dialog form, sent by script with inline=1
+*/}}
+<form class="ds-form" action="{{AppSubUrl}}/user/settings/pins" method="post" data-failed="{{ctx.Locale.Tr "asc_work.pins_save_failed"}}" data-asc-pins-form{{if .Inline}} data-asc-pins-inline{{end}}>
+	{{.CsrfTokenHtml}}
+	{{if .PinRows}}
+		<fieldset class="ds-stack-12">
+			<legend class="tw-sr-only">{{ctx.Locale.Tr "asc_work.pins_title"}}</legend>
+			<p class="ds-hint" id="wk-pins-help{{if .Inline}}-d{{end}}">{{ctx.Locale.Tr "asc_work.pins_order_help"}}</p>
+			<ol class="wk-pin-rows" data-asc-pins aria-describedby="wk-pins-help{{if .Inline}}-d{{end}}" data-moved="{{ctx.Locale.Tr "asc_work.pins_moved"}}">
+				{{range .PinRows}}
+					<li class="wk-pin-row" draggable="true" data-id="{{.ID}}">
+						<div class="ds-check"><input id="pin-{{if $.Inline}}d-{{end}}{{.ID}}" type="checkbox" name="repo" value="{{.ID}}"{{if .Pinned}} checked{{end}}><label for="pin-{{if $.Inline}}d-{{end}}{{.ID}}">{{.FullName}}</label></div>
+						<span class="wk-pin-move">
+							<button class="ds-btn ds-btn-ghost ds-btn-sm" type="button" data-asc-pin-up aria-label="{{ctx.Locale.Tr "asc_work.pins_up" .FullName}}">{{svg "dsi-chevron-up" 16}}</button>
+							<button class="ds-btn ds-btn-ghost ds-btn-sm" type="button" data-asc-pin-down aria-label="{{ctx.Locale.Tr "asc_work.pins_down" .FullName}}">{{svg "dsi-chevron-down" 16}}</button>
+						</span>
+					</li>
+				{{end}}
+			</ol>
+			<p class="tw-sr-only" role="status" aria-live="polite" data-asc-pins-status></p>
+			<p class="ds-err-msg tw-hidden" role="alert" data-asc-pins-error></p>
+		</fieldset>
+	{{else}}
+		{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "asc_work.pins_none"))}}
+	{{end}}
+	<div class="ds-row">
+		{{if .PinRows}}<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button>{{end}}
+		{{if .Inline}}<button class="ds-btn ds-btn-secondary" type="button" data-asc-pins-close>{{ctx.Locale.Tr "cancel"}}</button>{{else}}<a class="ds-btn ds-btn-secondary" href="{{.SignedUser.HomeLink}}">{{ctx.Locale.Tr "cancel"}}</a>{{end}}
+	</div>
+</form>

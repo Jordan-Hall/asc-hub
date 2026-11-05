@@ -67,23 +67,23 @@
 								<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-bookmark" 32}}</span>
 								<h2 id="wk-pf-empty-title">{{ctx.Locale.Tr "user.asc_profile.empty_title"}}</h2>
 								<p>{{ctx.Locale.Tr "user.asc_profile.empty_text"}}</p>
-								{{if $owner}}<div class="ds-empty-acts"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings/pins">{{ctx.Locale.Tr "user.asc_profile.empty_pin"}}</a></div>{{end}}
+								{{if $owner}}<div class="ds-empty-acts"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/user/settings/pins" aria-haspopup="dialog" data-asc-pins-open>{{ctx.Locale.Tr "user.asc_profile.empty_pin"}}</a></div>{{end}}
 							</div>
 						</section>
 					{{else if or .AscPins $owner}}
 						<section class="ds-card" aria-labelledby="wk-pins-title">
 							<div class="ds-card-h">
 								<h2 id="wk-pins-title">{{ctx.Locale.Tr "asc_work.pf_pinned"}}</h2>
-								{{if eq .SignedUserID .ContextUser.ID}}<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{AppSubUrl}}/user/settings/pins">{{ctx.Locale.Tr "asc_work.pf_customize"}}</a>{{end}}
+								{{if $owner}}<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{AppSubUrl}}/user/settings/pins" aria-haspopup="dialog" data-asc-pins-open>{{ctx.Locale.Tr "asc_work.pf_customize"}}</a>{{end}}
 							</div>
 							{{if .AscPins}}
-								<ul class="wk-pins">
+								<ul class="wk-pins"{{if $owner}} data-asc-pins-cards{{end}}>
 									{{range .AscPins}}
-										<li class="wk-pin">
+										<li class="wk-pin"{{if $owner}} draggable="true" data-id="{{.ID}}"{{end}}>
 											<a class="wk-pin-name" href="{{.Link}}">{{.FullName}}</a>
 											<span class="ds-chip ds-chip-outline">{{if .Private}}{{ctx.Locale.Tr "filter.private"}}{{else}}{{ctx.Locale.Tr "filter.public"}}{{end}}</span>
 											{{if .Description}}<p class="ds-hint">{{.Description}}</p>{{end}}
-											<p class="ds-hint">{{ctx.Locale.TrN .Changes "asc_work.pf_pin_change_one" "asc_work.pf_pin_change_n" .Changes}}</p>
+											<p class="ds-hint">{{ctx.Locale.TrN .Stacks "asc_work.pf_pin_stack_one" "asc_work.pf_pin_stack_n" .Stacks}} · {{ctx.Locale.TrN .Changes "asc_work.pf_pin_change_one" "asc_work.pf_pin_change_n" .Changes}}</p>
 										</li>
 									{{end}}
 								</ul>
@@ -91,6 +91,17 @@
 								<div class="ds-card-b ds-hint">{{ctx.Locale.Tr "asc_work.pf_pinned_none"}}</div>
 							{{end}}
 						</section>
+					{{end}}
+					{{if and $owner .PinRows}}
+						<dialog class="wk-pins-dialog" aria-labelledby="wk-pins-dialog-title" data-asc-pins-dialog>
+							<article>
+								<header id="wk-pins-dialog-title">{{ctx.Locale.Tr "asc_work.pins_title"}}</header>
+								<div class="content">
+									<p class="ds-hint">{{ctx.Locale.Tr "asc_work.pins_lead" .PinMax}}</p>
+									{{template "user/settings/pins_form" (dict "CsrfTokenHtml" .CsrfTokenHtml "PinRows" .PinRows "PinMax" .PinMax "Inline" true)}}
+								</div>
+							</article>
+						</dialog>
 					{{end}}
 					{{if .ProfileReadme}}
 						<div id="readme_profile" class="ds-card wk-pf-readme {{if not .IsProfileReadmePlain}}markup{{end}}">

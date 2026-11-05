@@ -84,10 +84,12 @@ func ascProfileReviews(ctx gocontext.Context, user, viewer *user_model.User, lim
 
 // AscProfilePinView is one pinned repository.
 type AscProfilePinView struct {
+	ID          int64
 	FullName    string
 	Link        string
 	Description string
 	Private     bool
+	Stacks      int
 	Changes     int64
 }
 
@@ -109,7 +111,7 @@ func ascProfilePins(ctx gocontext.Context, person, viewer *user_model.User) []As
 			continue
 		}
 		changes, _ := db.GetEngine(ctx).Table("issue").Where("repo_id = ? AND is_pull = ?", repo.ID, true).Count()
-		out = append(out, AscProfilePinView{FullName: repo.FullName(), Link: repo.Link(), Description: repo.Description, Private: repo.IsPrivate, Changes: changes})
+		out = append(out, AscProfilePinView{FullName: repo.FullName(), Link: repo.Link(), Description: repo.Description, ID: repo.ID, Private: repo.IsPrivate, Stacks: repo.NumOpenAscStacks(ctx), Changes: changes})
 	}
 	return out
 }
@@ -155,23 +157,61 @@ func AscPinSettings(ctx *context.Context) {
 		ctx.ServerError("ListAscProfilePins", err)
 		return
 	}
-	type row struct {
-		ID       int64
-		FullName string
-		Pinned   bool
-	}
-	rows := make([]row, 0, len(repos))
-	for _, r := range repos {
-		rows = append(rows, row{ID: r.ID, FullName: r.FullName(), Pinned: slices.Contains(pinned, r.ID)})
-	}
+	rows := ascPinRows(repos, pinned)
 	ctx.Data["PinRows"] = rows
 	ctx.Data["PinMax"] = user_model.AscMaxProfilePins
 	ctx.HTML(http.StatusOK, tplAscPinSettings)
 }
 
-// AscPinSettingsPost saves the pins: only repositories the person owns, at most six.
+// AscPinRow is one repository of the Customize list.
+type AscPinRow struct {
+	ID       int64
+	FullName string
+	Pinned   bool
+}
+
+// ascPinRows is the Customize list: the pinned repositories first, in the order of the profile, then the others in
+// the order given (alphabetical).
+func ascPinRows(repos []*repo_model.Repository, pinned []int64) []AscPinRow {
+	rows := make([]AscPinRow, 0, len(repos))
+	for _, id := range pinned {
+		if i := slices.IndexFunc(repos, func(r *repo_model.Repository) bool { return r.ID == id }); i >= 0 {
+			rows = append(rows, AscPinRow{ID: id, FullName: repos[i].FullName(), Pinned: true})
+		}
+	}
+	for _, r := range repos {
+		if !slices.Contains(pinned, r.ID) {
+			rows = append(rows, AscPinRow{ID: r.ID, FullName: r.FullName()})
+		}
+	}
+	return rows
+}
+
+// ascProfilePinForm puts the Customize list on the profile of its owner, for the Customize dialog.
+func ascProfilePinForm(ctx *context.Context) {
+	if ctx.Doer == nil || ctx.Doer.ID != ctx.ContextUser.ID {
+		return
+	}
+	repos, err := ascPinCandidates(ctx, ctx.Doer)
+	if err != nil {
+		log.Error("asc profile: pin candidates of user %d: %v", ctx.Doer.ID, err)
+		return
+	}
+	pinned, err := user_model.ListAscProfilePins(ctx, ctx.Doer.ID)
+	if err != nil {
+		log.Error("asc profile: pins of user %d: %v", ctx.Doer.ID, err)
+		return
+	}
+	ctx.Data["PinRows"] = ascPinRows(repos, pinned)
+	ctx.Data["PinMax"] = user_model.AscMaxProfilePins
+}
+
+// AscPinSettingsPost saves the pins: only repositories the person may pin (ascPinCandidates), at most six, in the
+// order posted. A post with inline=1 (the drag on the profile and the Customize dialog) answers 204, or 400 without a
+// redirect.
 func AscPinSettingsPost(ctx *context.Context) {
 	_ = ctx.Req.ParseForm()
+	inline := ctx.Req.PostForm.Get("inline") == "1"
 	allowed, err := ascPinCandidates(ctx, ctx.Doer)
 	if err != nil {
 		ctx.ServerError("ascPinCandidates", err)
@@ -187,6 +227,10 @@ func AscPinSettingsPost(ctx *context.Context) {
 		ids = append(ids, id)
 	}
 	if len(ids) > user_model.AscMaxProfilePins {
+		if inline {
+			ctx.PlainText(http.StatusBadRequest, ctx.Locale.TrString("asc_work.pins_too_many", user_model.AscMaxProfilePins))
+			return
+		}
 		ctx.Flash.Error(ctx.Tr("asc_work.pins_too_many", user_model.AscMaxProfilePins))
 		ctx.Redirect(setting.AppSubURL + "/user/settings/pins")
 		return
@@ -195,12 +239,16 @@ func AscPinSettingsPost(ctx *context.Context) {
 		ctx.ServerError("SetAscProfilePins", err)
 		return
 	}
+	if inline {
+		ctx.Status(http.StatusNoContent)
+		return
+	}
 	ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
 	ctx.Redirect(ctx.Doer.HomeLink())
 }
 
-// ascPinCandidates are the repositories the person can pin: the ones they own, public or not (the profile shows a
-// pin only to those who may read the repository).
+// ascPinCandidates are the repositories the person can pin: the ones they own or are a collaborator of, public or not
+// (the profile shows a pin only to those who may read the repository).
 func ascPinCandidates(ctx gocontext.Context, person *user_model.User) ([]*repo_model.Repository, error) {
 	repos, _, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
 		ListOptions: db.ListOptions{Page: 1, PageSize: 200},
