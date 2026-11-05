@@ -345,7 +345,7 @@ Board copy not found word for word in locale, templates or scripts: A short path
 | Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | missing (hub) | logged as not built (not re-probed) | Docs live on GitHub ($docsURL). Render docs/asc/** with the hub markdown renderer: AscDocs in routers/web/asc_public.go, new temp... |
 | OS code tabs remembered; Copy without the prompt | missing (UI) | logged as not built (not re-probed) | Reuse the initDownload tab code; localStorage key |
 | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | docs.js (not found in tree) | the where-cell cites docs.js, not in the tree (renamed or stale text); behaviour taken from the gap file |
-| "Was this page helpful?" Yes and No | missing (hub) | logged as not built (not re-probed) | POST /-/docs/feedback, stored (new table or issue on the docs repo), rate limited |
+| "Was this page helpful?" Yes and No | done | `POST /-/docs/{slug}/feedback`, table `asc_docs_feedback`, ten a minute per address; counts for site administrators | `asc_docs_feedback_test.go`, `asc-docs-feedback.test.js` |
 | Mobile: Docs menu drawer, sticky "On this page" row, sticky next-page bar | partial (UI) | logged as not built (not re-probed) | "On this page" row and a next-guide link exist on a phone; the docs menu drawer is missing (the guide list sits under the article) |
 
 #### Download (ASC Hub download)

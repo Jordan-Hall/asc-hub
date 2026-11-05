@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 133 |
+| done | 134 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 37 |
+| needs-hub-backend | 36 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 3, M 39, L 20.
+Open rows by size: S 3, M 38, L 20.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -195,7 +195,7 @@ Open rows by size: S 3, M 39, L 20.
 | Docs | Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | needs-hub-backend | Docs live on GitHub (`$docsURL`). Render `docs/asc/**` with the hub markdown renderer: `AscDocs` in `routers/web/asc_public.go`, new `templates/asc/docs_article.tmpl`, sidebar manifest | L |
 | Docs | OS code tabs remembered; Copy without the prompt | done | `GET /-/docs/install` (`asc/docs_install.tmpl`): the steps of the release the download page offers, one tab for each system with the visitor's first; `initDocTabs` keeps the choice under `data-doc-remember` in `localStorage` (Home and End keys); every command sits behind an `aria-hidden` prompt and Copy copies the commands alone; verify step from the manifest's key; connect step `asc auth login --host <hub>`; without a release, build from source | - |
 | Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | Intersection observer in a new `docs.js`; links to the repository file view | M |
-| Docs | "Was this page helpful?" Yes and No | needs-hub-backend | `POST /-/docs/feedback`, stored (new table or issue on the docs repo), rate limited | M |
+| Docs | "Was this page helpful?" Yes and No | done | `asc/docs_page.tmpl` section `#site-feedback` with "Feedback goes to the docs team"; `POST /-/docs/{slug}/feedback` (`routers/web/asc_docs_feedback.go`, ten a minute per address) stores yes or no in `asc_docs_feedback` (migration v18m, no reader kept); `asc-docs-feedback.js` sends without leaving the page and remembers the answer; site administrators see the counts | - |
 | Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | done | `asc/docs_page.tmpl`: Docs menu button before the breadcrumb opens `#site-docs-drawer` (every guide by section from `ascdocs.Sections`, a dialog run by `ds-shell.js` with focus return, `:target` without the script); sticky On this page row and the next-guide link | - |
 
 ## About
