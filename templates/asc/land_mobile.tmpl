@@ -1,7 +1,7 @@
 {{/* The landing page, phone (board Mobile-Landing). Generated from the board by scripts; keys asc_bl.m*. */}}
 {{$ver := ""}}{{$verified := ctx.Locale.Tr "asc_land.verified_sum"}}{{with .AscDownload}}{{$ver = .Offers.Manifest.Version}}{{if .Offers.VerifyCommand}}{{$verified = ctx.Locale.Tr "asc_land.verified_sig"}}{{end}}{{end}}
 <div class="blm">
-<section class="blms2"><span class="chip blms3">{{ctx.Locale.Tr "asc_bl.m001"}}</span>
+<section class="blms2"><span class="chip blms3">{{if $ver}}{{ctx.Locale.Tr "asc_bl.m001" $ver}}{{else}}{{ctx.Locale.Tr "asc_bl.m001_nover"}}{{end}}</span>
 <h1 class="blms4">{{ctx.Locale.Tr "asc_bl.m002"}}</h1>
 <p class="blms5">{{ctx.Locale.Tr "asc_bl.m003"}}</p>
 <div class="stack-8 blms6"><a class="btn btn-primary btn-lg btn-block" href="{{AppSubUrl}}/download" >{{ctx.Locale.Tr "asc_bl.m004"}}</a><a class="btn btn-secondary btn-lg btn-block" href="{{AppSubUrl}}/user/sign_up" >{{ctx.Locale.Tr "asc_bl.m005"}}</a></div></section><section class="blms2" data-ds-install>{{if .AscInstallMethods}}

@@ -9,10 +9,12 @@ import (
 	"testing"
 
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/ascdownload"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
 	"forgejo.org/modules/translation"
+	"forgejo.org/services/context"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -21,19 +23,24 @@ import (
 
 func renderAscAbout(t *testing.T) string {
 	t.Helper()
+	return renderAscPublic(t, "/-/about", func(ctx *context.Context) { AscAbout(ctx) })
+}
+
+func renderAscPublic(t *testing.T, path string, serve func(ctx *context.Context)) string {
+	t.Helper()
 	require.NoError(t, unittest.PrepareTestDatabase())
 	if len(setting.Langs) == 0 || setting.Langs[0] != "en-US" {
 		setting.Langs = []string{"en-US"}
 		setting.Names = []string{"English"}
 	}
 	translation.InitLocales(gocontext.Background())
-	ctx, resp := contexttest.MockContext(t, "GET /-/about")
+	ctx, resp := contexttest.MockContext(t, "GET "+path)
 	ctx.Render = templates.HTMLRenderer()
 	ctx.Base.Locale = translation.NewLocale("en-US")
 	if ctx.TemplateContext != nil {
 		ctx.TemplateContext.Locale = ctx.Base.Locale
 	}
-	AscAbout(ctx)
+	serve(ctx)
 	require.Equal(t, http.StatusOK, resp.Code, resp.Body.String())
 	return resp.Body.String()
 }
@@ -75,11 +82,39 @@ func TestAscAboutContactsPoliciesAndCookies(t *testing.T) {
 	assert.NotContains(t, html, "security/advisories/new")
 }
 
-func TestAscAboutServicesNameOutsideStores(t *testing.T) {
-	s3 := &setting.Storage{Type: setting.MinioStorageType, MinioConfig: setting.MinioStorageConfig{Endpoint: "s3.example.org:443"}}
+func TestAscAboutServicesNeverShowConfiguredHosts(t *testing.T) {
+	s3 := &setting.Storage{Type: setting.MinioStorageType, MinioConfig: setting.MinioStorageConfig{Endpoint: "10.0.0.5:9000"}}
 	defer test.MockVariableValue(&setting.Attachment.Storage, s3)()
-	defer test.MockVariableValue(&setting.LFS.Storage, s3)()
-	defer test.MockVariableValue(&setting.MailService, &setting.Mailer{Protocol: "smtps", SMTPAddr: "smtp.example.org"})()
+	defer test.MockVariableValue(&setting.MailService, &setting.Mailer{Protocol: "smtps", SMTPAddr: "mail.internal.example.org"})()
+	defer test.MockVariableValue(&setting.Asc.Subprocessors, []setting.AscSubprocessor{{Name: "Object Store Co", Purpose: "Files and backups"}})()
 	got := ascAboutServices()
-	assert.Equal(t, []AscAboutService{{Kind: "asc_site.about_sp_storage", Where: "s3.example.org"}, {Kind: "asc_site.about_sp_mail", Where: "smtp.example.org"}}, got, "one row per host")
+	assert.Equal(t, []AscAboutService{
+		{Name: "Object Store Co", Purpose: "Files and backups"},
+		{Kind: "asc_site.about_sp_storage"},
+		{Kind: "asc_site.about_sp_mail"},
+	}, got)
+
+	html := renderAscAbout(t)
+	assert.Contains(t, html, "Object Store Co")
+	assert.Contains(t, html, "With an outside provider the operator chose")
+	assert.NotContains(t, html, "10.0.0.5")
+	assert.NotContains(t, html, "mail.internal.example.org")
+}
+
+// Board Main, hero pill: the announcement names the version of the release the hub offers, and no version without one.
+func TestAscLandingPillNamesTheRealRelease(t *testing.T) {
+	home := func(view *ascDownloadView) string {
+		return renderAscPublic(t, "/", func(ctx *context.Context) {
+			if view != nil {
+				ctx.Data["AscDownload"] = view
+			}
+			ctx.HTML(http.StatusOK, tplHome)
+		})
+	}
+	html := home(nil)
+	assert.Contains(t, html, "Agent runs and the merge queue are here")
+	assert.NotContains(t, html, "ASC 1.4")
+
+	html = home(&ascDownloadView{Offers: &ascdownload.Offers{Manifest: &ascdownload.Manifest{Version: "0.1.3"}}})
+	assert.Contains(t, html, "ASC 0.1.3: agent runs and the merge queue are here")
 }

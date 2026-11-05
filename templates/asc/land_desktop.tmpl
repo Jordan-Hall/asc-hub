@@ -2,7 +2,7 @@
 {{$ver := ""}}{{$verified := ctx.Locale.Tr "asc_land.verified_sum"}}{{with .AscDownload}}{{$ver = .Offers.Manifest.Version}}{{if .Offers.VerifyCommand}}{{$verified = ctx.Locale.Tr "asc_land.verified_sig"}}{{end}}{{end}}
 <div class="bld">
 <section class="blds0"><div class="blds1">
-<span class="pillhd"><i></i>{{ctx.Locale.Tr "asc_bl.d001"}}</span>
+<span class="pillhd"><i></i>{{if $ver}}{{ctx.Locale.Tr "asc_bl.d001" $ver}}{{else}}{{ctx.Locale.Tr "asc_bl.d001_nover"}}{{end}}</span>
 <h1 class="t-display blds2">{{ctx.Locale.Tr "asc_bl.d002"}}</h1>
 <p class="t-lead blds3">{{ctx.Locale.Tr "asc_bl.d003"}}</p>
 <div class="blds4"><a class="btn btn-accent btn-lg " href="{{AppSubUrl}}/download" >{{ctx.Locale.Tr "asc_bl.d004"}}</a><a class="btn btn-ondark btn-lg " href="{{AppSubUrl}}/user/sign_up" >{{ctx.Locale.Tr "asc_bl.d005"}}</a><a class="btn btn-lg blds5" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "asc_bl.d006"}}</a></div>
