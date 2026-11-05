@@ -83,6 +83,12 @@ func PrepareContextForProfileBigAvatar(ctx *context.Context) {
 		return
 	}
 	ctx.Data["AscProfileTeams"] = teams
+	role, err := user_model.GetUserSetting(ctx, ctx.ContextUser.ID, user_model.SettingsKeyAscRole)
+	if err != nil {
+		ctx.ServerError("GetUserSetting", err)
+		return
+	}
+	ctx.Data["AscProfileRole"] = role
 
 	badges, _, err := user_model.GetUserBadges(ctx, ctx.ContextUser)
 	if err != nil {

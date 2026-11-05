@@ -26,6 +26,8 @@ routers/web/user/profile.go answers those actions with this same template.
 		<div class="wk-pf-line2">
 			<span>@{{.ContextUser.Name}}</span>
 			{{with .ContextUser.GetPronouns .IsSigned}}<span>{{.}}</span>{{end}}
+			{{with .AscProfileRole}}<span data-asc-pf-role>{{.}}</span>{{end}}
+			{{with .AscProfileTeams}}<span data-asc-pf-team>{{ctx.Locale.Tr "user.asc_profile.team_line" (index . 0).Name}}</span>{{end}}
 			{{if .ContextUser.Location}}
 				<span>{{.ContextUser.Location}}{{if .ContextUserLocationMapURL}} <a href="{{.ContextUserLocationMapURL}}" rel="nofollow noreferrer" data-tooltip-content="{{ctx.Locale.Tr "user.show_on_map"}}" aria-label="{{ctx.Locale.Tr "user.show_on_map"}}">{{svg "dsi-external" 12}}</a>{{end}}</span>
 			{{end}}

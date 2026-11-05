@@ -63,6 +63,11 @@
 					<label class="ds-label" for="biography">{{ctx.Locale.Tr "user.user_bio"}}</label>
 					<textarea id="biography" class="ds-textarea" name="biography" rows="3" placeholder="{{ctx.Locale.Tr "settings.biography_placeholder"}}" maxlength="255">{{.SignedUser.Description}}</textarea>
 				</div>
+				<div class="ds-field {{if .Err_Role}}error{{end}}">
+					<label class="ds-label" for="role">{{ctx.Locale.Tr "settings.asc_role"}}</label>
+					<input id="role" class="ds-input" name="role" placeholder="{{ctx.Locale.Tr "settings.asc_role_placeholder"}}" value="{{.AscRole}}" maxlength="60" aria-describedby="role-hint">
+					<p class="ds-hint" id="role-hint">{{ctx.Locale.Tr "settings.asc_role_hint"}}</p>
+				</div>
 				<div class="ds-form-row ds-form-row-2">
 					<div class="ds-field" id="label-pronouns">
 						<label class="ds-label" for="pronouns-input">{{ctx.Locale.Tr "settings.pronouns"}}</label>
@@ -89,7 +94,7 @@
 						<span class="wk-preview-avatar">{{ctx.AvatarUtils.Avatar .SignedUser 48}}</span>
 						<div class="ds-min0">
 							<b class="wk-preview-name" data-preview-field="full_name" data-preview-fallback="name"></b>
-							<div class="ds-hint">@<span data-preview-field="name"></span><span data-preview-field="pronouns" data-preview-empty class="wk-preview-sep"></span></div>
+							<div class="ds-hint">@<span data-preview-field="name"></span><span data-preview-field="pronouns" data-preview-empty class="wk-preview-sep"></span><span data-preview-field="role" data-preview-empty class="wk-preview-sep"></span></div>
 							<p class="wk-preview-bio" data-preview-field="biography" data-preview-empty></p>
 							<div class="ds-hint" data-preview-field="location" data-preview-empty></div>
 						</div>
