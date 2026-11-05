@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 197, partial 29, missing 91. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 198, partial 29, missing 90. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -465,7 +465,7 @@ Board copy not found word for word in locale, templates or scripts: The people a
 
 #### GetStarted (ASC Hub get started)
 
-Area shell/settings. Rows 10: done 5, partial 1, missing 4. Copy found in the hub: 54% of 85 copy strings (mobile twin 57%). Template(s): home.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 10: done 6, partial 1, missing 3. Copy found in the hub: 54% of 85 copy strings (mobile twin 57%). Template(s): home.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Your hub is empty. Let's fix that.; Four steps from nothing to your first reviewed stack. Skip any step; this page...; Sign the command line in and trust this device. The command line is how you wor...; Start a new repository; Import an existing project; Invite teammates.
 
@@ -474,7 +474,7 @@ Board copy not found word for word in locale, templates or scripts: Your hub is 
 | Four-step checklist with aria-current=step, done as a word | done | templates/asc/get_started.tmpl:1 | the where-cell cites aria-current=step, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Shown on GET / for a signed-in person with no repositories; dismissible; returns while none ex... | done | routers/web/home.go, routers/web/asc_public.go (ascHasNoRepository, POST /-/get-started/hide), templates/asc/get_started.tmpl | Hide lasts until the next sign-in (session) |
 | Two parallel first-run pages (asc/get_started.tmpl, user/asc_welcome.tmpl with old hub- classe... | done | user/asc_welcome.tmpl (not found in tree) | the where-cell cites user/asc_welcome.tmpl, routers/web/asc_welcome.go, not in the tree (renamed or stale text); behaviour taken... |
-| Step 2 ticks by itself when the first CLI sign-in arrives, no reload | missing (hub) | logged as not built (not re-probed) | GSConnected is "has an access token" at render time. Add a status route (token last used by the asc CLI) and a poll in a new asc-... |
+| Step 2 ticks by itself when the first CLI sign-in arrives, no reload | done | routers/web/asc_public.go (GET /-/get-started/status), web_src/js/features/asc-welcome.js | - |
 | Import step with source tabs and progress "Reading history 12,408 commits" | missing (hub) | logged as not built (not re-probed) | Links to /repo/migrate today. Inline form plus migration-task polling (routers/web/repo/migrate.go, services/migrations) |
 | Health check (Git found, signed in, SSH key, shell shim; asc doctor on machine and server) | partial (hub+asc) | logged as not built (not re-probed) | Hub card lists email, SSH key and token only. asc doctor exists (crates/asc/src/cli/doctor.rs) but never reports to the hub: add... |
 | "This hub" card: Storage, AI providers, Email with Change and Add | done | see where-cell | - |
