@@ -24,6 +24,7 @@ Each line names the mechanism. "Planned" means it is not built. [docs/asc/WHY.md
 - **Developers.** Undo with `asc undo` and `asc redo` (local operations; a push or land is not undone), restore an earlier version of a change from the web, small stacked changes with one review each, review from a phone (mobile-first pages). No speed claim: we have no measured numbers for the hub.
 - **Teams.** Approvals tied to a version, with the diff between versions and "changes since your last review"; fewer approvals for docs-only style changes by rules that the change cannot edit; an ordered merge queue with a web button, a restack button and the revert of a landed stack. Planned: policy file in the repository, signed changes, failure and flaky-test grouping, an audit page.
 - **People using agents.** Scoped access tokens, MCP tools in `asc` with writes enabled only by the user's configuration, pushes to non-shared names stored as the pusher's own refs in a branchless repository, everything reversible through kept versions, search by meaning on the repository search page. Planned: agent budgets.
+- **Operators.** One container with the hub and `asc serve` inside (`Dockerfile.allinone`), SQLite or Postgres, existing git-speaking tools keep working through the optional bridge. Bring your own S3 storage and bring your own AI keys have settings pages for a person, an organization and a repository (partial: they need an `asc serve` that implements them).
 
 ## Feature highlights
 

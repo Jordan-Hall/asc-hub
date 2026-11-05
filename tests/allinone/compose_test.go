@@ -3,6 +3,7 @@
 
 // Package allinone checks the deployment files that consume the all-in-one image against what the
 // image reads: the Compose file in the README and, when ASC_ALLINONE_COMPOSE_FILES lists them, the
+// Compose files of a deployment.
 package allinone
 
 import (
@@ -164,6 +165,7 @@ func checkCompose(t *testing.T, name string, data []byte, deployment bool) {
 		env := environmentOf(t, s.Environment)
 		for key, value := range env {
 			switch {
+			case strings.HasPrefix(key, "SERVICE_"): // variables a hosting platform fills in
 			case strings.HasPrefix(key, "FORGEJO__"):
 			case plainHubVariables[key], entrypointVariables[key]:
 			default:

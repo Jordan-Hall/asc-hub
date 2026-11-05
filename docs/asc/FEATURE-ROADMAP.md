@@ -30,7 +30,7 @@ Rules: permissions and row-level visibility exactly the platform's; tokens are t
 3. Every one of the 191 boards has its page implemented and matches its board at 390, 768, 1024 and 1440 pixels, light and dark (screenshot pairs checked), mobile twins included; axe has no critical or serious findings; no console errors on any page.
 4. Every control on every page works against a real hub and a real asc serve (end-to-end journeys re-run: sign up, import, push, stack submit, review, queue, agent run, settings, admin, download).
 5. Permissions and row-level visibility equal the platform's (parity matrix green); every security review finding is fixed.
-6. CI green on both repositories (fmt, clippy -D warnings, all tests, image builds), signed release cut, staging deployed and healthy, docs updated.
+6. CI green on both repositories (fmt, clippy -D warnings, all tests, image builds), signed release cut, docs updated.
 
 ## Language support: TSRX (user requirement)
 
@@ -53,8 +53,9 @@ Authentication is per repository (per host and path), not a separate up-front st
 
 ## Release cadence
 
-- When Phase 1 (UI) is complete: cut a release (tag, signed artifacts, images, downloads published) and deploy it to staging.
-- After that, every full feature (a finished feature family with its backend, UI, tests and docs) gets its own release and deploy, in the phase order above.
+- When Phase 1 (UI) is complete: cut a release (tag, signed artifacts, images, downloads published).
+- After that, every full feature (a finished feature family with its backend, UI, tests and docs) gets its own release in the phase order above.
+- A release needs: green CI on the tag, the signing key (`ASC_MINISIGN_KEY` secret, `ASC_RELEASE_PUBKEY` variable), GitHub Actions able to run (billing).
 
 ## Phase 1 rows (ui-only-missing)
 
