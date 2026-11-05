@@ -267,7 +267,7 @@ func ConnectOpenIDPost(ctx *context.Context) {
 	ctx.Data["EnableOpenIDSignUp"] = setting.Service.EnableOpenIDSignUp
 	ctx.Data["OpenID"] = oid
 
-	u, source, err := auth_method.UserSignIn(ctx, form.UserName, form.Password)
+	u, source, err := auth_method.UserSignInFrom(ctx, form.UserName, form.Password, ctx.RemoteAddr())
 	if err != nil {
 		handleSignInError(ctx, form.UserName, &form, tplConnectOID, "ConnectOpenIDPost", err)
 		return
