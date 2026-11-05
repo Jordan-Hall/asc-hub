@@ -85,6 +85,7 @@ loop:
 					Data: uidCount,
 				})
 			}
+			m.sendAscStacks(ctx, then, now)
 			then = now
 
 			if setting.Service.EnableTimetracking {
