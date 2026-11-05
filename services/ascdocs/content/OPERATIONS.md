@@ -266,7 +266,7 @@ A signed-in person who owns no repository, collaborates on none and belongs to n
 
 ## The wait after wrong passwords
 
-After five wrong passwords for one account from one address, the hub refuses that account from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The account is the person the typed name resolves to, so the username and every activated email count together. One address that gets ten times as many wrong across names waits too. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
+After five wrong passwords for one name from one address, the hub refuses that name from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The name counts as typed, in any case, and is not looked up, so the count does not tell a stranger which email belongs to which account; a username and an email of the same person count apart. One address that gets ten times as many wrong across names waits too, which bounds the tries across the names of one person. Both counts are taken before the password is checked, so tries sent at the same time cannot pass them. The counts live in memory, at most 10000 keys each; a key that waits is never dropped, and when every key waits a new one is refused until a wait ends. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
 
 ```ini
 LOGIN_MAX_ATTEMPTS = 5 ; 0 turns the wait off
