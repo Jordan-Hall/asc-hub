@@ -7,6 +7,18 @@
 		<nav class="ds-breadcrumb" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}"><a href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.docs_title"}}</a> <span aria-hidden="true">/</span> <span>{{.DocsPage.Section}}</span> <span aria-hidden="true">/</span> <b aria-current="page">{{.DocsPage.Title}}</b></nav>
 		</div>
 		<div class="site-article-grid">
+			{{/* the guides by section beside the article; on a phone and a tablet the docs menu holds them */}}
+			<nav class="site-docs-side" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}" data-asc-docs-side>
+				<form class="site-docsearch" role="search" method="get" action="{{AppSubUrl}}/-/docs">
+					<div class="ds-inwrap">{{svg "dsi-search" 16}}<label class="ds-sr" for="docs-q">{{ctx.Locale.Tr "asc_site.docs_search"}}</label><input id="docs-q" class="ds-input" type="search" name="q" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}" aria-keyshortcuts="Control+K /" data-asc-docs-q><kbd class="ds-kbd" aria-hidden="true">Ctrl K</kbd></div>
+				</form>
+				<div class="ds-hide-md">
+				{{range .DocsSections}}
+					<h2 class="ds-t-eyebrow">{{.Name}}</h2>
+					<ul>{{range .Pages}}<li><a href="{{AppSubUrl}}/-/docs/{{.Slug}}"{{if eq .Slug $.DocsPage.Slug}} aria-current="page"{{end}}>{{.Title}}</a></li>{{end}}</ul>
+				{{end}}
+				</div>
+			</nav>
 			{{if .DocsTOC}}
 			<details class="site-toc-m">
 				<summary>{{svg "dsi-list" 16}} {{ctx.Locale.Tr "asc_site.docs_on_page"}}{{svg "dsi-chevron-down" 14}}</summary>
@@ -15,6 +27,8 @@
 			{{end}}
 			<article class="site-article-body markup">
 				<h1 class="ds-t-h1">{{.DocsPage.Title}}</h1>
+				{{if .DocsLead}}<div class="site-lead">{{.DocsLead}}</div>{{else}}<p class="site-lead">{{.DocsPage.Summary}}</p>{{end}}
+				<p class="site-meta ds-t-small ds-c-2"><span>{{ctx.Locale.TrN .DocsPage.Minutes "asc_site.docs_minutes_1" "asc_site.docs_minutes_n" .DocsPage.Minutes}}</span><span>{{ctx.Locale.Tr "asc_site.docs_updated" (DateUtils.AbsoluteLong .DocsPage.Updated)}}</span>{{if .ShowFooterVersion}}<span>{{ctx.Locale.Tr "asc_site.docs_version" AppVerNoMetadata}}</span>{{end}}</p>
 				{{.DocsHTML}}
 				{{if .DocsInstall}}{{template "asc/docs_install" .}}{{.DocsHTMLAfter}}{{end}}
 				<section class="site-feedback" id="site-feedback" aria-labelledby="site-feedback-title" data-asc-docs-feedback="{{.DocsPage.Slug}}">
@@ -27,21 +41,19 @@
 					<p class="ds-t-small ds-c-2" role="status" data-thanks="{{ctx.Locale.Tr "asc_site.docs_helpful_thanks"}}" data-failed="{{ctx.Locale.Tr "asc_site.docs_helpful_failed"}}">{{if .DocsFeedbackThanks}}{{ctx.Locale.Tr "asc_site.docs_helpful_thanks"}}{{else}}{{ctx.Locale.Tr "asc_site.docs_helpful_note"}}{{end}}</p>
 					{{with .DocsFeedbackCount}}<p class="ds-t-small ds-c-2" data-asc-docs-feedback-count>{{ctx.Locale.Tr "asc_site.docs_helpful_count" .Yes .No}}</p>{{end}}
 				</section>
-				{{with .DocsNext}}<nav class="site-next" aria-label="{{ctx.Locale.Tr "asc_site.docs_next"}}"><a href="{{AppSubUrl}}/-/docs/{{.Slug}}"><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.docs_next"}}</span><b>{{.Title}}</b>{{svg "dsi-chevron-right" 16}}</a></nav>{{end}}
+				<nav class="site-pager" aria-label="{{ctx.Locale.Tr "asc_site.docs_pager"}}">
+					{{if .DocsPrev}}<a class="site-pager-prev" href="{{AppSubUrl}}/-/docs/{{.DocsPrev.Slug}}" rel="prev"><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.docs_previous"}}</span><b>{{.DocsPrev.Title}}</b></a>{{else}}<a class="site-pager-prev" href="{{AppSubUrl}}/-/docs"><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.docs_previous"}}</span><b>{{ctx.Locale.Tr "asc_site.docs_home"}}</b></a>{{end}}
+					{{with .DocsNext}}<a class="site-pager-next" href="{{AppSubUrl}}/-/docs/{{.Slug}}" rel="next"><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.docs_next"}}</span><b>{{.Title}} <span aria-hidden="true">→</span></b></a>{{end}}
+				</nav>
 			</article>
-			<aside class="site-toc" aria-label="{{ctx.Locale.Tr "asc_site.docs_on_page"}}">
-				<form class="site-docsearch" role="search" method="get" action="{{AppSubUrl}}/-/docs">
-					<div class="ds-inwrap">{{svg "dsi-search" 16}}<label class="ds-sr" for="docs-q">{{ctx.Locale.Tr "asc_site.docs_search"}}</label><input id="docs-q" class="ds-input" type="search" name="q" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}" aria-keyshortcuts="Control+K /" data-asc-docs-q><kbd class="ds-kbd" aria-hidden="true">Ctrl K</kbd></div>
-				</form>
+			<aside class="site-toc">
 				{{if .DocsTOC}}
-				<div class="ds-hide-md">
-				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_on_page"}}</h2>
+				<nav class="ds-hide-md" aria-labelledby="site-toc-title">
+				<h2 class="ds-t-eyebrow" id="site-toc-title">{{ctx.Locale.Tr "asc_site.docs_on_page"}}</h2>
 				<ul data-toc>{{range .DocsTOC}}<li><a href="#{{.ID}}">{{.Text}}</a></li>{{end}}</ul>
-				</div>
+				</nav>
 				{{end}}
 				<p class="site-edit"><a class="ds-link" href="{{.DocsEditURL}}" target="_blank" rel="noopener noreferrer">{{ctx.Locale.Tr "asc_site.docs_edit"}}</a></p>
-				<h2 class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.docs_all"}}</h2>
-				<ul>{{range .DocsPages}}<li><a href="{{AppSubUrl}}/-/docs/{{.Slug}}"{{if eq .Slug $.DocsPage.Slug}} aria-current="page"{{end}}>{{.Title}}</a></li>{{end}}</ul>
 			</aside>
 		</div>
 	</div>

@@ -2068,10 +2068,11 @@ body.ds-lock {
 
 .site-article-body {
   min-width: 0;
-  max-width: 78ch;
+  max-width: 720px;
 }
 
-.site-toc ul {
+.site-toc ul,
+.site-docs-side ul {
   margin: 8px 0 24px;
   padding: 0;
   list-style: none;
@@ -2082,19 +2083,153 @@ body.ds-lock {
   padding: 4px 0;
 }
 
-.site-toc a[aria-current="page"] {
-  font-weight: 600;
+/* the guides by section: the page open is marked by more than colour */
+.site-docs-side li a {
+  display: block;
+  padding: 4px 8px;
+  border-radius: var(--r-row);
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.site-docs-side li a:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.site-docs-side a[aria-current="page"] {
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.site-docs-side .site-docsearch {
+  margin-bottom: 16px;
 }
 
 @media (min-width: 1024px) {
   .site-article-grid {
-    grid-template-columns: minmax(0, 1fr) 260px;
+    grid-template-columns: 220px minmax(0, 720px) 200px;
+    justify-content: center;
   }
 
-  .site-toc {
+  .site-toc,
+  .site-docs-side {
     position: sticky;
     top: 24px;
     align-self: start;
+  }
+
+  .site-docs-side {
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* an article: the summary under the title, then reading time, last change and version */
+.site-lead {
+  margin: 8px 0 4px;
+  color: var(--text-2);
+  font-size: 17px;
+}
+
+.site-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 24px;
+}
+
+/* callouts open with their bold label (Note, Tip, Warning), not an icon or colour alone */
+.site-article-body blockquote.attention-header {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--note-line);
+  border-radius: var(--r-card);
+  background: var(--note-bg);
+  color: var(--text);
+}
+
+.site-article-body blockquote.attention-header .attention-icon {
+  display: none;
+}
+
+.site-article-body .attention-title {
+  margin: 0 0 4px;
+}
+
+.site-article-body .attention-title strong {
+  color: var(--text);
+}
+
+/* a numbered list in an article is a list of steps */
+.site-article-body > ol {
+  padding-left: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.site-article-body > ol > li {
+  position: relative;
+  min-height: 28px;
+  margin-block: 12px;
+  padding-left: 40px;
+  counter-increment: step;
+}
+
+.site-article-body > ol > li::before {
+  content: counter(step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Previous and Next at the end of an article */
+.site-article-body .site-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.site-article-body .site-pager a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-article-body .site-pager a:hover {
+  border-color: var(--line-strong);
+}
+
+.site-article-body .site-pager-next {
+  grid-column: 2;
+  text-align: end;
+}
+
+@media (max-width: 639.98px) {
+  .site-article-body .site-pager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-article-body .site-pager-next {
+    grid-column: 1;
   }
 }
 
@@ -2298,33 +2433,6 @@ body.ds-lock {
 .site-feedback-acts .ds-btn[aria-pressed="true"] {
   border-color: var(--accent);
   color: var(--accent);
-}
-
-.site-next a {
-  display: grid;
-  gap: 2px;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  margin-top: 32px;
-  padding: 12px 16px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  text-decoration: none;
-}
-
-.site-next a > span {
-  grid-column: 1;
-}
-
-.site-next a > b {
-  grid-column: 1;
-}
-
-.site-next a > svg {
-  grid-column: 2;
-  grid-row: 1 / span 2;
 }
 
 @media (max-width: 1023.98px) {

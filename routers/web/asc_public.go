@@ -161,6 +161,18 @@ func renderDocs(ctx *context.Context, md string) (template.HTML, []AscDocsTOCIte
 	return template.HTML(wrapped), toc, nil
 }
 
+// docsLead splits the opening paragraph of a page from the rest: it is the lead under the title, above the reading
+// time. A page that opens with a heading, a list, a quote, a table, code or markup has no lead.
+func docsLead(md string) (lead, rest string) {
+	body := strings.TrimLeft(strings.ReplaceAll(md, "\r\n", "\n"), "\n")
+	first, rest, _ := strings.Cut(body, "\n\n")
+	first = strings.TrimSpace(first)
+	if first == "" || strings.ContainsAny(first[:1], "#>-*+|`<![0123456789") {
+		return "", md
+	}
+	return first, rest
+}
+
 // AscDocsPage serves GET /-/docs/{slug}: one page of the documentation. The install page also shows the install,
 // verify and connect steps of the release this hub offers, with the commands of each system.
 func AscDocsPage(ctx *context.Context) {
@@ -172,6 +184,15 @@ func AscDocsPage(ctx *context.Context) {
 	// the page title is the heading of the article; the source's own first heading would be a second one
 	if first, rest, found := strings.Cut(md, "\n"); found && strings.HasPrefix(first, "# ") {
 		md = rest
+	}
+	lead, md := docsLead(md)
+	if lead != "" {
+		html, _, err := renderDocs(ctx, lead)
+		if err != nil {
+			ctx.ServerError("RenderString", err)
+			return
+		}
+		ctx.Data["DocsLead"] = html
 	}
 	before, after, steps := strings.Cut(md, docsInstallSteps)
 	steps = steps && page.Slug == "install"
@@ -208,6 +229,9 @@ func AscDocsPage(ctx *context.Context) {
 	for i, p := range pages {
 		if p.Slug != page.Slug {
 			continue
+		}
+		if i > 0 {
+			ctx.Data["DocsPrev"] = pages[i-1]
 		}
 		if i+1 < len(pages) {
 			ctx.Data["DocsNext"] = pages[i+1]
