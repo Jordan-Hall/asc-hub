@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 99 |
-| ui-only-missing | 32 |
+| done | 103 |
+| ui-only-missing | 28 |
 | needs-hub-backend | 39 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -55,17 +55,17 @@ Open rows by size: S 19, M 50, L 21.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Main | Hero: announcement pill, headline, lead, Download ASC / Create account / Sign in | ui-only-missing | `templates/home.tmpl`;; Audit 2026-10-30 (was marked done, part missing): Pill copy differs: hub Built for teams where agents write a lot of the code, board ASC 1.4: agent runs and the merge queue are here. | - |
+| Main | Hero: announcement pill, headline, lead, Download ASC / Create account / Sign in | done | `templates/asc/land_desktop.tmpl` and `land_mobile.tmpl` (generated from the boards, keys `asc_bl.d*` and `asc_bl.m*`); the pill names the version of the release the hub offers (`ASC 0.1.3: ...`) and drops the version without a release; test `TestAscLandingPillNamesTheRealRelease` | - |
 | Main | Download ASC goes to `/download` and preselects the detected OS | done | Hero button is `href="#download"`, a section on the same page;; Audit 2026-10-30 (built): templates/home.tmpl:14,305 (href /download, detected OS in routers/web/asc_download.go) | S |
 | Main | Install method pills (Homebrew, Scoop, winget, curl, PowerShell, .deb .rpm) as a labelled group with `aria-pressed`; the command swaps; Copy raises a toast; "1 Install ASC / 2 Connect to this hub" cards | done | Hero has only the connect command. Data exists in `modules/ascdownload/offer.go` (`Command` list per OS). Add pills and swap script (`home.tmpl`, `asc-ui.js`, pattern of `initDownload`) | M |
 | Main | Product window in the hero (stack rail, change with intent, comment, whose turn) | done | No such markup in `home.tmpl`; static preview with a text equivalent | M |
-| Main | Works-with strip | ui-only-missing | `home.tmpl` `ds-land-strip`;; Audit 2026-10-30 (was marked done, part missing): Heading differs: hub Works with the tools your team already uses, board Works with the editors and agents your team already uses. | - |
-| Main | Why ASC, stacks, review, code intelligence, policy cards | ui-only-missing | `home.tmpl`;; Audit 2026-10-30 (was marked done, part missing): The board's Why ASC block (Agents write faster than people can read, three problem cards) is not there; the hub has an older Why block with three benefits, and extra How it works, Compatibility and Public repositories sections that the board does not have. | - |
+| Main | Works-with strip | done | `land_desktop.tmpl` `blds49`, heading `asc_bl.d045` "Works with the editors and agents your team already uses" | - |
+| Main | Why ASC, stacks, review, code intelligence, policy cards | done | `land_desktop.tmpl`: Why ASC with the three problem cards (`asc_bl.d052`-`d060`), How stacks work, review, code intelligence and policy sections as the board; the older sections are gone | - |
 | Main | Operation log and merge queue demo | done | `home.tmpl` `ls-log` | - |
 | Main | Agents band and run preview | done | `home.tmpl` `asc-agents-title` | - |
 | Main | Workflow cards (dependency upgrade, flaky triage, large migration) | done | `home.tmpl` `ls-wf` | - |
 | Main | Bring your own keys and storage (provider rows, S3 endpoint, bucket, region) | done | `home.tmpl` `ls-byo` | - |
-| Main | Final call to action and footer | ui-only-missing | `home.tmpl` `hub-cta`;; Audit 2026-10-30 (was marked done, part missing): CTA copy differs (Import a repository in a minute... vs Install ASC in a minute, import a repository with its history...); footer groups Product, Developers, Company, Legal and the status line are not the board's. | - |
+| Main | Final call to action and footer | done | `land_desktop.tmpl` CTA `asc_bl.d173`/`d174` ("Install ASC in a minute, import a repository with its history..."); footer groups Product, Developers, Company, Legal and the status line in `base/footer_content.tmpl` | - |
 | Mobile-Landing | Sticky bottom bar with Download ASC and Sign in; install pills scroll sideways; workflow cards snap | done | No sticky bar in `home.tmpl`; `asc-ds/touch.css` | S |
 
 ## Onboarding (sign in, sign up, recovery, device)
