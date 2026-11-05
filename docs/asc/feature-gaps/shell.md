@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 97 |
-| ui-only-missing | 34 |
+| done | 99 |
+| ui-only-missing | 32 |
 | needs-hub-backend | 39 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 21, M 50, L 21.
+Open rows by size: S 19, M 50, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -47,7 +47,7 @@ Open rows by size: S 21, M 50, L 21.
 | Shell | No-results text names the query and suggests a symbol, handle or title | done | `asc_shell.palette_empty` is a different sentence ("Press Enter to search this text") | S |
 | Shell | Keyboard shortcuts overlay (`?`, "All shortcuts") | done | No handler in `asc-keys.js`; dialog listing the keys of the page | S |
 | Shell | Footer: full footer on public pages (four groups, version, Based on Forgejo, language, theme switch), one-line footer when signed in | done | `templates/base/footer_content.tmpl` | - |
-| Shell | Footer links: Stacks and changes, Agent runs, Changelog, CLI reference, REST API, MCP server, Status, Security, Contact, Privacy, Terms, Acceptable use, Subprocessors, Cookies | ui-only-missing | Today: Download, Explore, Users, Organizations, Docs, Operations, API, Why, Licenses. Add links (docs pages or `[asc]` settings URLs) in `footer_content.tmpl` | S |
+| Shell | Footer links: Stacks and changes, Agent runs, Changelog, CLI reference, REST API, MCP server, Status, Security, Contact, Privacy, Terms, Acceptable use, Subprocessors, Cookies | done | `footer_content.tmpl` links the docs pages `stacks-and-operations`, `agents`, `cli`, `mcp`, the docs "New in ASC" list (`#docs-new`), `/-/status` and the About sections `#security`, `#contact`, `#privacy`, `#terms`, `#acceptable-use`, `#subprocessors`, `#cookies`; test `routers/web/asc_about_test.go` | - |
 | Shell | "All systems operational" status in the footer | needs-hub-backend | Not present. Cached value from `/healthcheck` plus asc serve health, or a configured status URL; `footer_content.tmpl` | M |
 | Shell | "Rendered in 18 ms" in the footer | done | Behind `ShowFooterTemplateLoadTime`; enable it in the asc `app.ini` template | S |
 
@@ -204,7 +204,7 @@ Open rows by size: S 21, M 50, L 21.
 | --- | --- | --- | --- | --- |
 | About | Hero, story with before and after table, principles, open source chips, data ownership, contact | done | `templates/asc/about.tmpl`, route `GET /-/about` (`web.go` line 654) | - |
 | About | Header About and footer link go to `/-/about` | done | Header still links to the GitHub copy of `WHY.md` (see Shell) | S |
-| About | Source code, Security policy and Contact targets | ui-only-missing | Targets come from `[asc]` settings; confirm they are set | S |
+| About | Source code, Security policy and Contact targets | done | Source and security policy link the ASC Hub repository; `[asc] CONTACT_EMAIL`, `SECURITY_EMAIL` and `POLICIES_URL` (`modules/setting/asc.go`, OPERATIONS.md) set the contact, report and policies targets, with the repository issues and private advisories when empty | - |
 
 ## Errors
 
