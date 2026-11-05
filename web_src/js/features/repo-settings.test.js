@@ -1,9 +1,8 @@
-import {initRepoSettingsTopics, announceAccessChange, initVisibilityConfirm, enhanceTopicChips} from './repo-settings.js';
+import {POST} from '../modules/fetch.js';
+import {initRepoSettingsTopics, announceAccessChange, initVisibilityConfirm, enhanceTopicChips, initRepoSettingsSaveBar} from './repo-settings.js';
 
 vi.mock('../modules/fetch.js', () => ({POST: vi.fn()}));
 vi.mock('./codemirror.ts', () => ({createCodemirror: vi.fn()}));
-
-import {POST} from '../modules/fetch.js';
 
 const page = () => {
   document.body.innerHTML = `<form data-topics-form action="/o/r/topics" data-topics-saved="Saved." data-topics-failed="No: %s">
@@ -49,7 +48,7 @@ test('changing the visibility asks first and submits only after the answer', () 
   const form = document.querySelector('form');
   const dialog = form.querySelector('dialog');
   dialog.showModal = vi.fn();
-  dialog.close = vi.fn();
+  dialog.close = vi.fn(() => dialog.dispatchEvent(new Event('close')));
   form.requestSubmit = vi.fn(() => form.dispatchEvent(new Event('submit', {cancelable: true})));
   initVisibilityConfirm();
   // unchanged: no question
@@ -88,4 +87,44 @@ test('topics become chips, are posted as a list and stop at the limit', () => {
   expect(chips()).toEqual(['payments', 'asc']);
   expect(form.querySelector('input[type=hidden]').value).toBe('payments,asc');
   expect(input.disabled).toBe(false);
+});
+
+const generalForm = (flash = '') => {
+  document.body.innerHTML = `${flash}<form action="/o/r/settings" method="post"><input name="description" value="old">
+    <div class="ds-savebar" data-savebar data-savebar-one="1 unsaved change" data-savebar-n="%d unsaved changes" data-savebar-saving="Saving…">
+    <span data-savebar-note></span><button type="button" data-savebar-discard>Discard</button><button data-savebar-submit>Save</button></div></form>`;
+  initRepoSettingsSaveBar();
+  return document.querySelector('form');
+};
+
+test('the save bar names the change, then shows the saving state while the form is sent', () => {
+  const form = generalForm();
+  const bar = form.querySelector('[data-savebar]');
+  const submit = form.querySelector('[data-savebar-submit]');
+  expect(submit.disabled).toBe(true);
+  form.querySelector('input').value = 'new';
+  form.dispatchEvent(new Event('input'));
+  expect(bar.classList.contains('is-dirty')).toBe(true);
+  expect(bar.querySelector('[data-savebar-note]').textContent).toBe('1 unsaved change');
+  form.addEventListener('submit', (e) => e.preventDefault());
+  form.dispatchEvent(new Event('submit', {cancelable: true}));
+  expect(bar.classList.contains('is-saving')).toBe(true);
+  expect(submit.disabled).toBe(true);
+  expect(submit.getAttribute('aria-busy')).toBe('true');
+  expect(submit.textContent).toBe('Saving…');
+});
+
+test('a saved General page reports it in a toast that leaves after 5 s', () => {
+  vi.useFakeTimers();
+  try {
+    generalForm('<div id="flash-message" hidden data-ds-flash-toast="The repository settings have been updated."></div>');
+    const toast = document.querySelector('.ds-toast');
+    expect(toast?.textContent).toContain('The repository settings have been updated.');
+    vi.advanceTimersByTime(4900);
+    expect(document.querySelector('.ds-toast')).not.toBeNull();
+    vi.advanceTimersByTime(200);
+    expect(document.querySelector('.ds-toast')).toBeNull();
+  } finally {
+    vi.useRealTimers();
+  }
 });

@@ -7,14 +7,18 @@ import {showDsToast} from './ds-toast.js';
 
 const {appSubUrl} = window.config;
 
-// The settings form that carries a save bar: the bar names how many fields changed, Discard puts them back.
+// The settings form that carries a save bar: the bar names how many fields changed, Discard puts them back, and the
+// save button shows the saving state while the form is sent. A saved settings page reports it in a toast
+// (data-ds-flash-toast, in place of the banner).
 export function initRepoSettingsSaveBar() {
+  const saved = document.querySelector('[data-ds-flash-toast]');
+  if (saved) showDsToast(saved.getAttribute('data-ds-flash-toast'), {duration: 5000});
   for (const bar of document.querySelectorAll('[data-savebar]')) {
     const form = bar.closest('form');
     if (!form) continue;
     const note = bar.querySelector('[data-savebar-note]');
     const submit = bar.querySelector('[data-savebar-submit]');
-    const fields = [...form.elements].filter((el) => el.name && el.type !== 'hidden' && el.type !== 'submit' && el.type !== 'button');
+    const fields = Array.from(form.elements).filter((el) => el.name && el.type !== 'hidden' && el.type !== 'submit' && el.type !== 'button');
     const initial = new Map(fields.map((el) => [el, el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value]));
     const update = () => {
       let changed = 0;
@@ -29,6 +33,15 @@ export function initRepoSettingsSaveBar() {
     };
     form.addEventListener('input', update);
     form.addEventListener('change', update);
+    // while the form is sent the save button says so and cannot be pressed twice
+    form.addEventListener('submit', (e) => {
+      if (e.defaultPrevented || !submit) return;
+      bar.classList.add('is-saving');
+      submit.setAttribute('aria-busy', 'true');
+      submit.disabled = true;
+      const saving = bar.getAttribute('data-savebar-saving');
+      if (saving) submit.textContent = saving;
+    });
     bar.querySelector('[data-savebar-discard]')?.addEventListener('click', () => {
       for (const [el, was] of initial) {
         if (el.type === 'checkbox' || el.type === 'radio') el.checked = was;
@@ -46,7 +59,7 @@ export function initRepoSettingsSaveBar() {
 export function initVisibilityConfirm() {
   for (const form of document.querySelectorAll('[data-visibility-form]')) {
     const dialog = form.querySelector('[data-visibility-dialog]');
-    const radios = [...form.querySelectorAll('input[type=radio][name=visibility]')];
+    const radios = Array.from(form.querySelectorAll('input[type=radio][name=visibility]'));
     if (!dialog || radios.length === 0) continue;
     const initial = radios.find((r) => r.defaultChecked)?.value;
     let confirmed = false;
@@ -66,11 +79,14 @@ export function initVisibilityConfirm() {
         if (window.confirm(`${title} ${body}`)) go();
         return;
       }
-      dialog.querySelector('[data-visibility-confirm]').onclick = () => {
+      // the listeners go with the dialog's close, so a cancelled dialog opened again confirms once
+      const done = new AbortController();
+      dialog.addEventListener('close', () => done.abort(), {once: true});
+      dialog.querySelector('[data-visibility-confirm]').addEventListener('click', () => {
         dialog.close();
         go();
-      };
-      dialog.querySelector('[data-visibility-cancel]').onclick = () => dialog.close();
+      }, {signal: done.signal});
+      dialog.querySelector('[data-visibility-cancel]').addEventListener('click', () => dialog.close(), {signal: done.signal});
       dialog.showModal();
     });
   }
