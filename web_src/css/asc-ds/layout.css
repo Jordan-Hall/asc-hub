@@ -2125,7 +2125,7 @@ body.ds-lock {
   color: inherit;
 }
 
-/* the teams of a person on the profile: chips that wrap */
+/* the teams and the Focus of a person on the profile: chips that wrap */
 .wk-pf-teams {
   display: flex;
   flex-wrap: wrap;
