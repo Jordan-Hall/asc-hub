@@ -141,6 +141,7 @@ import {initSettingsLoading} from './features/ds-settings-loading.js';
 import {initProjectMove} from './features/project-move.js';
 import {initProjectBoard} from './features/project-board.js';
 import {initUserAuthWebAuthn, initUserAuthWebAuthnRegister} from './features/user-auth-webauthn.js';
+import {initAscPasskey} from './features/asc-passkey.js';
 import {initRepoRelease, initRepoReleaseNew} from './features/repo-release.js';
 import {initRepoEditor} from './features/repo-editor.js';
 import {initAddOrgMemberButton} from './features/add-org-member.ts';
@@ -356,6 +357,7 @@ onDomReady(() => {
   initUserAuthOauth2();
   initUserAuthWebAuthn();
   initUserAuthWebAuthnRegister();
+  initAscPasskey();
   initUserAuth();
   initRepoDiffView();
   initColorPickers();
