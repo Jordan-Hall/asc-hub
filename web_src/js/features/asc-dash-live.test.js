@@ -1,4 +1,4 @@
-import {initAscDashLive, retryDelay} from './asc-dash-live.js';
+import {initAscDashLive, refreshCounts, retryDelay} from './asc-dash-live.js';
 
 const card = (items) => `<section data-asc-dash-today="/-/asc/dash/today">
   <div class="ds-card-h"><h2 id="wk-today-title">Today</h2></div>
@@ -129,4 +129,36 @@ test('a page without the card does nothing', () => {
   initAscDashLive({load, refreshMs: 1000});
   vi.advanceTimersByTime(5000);
   expect(load).not.toHaveBeenCalled();
+});
+
+const counts = `<nav data-asc-dash-counts="/-/asc/dash/counts">
+  <span data-asc-live-count="needs">3</span><span data-asc-live-count="stacks">1</span><span data-asc-live-count="agents">0</span>
+</nav><span data-asc-live-count="needs">3</span>`;
+const liveCounts = () => Array.from(document.querySelectorAll('[data-asc-live-count]'), (el) => el.textContent);
+
+test('the counts of the work switcher take the numbers of the hub', async () => {
+  document.body.innerHTML = counts;
+  const load = vi.fn(() => Promise.resolve({ok: true, json: () => Promise.resolve({needs: 5, stacks: 2, agents: 'x'})}));
+  await refreshCounts(document, load);
+  expect(load).toHaveBeenCalledWith('/-/asc/dash/counts', {cache: 'no-store'});
+  expect(liveCounts()).toEqual(['5', '2', '0', '5']);
+});
+
+test('the counts stay when they cannot load', async () => {
+  document.body.innerHTML = counts;
+  await refreshCounts(document, down);
+  await refreshCounts(document, () => Promise.resolve({ok: false}));
+  expect(liveCounts()).toEqual(['3', '1', '0', '3']);
+});
+
+test('each load of the Today card refreshes the counts', async () => {
+  document.body.innerHTML = `<main>${card(['pushed one'])}</main>${counts}`;
+  const load = vi.fn((url) => Promise.resolve(url.endsWith('/counts') ?
+    {ok: true, json: () => Promise.resolve({needs: 9})} :
+    ok(['pushed two'])));
+  initAscDashLive({load, refreshMs: 1000});
+  await vi.advanceTimersByTimeAsync(1000);
+  await settle();
+  expect(load.mock.calls.map(([url]) => url)).toEqual(['/-/asc/dash/today', '/-/asc/dash/counts']);
+  expect(liveCounts()[0]).toBe('9');
 });
