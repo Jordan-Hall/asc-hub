@@ -77,6 +77,19 @@ func TestArrange(t *testing.T) {
 		assert.Equal(t, a, pullIDs(Arrange(in, states, now, Options{})))
 	})
 
+	t.Run("done hides until the pull request changes again", func(t *testing.T) {
+		done := map[int64]*issues_model.AscInboxState{
+			3: {DoneUnix: timeutil.TimeStamp(t0.Add(time.Minute).Unix()), SnoozedUntil: timeutil.TimeStamp(now.Add(time.Hour).Unix())},
+			6: {DoneUnix: timeutil.TimeStamp(t0.Unix())}, // updated a minute after it was marked done
+		}
+		assert.Equal(t, []int64{4, 6, 2, 1, 5}, pullIDs(Arrange(mk(), done, now, Options{})))
+		got := Arrange(mk(), done, now, Options{IncludeDone: true})
+		assert.Equal(t, []int64{4, 6, 3, 2, 1, 5}, pullIDs(got))
+		assert.Equal(t, t0.Add(time.Minute).Unix(), got[2].DoneAt.Unix())
+		assert.True(t, got[2].SnoozedUntil.IsZero(), "a done entry is not also snoozed")
+		assert.True(t, got[1].DoneAt.IsZero())
+	})
+
 	t.Run("marks of an earlier call do not stick", func(t *testing.T) {
 		in := mk()
 		Arrange(in, states, now, Options{IncludeSnoozed: true})
@@ -84,6 +97,7 @@ func TestArrange(t *testing.T) {
 		for _, e := range got {
 			assert.False(t, e.Pinned)
 			assert.True(t, e.SnoozedUntil.IsZero())
+			assert.True(t, e.DoneAt.IsZero())
 		}
 	})
 }

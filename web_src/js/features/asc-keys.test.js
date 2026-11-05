@@ -1,4 +1,4 @@
-import {isTypingTarget, nextRowIndex, initAscKeys, initAscInboxBadge, nextChangeLink} from './asc-keys.js';
+import {isTypingTarget, nextRowIndex, initAscKeys, initAscInboxBadge, initAscInboxDone, doneFadeMs, nextChangeLink} from './asc-keys.js';
 
 test('nextRowIndex moves one row and never wraps', () => {
   expect(nextRowIndex(-1, 1, 3)).toBe(0);
@@ -50,6 +50,30 @@ test('s opens the snooze menu and p pins', () => {
   expect(document.querySelector('details').open).toBe(false);
   press('p');
   expect(pinned).toBe(1);
+});
+
+test('e presses Mark done', () => {
+  document.body.innerHTML = '<button data-asc-done type="button">done</button>';
+  initAscKeys();
+  let done = 0;
+  document.querySelector('[data-asc-done]').addEventListener('click', () => done++);
+  press('e');
+  expect(done).toBe(1);
+});
+
+test('Mark done on a row fades the row, then sends the form once', () => {
+  vi.useFakeTimers();
+  document.body.innerHTML = '<ul><li class="wk-irow"><form data-asc-done-form><button type="submit">Mark done</button></form></li></ul>';
+  const form = document.querySelector('form');
+  const sent = vi.spyOn(form, 'submit').mockImplementation(() => {});
+  initAscInboxDone();
+  form.requestSubmit();
+  expect(document.querySelector('.wk-irow').classList.contains('is-leaving')).toBe(true);
+  expect(sent).not.toHaveBeenCalled();
+  form.requestSubmit();
+  vi.advanceTimersByTime(doneFadeMs);
+  expect(sent).toHaveBeenCalledTimes(1);
+  vi.useRealTimers();
 });
 
 test('slash and Ctrl K focus the search box, but slash is a letter inside a field', () => {

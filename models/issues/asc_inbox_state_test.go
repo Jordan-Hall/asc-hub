@@ -111,6 +111,45 @@ func TestAscInboxStatePinSnooze(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestAscInboxStateDone(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := t.Context()
+	now := time.Unix(1_800_000_000, 0)
+	until := now.Add(time.Hour)
+	yes := true
+	_, err := issues_model.SetAscInboxState(ctx, 1, 10, &yes, &until, now)
+	require.NoError(t, err)
+
+	// Done ends the snooze and keeps the pin; it holds until the pull request is updated after it.
+	s, err := issues_model.SetAscInboxDone(ctx, 1, 10, true, now)
+	require.NoError(t, err)
+	assert.True(t, s.Pinned)
+	assert.False(t, s.IsSnoozed(now))
+	assert.True(t, s.IsDone(now.Add(-time.Hour)))
+	assert.True(t, s.IsDone(now))
+	assert.False(t, s.IsDone(now.Add(time.Second)), "a newer update brings it back")
+
+	// A pin change leaves the done mark.
+	no := false
+	_, err = issues_model.SetAscInboxState(ctx, 1, 10, &no, nil, now)
+	require.NoError(t, err)
+	got, err := issues_model.GetAscInboxState(ctx, 1, 10)
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.True(t, got.IsDone(now))
+
+	// Restore clears it, and with no mark left the row goes.
+	_, err = issues_model.SetAscInboxDone(ctx, 1, 10, false, now)
+	require.NoError(t, err)
+	got, err = issues_model.GetAscInboxState(ctx, 1, 10)
+	require.NoError(t, err)
+	assert.Nil(t, got)
+	assert.False(t, got.IsDone(now))
+
+	_, err = issues_model.SetAscInboxDone(ctx, 0, 10, true, now)
+	require.Error(t, err)
+}
+
 // A user's marks are private to that user.
 func TestAscInboxStatePrivate(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
