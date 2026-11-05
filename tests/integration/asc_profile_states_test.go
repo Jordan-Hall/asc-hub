@@ -64,8 +64,19 @@ func TestAscProfileStates(t *testing.T) {
 		page.AssertElement(t, "[data-asc-pf-private]", true)
 		page.AssertElement(t, "#wk-heat-title", false)
 
+		// the feeds, packages, projects and code of the profile are not served to them either
+		for _, path := range []string{"/user31.rss", "/user31.atom", "/user31/-/packages", "/user31/-/projects", "/user31/-/code"} {
+			session.MakeRequest(t, NewRequest(t, "GET", path), http.StatusNotFound)
+		}
+		req := NewRequest(t, "GET", "/user31")
+		req.Header.Set("Accept", "application/rss+xml")
+		session.MakeRequest(t, req, http.StatusNotFound)
+		owner := loginUser(t, "user31")
+		owner.MakeRequest(t, NewRequest(t, "GET", "/user31.rss"), http.StatusOK)
+		owner.MakeRequest(t, NewRequest(t, "GET", "/user31/-/packages"), http.StatusOK)
+
 		// the person sees the whole profile
-		page = NewHTMLParser(t, loginUser(t, "user31").MakeRequest(t, NewRequest(t, "GET", "/user31"), http.StatusOK).Body)
+		page = NewHTMLParser(t, owner.MakeRequest(t, NewRequest(t, "GET", "/user31"), http.StatusOK).Body)
 		page.AssertElement(t, "[data-asc-pf-private]", false)
 	})
 
