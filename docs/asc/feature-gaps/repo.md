@@ -292,7 +292,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsGeneral | Working mode radio cards and shared refs (`main`, `release/*`), Cloud sync switch | done | `H:templates/repo/settings/asc_branchless.tmpl` (separate page, not inside General) | S |
 | RepoSettingsGeneral | Danger zone: Transfer, Archive, Delete with typed full name `acme/payments` and counts ("Removes 1,204 changes, 14 releases and 23 issues") | done (seen on a live hub (ui28): the delete dialog names the changes on the default branch, stacks and pull requests, releases and issues; the 30-day undo is not possible, Forgejo deletes at once) | `options.tmpl` has transfer, archive, delete; typed string is the repo name and the counts are missing | M |
 | RepoSettingsGeneral | "An owner can undo the delete from the operation log for 30 days" | done (seen on a live hub (ui30): Delete moves the repository to a 30 day trash (nobody can read it, it is in no list, its name stays taken); the owner, an organisation owner or a site administrator restores it from Recently deleted; a nightly cron task purges it) | soft delete in hub plus restore; asc keeps repo data for the window (`Repo.RepoAdmin`) | L |
-| RepoSettingsGeneral | Saving state, saved toast (5 s), unsaved-bar motion | ui-only-missing | `repo-settings.js` | S |
+| RepoSettingsGeneral | Saving state, saved toast (5 s), unsaved-bar motion | done | `repo-settings.js` | S |
 
 ## RepoSettingsAccess
 
