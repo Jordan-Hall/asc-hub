@@ -42,6 +42,8 @@ type fakeSearchServer struct {
 	symbols  func(*ascv1.SymbolsRequest) (*ascv1.SymbolsResponse, error)
 	semantic func(*ascv1.SemanticRequest) (*ascv1.SemanticResponse, error)
 	index    func(*ascv1.IndexStatusRequest) (*ascv1.IndexStatusResponse, error)
+	// repo, when set, answers the Repo service on the same address.
+	repo ascv1.RepoServer
 }
 
 func (f *fakeSearchServer) note(ctx gocontext.Context) {
@@ -116,6 +118,9 @@ func startFakeSearch(t *testing.T, f *fakeSearchServer) *fakeSearchServer {
 	t.Helper()
 	srv := grpc.NewServer()
 	ascv1.RegisterCodeIntelServer(srv, f)
+	if f.repo != nil {
+		ascv1.RegisterRepoServer(srv, f.repo)
+	}
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()

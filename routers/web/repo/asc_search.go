@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -120,6 +121,10 @@ type ascSearchFile struct {
 	Lines    []ascSearchLine
 	// Branches names the branches of an all-branches search that have this file.
 	Branches []ascSearchBranch
+	// Defs are the symbols of the query this file declares; Changed is when it last changed, zero if not known.
+	Defs        []ascSearchDef
+	Changed     time.Time
+	ChangedLink string
 }
 
 // ascSearchAlso is another path of the same file.
@@ -236,6 +241,11 @@ func AscSearch(ctx *context.Context) {
 	if err != nil {
 		ascSearchMapError(ctx, err)
 		return
+	}
+
+	if len(targets) == 1 && q.scope == ascSearchScopeVersion {
+		ctx.Data["AscSearchMatched"] = ascSearchDefinitions(callCtx, api, targets[0].scope, ctx.Repo.RepoLink, q, &res)
+		ascSearchChanged(ctx, ascv1.NewRepoClient(conn), callCtx, name, q, res.files)
 	}
 
 	ctx.Data["AscSearchRev"] = ascSearchTargetLabel(q, targets)

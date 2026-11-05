@@ -169,6 +169,15 @@
   background: var(--color-primary-light-7);
 }
 
+.asc-sym-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
 .asc-facet-more > summary {
   display: inline-flex;
   align-items: center;
