@@ -68,8 +68,10 @@ type Page struct {
 	// Unavailable is set when asc could not be asked; Unsupported when it answered UNIMPLEMENTED.
 	Unavailable bool
 	Unsupported bool
-	Problem     *Problem
-	Errors      svc.FieldErrors
+	// Saved is set when a changed storage target was saved and then tested in the same request.
+	Saved   bool
+	Problem *Problem
+	Errors  svc.FieldErrors
 
 	// Storage
 	Targets         []svc.TargetView

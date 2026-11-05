@@ -24,6 +24,11 @@
 		<section class="asc-byo-card" aria-labelledby="asc-verify-h">
 			<h3 id="asc-verify-h">{{ctx.Locale.Tr "ascbyo.storage.detail.verify_title"}}</h3>
 			<p>{{ctx.Locale.Tr "ascbyo.storage.detail.verify_help"}}</p>
+			{{if $a.Saved}}
+				<div class="ds-banner positive" role="status" data-testid="asc-storage-saved">
+					<p>{{ctx.Locale.Tr "ascbyo.storage.detail.saved"}}</p>
+				</div>
+			{{end}}
 			{{with $a.Verify}}
 				<div class="ds-banner {{if .OK}}positive {{else}}negative {{end}}" role="status" data-testid="asc-verify-result">
 					<p>{{if .OK}}{{ctx.Locale.Tr "ascbyo.storage.detail.verify_ok"}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.detail.verify_failed"}}{{end}}</p>
@@ -70,7 +75,7 @@
 				<div class="ds-savebar" data-savebar data-savebar-one="{{ctx.Locale.Tr "asc_rp.unsaved_one"}}" data-savebar-n="{{ctx.Locale.Tr "asc_rp.unsaved_n"}}" data-testid="asc-storage-savebar">
 					<span class="ds-savebar-note" data-savebar-note aria-live="polite"></span>
 					<button type="button" class="ds-btn ds-btn-secondary" data-savebar-discard>{{ctx.Locale.Tr "asc_rp.discard"}}</button>
-					<button class="ds-btn ds-btn-primary" type="submit" data-savebar-submit>{{ctx.Locale.Tr "ascbyo.save"}}</button>
+					<button class="ds-btn ds-btn-primary" type="submit" data-savebar-submit>{{ctx.Locale.Tr "ascbyo.storage.detail.save_test"}}</button>
 				</div>
 			</form>
 		</section>

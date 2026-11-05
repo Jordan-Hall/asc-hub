@@ -387,7 +387,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsStorage | Moving data: 64% progress, Pause, Cancel and keep current | needs-both | `StartMigration/GetMigration/CancelMigration` exist; no Pause RPC; hub progress UI | M |
 | RepoSettingsStorage | Managed storage selected: "38.2 GB of 100 GB on your plan", Use my own bucket | needs-both | plan quota from `H:models/quota`; usage as above | M |
 | RepoSettingsStorage | Local-option and http refused message | done | `H:services/ascbyo/validate.go` | S |
-| RepoSettingsStorage | Bucket settings changed bar with Discard / Save and test | ui-only-missing | `byo_storage.tmpl` uses plain forms; reuse `data-savebar` | S |
+| RepoSettingsStorage | Bucket settings changed bar with Discard / Save and test | done | `H:templates/shared/asc/byo_storage_target.tmpl` savebar; `StorageUpdate` saves a changed target, tests it and shows both results | S |
 | RepoSettingsStorage | Meaning-search index enabling link ("An admin can enable the index in storage settings") | needs-both | no index toggle in the storage page or `CodeIntel.IndexStatus` surface | M |
 
 ## Mobile twins: behaviour that differs from the desktop board
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 163 |
+| done | 164 |
 | partial | 1 |
-| ui-only-missing | 38 |
+| ui-only-missing | 37 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -443,7 +443,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
 | RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |
 | RepoSettingsAI | 2 | 1 | 0 | 1 | 2 |
-| RepoSettingsStorage | 2 | 1 | 0 | 2 | 3 |
+| RepoSettingsStorage | 3 | 0 | 0 | 2 | 3 |
 | Mobile-Repo | 0 | 0 | 1 | 0 | 0 |
 | Mobile-Code | 0 | 1 | 0 | 0 | 0 |
 | Mobile-History | 0 | 1 | 0 | 0 | 0 |

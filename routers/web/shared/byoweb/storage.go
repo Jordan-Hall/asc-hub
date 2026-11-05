@@ -241,13 +241,31 @@ func StorageUpdate(ctx *context.Context, lvl *Level) {
 		renderStorageTarget(ctx, lvl, s, p, id, http.StatusUnprocessableEntity)
 		return
 	}
-	if changed {
-		record(ctx, lvl, "updated storage target", id)
-		ctx.Flash.Success(ctx.Locale.TrString("ascbyo.flash.storage_updated"))
-	} else {
+	if !changed {
 		ctx.Flash.Info(ctx.Locale.TrString("ascbyo.flash.nothing_changed"))
+		ctx.Redirect(lvl.Base + "/storage/targets/" + id)
+		return
 	}
-	ctx.Redirect(lvl.Base + "/storage/targets/" + id)
+	// Save and test: a changed target is tested at once, and the page shows both results.
+	record(ctx, lvl, "updated storage target", id)
+	p.Saved = true
+	p.StorageForm = StorageForm{}
+	res, err := s.VerifyTarget(ctx, lvl.Scope, id, "")
+	if err != nil {
+		p.Problem = problemOf(ctx, err)
+	} else {
+		record(ctx, lvl, "verified storage target", id)
+		p.Verify = verifyViewOf(ctx, res)
+	}
+	renderStorageTarget(ctx, lvl, s, p, id, http.StatusOK)
+}
+
+func verifyViewOf(ctx *context.Context, res *svc.VerifyResult) *VerifyView {
+	v := &VerifyView{OK: res.OK}
+	for _, c := range res.Checks {
+		v.Checks = append(v.Checks, VerifyStep{Name: ctx.Locale.TrString(c.StepKey), OK: c.OK, Latency: c.LatencyMS, Message: c.Message})
+	}
+	return v
 }
 
 // returnTo maps the form's return field to one of two pages of the scope. Nothing else is accepted, so the
@@ -281,11 +299,7 @@ func StorageVerify(ctx *context.Context, lvl *Level) {
 		return
 	}
 	record(ctx, lvl, "verified storage target", id)
-	v := &VerifyView{OK: res.OK}
-	for _, c := range res.Checks {
-		v.Checks = append(v.Checks, VerifyStep{Name: ctx.Locale.TrString(c.StepKey), OK: c.OK, Latency: c.LatencyMS, Message: c.Message})
-	}
-	p.Verify = v
+	p.Verify = verifyViewOf(ctx, res)
 	renderStorageTarget(ctx, lvl, s, p, id, http.StatusOK)
 }
 
