@@ -120,6 +120,13 @@ func AscPasskeyLoginPost(ctx *context.Context) {
 		ctx.Status(http.StatusForbidden)
 		return
 	}
+	// the password form refuses an account whose sign in source is turned off: so does a passkey
+	source, err := auth.GetSourceByID(ctx, u.LoginSource)
+	if err != nil || !source.IsActive {
+		log.Info("Failed passkey sign in for %s from %s: the sign in source is off or gone", u.Name, ctx.RemoteAddr())
+		ctx.Status(http.StatusForbidden)
+		return
+	}
 
 	if dbCred.Legacy {
 		dbCred.BackupEligible = parsed.Response.AuthenticatorData.Flags.HasBackupEligible()
