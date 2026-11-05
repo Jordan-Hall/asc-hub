@@ -68,6 +68,8 @@ func TestAscServiceWorkerIsScriptForTheWholeHub(t *testing.T) {
 	assert.Contains(t, body, `addEventListener("push"`)
 	assert.Contains(t, body, `addEventListener("fetch"`)
 	assert.Contains(t, body, `-/offline`)
+	assert.Contains(t, body, `<script[^>]*src=`, "the scripts of the offline page are kept, to say when an edit is kept")
+	assert.Contains(t, body, `"asc-offline-v2"`, "a new cache name drops the cache of the worker before")
 	assert.Contains(t, body, `startsWith("//")`, "a click opens a path of this site only")
 }
 
