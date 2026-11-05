@@ -89,7 +89,16 @@ var Asc = struct {
 	// PoliciesURL is an https page of the operator with the full privacy policy, terms and acceptable use policy of
 	// this hub. The About page links it next to its own summary.
 	PoliciesURL string `ini:"POLICIES_URL"`
+	// Subprocessors are the outside services the operator names on the About page, from SUBPROCESSORS: entries
+	// "Name: purpose" separated by commas. The hub never shows the hosts of its own configuration there.
+	Subprocessors []AscSubprocessor `ini:"-"`
 }{}
+
+// AscSubprocessor is one outside service of [asc] SUBPROCESSORS.
+type AscSubprocessor struct {
+	Name    string
+	Purpose string
+}
 
 // Values of [asc] WRITER and [asc] BRIDGE.
 const (
@@ -135,6 +144,7 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.ContactEmail = ""
 	Asc.SecurityEmail = ""
 	Asc.PoliciesURL = ""
+	Asc.Subprocessors = nil
 	sec := rootCfg.Section("asc")
 	if err := sec.MapTo(&Asc); err != nil {
 		log.Fatal("Failed to map [asc] settings: %v", err)
@@ -148,6 +158,11 @@ func loadAscFrom(rootCfg ConfigProvider) {
 		log.Fatal("Invalid [asc] FORWARDED_KEY: %v", err)
 	}
 	Asc.ForwardedKey = key
+	subs, err := parseAscSubprocessors(sec.Key("SUBPROCESSORS").String())
+	if err != nil {
+		log.Fatal("Invalid [asc] SUBPROCESSORS: %v", err)
+	}
+	Asc.Subprocessors = subs
 	if err := normaliseAscSite(); err != nil {
 		log.Fatal("Invalid [asc] site settings: %v", err)
 	}
@@ -359,4 +374,26 @@ func normaliseAscSite() error {
 		return fmt.Errorf("POLICIES_URL %q must be an https URL without credentials", Asc.PoliciesURL)
 	}
 	return nil
+}
+
+// parseAscSubprocessors reads "Name: purpose, Name: purpose": at most 20 entries, each part at most 100 characters
+// without control characters.
+func parseAscSubprocessors(raw string) ([]AscSubprocessor, error) {
+	var out []AscSubprocessor
+	for _, entry := range strings.Split(raw, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		name, purpose, _ := strings.Cut(entry, ":")
+		name, purpose = strings.TrimSpace(name), strings.TrimSpace(purpose)
+		if name == "" || len(name) > 100 || len(purpose) > 100 || strings.IndexFunc(entry, unicode.IsControl) >= 0 {
+			return nil, fmt.Errorf("entry %q must be \"Name: purpose\" with parts of at most 100 characters", entry)
+		}
+		out = append(out, AscSubprocessor{Name: name, Purpose: purpose})
+	}
+	if len(out) > 20 {
+		return nil, fmt.Errorf("%d entries, at most 20", len(out))
+	}
+	return out, nil
 }

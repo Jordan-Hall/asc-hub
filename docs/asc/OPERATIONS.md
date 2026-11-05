@@ -262,15 +262,16 @@ The command prints a generated password once. It also accepts `--password`, but 
 
 ## Contact and policies on the About page
 
-The footer links Security, Contact, Privacy, Terms, Acceptable use, Subprocessors and Cookies to sections of `/-/about`. The page lists the cookies the hub sets (with the names in `[session] COOKIE_NAME` and `[security] COOKIE_REMEMBER_NAME`) and the outside services read from the configuration: each S3-compatible host of the storage sections and the SMTP host of `[mailer]`. Three settings make the rest yours:
+The footer links Security, Contact, Privacy, Terms, Acceptable use, Subprocessors and Cookies to sections of `/-/about`. The page lists the cookies the hub sets (with the names in `[session] COOKIE_NAME` and `[security] COOKIE_REMEMBER_NAME`) and what the configuration hands to outside services: object storage on this server or in an S3-compatible store, and a mail server. The page is public, so it never shows a host or address of the configuration; name your providers with `SUBPROCESSORS`. These settings make the rest yours:
 
 | Setting | Default | Effect |
 |---|---|---|
 | `[asc] CONTACT_EMAIL` | empty | The Contact button mails this address. Empty: it opens the issues of ASC Hub. |
 | `[asc] SECURITY_EMAIL` | `CONTACT_EMAIL` | The Security section asks for reports at this address. With both empty, reports go to the private advisories of ASC Hub. |
 | `[asc] POLICIES_URL` | empty | An `https` page with the full privacy policy, terms and acceptable use policy of your hub, linked next to the summary. |
+| `[asc] SUBPROCESSORS` | empty | The outside services you use, as `Name: purpose` entries separated by commas (at most 20, each part at most 100 characters), listed first under Subprocessors. |
 
-The addresses must be plain (`security@example.org`, no display name) and the URL `https` without credentials; anything else stops the hub at start.
+The addresses must be plain (`security@example.org`, no display name), the URL `https` without credentials and the entries without control characters; anything else stops the hub at start.
 
 ## Checks after a deploy
 
