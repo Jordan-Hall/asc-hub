@@ -4,9 +4,7 @@
 package web
 
 import (
-	"net"
 	"net/url"
-	"slices"
 
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/context"
@@ -19,10 +17,13 @@ type AscAboutCookie struct {
 	Life    string // locale key
 }
 
-// AscAboutService is one outside service this hub hands data to, read from its configuration.
+// AscAboutService is one kind of outside service this hub hands data to. Name and Purpose are the operator's
+// words from [asc] SUBPROCESSORS; Kind is a locale key for what the configuration says, without any host.
 type AscAboutService struct {
-	Kind  string // locale key
-	Where string // host name, or empty for "on this server"
+	Kind    string
+	Here    bool
+	Name    string
+	Purpose string
 }
 
 // ascAboutCookies lists every cookie the hub sets, with the names this hub is configured with.
@@ -37,40 +38,23 @@ func ascAboutCookies() []AscAboutCookie {
 	}
 }
 
-// storageHost is the host of an S3-compatible store, or "" for storage on this server.
-func storageHost(s *setting.Storage) string {
-	if s == nil || s.Type != setting.MinioStorageType {
-		return ""
-	}
-	host := s.MinioConfig.Endpoint
-	if h, _, err := net.SplitHostPort(host); err == nil {
-		host = h
-	}
-	return host
-}
-
-// ascAboutServices lists the outside services of this hub: the object stores and the mail server it is configured
-// with. AI providers are listed apart: only the ones a person adds a key for are used.
+// ascAboutServices lists what goes outside the hub: the services the operator named, then what the configuration
+// says (object storage on this server or in an S3-compatible store, a mail server). Hosts and addresses of the
+// configuration are never shown: the page is public. AI providers are listed apart.
 func ascAboutServices() []AscAboutService {
-	var hosts []string
-	for _, s := range []*setting.Storage{setting.Attachment.Storage, setting.LFS.Storage, setting.Packages.Storage, setting.Actions.LogStorage, setting.Actions.ArtifactStorage, setting.RepoArchive.Storage} {
-		if h := storageHost(s); h != "" && !slices.Contains(hosts, h) {
-			hosts = append(hosts, h)
-		}
-	}
 	var out []AscAboutService
-	for _, h := range hosts {
-		out = append(out, AscAboutService{Kind: "asc_site.about_sp_storage", Where: h})
+	for _, sp := range setting.Asc.Subprocessors {
+		out = append(out, AscAboutService{Name: sp.Name, Purpose: sp.Purpose})
 	}
-	if len(hosts) == 0 {
-		out = append(out, AscAboutService{Kind: "asc_site.about_sp_storage"})
-	}
-	if m := setting.MailService; m != nil {
-		where := m.SMTPAddr
-		if m.Protocol == "sendmail" || m.Protocol == "dummy" {
-			where = ""
+	external := false
+	for _, s := range []*setting.Storage{setting.Attachment.Storage, setting.LFS.Storage, setting.Packages.Storage, setting.Actions.LogStorage, setting.Actions.ArtifactStorage, setting.RepoArchive.Storage} {
+		if s != nil && s.Type == setting.MinioStorageType {
+			external = true
 		}
-		out = append(out, AscAboutService{Kind: "asc_site.about_sp_mail", Where: where})
+	}
+	out = append(out, AscAboutService{Kind: "asc_site.about_sp_storage", Here: !external})
+	if m := setting.MailService; m != nil && m.Protocol != "dummy" {
+		out = append(out, AscAboutService{Kind: "asc_site.about_sp_mail", Here: m.Protocol == "sendmail" || m.Protocol == "smtp+unix"})
 	}
 	return out
 }

@@ -4,6 +4,7 @@
 package setting
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -293,5 +294,18 @@ POLICIES_URL = https://example.org/policies
 	} {
 		Asc.ContactEmail, Asc.SecurityEmail, Asc.PoliciesURL = bad.contact, "", bad.policies
 		assert.Error(t, normaliseAscSite(), "%+v", bad)
+	}
+}
+
+func TestParseAscSubprocessors(t *testing.T) {
+	got, err := parseAscSubprocessors(" Object Store Co: Files and backups, Mail Co ,, ")
+	require.NoError(t, err)
+	assert.Equal(t, []AscSubprocessor{{Name: "Object Store Co", Purpose: "Files and backups"}, {Name: "Mail Co"}}, got)
+	none, err := parseAscSubprocessors("")
+	require.NoError(t, err)
+	assert.Empty(t, none)
+	for _, bad := range []string{": no name", "A\x07: bell", strings.Repeat("a", 101), strings.Repeat("a,", 21)} {
+		_, err := parseAscSubprocessors(bad)
+		assert.Error(t, err, bad)
 	}
 }

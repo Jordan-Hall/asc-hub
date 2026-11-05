@@ -127,7 +127,7 @@
 					<p class="ds-c-2 ds-mt-8">{{ctx.Locale.Tr "asc_site.about_sp_t"}}</p>
 					<ul class="ds-list" data-testid="about-subprocessors">
 						{{range .AboutServices}}
-						<li class="ds-li"><div class="ds-li-main"><span class="ds-li-title">{{ctx.Locale.Tr .Kind}}</span><div class="ds-li-sub">{{if .Where}}<code>{{.Where}}</code>{{else}}{{ctx.Locale.Tr "asc_site.about_sp_here"}}{{end}}</div></div></li>
+						<li class="ds-li"><div class="ds-li-main">{{if .Name}}<span class="ds-li-title">{{.Name}}</span>{{if .Purpose}}<div class="ds-li-sub">{{.Purpose}}</div>{{end}}{{else}}<span class="ds-li-title">{{ctx.Locale.Tr .Kind}}</span><div class="ds-li-sub">{{if .Here}}{{ctx.Locale.Tr "asc_site.about_sp_here"}}{{else}}{{ctx.Locale.Tr "asc_site.about_sp_outside"}}{{end}}</div>{{end}}</div></li>
 						{{end}}
 						<li class="ds-li"><div class="ds-li-main"><span class="ds-li-title">{{ctx.Locale.Tr "asc_site.about_sp_ai"}}</span><div class="ds-li-sub">{{ctx.Locale.Tr "asc_site.about_sp_ai_t"}}</div></div></li>
 					</ul>
