@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"forgejo.org/models/db"
+	"forgejo.org/models/organization"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/container"
@@ -81,9 +82,19 @@ func RenderUserSearchWith(ctx *context.Context, opts *user_model.SearchUserOptio
 	opts.Keyword = ctx.FormTrim("q")
 	opts.OrderBy = orderBy
 	if len(opts.Keyword) == 0 || isKeywordValid(opts.Keyword) {
-		users, count, err = user_model.SearchUsers(ctx, opts)
+		users, count, err = searchUsers(ctx, opts)
 		if err != nil {
-			ctx.ServerError("SearchUsers", err)
+			if isSitemap || tplName != tplExploreUsers {
+				ctx.ServerError("SearchUsers", err)
+				return
+			}
+			// the directory keeps its header, search and filters and says in the list that it could not be loaded, with
+			// the request id the log line carries
+			log.Error("explore: searching accounts (request %s): %v", ctx.RequestIDForLog(), err)
+			ctx.Data["Keyword"] = opts.Keyword
+			ctx.Data["ExploreLoadFailed"] = true
+			ctx.Data["ExploreRetryHref"] = "?" + ctx.Req.URL.RawQuery
+			ctx.HTML(http.StatusInternalServerError, tplName)
 			return
 		}
 	}
@@ -127,6 +138,39 @@ func RenderUserSearchWith(ctx *context.Context, opts *user_model.SearchUserOptio
 	ctx.HTML(http.StatusOK, tplName)
 }
 
+// searchUsers runs the account search of the directories. Tests replace it.
+var searchUsers = user_model.SearchUsers
+
+// exploreUserRowOrgs is how many organizations a row of the people directory names.
+const exploreUserRowOrgs = 3
+
+// loadExploreUserRows puts what the rows of the people directory show beside each person into the page data: the
+// organizations the person is a public member of (that the viewer may see), and for a signed-in viewer whom they follow.
+// A lookup that fails leaves that part out of the row; the list itself is still shown.
+func loadExploreUserRows(ctx *context.Context, users []*user_model.User) {
+	orgs := make(map[int64][]*organization.Organization, len(users))
+	following := make(map[int64]bool, len(users))
+	for _, u := range users {
+		list, err := db.Find[organization.Organization](ctx, organization.FindOrgOptions{
+			ListOptions:    db.ListOptions{PageSize: exploreUserRowOrgs},
+			UserID:         u.ID,
+			IncludeLimited: ctx.IsSigned,
+		})
+		if err != nil {
+			log.Error("explore: organizations of %s: %v", u.Name, err)
+		} else if len(list) > 0 {
+			orgs[u.ID] = list
+		}
+		if ctx.Doer != nil && ctx.Doer.ID != u.ID {
+			following[u.ID] = user_model.IsFollowing(ctx, ctx.Doer.ID, u.ID)
+		}
+	}
+	ctx.Data["ExploreUserOrgs"] = orgs
+	if ctx.Doer != nil {
+		ctx.Data["ExploreFollowing"] = following // may be empty: the template offers Follow only when the map was made
+	}
+}
+
 // Users render explore users page.
 func Users(ctx *context.Context) {
 	if setting.Service.Explore.DisableUsersPage {
@@ -156,7 +200,7 @@ func Users(ctx *context.Context) {
 		ctx.SetFormString("sort", sortOrder)
 	}
 
-	RenderUserSearch(ctx, &user_model.SearchUserOptions{
+	RenderUserSearchWith(ctx, &user_model.SearchUserOptions{
 		Actor:       ctx.Doer,
 		Type:        user_model.UserTypeIndividual,
 		ListOptions: db.ListOptions{PageSize: setting.UI.ExplorePagingNum},
@@ -164,7 +208,7 @@ func Users(ctx *context.Context) {
 		Visible:     []structs.VisibleType{structs.VisibleTypePublic, structs.VisibleTypeLimited, structs.VisibleTypePrivate},
 
 		SupportedSortOrders: supportedSortOrders,
-	}, tplExploreUsers)
+	}, tplExploreUsers, func(users []*user_model.User) { loadExploreUserRows(ctx, users) })
 }
 
 // Maps a sort query to a database search order.

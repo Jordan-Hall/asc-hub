@@ -9,7 +9,7 @@
 					<p class="ds-results-line ds-hide-sm">{{ctx.Locale.TrPluralString .Total "explore.count_users" (ctx.Locale.PrettyNumber .Total)}}</p>
 					{{template "shared/ds/layout_toggle" (dict "Target" ".ds-userlist")}}
 				</div>
-				{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Sort" .SortType)}}
+				{{if .Users}}{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" "" "Sort" .SortType)}}{{end}}
 				{{template "explore/user_list" .}}
 				{{template "base/paginate" .}}
 			</div>

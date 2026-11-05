@@ -13,11 +13,12 @@
 				</div>
 				{{if .Description}}<div class="ds-li-sub ds-clamp-2">{{.Description}}</div>{{end}}
 				<div class="ds-li-meta">
-					{{if .Location}}<span>{{svg "octicon-location" 14}}{{.Location}}</span>{{end}}
+					{{if .Location}}<span>{{svg "dsi-map-pin" 14}}{{.Location}}</span>{{end}}
+					<span>{{svg "dsi-calendar" 14}}{{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
+					{{with and $.ExploreUserOrgs (index $.ExploreUserOrgs .ID)}}<span data-asc-user-orgs><span class="tw-sr-only">{{ctx.Locale.Tr "asc_shell.user_orgs"}}</span>{{svg "dsi-building" 14}}{{range $i, $o := .}}{{if $i}}, {{end}}<a href="{{$o.HomeLink}}">{{$o.Name}}</a>{{end}}</span>{{end}}
 					{{if and .Email (or (and $.ShowUserEmail $.IsSigned (not .KeepEmailPrivate)) $.PageIsAdminUsers)}}
-						<span>{{svg "octicon-mail" 14}}<a href="mailto:{{.Email}}">{{.Email}}</a></span>
+						<span data-asc-user-email><span class="tw-sr-only">{{ctx.Locale.Tr "asc_shell.user_email"}}</span>{{svg "dsi-mail" 14}}<a href="mailto:{{.Email}}">{{.Email}}</a></span>
 					{{end}}
-					<span>{{svg "octicon-calendar" 14}}{{ctx.Locale.Tr "user.joined_on" (DateUtils.AbsoluteShort .CreatedUnix)}}</span>
 				</div>
 			</div>
 			{{if .IsOrganization}}
@@ -31,6 +32,16 @@
 					<div class="ds-li-stat"><b>{{.NumFollowers}}</b><span>{{ctx.Locale.Tr "explore.stat_followers"}}</span></div>
 				</div>
 			{{end}}
+			{{if and $.ExploreFollowing (not .IsOrganization) (ne .ID $.SignedUserID)}}
+			{{$following := index $.ExploreFollowing .ID}}
+			<div class="ds-row-acts">
+				<form method="post" action="{{.HomeLink}}?action={{if $following}}unfollow{{else}}follow{{end}}">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="redirect_to" value="{{$.CurrentURL}}">
+					<button type="submit" class="ds-btn {{if $following}}ds-btn-ghost{{else}}ds-btn-secondary{{end}} ds-btn-sm" aria-pressed="{{if $following}}true{{else}}false{{end}}" aria-label="{{if $following}}{{ctx.Locale.Tr "asc_shell.row_unfollow_for" .Name}}{{else}}{{ctx.Locale.Tr "asc_shell.row_follow_for" .Name}}{{end}}">{{if $following}}{{ctx.Locale.Tr "user.unfollow"}}{{else}}{{ctx.Locale.Tr "user.follow"}}{{end}}</button>
+				</form>
+			</div>
+			{{end}}
 			{{if .IsOrganization}}
 			<div class="ds-row-acts"><a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.HomeLink}}" aria-label="{{ctx.Locale.Tr "asc_shell.row_view_for" .Name}}">{{ctx.Locale.Tr "asc_shell.row_view"}}</a></div>
 			{{end}}
@@ -38,9 +49,21 @@
 	{{end}}
 </ul>
 {{else}}
-<div class="ds-card">
-	{{if .Keyword}}
+<div class="ds-card"{{if .ExploreLoadFailed}} role="alert"{{end}}>
+	{{if .ExploreLoadFailed}}
+		{{template "shared/ds/empty" (dict "Icon" "alert" "Tone" "err" "Title" (ctx.Locale.Tr "asc_shell.list_failed_title") "Body" (ctx.Locale.Tr "asc_shell.list_failed_text" .RequestID) "PrimaryHref" .ExploreRetryHref "PrimaryLabel" (ctx.Locale.Tr "asc_shell.try_again") "SecondaryHref" (print AppSubUrl "/-/status") "SecondaryLabel" (ctx.Locale.Tr "asc_err.status_page"))}}
+	{{else if and .Keyword .PageIsExplore}}
+		<div class="ds-empty" data-asc-explore-nomatch>
+			<div class="ds-empty-ic" aria-hidden="true">{{svg "dsi-search" 34}}</div>
+			<h2>{{ctx.Locale.Tr "asc_shell.nomatch_title" .Keyword}}</h2>
+			<p>{{ctx.Locale.Tr "asc_shell.nomatch_text_1" 1}}</p>
+			{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" "" "Sort" .SortType "NoClear" true)}}
+			<div class="ds-empty-acts"><a class="ds-btn ds-btn-primary" href="?sort={{QueryEscape .SortType}}">{{ctx.Locale.Tr "asc_shell.filters_clear"}}</a></div>
+		</div>
+	{{else if .Keyword}}
 		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" "?" "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
+	{{else if .PageIsExploreUsers}}
+		{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_shell.nopeople_title") "Body" (ctx.Locale.Tr "asc_shell.nopeople_text"))}}
 	{{else}}
 		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
 	{{end}}
