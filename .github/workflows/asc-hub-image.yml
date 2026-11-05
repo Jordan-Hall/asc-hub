@@ -64,10 +64,12 @@ jobs:
             fi
             ref="ghcr.io/${owner}/asc-serve:${tag}"
           fi
-          case "$ref" in
-            *:*) ;;
-            *) echo "::error::The asc-serve image '$ref' has no tag. Use a full reference such as ghcr.io/${owner}/asc-serve:<sha12>."; exit 1 ;;
-          esac
+          # Only this owner's asc-serve package, at a build tag (sha12, asc-*, v*) or a digest: the image is deployed.
+          if ! printf '%s' "$ref" | grep -Eq "^ghcr\.io/${owner}/asc-serve(:[A-Za-z0-9][A-Za-z0-9._-]{0,127})?(@sha256:[0-9a-f]{64})?\$" \
+            || ! printf '%s' "$ref" | grep -Eq '[:@]'; then
+            echo "::error::The asc-serve image '$ref' is not ghcr.io/${owner}/asc-serve with a tag or digest."
+            exit 1
+          fi
           echo "asc-serve image: $ref"
           if ! docker buildx imagetools inspect "$ref" >/dev/null 2>&1; then
             echo "::error::Cannot read $ref. If the image exists, the asc-serve package must grant this repository access: open the package on GitHub, Package settings > Manage Actions access > Add Repository > this repository (role Read). Then run the workflow again."
