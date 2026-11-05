@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 142 |
+| done | 144 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 28 |
+| needs-hub-backend | 26 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 1, M 34, L 18.
+Open rows by size: S 1, M 32, L 18.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -225,7 +225,7 @@ Open rows by size: S 1, M 34, L 18.
 | --- | --- | --- | --- | --- |
 | Dashboard | Greeting by time of day and summary line | done | `routers/web/user/asc_dashboard.go` | - |
 | Dashboard | Work list with counts (Inbox, My stacks, Review requests, Agent runs), repositories, teams | done | `templates/user/dashboard/asc_home.tmpl` | - |
-| Dashboard | Pinned repositories per person; counts update live | needs-hub-backend | `ascDashRepos` takes the five latest. Pin table (`models/user`) and a star-like action; counts need the live update below | M |
+| Dashboard | Pinned repositories per person; counts update live | done | `ascDashRepos` lists the person's profile pins first (read-checked, archived left out), then the latest; `GET /-/asc/dash/counts` refreshes Inbox, My stacks, Review requests and Agent runs with the Today card (`asc-dash-live.js` `refreshCounts`; `TestAscDashReposPutThePinsFirst`, `TestAscProfilePins/Dashboard`) | M |
 | Dashboard | Scope chips Everything / org / Personal filter the whole page, remembered | done | None in the template. `?scope=` in `ascDashBuild` filtering inbox rows, agents, stacks; persist as a user setting | M |
 | Dashboard | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | `asc_home.tmpl`, `ascDashRowFor` | - |
 | Dashboard | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | needs-both | Buttons are links (`aria-hidden`, tabindex -1) to the review. Hub: POST handlers for approve (review in `routers/web/repo/pull.go`), queue (`asc_queue.go`, asc `Enqueue`), answer (asc `SendInput`), htmx row swap | L |
@@ -272,7 +272,7 @@ Open rows by size: S 1, M 34, L 18.
 | Profile | Request a review (picker with repository and change) and Mention | needs-both | Absent. Hub: picker modal of the viewer's open pull requests (`routers/web/user/profile.go`) and POST to asc `RequestReview` (exists in `review.proto`) via `asc_rpc_proxy.go`; Mention opens a comment composer | L |
 | Profile | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | Tabs today: Overview, Repositories, Projects, Packages, Code, Activity, Stars (`overview/header.tmpl`). Add Work (`ascProfileWork`) and Reviews with counts | M |
 | Profile | Working-now list (stack, draft, ready) | done | `profile.tmpl`, `ascProfileWork` | - |
-| Profile | Pinned repositories (up to six) with Customize dialog and drag reorder | needs-hub-backend | None. Pin table, `POST /user/settings/pins`, keyboard dialog, htmx | M |
+| Profile | Pinned repositories (up to six) with Customize dialog and drag reorder | done | Cards show stacks and changes; the owner drags cards (saved at once) or opens Customize as a dialog with Move up and Move down and an announced position (`templates/user/settings/pins_form.tmpl`, `asc-pins.js`, `POST /user/settings/pins` with `inline=1` answers 204; `TestAscPinSettingsPostInline`, `TestAscProfilePins`, `asc-pins.test.js`) | M |
 | Profile | Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for agent-authored changes, cell opens the day, table alternative | needs-both | One-colour grid exists (`asc_heatmap.tmpl`) with a text total. Agent attribution needs asc (changeset author kind via `changes.proto`); turnaround from review timestamps | L |
 | Profile | "Agents Priya runs" with New agent | needs-both | Not on the profile. Hub must list the person's agents (see Explore users) with scope and counts | L |
 | Profile | Recent activity | done | `profile.tmpl` feed | - |
