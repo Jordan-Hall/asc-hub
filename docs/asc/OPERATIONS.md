@@ -277,7 +277,7 @@ The counts are kept in memory by each hub process and are lost on a restart.
 
 ## Passkeys
 
-With ASC on, the sign in page has Sign in with a passkey under the form. The browser offers the passkeys it holds for the hub, the person unlocks one (fingerprint, face or the PIN of the device) and is signed in with no name, no password and no second step: the key must verify the person, which stands for both. A key that only shows presence is refused, and so is an account that is inactive or may not sign in. Each challenge takes one answer. Keep me signed in applies as it does to the password.
+With ASC on, the sign in page has Sign in with a passkey under the form. The browser offers the passkeys it holds for the hub, the person unlocks one (fingerprint, face or the PIN of the device) and is signed in with no name, no password and no second step: the key must verify the person, which stands for both. A key that only shows presence is refused, and so is an account that is inactive or may not sign in, or whose sign in source (LDAP, PAM, SMTP, OAuth2 and the like) an administrator turned off. A passkey does not ask the outside source again: an account removed there keeps signing in with its passkey until the source sync turns the account off or an administrator removes the key. Each challenge takes one answer. Keep me signed in applies as it does to the password.
 
 Security keys added under Settings, Security while ASC is on are asked to be passkeys, so the device keeps one for the account; a device that cannot registers a plain security key, which still works as the second step but not on this button. A key added before needs to be added again to sign in with it. Passkeys are bound to `[server] DOMAIN`: changing the domain makes every key stop working.
 
