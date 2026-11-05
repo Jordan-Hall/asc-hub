@@ -68,6 +68,7 @@ type AscDashRow struct {
 	Meta    string // "+84 -12 in 3 files"
 	Updated time.Time
 	Action  string // "Merge" on a row that is ready to land, else empty
+	PullID  int64  // the pull request of an inbox entry, which the row can mark done or snooze; 0 for an agent run
 }
 
 // AscDashSeg is one change of a stack.
@@ -204,6 +205,7 @@ func ascDashRowFor(l translation.Locale, e *AscInboxEntry, info *AscInboxInfo) A
 		Title:   e.Title,
 		Link:    e.Link,
 		Updated: e.Updated,
+		PullID:  e.PullID,
 	}
 	where := e.RepoFullName + " #" + strconv.FormatInt(e.Index, 10)
 	if info != nil && info.StackTotal > 1 {

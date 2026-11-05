@@ -214,6 +214,29 @@
   }
 }
 
+/* a row under a swipe (asc-row-swipe.js): right marks done, left snoozes; the edge says which, with the colour of the action */
+.wk-irow.is-swiping,
+.wk-need.is-swiping {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  touch-action: pan-y;
+}
+
+[data-asc-swipe-row][data-swipe="done"] {
+  box-shadow: inset 4px 0 0 var(--ok);
+}
+
+[data-asc-swipe-row][data-swipe="snooze"] {
+  box-shadow: inset -4px 0 0 var(--warn);
+}
+
+@media (pointer: coarse) {
+  [data-asc-swipe-row] {
+    touch-action: pan-y;
+  }
+}
+
 .wk-irow.is-leaving {
   opacity: 0;
   transition: opacity 120ms ease-out;

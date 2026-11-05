@@ -8,6 +8,7 @@
 import {openOverlay} from './ds-shell.js';
 import {shortcutsEnabled} from './ds-prefs.js';
 import {GET} from '../modules/fetch.js';
+import {rowStateForm, sendRowState} from './asc-row-swipe.js';
 
 const chordMs = 1200;
 
@@ -170,9 +171,13 @@ export function initAscKeys() {
         if (details.open) details.querySelector('button')?.focus();
         break;
       }
-      case 'e':
-        document.querySelector('[data-asc-done]')?.click();
+      case 'e': {
+        // the row that has the focus, else the open item of the inbox
+        const form = rowStateForm(document.activeElement);
+        if (form) sendRowState(form, 'done');
+        else document.querySelector('[data-asc-done]')?.click();
         break;
+      }
       case 'p':
         document.querySelector('[data-asc-pin]')?.click();
         break;

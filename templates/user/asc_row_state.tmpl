@@ -1,0 +1,9 @@
+{{/* The hidden state form of an inbox row (asc-row-swipe.js): a swipe or the e key sets do and sends it. */}}
+<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state" data-asc-row-state hidden>
+	{{.Csrf}}
+	<input type="hidden" name="pull" value="{{.PullID}}">
+	{{if .Tab}}<input type="hidden" name="tab" value="{{.Tab}}">{{end}}
+	{{if .Back}}<input type="hidden" name="back" value="{{.Back}}">{{end}}
+	<input type="hidden" name="do" value="done">
+	<input type="hidden" name="for" value="4h">
+</form>
