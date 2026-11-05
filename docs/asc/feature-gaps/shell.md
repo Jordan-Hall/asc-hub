@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 106 |
-| ui-only-missing | 25 |
-| needs-hub-backend | 39 |
+| done | 111 |
+| ui-only-missing | 21 |
+| needs-hub-backend | 38 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 19, M 49, L 21.
+Open rows by size: S 15, M 48, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -97,13 +97,13 @@ Open rows by size: S 19, M 49, L 21.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Install | Setup form: database cards, general settings, administrator, email and service options | done | `templates/install.tmpl`, `install.js` | - |
-| Install | Test connection with result ("Connected to PostgreSQL 16.4" or the cause); Install disabled until it passes for server databases | needs-hub-backend | No test endpoint; `routers/install/install.go` checks on submit only. Add `POST /install/test-db` reusing `checkDatabase`, JS in `install.js` | M |
-| Install | Database error card with "Test again" and "Use SQLite instead" | ui-only-missing | Error shows as a form flash today; card and actions in `install.tmpl` | S |
-| Install | Sticky summary rail (Database, URL, Registration) and live step progress | ui-only-missing | `install.tmpl` has the step list (`ins-steps`), static; live summary in `install.js` | S |
+| Install | Test connection with result ("Connected to PostgreSQL 16.4" or the cause); Install disabled until it passes for server databases | done | `POST /test-db` (`routers/install/asc_dbtest.go`), `install.js` | - |
+| Install | Database error card with "Test again" and "Use SQLite instead" | done | `templates/install.tmpl`, `install.js`; the error names the field and the fix | - |
+| Install | Sticky summary rail (Database, URL, Registration) and live step progress | done | `templates/install.tmpl` rail, `install.js` | - |
 | Install | "Setting up your hub" progress page (Step n of 5) that polls, then redirects | needs-hub-backend | `SubmitInstall` runs synchronously. Run steps as a job with a status route, poll with `aria-live=polite` | M |
-| Install | Post-install page: signed in as, `asc auth login --host ...` with Copy, Open the hub, Download ASC | ui-only-missing | `templates/post-install.tmpl` exists; compare and add the command card | S |
+| Install | Post-install page: signed in as, `asc auth login --host ...` with Copy, Open the hub, Download ASC | done | `templates/post-install.tmpl`, `install.js` | - |
 | Install | Skip administrator: first registered user becomes owner | needs-hub-backend | Installer needs an admin today; add the skip path and "first user is admin" in `routers/web/auth/auth.go` | M |
-| Mobile-Install | One section per screen with progress bar, Back and Next | ui-only-missing | `install.tmpl`, `install.js` stepper under 768 px | M |
+| Mobile-Install | One section per screen with progress bar, Back and Next | done | `install.tmpl`, `install.js` stepper under 768 px | - |
 
 ## GetStarted (empty hub)
 
