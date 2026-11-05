@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 144 |
+| done | 145 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 26 |
+| needs-hub-backend | 25 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 1, M 32, L 18.
+Open rows by size: S 1, M 31, L 18.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -33,7 +33,7 @@ Open rows by size: S 1, M 32, L 18.
 | Shell | Active link: white label, 2px cyan marker, `aria-current=page` | done | `head_navbar.tmpl`, `web_src/css/asc-ds` | - |
 | Shell | Inbox amber count from `/-/asc/inbox/count`, cached 60 s | done | `asc-keys.js` `initAscInboxBadge` | - |
 | Shell | "N agents running" pill in the header (cyan dot, links to Agents) and in the mobile top bar | needs-both | Not in any template or locale. Hub: `GET /-/asc/agents/count` beside `AscInboxCount`, pill in `head_navbar.tmpl` (desktop and `.ds-topbar`), poll in `asc-keys.js`. `ascAgentsActive` fans out to 8 repos with a 4 s timeout: too heavy for every page, so asc needs a cheap per-user run count (`agents.proto`, `ListRuns` without repo or a `CountRuns`) | M |
-| Shell | Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo, age, Open inbox) | needs-hub-backend | Bell is a plain link to `/notifications` (`head_navbar.tmpl`). Add a fragment route in `routers/web/user/notification.go` (reuse `NotificationStatusPost` for Mark all read), a popover in `head_navbar.tmpl`, open and close in `ds-shell.js`. Items like "coder-2 finished run 214" need agent and queue events to create hub notifications, which nothing does today | M |
+| Shell | Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo, age, Open inbox) | done | `routers/web/user/asc_bell.go` (`GET /-/asc/bell` fragment, `POST /-/asc/bell/read`, `GET /-/asc/bell/open/{id}`), `templates/user/notification/asc_bell.tmpl`, `#ds-bell` in `head_navbar.tmpl`, `web_src/js/features/asc-bell.js`. Agent, check, queue, restack and policy events from asc serve (`asc_notify_log`, read state added by migration) are listed with hub notifications and counted live by the event source | - |
 | Shell | Account menu: identity, profile, inbox with count, agents, settings, Appearance (Light, Dark, Auto), Density (Comfy, Compact), Documentation, Sign out | done | `head_navbar.tmpl` `#ds-account`, `head_style.tmpl` | - |
 | Shell | Theme and density persist per person: localStorage, then the account setting | needs-hub-backend | Only `localStorage` (`asc-theme-mode`, `asc-density`) in `head_style.tmpl`. Add a user setting (`models/user/setting.go`), save on change (fetch to `routers/web/user/setting`), render `data-density` server side | S |
 | Shell | Create menu: New repository, Import a project, New organization, New changeset, Start an agent run | done | All five are in #ds-create (head_navbar.tmpl); "New changeset" opens `/-/asc/changeset/new` (`H:routers/web/user/asc_changeset_new.go`), the asc repositories the person can write, each opening its editor on the default branch | S |

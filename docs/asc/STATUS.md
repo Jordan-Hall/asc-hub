@@ -684,7 +684,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Shell (ASC Hub shell: header, menus, palette, footer)
 
-Area shell/settings. Rows 23: done 15, partial 1, missing 7. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
+Area shell/settings. Rows 23: done 16, partial 1, missing 6. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
 
 Board copy not found word for word in locale, templates or scripts: Four links, one clear way in; Search always one key away, Inbox always one click away; Account, create and notifications; New changeset; Mark all read; approved Backoff with jitter.
 
@@ -696,7 +696,7 @@ Board copy not found word for word in locale, templates or scripts: Four links, 
 | Active link: white label, 2px cyan marker, aria-current=page | done | templates/base/head_navbar.tmpl:85 | the where-cell cites aria-current=page, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Inbox amber count from /-/asc/inbox/count, cached 60 s | done | web_src/js/features/asc-keys.js:196 | - |
 | "N agents running" pill in the header (cyan dot, links to Agents) and in the mobile top bar | missing (hub+asc) | absent: no agents-running text in templates/base, locale, asc-keys.js, routers/web/web.go | Not in any template or locale. Hub: GET /-/asc/agents/count beside AscInboxCount, pill in head_navbar.tmpl (desktop and .ds-topba... |
-| Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo... | missing (hub) | absent: no popover markup or fragment route for notifications in templates/base, ds-shell.js, route... | Bell is a plain link to /notifications (head_navbar.tmpl). Add a fragment route in routers/web/user/notification.go (reuse Notifi... |
+| Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo... | done | routers/web/user/asc_bell.go, templates/user/notification/asc_bell.tmpl, web_src/js/features/asc-bell.js | - |
 | Account menu: identity, profile, inbox with count, agents, settings, Appearance (Light, Dark,... | done | templates/base/head_navbar.tmpl:97 | the where-cell cites #ds-account, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Theme and density persist per person: localStorage, then the account setting | missing (hub) | absent: no density or theme column in models/user or routers/web/user/setting | Only localStorage (asc-theme-mode, asc-density) in head_style.tmpl. Add a user setting (models/user/setting.go), save on change (... |
 | Create menu: New repository, Import a project, New organization, New changeset, Start an agent... | missing (UI) | logged as not built (not re-probed) | New repository, Import, New organization and "Start an agent run" are in #ds-create (head_navbar.tmpl). Open: "New changeset" (ne... |
