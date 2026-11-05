@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 132 |
-| ui-only-missing | 1 |
+| done | 133 |
+| ui-only-missing | 0 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 3, M 39, L 21.
+Open rows by size: S 3, M 39, L 20.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -217,7 +217,7 @@ Open rows by size: S 3, M 39, L 21.
 | Errors | 404 actions: dashboard, search the hub | done | `404.tmpl` | - |
 | Errors | 413 card with limit, artifact storage link and Back | done | `413.tmpl` | - |
 | Errors | 503 maintenance: version being upgraded, reads continue through the CLI, window, expected back, status link | needs-asc-backend | `503.tmpl` is a generic card and nothing serves it for maintenance. Hub: maintenance setting with window text and a middleware returning 503 for writes (`routers/common/middleware.go`); asc: read-only flag on serve | L |
-| Errors | Offline page: "your edit is saved on this device", Retry now, served by a service worker | ui-only-missing | `/-/offline` page exists but no service worker is registered anywhere in `web_src` or `public`. Add `public/assets/sw.js`, registration in `index.js`, draft saving in editors;; Audit 2026-10-30 (was marked done, part missing): Service worker and offline page exist; draft saving in editors and the copy your edit is saved on this device were not found. | L |
+| Errors | Offline page: "your edit is saved on this device", Retry now, served by a service worker | done | `/-/offline` (`status/offline.tmpl`) from the worker `/-/asc-sw.js`, which keeps its styles and scripts; Retry now; the kept-edit line when `asc-drafts.js` holds a draft. Drafts of the markdown editors are kept on the device, and a form sent offline is held with the note (template in `base/head_navbar.tmpl`) and sent when the connection returns | - |
 
 ## Dashboard
 
