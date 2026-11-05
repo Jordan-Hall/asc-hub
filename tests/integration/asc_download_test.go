@@ -107,6 +107,9 @@ func TestAscDownloadPage(t *testing.T) {
 	assert.Equal(t, 1, doc.doc.Find("#asc-dl-systems").Length())
 	assert.Positive(t, doc.doc.Find("tr.site-dl-row .site-dl-msize").Length())
 	assert.Equal(t, doc.doc.Find("tr.site-dl-row .site-dl-sig").Length(), doc.doc.Find("tr.site-dl-row .site-dl-sig[title='Signature file']").Length())
+	assert.Equal(t, "https://example.org/asc/releases", doc.doc.Find(".site-dl-more a").Last().AttrOr("href", ""), "older releases from the manifest")
+	assert.Equal(t, 1, doc.doc.Find(`[data-asc-dl-outcome="verified"].ds-banner-ok`).Length())
+	assert.Contains(t, doc.doc.Find(`[data-asc-dl-outcome="failed"].ds-banner-err`).Text(), "Do not run it.")
 
 	// the linux visitor gets the linux tab and the install script flow
 	doc = NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/download").SetHeader("User-Agent", uaLinux), http.StatusOK).Body)
