@@ -152,6 +152,7 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 //	GET  .../asc/ops/undo                     the dry run and confirmation of an undo (signed-in writers)
 //	POST .../asc/ops/undo                     undo one operation of the signed-in person (CSRF-checked like every POST)
 //	GET  .../asc/deps                         dependencies: findings, newer versions, settings (signed-in readers)
+//	GET  .../asc/deps/outdated                how many packages have a newer version (JSON, for the summary tile)
 //	POST .../asc/deps/scan                    scan trunk (administrators)
 //	POST .../asc/deps/propose                 preview or create update proposals (administrators)
 //	POST .../asc/deps/findings/{id}/dismiss   dismiss or reopen a finding (administrators)
@@ -159,6 +160,7 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 	m.Group("/asc/deps", func() {
 		m.Get("", repo.AscDeps)
+		m.Get("/outdated", repo.AscDepsOutdated)
 		m.Post("/scan", context.RepoMustNotBeArchived(), repo.AscDepsScan)
 		m.Post("/propose", context.RepoMustNotBeArchived(), repo.AscDepsPropose)
 		m.Post("/findings/{id}/dismiss", context.RepoMustNotBeArchived(), repo.AscDepsDismiss)

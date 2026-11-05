@@ -54,6 +54,7 @@ Template Attributes:
 					<input type="hidden" name="op" value="{{$.AscDeps.Op}}">
 					{{if $.AscDeps.SecurityOnly}}<input type="hidden" name="security" value="1">{{end}}
 					<input type="hidden" name="max_kind" value="{{$.AscDepsMaxKind}}">
+					{{if $.AscDepsPackage}}<input type="hidden" name="ecosystem" value="{{$.AscDepsEcosystem}}"><input type="hidden" name="package" value="{{$.AscDepsPackage}}">{{end}}
 					<div class="rv-sticky">
 						<button class="rv-btn rv-btn-primary" type="submit" data-testid="asc-plan-apply">{{ctx.Locale.Tr "asc_trust.deps.plan_apply"}}</button>
 						<a class="rv-btn rv-btn-secondary" href="{{$.AscDeps.DepsURL}}?view=updates">{{ctx.Locale.Tr "asc_trust.deps.cancel"}}</a>

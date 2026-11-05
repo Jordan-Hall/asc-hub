@@ -25,6 +25,7 @@ import (
 // versions, and the settings of the repository.
 //
 //	GET  /{owner}/{repo}/asc/deps                      views: findings (default), updates, config
+//	GET  /{owner}/{repo}/asc/deps/outdated             the outdated counts of the summary, as JSON
 //	POST /{owner}/{repo}/asc/deps/scan                 scan trunk and record the findings (administrators)
 //	POST /{owner}/{repo}/asc/deps/propose              preview or create the update proposals (administrators)
 //	POST /{owner}/{repo}/asc/deps/findings/{id}/dismiss  dismiss or reopen a finding (administrators)
@@ -70,9 +71,37 @@ type ascDepsPage struct {
 	Config *asctrust.DepsConfigView
 	// Plan is a preview of a proposal.
 	Plan *asctrust.DepPlan
+	// SevBars are the rows of the severity chart of the summary, each bar as a share of the longest one.
+	SevBars []ascDepsBar
+	// Clean is the "no findings" state: open findings asked for without a filter, and none.
+	Clean bool
 
 	Problem     string
 	Unsupported bool
+}
+
+type ascDepsBar struct {
+	Key string
+	N   uint32
+	Pct uint32
+}
+
+// ascDepsBars is the severity chart: every severity with its count, and the length of its bar in percent of the
+// largest count (a count above zero is never drawn shorter than 2%).
+func ascDepsBars(counts []asctrust.DepCount) []ascDepsBar {
+	var top uint32
+	for _, c := range counts {
+		top = max(top, c.N)
+	}
+	bars := make([]ascDepsBar, 0, len(counts))
+	for _, c := range counts {
+		b := ascDepsBar{Key: c.Key, N: c.N}
+		if top > 0 && c.N > 0 {
+			b.Pct = max(2, uint32(uint64(c.N)*100/uint64(top)))
+		}
+		bars = append(bars, b)
+	}
+	return bars
 }
 
 type ascDepsView struct {
@@ -186,6 +215,8 @@ func AscDeps(ctx *context.Context) {
 			return
 		}
 		p.Findings = page
+		p.SevBars = ascDepsBars(page.OpenBySeverity)
+		p.Clean = len(page.Rows) == 0 && !page.NeverScanned && p.State == "" && p.Severity == "" && p.Ecosystem == "" && ctx.FormString("page") == ""
 		cur := p.State
 		if cur == "" {
 			cur = "open"
@@ -222,6 +253,43 @@ func AscDeps(ctx *context.Context) {
 		}
 	}
 	ctx.HTML(http.StatusOK, tplAscDeps)
+}
+
+// AscDepsOutdated serves GET /{owner}/{repo}/asc/deps/outdated: {"outdated", "security", "unknown"}, the numbers of the
+// Outdated tile. Asking the registries takes a while, so the page loads it after it is drawn rather than waiting for it.
+// A failure is {"error"} with the status of the failure and is drawn as "could not check", never as zero.
+func AscDepsOutdated(ctx *context.Context) {
+	repo, name, ok := trustweb.CodeRepo(ctx, false)
+	if !ok {
+		return
+	}
+	trustweb.NoStore(ctx)
+	fail := func(status int, msg string) { ctx.JSON(status, map[string]string{"error": msg}) }
+	if !asctrust.HasFeature(ctx, asctrust.FeatureDeps) {
+		ctx.NotFound("asc deps", nil)
+		return
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		log.Error("asc deps: no connection to asc serve: %v", err)
+		fail(http.StatusBadGateway, ctx.Locale.TrString("asc_trust.err.unavailable"))
+		return
+	}
+	callCtx, release, err := trustweb.ReadCall(ctx, repo)
+	if err != nil {
+		f := trustweb.FailureOf("deps credential", err)
+		fail(f.Status, f.Localized(ctx))
+		return
+	}
+	defer release()
+	up, err := asctrust.LoadDepUpdates(callCtx, conn, name, false)
+	if err != nil {
+		f := trustweb.FailureOf("deps outdated", err)
+		fail(f.Status, f.Localized(ctx))
+		return
+	}
+	o := up.Outdated()
+	ctx.JSON(http.StatusOK, map[string]uint32{"outdated": o.Outdated, "security": o.Security, "unknown": o.Unknown})
 }
 
 // ascDepsFail answers a failed change: a message on the page the person came from, 403 and 404 as the status.
@@ -316,8 +384,14 @@ func AscDepsPropose(ctx *context.Context) {
 		ctx.Error(http.StatusBadRequest)
 		return
 	}
-	q := asctrust.DepProposeQuery{SecurityOnly: ctx.FormBool("security"), MaxKind: ctx.FormString("max_kind"), DryRun: mode == "preview", Op: ctx.FormString("op")}
+	q := asctrust.DepProposeQuery{
+		SecurityOnly: ctx.FormBool("security"), MaxKind: ctx.FormString("max_kind"), DryRun: mode == "preview", Op: ctx.FormString("op"),
+		Ecosystem: ctx.FormString("ecosystem"), Name: ctx.FormString("package"),
+	}
 	back := w.back + "?view=" + depsViewUpdates
+	if q.Name != "" {
+		back = w.back // the fix of one finding was asked from the findings
+	}
 	plan, err := asctrust.ProposeDeps(w.call, w.conn, w.name, q)
 	if err != nil {
 		ascDepsFail(ctx, "deps propose", back, err)
@@ -330,6 +404,7 @@ func AscDepsPropose(ctx *context.Context) {
 		p.Plan, p.SecurityOnly = plan, q.SecurityOnly
 		ctx.Data["AscDeps"] = p
 		ctx.Data["AscDepsMaxKind"] = q.MaxKind
+		ctx.Data["AscDepsEcosystem"], ctx.Data["AscDepsPackage"] = q.Ecosystem, q.Name
 		ctx.HTML(http.StatusOK, tplAscDepsPlan)
 		return
 	}
