@@ -55,7 +55,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Clone popover: asc login and clone, Install asc, Open in IDE, Copy | done | `H:templates/repo/clone_dialog.tmpl` | S |
 | Repo | Git compatibility note collapsed and expanded in the clone sheet | done | `H:templates/repo/clone_asc_tabs.tmpl` | S |
 | Repo | "Switch version" popover that lists shared refs, stacks and tags with labels | needs-hub-backend | `H:web_src/js/components/RepoBranchTagSelector.vue` and `H:templates/repo/branch_dropdown.tmpl` list branches and tags only; add stacks (`Stacks`/open pulls) and a "Shared ref" label | M |
-| Repo | Pull to refresh and sticky Clone / New stack buttons (Mobile-Repo) | ui-only-missing (the Watch, Star and Fork menu is done; pull to refresh remains) | sticky buttons exist (`rp-sticky-m` in `home_dir.tmpl`); pull to refresh is not implemented anywhere in `H:web_src/js` | S |
+| Repo | Pull to refresh and sticky Clone / New stack buttons (Mobile-Repo) | done | sticky buttons `rp-sticky-m` in `home_dir.tmpl`; pull to refresh by `data-asc-pull-refresh` on `.rp-body` and the `ds-ptr` arrow, run by `web_src/js/features/asc-pull-refresh.js` in the installed app | - |
 | Repo | Clone card shown before first clone ("Work on it locally", `asc stack new fix-refund-timeout`) | done | `H:templates/repo/home_cards.tmpl` "Work on it locally" with the clone, create and submit commands to copy, shown to a person who may write code here and has sent no change yet; Hide posts `/asc/clone-card/hide`, which hides it in that browser (`asc_clone_card.go`); `asc_clone_card_test.go` | S |
 
 ## NewRepo
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 169 |
-| partial | 1 |
-| ui-only-missing | 32 |
-| needs-hub-backend | 33 |
-| needs-asc-backend | 11 |
+| done | 215 |
+| partial | 0 |
+| ui-only-missing | 0 |
+| needs-hub-backend | 21 |
+| needs-asc-backend | 10 |
 | needs-both | 17 |
 | total | 263 |
 
