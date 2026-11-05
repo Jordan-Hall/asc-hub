@@ -249,7 +249,7 @@ func TestReleasePlatforms(t *testing.T) {
 func TestReleasesDownloadRail(t *testing.T) {
 	unittest.PrepareTestEnv(t)
 	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
-	for _, name := range []string{"nova-linux-amd64.tar.gz", "SHA256SUMS"} {
+	for _, name := range []string{"nova-linux-amd64.tar.gz", "SHA256SUMS", "nova-linux-arm64;id"} {
 		require.NoError(t, db.Insert(db.DefaultContext, &repo_model.Attachment{UUID: "rail-" + name, RepoID: 1, ReleaseID: 1, Name: name, Size: 2048}))
 	}
 	ctx, resp := contexttest.MockContext(t, "user2/repo1/releases")
@@ -264,6 +264,7 @@ func TestReleasesDownloadRail(t *testing.T) {
 	assert.Contains(t, body, `data-testid="release-platforms"`)
 	assert.Contains(t, body, `<span class="rp-platform">Linux <span class="ds-c-2">x86-64</span></span>`)
 	assert.Contains(t, body, `data-clipboard-text="asc release download v1.1 --asset nova-linux-amd64.tar.gz"`)
+	assert.Contains(t, body, `--asset &#39;nova-linux-arm64;id&#39;"`, "a file name is quoted for the shell")
 	i := strings.Index(body, `data-testid="release-platforms"`)
 	assert.Contains(t, body[i:], `download>SHA256SUMS</a>`, "the other files follow the platform lines")
 }
