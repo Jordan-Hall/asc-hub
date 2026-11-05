@@ -90,7 +90,7 @@ func writeAscRelease(t *testing.T, dir string) {
 	}
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "SHA256SUMS"), []byte("sums"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "SHA256SUMS.minisig"), []byte("sig"), 0o600))
-	manifest := `{"version":"1.4.0","released_at":"2026-10-26","release_notes_url":"https://example.org/asc/releases/1.4.0",` +
+	manifest := `{"version":"1.4.0","released_at":"2026-10-26","release_notes_url":"https://example.org/asc/releases/1.4.0","releases_url":"https://example.org/asc/releases",` +
 		`"files":[` + strings.Join(entries, ",") + `],"checksums":"SHA256SUMS","checksums_signature":"SHA256SUMS.minisig",` +
 		`"minisign_public_key":"RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3",` +
 		`"extensions":{"vscode":"https://marketplace.example/asc","jetbrains":"https://plugins.example/asc"},` +
