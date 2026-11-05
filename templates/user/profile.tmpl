@@ -123,6 +123,14 @@
 							</ul>
 						</section>
 					{{end}}
+					{{if .AscProfileFocus}}
+						<section class="ds-card" aria-labelledby="wk-pfocus-title" data-asc-pf-focus>
+							<div class="ds-card-h"><h2 id="wk-pfocus-title">{{ctx.Locale.Tr "user.asc_profile.focus"}}</h2></div>
+							<ul class="wk-pf-teams">
+								{{range .AscProfileFocus}}<li><a class="ds-chip ds-chip-outline" href="{{.Link}}">{{.Name}}</a></li>{{end}}
+							</ul>
+						</section>
+					{{end}}
 					<p class="ds-callout">
 						{{if eq .SignedUserID .ContextUser.ID}}
 							{{ctx.Locale.Tr "user.asc_profile.visible_self" (print AppSubUrl "/user/settings#keep-activity-private")}}
