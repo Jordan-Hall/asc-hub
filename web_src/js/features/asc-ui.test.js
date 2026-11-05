@@ -97,6 +97,48 @@ test('doc tabs show the panel of the pressed tab and move with the arrow keys', 
   expect(hidden()).toEqual([false, true]);
 });
 
+test('system tabs keep the choice in the browser and open with it next time', () => {
+  const page = `<div data-doc-tabs data-doc-remember="asc-docs-os">
+    <button type="button" data-doc-tab="macos" aria-selected="true"></button>
+    <button type="button" data-doc-tab="linux" aria-selected="false" tabindex="-1"></button>
+    <button type="button" data-doc-tab="windows" aria-selected="false" tabindex="-1"></button></div>
+    <section data-doc-panel="macos"></section><section data-doc-panel="linux" hidden></section><section data-doc-panel="windows" hidden></section>`;
+  const kept = new Map();
+  const storage = {getItem: (k) => kept.get(k) ?? null, setItem: (k, v) => kept.set(k, v)};
+  const hidden = () => Array.from(document.querySelectorAll('section'), (s) => s.hidden);
+  document.body.innerHTML = page;
+  initDocTabs(document, storage);
+  expect(hidden()).toEqual([false, true, true]);
+  expect(kept.size).toBe(0);
+  document.querySelector('[data-doc-tab="windows"]').click();
+  expect(kept.get('asc-docs-os')).toBe('windows');
+
+  document.body.innerHTML = page;
+  initDocTabs(document, storage);
+  expect(hidden()).toEqual([true, true, false]);
+  const windows = document.querySelector('[data-doc-tab="windows"]');
+  expect(windows.getAttribute('aria-selected')).toBe('true');
+  expect(windows.tabIndex).toBe(0);
+  windows.dispatchEvent(new KeyboardEvent('keydown', {key: 'Home'}));
+  expect(hidden()).toEqual([false, true, true]);
+  expect(document.activeElement).toBe(document.querySelector('[data-doc-tab="macos"]'));
+  document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key: 'End'}));
+  expect(kept.get('asc-docs-os')).toBe('windows');
+});
+
+test('a stored choice the page has no tab for, or no storage, leaves the tab the server picked', () => {
+  document.body.innerHTML = `<div data-doc-tabs data-doc-remember="asc-docs-os">
+    <button type="button" data-doc-tab="linux" aria-selected="true"></button>
+    <button type="button" data-doc-tab="windows" aria-selected="false"></button></div>
+    <section data-doc-panel="linux"></section><section data-doc-panel="windows" hidden></section>`;
+  initDocTabs(document, {getItem: () => 'macos', setItem: () => {}});
+  expect(document.querySelector('[data-doc-panel="linux"]').hidden).toBe(false);
+  const throwing = {getItem: () => { throw new Error('denied') }, setItem: () => { throw new Error('denied') }};
+  initDocTabs(document, throwing);
+  document.querySelector('[data-doc-tab="windows"]').click();
+  expect(document.querySelector('[data-doc-panel="windows"]').hidden).toBe(false);
+});
+
 test('stack search and filter hide rows together', () => {
   document.body.innerHTML = `<div data-stack-scope><div data-stack-filter><button type="button" data-stack-show="all" aria-pressed="true"></button>
     <button type="button" data-stack-show="mine" aria-pressed="false"></button></div><input data-stack-search>

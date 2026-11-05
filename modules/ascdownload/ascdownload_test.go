@@ -247,7 +247,9 @@ func TestBuildOffersAndPick(t *testing.T) {
 	require.NotNil(t, o.Checksums)
 	require.NotNil(t, o.ChecksumsSig)
 	assert.Equal(t, "minisign -Vm SHA256SUMS -x SHA256SUMS.minisig -P RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3", o.VerifyCommand)
+	assert.Equal(t, "sha256sum -c --ignore-missing SHA256SUMS", o.CheckCommand)
 	assert.Equal(t, "asc auth login --host https://hub.example.com --prompt", o.ConnectCommand)
+	assert.Equal(t, "asc auth login --host https://hub.example.com", SignInCommand("https://hub.example.com/"))
 }
 
 func TestCommandsQuoteTheBase(t *testing.T) {
