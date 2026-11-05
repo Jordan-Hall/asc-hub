@@ -359,12 +359,12 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsSecrets | Secrets and variables on one page | done (seen on a live hub (ui32): one menu entry with two tabs, Secrets and Variables, each its own list, not one scrolling page; axe clean) | `H:templates/shared/secrets/add_list.tmpl` and `shared/variables/variable_list.tmpl` live on `/settings/actions/secrets` and `/settings/actions/variables` | M |
 | RepoSettingsSecrets | Scope chips per secret (Checks, Agent runs, Releases) and "Agents only receive it when Agent runs is ticked" | needs-both | `Workflows.SetSecret` has name and value only (`A:proto/asc/v1/workflows.proto`); add scopes to the asc secret and to the Forgejo secret model (`H:models/secret`), enforce in agent run env | L |
 | RepoSettingsSecrets | "Updated by Maya Okafor, 12 d ago" | needs-hub-backend | `WorkflowSecret.updated_by` exists in asc; Forgejo secret has created time only; template | S |
-| RepoSettingsSecrets | Update value dialog with name locked; value never shown | ui-only-missing | `H:routers/web/repo/setting/secrets.go`, `add_list.tmpl` | S |
-| RepoSettingsSecrets | Delete confirmation that lists which scopes lose it | ui-only-missing | `add_list.tmpl` confirm | S |
+| RepoSettingsSecrets | Update value dialog with name locked; value never shown | done (the dialog's name is read-only and the server ignores a sent name; an edit needs a new value; TestActionsSecretsEditSecretKeepsItsName, TestActionsSecretsPage) | `H:routers/web/repo/setting/secrets.go`, `add_list.tmpl` | S |
+| RepoSettingsSecrets | Delete confirmation that lists which scopes lose it | done (the confirmation names the secret and says the runs that read it lose it; each scope is named once secrets have scopes, row "Scope chips") | `add_list.tmpl` confirm | S |
 | RepoSettingsSecrets | Name rule (capitals, digits, underscores) validation in dialog | done | Forgejo secret name validation | S |
 | RepoSettingsSecrets | Variables table with "Available to" scope and updated-by | needs-both | same scope work as secrets | M |
 | RepoSettingsSecrets | Secret-redaction in change logs ("the log redacts it") | needs-asc-backend | run log redaction in `A:crates/asc-ci` job log append | M |
-| RepoSettingsSecrets | Saved toast and empty state | ui-only-missing | `add_list.tmpl` | S |
+| RepoSettingsSecrets | Saved toast and empty state | done (the saved flash is the settings toast (layout_head data-ds-flash-toast); empty state with key icon, text and Add secret) | `add_list.tmpl` | S |
 
 ## RepoSettingsAI
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 160 |
+| done | 163 |
 | partial | 1 |
-| ui-only-missing | 41 |
+| ui-only-missing | 38 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -441,7 +441,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsPolicy | 3 | 6 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
 | RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
-| RepoSettingsSecrets | 1 | 4 | 1 | 1 | 2 |
+| RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |
 | RepoSettingsAI | 2 | 1 | 0 | 1 | 2 |
 | RepoSettingsStorage | 2 | 1 | 0 | 2 | 3 |
 | Mobile-Repo | 0 | 0 | 1 | 0 | 0 |
