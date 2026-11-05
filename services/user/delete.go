@@ -129,6 +129,7 @@ func deleteUser(ctx context.Context, u *user_model.User, purge bool) (err error)
 		&user_model.AscPushSubscription{UserID: u.ID},
 		&user_model.AscProfilePin{UserID: u.ID},
 		&user_model.AscNotifyLog{UserID: u.ID},
+		&user_model.AscTermsAcceptance{UserID: u.ID},
 		&actions_model.ActionRunnerToken{OwnerID: optional.Some(u.ID)},
 		&auth_model.AuthorizationToken{UID: u.ID},
 		&auth_model.AuthorizedIntegration{UserID: u.ID},

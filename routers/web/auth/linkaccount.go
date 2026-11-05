@@ -42,6 +42,7 @@ func LinkAccount(ctx *context.Context) {
 	// use this to set the right link into the signIn and signUp templates in the link_account template
 	ctx.Data["SignInLink"] = setting.AppSubURL + "/user/link_account_signin"
 	ctx.Data["SignUpLink"] = setting.AppSubURL + "/user/link_account_signup"
+	ascTermsData(ctx)
 
 	gothUser := ctx.Session.Get("linkAccountGothUser")
 	if gothUser == nil {
@@ -117,6 +118,7 @@ func LinkAccountPostSignIn(ctx *context.Context) {
 	// use this to set the right link into the signIn and signUp templates in the link_account template
 	ctx.Data["SignInLink"] = setting.AppSubURL + "/user/link_account_signin"
 	ctx.Data["SignUpLink"] = setting.AppSubURL + "/user/link_account_signup"
+	ascTermsData(ctx)
 
 	gothUser := ctx.Session.Get("linkAccountGothUser")
 	if gothUser == nil {
@@ -198,6 +200,7 @@ func LinkAccountPostRegister(ctx *context.Context) {
 	// use this to set the right link into the signIn and signUp templates in the link_account template
 	ctx.Data["SignInLink"] = setting.AppSubURL + "/user/link_account_signin"
 	ctx.Data["SignUpLink"] = setting.AppSubURL + "/user/link_account_signup"
+	ascTermsData(ctx)
 
 	gothUserInterface := ctx.Session.Get("linkAccountGothUser")
 	if gothUserInterface == nil {
@@ -270,10 +273,15 @@ func LinkAccountPostRegister(ctx *context.Context) {
 		LoginName:   gothUser.UserID,
 	}
 
+	if ascTermsRefused(ctx, tplLinkAccount, form) {
+		return
+	}
+
 	if !createAndHandleCreatedUser(ctx, tplLinkAccount, form, u, nil, &gothUser, false) {
 		// error already handled
 		return
 	}
+	ascTermsRecord(ctx, u)
 
 	if err := syncGroupsToTeams(ctx, authSource, &gothUser, u); err != nil {
 		ctx.ServerError("SyncGroupsToTeams", err)

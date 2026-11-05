@@ -458,6 +458,7 @@ func SignUp(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("sign_up")
 
 	ctx.Data["SignUpLink"] = setting.AppSubURL + "/user/sign_up"
+	ascTermsData(ctx)
 
 	oauth2Providers, err := oauth2.GetOAuth2Providers(ctx, optional.Some(true))
 	if err != nil {
@@ -491,6 +492,7 @@ func SignUpPost(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("sign_up")
 
 	ctx.Data["SignUpLink"] = setting.AppSubURL + "/user/sign_up"
+	ascTermsData(ctx)
 
 	oauth2Providers, err := oauth2.GetOAuth2Providers(ctx, optional.Some(true))
 	if err != nil {
@@ -548,12 +550,17 @@ func SignUpPost(ctx *context.Context) {
 		return
 	}
 
+	if ascTermsRefused(ctx, tplSignUp, form) {
+		return
+	}
+
 	u := newSignUpUser(form)
 
 	if !createAndHandleCreatedUser(ctx, tplSignUp, form, u, nil, nil, false) {
 		// error already handled
 		return
 	}
+	ascTermsRecord(ctx, u)
 
 	ctx.Flash.Success(ctx.Tr("auth.sign_up_successful"))
 	// A new account lands on the first run page, unless the sign up was started from a link that

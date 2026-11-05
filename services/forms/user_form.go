@@ -99,6 +99,8 @@ type RegisterForm struct {
 	Email    string `binding:"Required;MaxSize(254)"`
 	Password string `binding:"MaxSize(255)"`
 	Retype   string
+	// Agree is the box "I agree to the Terms and the Privacy policy", required when ASC is on
+	Agree bool
 }
 
 // Validate validates the fields
