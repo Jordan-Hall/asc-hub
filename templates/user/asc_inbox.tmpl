@@ -55,6 +55,19 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 				{{end}}
 			</div>
 
+			{{with $p.Undo}}
+				<div class="ds-toast wk-undo" role="status" data-asc-undo>
+					{{svg "dsi-check" 16}}
+					<div class="ds-toast-text"><b>{{ctx.Locale.Tr "user.asc_inbox.done_toast"}}</b><span class="ds-sub">{{.Title}}</span></div>
+					<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="pull" value="{{.PullID}}">
+						<input type="hidden" name="tab" value="{{$p.Tab}}">
+						<input type="hidden" name="do" value="restore">
+						<button class="ds-toast-action" type="submit">{{ctx.Locale.Tr "user.asc_inbox.undo"}}</button>
+					</form>
+				</div>
+			{{end}}
 			{{if $p.Rows}}
 				<div data-bulk>
 				<div class="wk-bulkbar" data-bulk-bar hidden>
@@ -81,16 +94,34 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 									</div>
 								{{end}}
 								{{if .Entry}}
-									<div class="wk-irow-acts">
-										<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Entry.Link}}">{{ctx.Locale.Tr "user.asc_inbox.open_review"}}</a>
+									<div class="wk-irow-acts" data-asc-row-acts>
+										<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Entry.Link}}" aria-label="{{ctx.Locale.Tr "user.asc_inbox.row_review_for" .Dash.Title}}">{{ctx.Locale.Tr "user.asc_inbox.row_review"}}</a>
+										<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state" data-asc-done-form>
+											{{$.CsrfTokenHtml}}
+											<input type="hidden" name="pull" value="{{.Entry.PullID}}">
+											<input type="hidden" name="tab" value="{{$p.Tab}}">
+											{{if .Entry.DoneAt.IsZero}}
+												<input type="hidden" name="do" value="done">
+												<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "user.asc_inbox.row_done_for" .Dash.Title}}">{{ctx.Locale.Tr "user.asc_inbox.mark_done"}}</button>
+											{{else}}
+												<input type="hidden" name="do" value="restore">
+												<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "user.asc_inbox.row_restore_for" .Dash.Title}}">{{ctx.Locale.Tr "user.asc_inbox.restore"}}</button>
+											{{end}}
+										</form>
+										{{if .Entry.DoneAt.IsZero}}
 										<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
 											{{$.CsrfTokenHtml}}
 											<input type="hidden" name="pull" value="{{.Entry.PullID}}">
 											<input type="hidden" name="tab" value="{{$p.Tab}}">
 											<input type="hidden" name="do" value="snooze">
 											<input type="hidden" name="for" value="4h">
-											<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "user.asc_inbox.snooze"}}</button>
+											<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "user.asc_inbox.row_snooze_for" .Dash.Title}}">{{ctx.Locale.Tr "user.asc_inbox.snooze"}}</button>
 										</form>
+										{{end}}
+									</div>
+								{{else if and .Agent (eq .Agent.State.Slug "waiting")}}
+									<div class="wk-irow-acts" data-asc-row-acts>
+										<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Agent.Link}}" aria-label="{{ctx.Locale.Tr "user.asc_inbox.row_answer_for" .Dash.Title}}">{{ctx.Locale.Tr "user.asc_inbox.row_answer"}}</a>
 									</div>
 								{{end}}
 							</div>
@@ -119,7 +150,7 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 			{{end}}
 			<p class="wk-hintbar">
 				{{if gt $p.Total (len $p.Rows)}}{{ctx.Locale.Tr "asc_work.inbox_showing" (len $p.Rows) $p.Total}}{{else}}{{ctx.Locale.Tr "user.asc_inbox.count" $p.Total}}{{end}}
-				<span class="ds-hide-md"><kbd class="ds-kbd">j</kbd> <kbd class="ds-kbd">k</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_move"}} &middot; <kbd class="ds-kbd">s</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_snooze"}} &middot; <kbd class="ds-kbd">p</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_pin"}}</span>
+				<span class="ds-hide-md"><kbd class="ds-kbd">j</kbd> <kbd class="ds-kbd">k</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_move"}} &middot; <kbd class="ds-kbd">e</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_done"}} &middot; <kbd class="ds-kbd">s</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_snooze"}} &middot; <kbd class="ds-kbd">p</kbd> {{ctx.Locale.Tr "user.asc_inbox.key_pin"}}</span>
 			</p>
 			{{if .AscInboxSnoozed}}<p class="wk-hintbar">{{ctx.Locale.Tr "user.asc_inbox.snoozed" .AscInboxSnoozed}}</p>{{end}}
 		</section>
@@ -195,6 +226,13 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 						{{end}}
 					</div>
 				</details>
+				<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="pull" value="{{.Row.Entry.PullID}}">
+					<input type="hidden" name="tab" value="{{.Return}}">
+					<input type="hidden" name="do" value="{{if .Done}}restore{{else}}done{{end}}">
+					<button class="ds-btn ds-btn-secondary" type="submit" data-asc-done>{{if .Done}}{{ctx.Locale.Tr "user.asc_inbox.restore"}}{{else}}{{ctx.Locale.Tr "user.asc_inbox.mark_done"}} <kbd class="ds-kbd ds-hide-md">e</kbd>{{end}}</button>
+				</form>
 				<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
 					{{$.CsrfTokenHtml}}
 					<input type="hidden" name="pull" value="{{.Row.Entry.PullID}}">

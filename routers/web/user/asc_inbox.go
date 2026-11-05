@@ -5,6 +5,7 @@ package user
 
 import (
 	gocontext "context"
+	"slices"
 	"time"
 
 	issues_model "forgejo.org/models/issues"
@@ -58,21 +59,28 @@ func ascInboxApproved(ctx gocontext.Context, pr *issues_model.PullRequest) bool 
 }
 
 // ascInboxGroup applies the marks of the doer to entries and groups them in section order. A snoozed entry
-// is left out and counted; inside a section pinned entries come first, then the most recently updated.
-func ascInboxGroup(entries []*AscInboxEntry, states map[int64]*issues_model.AscInboxState, now time.Time) ([]AscInboxGroup, int) {
-	arranged := ascinbox.Arrange(entries, states, now, ascinbox.Options{IncludeSnoozed: true})
-	var out []AscInboxGroup
-	snoozed := 0
+// is left out and counted; inside a section pinned entries come first, then the most recently updated. An entry
+// the doer marked done is left out of its section and returned in done, the latest first, while it is within
+// issues_model.AscInboxDoneKeep.
+func ascInboxGroup(entries []*AscInboxEntry, states map[int64]*issues_model.AscInboxState, now time.Time) (groups []AscInboxGroup, snoozed int, done []*AscInboxEntry) {
+	arranged := ascinbox.Arrange(entries, states, now, ascinbox.Options{IncludeSnoozed: true, IncludeDone: true})
 	for _, e := range arranged {
+		if !e.DoneAt.IsZero() {
+			if now.Sub(e.DoneAt) < issues_model.AscInboxDoneKeep {
+				done = append(done, e)
+			}
+			continue
+		}
 		if !e.SnoozedUntil.IsZero() {
 			snoozed++
 			continue
 		}
-		if n := len(out); n > 0 && out[n-1].Section == e.Section {
-			out[n-1].Entries = append(out[n-1].Entries, e)
+		if n := len(groups); n > 0 && groups[n-1].Section == e.Section {
+			groups[n-1].Entries = append(groups[n-1].Entries, e)
 			continue
 		}
-		out = append(out, AscInboxGroup{Section: e.Section, Entries: []*AscInboxEntry{e}})
+		groups = append(groups, AscInboxGroup{Section: e.Section, Entries: []*AscInboxEntry{e}})
 	}
-	return out, snoozed
+	slices.SortStableFunc(done, func(a, b *AscInboxEntry) int { return b.DoneAt.Compare(a.DoneAt) })
+	return groups, snoozed, done
 }
