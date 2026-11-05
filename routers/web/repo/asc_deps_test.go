@@ -49,8 +49,8 @@ func TestAscDepsFindingsView(t *testing.T) {
 		return &ascv1.ListDepFindingsResponse{
 			Findings:      []*ascv1.DepFinding{depsFinding(1, ascv1.DepSeverity_DEP_SEVERITY_HIGH, ascv1.DepFindingState_DEP_FINDING_STATE_OPEN)},
 			NextPageToken: "n_2", CountsByState: map[string]uint32{"open": 4, "dismissed": 2}, LastScan: 1_700_000_000, LastLookup: ascv1.DepLookupStatus_DEP_LOOKUP_STATUS_PARTIAL,
-			OpenBySeverity:      map[string]uint32{"critical": 0, "high": 3, "moderate": 1, "low": 0, "unknown": 0},
-			PackagesChecked:     214, PackagesUnknown: 7,
+			OpenBySeverity:  map[string]uint32{"critical": 0, "high": 3, "moderate": 1, "low": 0, "unknown": 0},
+			PackagesChecked: 214, PackagesUnknown: 7,
 			PackagesByEcosystem: map[string]uint32{"npm": 200, "crates.io": 14},
 		}, nil
 	}
