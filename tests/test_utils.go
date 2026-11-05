@@ -36,6 +36,7 @@ import (
 	"forgejo.org/modules/testlogger"
 	"forgejo.org/modules/util"
 	"forgejo.org/routers"
+	auth_method "forgejo.org/services/auth/method"
 
 	"github.com/stretchr/testify/require"
 
@@ -396,6 +397,8 @@ func PrepareTestEnvWithPackageData(t testing.TB, skip ...int) func() {
 
 	// load database fixtures
 	require.NoError(t, unittest.LoadFixtures())
+	// the counts of wrong passwords (the wait after them) belong to the fixtures just replaced
+	auth_method.ResetLoginWaits()
 
 	// do not add more Prepare* functions here, only call necessary ones in the related test functions
 	PrepareGitRepoDirectory(t)
