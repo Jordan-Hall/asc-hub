@@ -653,6 +653,7 @@ func registerRoutes(m *web.Route) {
 	m.Post("/-/asc/rpc/{service}/{method}", ignSignIn, repo.AscRPCProxy)
 	m.Get("/download", ignSignIn, Download)
 	m.Get("/-/about", ignSignIn, AscAbout)
+	m.Get("/-/password/range/{prefix}", ignSignIn, auth.PasswordRange)
 	m.Get("/-/docs", ignSignIn, AscDocs)
 	m.Get("/-/docs/{slug}", ignSignIn, AscDocsPage)
 	m.Post("/-/docs/{slug}/feedback", ignSignIn, AscDocsFeedbackPost)

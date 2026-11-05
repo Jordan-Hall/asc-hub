@@ -82,26 +82,12 @@ func (c *Client) CheckPassword(pw string, padding bool) (int, error) {
 	enc := hex.EncodeToString(sha.Sum(nil))
 	prefix, suffix := enc[:5], enc[5:]
 
-	req, err := newRequest(c.ctx, http.MethodGet, fmt.Sprintf("%s%s", passwordURL, prefix), nil)
-	if err != nil {
-		return -1, nil
-	}
-	if padding {
-		req.Header.Add("Add-Padding", "true")
-	}
-
-	resp, err := c.http.Do(req)
+	body, err := c.fetchRange(prefix, padding)
 	if err != nil {
 		return -1, err
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return -1, err
-	}
-	defer resp.Body.Close()
-
-	for pair := range strings.SplitSeq(string(body), "\n") {
+	for pair := range strings.SplitSeq(body, "\n") {
 		parts := strings.Split(pair, ":")
 		if len(parts) != 2 {
 			continue
@@ -115,4 +101,61 @@ func (c *Client) CheckPassword(pw string, padding bool) (int, error) {
 		}
 	}
 	return 0, nil
+}
+
+// ErrBadPrefix is returned by Range for a prefix that is not five hexadecimal digits.
+var ErrBadPrefix = errors.New("the prefix must be five hexadecimal digits")
+
+// Range returns the suffixes (35 upper case hexadecimal digits) of the breached passwords whose SHA-1 starts with
+// prefix, so a caller can check a password without sending it: only the first five digits of its hash leave. The
+// padding entries (count 0) are left out.
+func (c *Client) Range(prefix string) ([]string, error) {
+	if len(prefix) != 5 {
+		return nil, ErrBadPrefix
+	}
+	if _, err := hex.DecodeString(prefix + "0"); err != nil {
+		return nil, ErrBadPrefix
+	}
+	body, err := c.fetchRange(strings.ToUpper(prefix), true)
+	if err != nil {
+		return nil, err
+	}
+	var out []string
+	for pair := range strings.SplitSeq(body, "\n") {
+		suffix, count, ok := strings.Cut(strings.TrimSpace(pair), ":")
+		if !ok || len(suffix) != 35 {
+			continue
+		}
+		if n, err := strconv.ParseInt(count, 10, 64); err != nil || n <= 0 {
+			continue
+		}
+		out = append(out, strings.ToUpper(suffix))
+	}
+	return out, nil
+}
+
+// fetchRange asks the range API for prefix.
+func (c *Client) fetchRange(prefix string, padding bool) (string, error) {
+	req, err := newRequest(c.ctx, http.MethodGet, fmt.Sprintf("%s%s", passwordURL, prefix), nil)
+	if err != nil {
+		return "", err
+	}
+	if padding {
+		req.Header.Add("Add-Padding", "true")
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("the range API answered %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }

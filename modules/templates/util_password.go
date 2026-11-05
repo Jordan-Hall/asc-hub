@@ -15,12 +15,15 @@ import (
 type PasswordPolicy struct {
 	MinLength string // as text, for a data attribute
 	Classes   string // required character classes, comma separated: lower, upper, digit, spec; empty when none are required
+	CheckPwn  bool   // [security] PASSWORD_CHECK_PWN: the meter also checks, live, that the password is not in a known breach
 }
 
 var passwordClassOrder = []string{"lower", "upper", "digit", "spec"}
 
 func passwordPolicy() PasswordPolicy {
-	return passwordPolicyOf(setting.MinPasswordLength, setting.PasswordComplexity)
+	policy := passwordPolicyOf(setting.MinPasswordLength, setting.PasswordComplexity)
+	policy.CheckPwn = setting.PasswordCheckPwn
+	return policy
 }
 
 func passwordPolicyOf(minLength int, complexity []string) PasswordPolicy {
