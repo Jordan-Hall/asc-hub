@@ -459,7 +459,7 @@ func ascInboxSnoozeUntil(choice string, now time.Time) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-// AscInboxStatePost serves `POST /-/asc/inbox/state`: pin, unpin, snooze, wake, mark done or restore one pull request of the
+// AscInboxStatePost serves `POST /-/asc/inbox/state`: pin, unpin, snooze, wake, mark done, restore or unwatch one pull request of the
 // signed-in person's inbox. The marks are the doer's own; the pull request must be one the inbox loader lists
 // for the doer, which re-checks read access, so a pull request id of someone else's repository changes nothing.
 func AscInboxStatePost(ctx *context.Context) {
@@ -501,6 +501,23 @@ func AscInboxStatePost(ctx *context.Context) {
 		}
 		if done {
 			back += ascInboxSep(back) + "undo=" + strconv.FormatInt(pullID, 10)
+		}
+		ctx.Redirect(back)
+		return
+	case "unwatch":
+		// no more notifications for the pull request, and off the inbox (in Done, where Restore brings it back)
+		pr, err := issues_model.GetPullRequestByID(ctx, pullID)
+		if err != nil {
+			ctx.ServerError("GetPullRequestByID", err)
+			return
+		}
+		if err := issues_model.CreateOrUpdateIssueWatch(ctx, ctx.Doer.ID, pr.IssueID, false); err != nil {
+			ctx.ServerError("CreateOrUpdateIssueWatch", err)
+			return
+		}
+		if _, err := issues_model.SetAscInboxDone(ctx, ctx.Doer.ID, pullID, true, now); err != nil {
+			ctx.ServerError("SetAscInboxDone", err)
+			return
 		}
 		ctx.Redirect(back)
 		return
