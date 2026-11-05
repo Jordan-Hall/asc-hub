@@ -1181,11 +1181,52 @@
   justify-content: flex-start;
 }
 
-.ins .ins-wait {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  height: 8px;
+.ins .ins-running {
+  max-width: 560px;
+  margin: 0 auto 24px;
+}
+
+.ins .ins-run-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ins .ins-run-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-2);
+}
+
+.ins .ins-run-list li.is-done,
+.ins .ins-run-list li.is-cur {
+  color: var(--text);
+}
+
+.ins .ins-run-ic {
+  display: none;
+  flex: none;
+}
+
+.ins .ins-run-done {
+  color: var(--ok);
+}
+
+.ins .ins-run-now {
+  color: var(--link);
+}
+
+.ins .ins-run-todo {
+  color: var(--text-3);
+}
+
+.ins .ins-run-list li.is-done .ins-run-done,
+.ins .ins-run-list li.is-cur .ins-run-now,
+.ins .ins-run-list li:not(.is-done, .is-cur) .ins-run-todo {
+  display: inline-flex;
 }
 
 .st-reqid {

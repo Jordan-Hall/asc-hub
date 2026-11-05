@@ -87,6 +87,7 @@ function initPreInstall(page) {
   const progress = initProgress(form);
   initDbTest(form, progress);
   initPhoneStepper(form);
+  initRunning(form);
   progress.update();
 }
 
@@ -414,14 +415,64 @@ function initPhoneStepper(form) {
   apply();
 }
 
-// initPostInstall shows the waiting state until the new hub answers, then the ready state.
+function runState(i, done) {
+  if (i < done) return 'done';
+  return i === done ? 'now' : 'todo';
+}
+
+// setRun shows the install progress run (templates/install_progress.tmpl) with its first `done` steps done and the
+// next one running.
+export function setRun(run, done) {
+  const steps = Array.from(run.querySelectorAll('[data-ins-run-step]'));
+  const total = steps.length;
+  const label = run.getAttribute('data-label') ?? '';
+  run.querySelector('[data-ins-run-label]').textContent = label.replace('{n}', String(Math.min(done + 1, total))).replace('{total}', String(total));
+  const bar = run.querySelector('[data-ins-run-bar]');
+  bar.max = total * 2;
+  bar.value = Math.min(done * 2 + 1, total * 2);
+  for (const [i, li] of steps.entries()) {
+    const state = runState(i, done);
+    li.classList.toggle('is-done', state === 'done');
+    li.classList.toggle('is-cur', state === 'now');
+    li.querySelector('[data-ins-run-state]').textContent = run.getAttribute(`data-t-${state}`) ?? '';
+  }
+}
+
+const statusEvery = 500;
+
+// initRunning swaps the form for the install progress once the browser sends it, and moves the progress on with the
+// answers of the status route until the hub answers the form.
+function initRunning(form) {
+  const card = form.querySelector('[data-ins-running]');
+  if (!card) return;
+  const run = card.querySelector('[data-ins-run]');
+  form.addEventListener('submit', (e) => {
+    if (e.defaultPrevented) return;
+    hideElem(form.querySelectorAll('.ins-split'));
+    card.hidden = false;
+    setRun(run, 0);
+    card.querySelector('h2')?.focus();
+    const url = card.getAttribute('data-url');
+    setInterval(async () => {
+      try {
+        const resp = await GET(url);
+        if (resp.ok) setRun(run, Number((await resp.json()).done) || 0);
+      } catch {}
+    }, statusEvery);
+  });
+}
+
+// initPostInstall shows the waiting state (the install progress, at the merge queue) until the new hub answers, then
+// the ready state.
 function initPostInstall(page) {
   const card = page.querySelector('[data-ins-poll]');
   if (!card) return;
   const wait = card.querySelector('[data-ins-wait]');
   const ready = card.querySelector('[data-ins-ready]');
+  const run = wait.querySelector('[data-ins-run]');
   wait.hidden = false;
   ready.hidden = true;
+  if (run) setRun(run, Number(run.getAttribute('data-done')));
 
   const targetUrl = card.getAttribute('data-ins-poll');
   let tid = setInterval(async () => {
@@ -430,6 +481,7 @@ function initPostInstall(page) {
       if (tid && resp.status === 200) {
         clearInterval(tid);
         tid = null;
+        if (run) setRun(run, Number(run.querySelectorAll('[data-ins-run-step]').length));
         wait.hidden = true;
         ready.hidden = false;
         ready.querySelector('h1')?.focus();

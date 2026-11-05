@@ -21,6 +21,7 @@ func Routes() *web.Route {
 	base := web.NewRoute()
 	base.Use(common.ProtocolMiddlewares()...)
 	base.Methods("GET, HEAD", "/assets/*", public.FileHandlerFunc())
+	base.Methods("GET", "/-/install/status", installStatus)
 
 	r := web.NewRoute()
 	r.Use(common.Sessioner(), Contexter())
