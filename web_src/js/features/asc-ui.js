@@ -63,12 +63,23 @@ export function initAscUi() {
   initDocTabs();
 }
 
-// The README / AGENTS.md / License tabs of the repository home: the pressed tab shows its panel and hides the others.
-// Arrow keys move between the tabs.
-export function initDocTabs(root = document) {
+// The tab a list with data-doc-remember had last; nothing when the browser keeps no storage.
+function rememberedTab(key, storage) {
+  try {
+    return storage?.getItem(key) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+// The README / AGENTS.md / License tabs of the repository home, and the system tabs of the install page: the pressed
+// tab shows its panel and hides the others. Arrow keys move between the tabs, Home and End go to the first and the
+// last. A list with data-doc-remember="<key>" keeps the choice in the browser and opens with it next time.
+export function initDocTabs(root = document, storage = globalThis.localStorage) {
   for (const list of root.querySelectorAll('[data-doc-tabs]')) {
     const tabs = Array.from(list.querySelectorAll('[data-doc-tab]'));
-    const select = (tab) => {
+    const key = list.getAttribute('data-doc-remember');
+    const select = (tab, keep = true) => {
       for (const t of tabs) {
         const on = t === tab;
         t.setAttribute('aria-selected', String(on));
@@ -76,7 +87,17 @@ export function initDocTabs(root = document) {
         const panel = root.querySelector(`[data-doc-panel="${t.getAttribute('data-doc-tab')}"]`);
         if (panel) panel.hidden = !on;
       }
+      if (!key || !keep) return;
+      try {
+        storage?.setItem(key, tab.getAttribute('data-doc-tab'));
+      } catch {
+        // a browser without storage still switches the tab
+      }
     };
+    if (key) {
+      const kept = tabs.find((t) => t.getAttribute('data-doc-tab') === rememberedTab(key, storage));
+      if (kept) select(kept, false);
+    }
     for (const go of root.querySelectorAll('[data-doc-goto]')) {
       go.addEventListener('click', () => {
         const target = tabs.find((t) => t.getAttribute('data-doc-tab') === go.getAttribute('data-doc-goto'));
@@ -89,9 +110,9 @@ export function initDocTabs(root = document) {
     for (const [i, tab] of tabs.entries()) {
       tab.addEventListener('click', () => select(tab));
       tab.addEventListener('keydown', (e) => {
-        const step = {ArrowRight: 1, ArrowLeft: -1}[e.key];
-        if (!step) return;
-        const next = tabs[(i + step + tabs.length) % tabs.length];
+        const to = {ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1}[e.key];
+        if (to === undefined) return;
+        const next = tabs[(to + tabs.length) % tabs.length];
         select(next);
         next.focus();
         e.preventDefault();

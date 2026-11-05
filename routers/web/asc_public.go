@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"forgejo.org/models/asymkey"
@@ -131,31 +132,62 @@ type AscDocsTOCItem struct {
 var docsHeading = regexp.MustCompile(`<h[23] id="([^"]+)"[^>]*>(.*?)</h[23]>`)
 var docsTag = regexp.MustCompile(`<[^>]*>`)
 
-// AscDocsPage serves GET /-/docs/{slug}: one page of the documentation.
-func AscDocsPage(ctx *context.Context) {
-	page, md, ok := ascdocs.Get(ctx.PathParamRaw("slug"))
-	if !ok {
-		ctx.NotFound("docs page", nil)
-		return
-	}
+// docsInstallSteps marks where the install page shows the steps of this hub's release.
+const docsInstallSteps = "<!-- asc-install-steps -->"
+
+// renderDocs renders markdown of the documentation, wraps its tables so that a wide one scrolls and a keyboard can
+// reach it, and lists its headings for "On this page".
+func renderDocs(ctx *context.Context, md string) (template.HTML, []AscDocsTOCItem, error) {
 	rendered, err := markdown.RenderString(&markup.RenderContext{Ctx: ctx, Type: markdown.MarkupName, Links: markup.Links{Base: setting.AppSubURL + "/-/docs"}}, md)
 	if err != nil {
-		ctx.ServerError("RenderString", err)
-		return
+		return "", nil, err
 	}
 	html := string(rendered)
 	var toc []AscDocsTOCItem
 	for _, m := range docsHeading.FindAllStringSubmatch(html, 40) {
 		toc = append(toc, AscDocsTOCItem{ID: m[1], Text: htmlpkg.UnescapeString(docsTag.ReplaceAllString(m[2], ""))})
 	}
+	wrapped := strings.ReplaceAll(html, "<table", `<div class="site-table" role="region" tabindex="0" aria-label="`+htmlpkg.EscapeString(ctx.Locale.TrString("asc_site.docs_table"))+`"><table`)
+	wrapped = strings.ReplaceAll(wrapped, "</table>", "</table></div>")
+	return template.HTML(wrapped), toc, nil
+}
+
+// AscDocsPage serves GET /-/docs/{slug}: one page of the documentation. The install page also shows the install,
+// verify and connect steps of the release this hub offers, with the commands of each system.
+func AscDocsPage(ctx *context.Context) {
+	page, md, ok := ascdocs.Get(ctx.PathParamRaw("slug"))
+	if !ok {
+		ctx.NotFound("docs page", nil)
+		return
+	}
+	// the page title is the heading of the article; the source's own first heading would be a second one
+	if first, rest, found := strings.Cut(md, "\n"); found && strings.HasPrefix(first, "# ") {
+		md = rest
+	}
+	before, after, steps := strings.Cut(md, docsInstallSteps)
+	steps = steps && page.Slug == "install"
+	if !steps {
+		before, after = md, ""
+	}
+	html, toc, err := renderDocs(ctx, before)
+	if err != nil {
+		ctx.ServerError("RenderString", err)
+		return
+	}
+	if steps {
+		toc = append(toc, ascDocsInstall(ctx)...)
+		var rest []AscDocsTOCItem
+		if ctx.Data["DocsHTMLAfter"], rest, err = renderDocs(ctx, after); err != nil {
+			ctx.ServerError("RenderString", err)
+			return
+		}
+		toc = append(toc, rest...)
+	}
 	ctx.Data["Title"] = page.Title + " - " + ctx.Locale.TrString("asc_site.docs_title")
 	ctx.Data["PageIsAscDocs"] = true
 	ctx.Data["DocsPage"] = page
 	ctx.Data["DocsEditURL"] = ascdocs.EditURL(page)
-	// a table that is wider than the page scrolls, and a keyboard can reach it
-	wrapped := strings.ReplaceAll(html, "<table", `<div class="site-table" role="region" tabindex="0" aria-label="`+htmlpkg.EscapeString(ctx.Locale.TrString("asc_site.docs_table"))+`"><table`)
-	wrapped = strings.ReplaceAll(wrapped, "</table>", "</table></div>")
-	ctx.Data["DocsHTML"] = template.HTML(wrapped)
+	ctx.Data["DocsHTML"] = html
 	ctx.Data["DocsTOC"] = toc
 	pages := ascdocs.Pages()
 	ctx.Data["DocsPages"] = pages
@@ -169,6 +201,33 @@ func AscDocsPage(ctx *context.Context) {
 		break
 	}
 	ctx.HTML(http.StatusOK, "asc/docs_page")
+}
+
+// ascDocsInstall puts the steps of the install page into the page data: the release of the download page, or how to
+// build asc from source when the hub offers none. It returns their entries of "On this page".
+func ascDocsInstall(ctx *context.Context) []AscDocsTOCItem {
+	ctx.Data["DocsInstall"] = true
+	ctx.Data["AscSignInCommand"] = ascdownload.SignInCommand(setting.AppURL)
+	first := "asc_site.docs_install_step_install"
+	if !prepareAscDownload(ctx) {
+		ctx.Data["AscNoRelease"] = true
+		first = "asc_site.docs_install_step_source"
+	}
+	toc := []AscDocsTOCItem{{ID: "install-step-1", Text: "1. " + ctx.Locale.TrString(first)}}
+	n := 2
+	if view, ok := ctx.Data["AscDownload"].(*ascDownloadView); ok {
+		for _, os := range view.Offers.OSes {
+			if len(os.PackageCommands) > 0 {
+				ctx.Data["AscHasPackages"] = true
+			}
+		}
+		if view.Offers.VerifyCommand != "" {
+			toc = append(toc, AscDocsTOCItem{ID: "install-step-verify", Text: "2. " + ctx.Locale.TrString("asc_site.docs_install_step_verify")})
+			n = 3
+		}
+	}
+	ctx.Data["DocsConnectStep"] = n
+	return append(toc, AscDocsTOCItem{ID: "install-step-connect", Text: strconv.Itoa(n) + ". " + ctx.Locale.TrString("asc_site.docs_install_step_connect")})
 }
 
 // ascServiceWorker is the script that shows the notifications of the hub and opens the page a click is for. It reads

@@ -1,0 +1,6 @@
+{{/* One terminal of the install page: .Commands are shown each behind a prompt that is not copied, and Copy copies
+them one per line. .Title names the terminal ("Terminal" without one); .Shell "powershell" shows the PowerShell prompt. */}}
+<div class="ds-term site-install-term">
+	<div class="ds-term-hd"><span>{{or .Title (ctx.Locale.Tr "asc_download.terminal")}}</span><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{StringUtils.Join .Commands "\n"}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+	<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{or .Title (ctx.Locale.Tr "asc_download.terminal")}}">{{range .Commands}}<div class="site-install-line"><span class="ds-pr" aria-hidden="true">{{if eq $.Shell "powershell"}}PS&gt;{{else}}${{end}}</span> <span>{{.}}</span></div>{{end}}</div>
+</div>

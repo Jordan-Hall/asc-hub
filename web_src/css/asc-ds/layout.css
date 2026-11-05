@@ -2164,6 +2164,61 @@ body.ds-lock {
   }
 }
 
+/* the steps of the install page: a numbered rail, the system tabs and a terminal for each command */
+.site-install {
+  display: grid;
+  gap: 28px;
+  margin: 24px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-install-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.site-install-n {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--on-fill);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.site-install-b {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.site-install-b > h2 {
+  margin: 2px 0 0;
+}
+
+.site-install-b > p {
+  margin: 0;
+}
+
+.site-install-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.site-install-panel[hidden] {
+  display: none;
+}
+
+.site-install-line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* documentation on a phone: "On this page" is one row that stays under the header, and the next guide is one tap at the end */
 .site-toc-m {
   display: none;

@@ -1,6 +1,7 @@
 {
   "pages": [
     {"slug": "overview", "file": "README.md", "title": "Overview", "summary": "What ASC Hub is, how the pieces fit and where to begin.", "section": "Get started"},
+    {"slug": "install", "file": "INSTALL.md", "title": "Install ASC", "summary": "Install, verify and connect asc to this hub in five minutes.", "section": "Get started"},
     {"slug": "stacks-and-operations", "file": "STACK-OPERATIONS.md", "title": "Stacks and operations", "summary": "How a feature becomes small reviewable changes, and how to undo, restack and recover.", "section": "Work"},
     {"slug": "agents", "file": "AGENTS-UI.md", "title": "Run an agent safely", "summary": "Scope, budget, checkpoints and audit for every run.", "section": "Work"},
     {"slug": "workflows", "file": "WORKFLOWS.md", "title": "Write a workflow", "summary": "Triggers, steps, limits and the switch of a repository workflow.", "section": "Work"},

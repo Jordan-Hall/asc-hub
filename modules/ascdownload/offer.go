@@ -77,11 +77,13 @@ type OSOffer struct {
 
 // Offers is the page model of a release.
 type Offers struct {
-	Manifest       *Manifest
-	OSes           []OSOffer
-	Checksums      *FileView
-	ChecksumsSig   *FileView
-	VerifyCommand  string
+	Manifest      *Manifest
+	OSes          []OSOffer
+	Checksums     *FileView
+	ChecksumsSig  *FileView
+	VerifyCommand string
+	// CheckCommand checks the downloaded files against the checksums file, once its signature is verified.
+	CheckCommand   string
 	ConnectCommand string
 }
 
@@ -139,6 +141,7 @@ func BuildOffers(m *Manifest, base, hubURL string) *Offers {
 	if m.Checksums != "" {
 		f := FileView{File: File{Name: m.Checksums}, URL: FileURL(base, m.Checksums)}
 		o.Checksums = &f
+		o.CheckCommand = "sha256sum -c --ignore-missing " + shQuote(m.Checksums)
 		if m.ChecksumsSignature != "" {
 			s := FileView{File: File{Name: m.ChecksumsSignature}, URL: FileURL(base, m.ChecksumsSignature)}
 			o.ChecksumsSig = &s
@@ -190,6 +193,12 @@ func psQuote(s string) string {
 // root URL, never a fixed host.
 func ConnectCommand(hubURL string) string {
 	return "asc auth login --host " + shQuote(strings.TrimRight(hubURL, "/")) + " --prompt"
+}
+
+// SignInCommand is the command that signs the asc command line in to this hub through the browser: it opens the
+// hub to approve the device and keeps the token it gets in the system keychain.
+func SignInCommand(hubURL string) string {
+	return "asc auth login --host " + shQuote(strings.TrimRight(hubURL, "/"))
 }
 
 func packageCommands(osName string, m *Manifest) []Command {
