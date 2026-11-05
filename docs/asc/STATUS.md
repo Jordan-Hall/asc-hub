@@ -684,7 +684,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Shell (ASC Hub shell: header, menus, palette, footer)
 
-Area shell/settings. Rows 23: done 16, partial 1, missing 6. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
+Area shell/settings. Rows 23: done 17, partial 1, missing 5. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
 
 Board copy not found word for word in locale, templates or scripts: Four links, one clear way in; Search always one key away, Inbox always one click away; Account, create and notifications; New changeset; Mark all read; approved Backoff with jitter.
 
@@ -698,7 +698,7 @@ Board copy not found word for word in locale, templates or scripts: Four links, 
 | "N agents running" pill in the header (cyan dot, links to Agents) and in the mobile top bar | missing (hub+asc) | absent: no agents-running text in templates/base, locale, asc-keys.js, routers/web/web.go | Not in any template or locale. Hub: GET /-/asc/agents/count beside AscInboxCount, pill in head_navbar.tmpl (desktop and .ds-topba... |
 | Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo... | done | routers/web/user/asc_bell.go, templates/user/notification/asc_bell.tmpl, web_src/js/features/asc-bell.js | - |
 | Account menu: identity, profile, inbox with count, agents, settings, Appearance (Light, Dark,... | done | templates/base/head_navbar.tmpl:97 | the where-cell cites #ds-account, not in the tree (renamed or stale text); behaviour taken from the gap file |
-| Theme and density persist per person: localStorage, then the account setting | missing (hub) | absent: no density or theme column in models/user or routers/web/user/setting | Only localStorage (asc-theme-mode, asc-density) in head_style.tmpl. Add a user setting (models/user/setting.go), save on change (... |
+| Theme and density persist per person: localStorage, then the account setting | done | routers/web/user/asc_prefs.go, models/user/asc_prefs.go, templates/base/head_style.tmpl, web_src/js/features/asc-prefs.js | - |
 | Create menu: New repository, Import a project, New organization, New changeset, Start an agent... | missing (UI) | logged as not built (not re-probed) | New repository, Import, New organization and "Start an agent run" are in #ds-create (head_navbar.tmpl). Open: "New changeset" (ne... |
 | Menus close on Esc or outside click, return focus to trigger, fade and rise, reduced motion | done | web_src/js/features/ds-shell.js (file) | - |
 | Command palette opens from /, Ctrl K, header search, mobile search; Esc, arrows, Enter | done | web_src/js/features/ds-shell.js:611 | - |
