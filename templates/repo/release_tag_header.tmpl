@@ -15,7 +15,7 @@
 			</div>
 		{{end}}
 		{{if and (not .PageIsTagList) .CanCreateRelease}}
-			<a class="ds-btn ds-btn-primary" href="{{$.RepoLink}}/releases/new">{{ctx.Locale.Tr "repo.release.new_release"}}</a>
+			<a class="ds-btn ds-btn-primary" href="{{$.RepoLink}}/releases/new" data-rel-new-open>{{ctx.Locale.Tr "repo.release.new_release"}}</a>
 		{{end}}
 	</div>
 </div>

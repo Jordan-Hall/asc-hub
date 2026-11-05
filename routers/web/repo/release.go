@@ -210,6 +210,9 @@ func Releases(ctx *context.Context) {
 
 	writeAccess := ctx.Repo.CanWrite(unit.TypeReleases)
 	ctx.Data["CanCreateRelease"] = writeAccess && !ctx.Repo.Repository.IsArchived
+	if writeAccess && !ctx.Repo.Repository.IsArchived && !ctx.Repo.Repository.IsEmpty {
+		releaseNewDialog(ctx)
+	}
 
 	findOpts := &repo_model.FindReleasesOptions{
 		ListOptions: listOptions,
@@ -971,6 +974,15 @@ func releaseChannelCounts(ctx *context.Context, repoID int64, keyword string, ca
 		out = append(out, ReleaseChannelCount{Key: ch, Count: n})
 	}
 	return out
+}
+
+// releaseNewDialog sets what the New release dialog of the list needs: the branch the tag is cut from, the upload of the files
+// and whether asc can propose the tag and write the notes. The dialog posts to /releases/new like the full page.
+func releaseNewDialog(ctx *context.Context) {
+	ctx.Data["ReleaseNewDialog"] = true
+	ctx.Data["ReleaseNewTarget"] = ctx.Repo.Repository.DefaultBranch
+	ctx.Data["IsAttachmentEnabled"] = setting.Attachment.Enabled
+	upload.AddUploadContext(ctx, "release")
 }
 
 // releasePlatform is one download of a release for an operating system, named from the file.

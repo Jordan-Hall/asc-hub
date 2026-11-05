@@ -152,7 +152,7 @@
 				<h2 class="rp-rail-title" id="rp-next-h">{{ctx.Locale.TrN .Release.NumCommitsBehind "asc_rp.rel_since_one" "asc_rp.rel_since_other" .Release.NumCommitsBehind .Release.TagName}}</h2>
 				{{if and $.CanCreateRelease ($.Permission.CanRead $.UnitTypeCode)}}
 				<div class="ds-row ds-row-wrap">
-					<a class="ds-btn ds-btn-primary" href="{{$.RepoLink}}/releases/new">{{ctx.Locale.Tr "repo.release.new_release"}}</a>
+					<a class="ds-btn ds-btn-primary" href="{{$.RepoLink}}/releases/new" data-rel-new-open>{{ctx.Locale.Tr "repo.release.new_release"}}</a>
 					<a class="ds-btn ds-btn-secondary" href="{{$.RepoLink}}/compare/{{.Release.TagName | PathEscapeSegments}}...{{.Release.TargetBehind | PathEscapeSegments}}">{{ctx.Locale.Tr "asc_rp.rel_view"}}</a>
 				</div>
 				{{end}}
@@ -197,4 +197,5 @@
 	</div>
 </div>
 
+{{if .ReleaseNewDialog}}{{template "repo/release/new_dialog" .}}{{end}}
 {{template "base/footer" .}}

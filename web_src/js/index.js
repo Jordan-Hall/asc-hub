@@ -83,6 +83,7 @@ import {initAscSearchFilters} from './features/asc-search-filters.js';
 import {initAscBlameSheet} from './features/asc-blame-sheet.js';
 import {initAscHistorySheet} from './features/asc-history-sheet.js';
 import {initAscSheets} from './features/asc-sheet.js';
+import {initAscReleaseNew} from './features/asc-release-new.js';
 import {initAscPageLoading} from './features/asc-page-loading.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
@@ -269,6 +270,7 @@ onDomReady(() => {
   initAscBlameSheet();
   initAscHistorySheet();
   initAscSheets();
+  initAscReleaseNew();
   initAscPageLoading();
   initAscDensity();
   initAscBoard();

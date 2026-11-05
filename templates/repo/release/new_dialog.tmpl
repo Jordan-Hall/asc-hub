@@ -1,0 +1,43 @@
+{{/* The New release dialog of the list (board Releases; a bottom sheet on a phone, board Mobile-Releases). The tag field is filled
+with the tag asc proposes and "Write from the N landed changes" writes the notes (GET releases/asc_draft); both stay hidden when
+asc has nothing to propose. It posts to releases/new, which answers with the full page when the input is refused. Without script
+the New release buttons open that page. */}}
+<dialog class="rp-sheet rp-rel-dialog" id="rp-rel-new" aria-labelledby="rp-rel-new-h" data-rel-new data-draft-url="{{.RepoLink}}/releases/asc_draft" data-testid="release-new-dialog">
+	<div class="rp-sheet-grip" aria-hidden="true"></div>
+	<h2 class="rp-sheet-h" id="rp-rel-new-h">{{ctx.Locale.Tr "repo.release.new_release"}}</h2>
+	<form class="ds-form ds-stack-16" action="{{.RepoLink}}/releases/new" method="post">
+		{{.CsrfTokenHtml}}
+		<input type="hidden" name="tag_target" value="{{.ReleaseNewTarget}}">
+		<div class="ds-field">
+			<label class="ds-label" for="rp-rel-new-tag">{{ctx.Locale.Tr "repo.release.tag_name"}}</label>
+			<input class="ds-input ds-mono" id="rp-rel-new-tag" name="tag_name" placeholder="v1.0.0" required maxlength="255" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="rp-rel-new-tag-hint">
+			<p class="ds-hint" id="rp-rel-new-tag-hint" data-rel-new-proposed data-text="{{ctx.Locale.Tr "asc_rp.rel_proposed" "{tag}" "{latest}"}}" data-text-first="{{ctx.Locale.Tr "asc_rp.rel_proposed_first" "{tag}"}}" hidden></p>
+		</div>
+		<div class="ds-field">
+			<label class="ds-label" for="rp-rel-new-title">{{ctx.Locale.Tr "repo.release.title"}}</label>
+			<input class="ds-input" id="rp-rel-new-title" name="title" required maxlength="255">
+		</div>
+		<div class="ds-field">
+			<div class="rp-rel-new-notes-h">
+				<label class="ds-label" for="rp-rel-new-notes">{{ctx.Locale.Tr "repo.release.message"}}</label>
+				<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-rel-new-write data-label-one="{{ctx.Locale.Tr "asc_rp.rel_write_one"}}" data-label-other="{{ctx.Locale.Tr "asc_rp.rel_write_other"}}" hidden></button>
+			</div>
+			<textarea class="ds-textarea" id="rp-rel-new-notes" name="content" rows="8" aria-describedby="rp-rel-new-notes-state"></textarea>
+			<p class="ds-hint" id="rp-rel-new-notes-state" data-rel-new-state data-failed="{{ctx.Locale.Tr "asc_rp.rel_write_failed"}}" data-truncated="{{ctx.Locale.Tr "asc_rp.rel_write_truncated"}}" role="status"></p>
+		</div>
+		{{if .IsAttachmentEnabled}}
+		<div class="ds-field">
+			<span class="ds-label">{{ctx.Locale.Tr "repo.release.downloads"}}</span>
+			{{template "repo/upload" .}}
+		</div>
+		{{end}}
+		<div class="ds-check"><input type="checkbox" id="rp-rel-new-pre" name="prerelease"><label for="rp-rel-new-pre">{{ctx.Locale.Tr "repo.release.prerelease_desc"}}</label></div>
+		<div class="rp-rel-new-acts">
+			<a class="ds-btn ds-btn-ghost rp-sheet-act" href="{{.RepoLink}}/releases/new">{{ctx.Locale.Tr "asc_rp.rel_all_options"}}</a>
+			<span class="ds-grow"></span>
+			<button type="button" class="ds-btn ds-btn-secondary rp-sheet-act" data-rel-new-close>{{ctx.Locale.Tr "cancel"}}</button>
+			<button class="ds-btn ds-btn-secondary rp-sheet-act" name="draft" value="1">{{ctx.Locale.Tr "repo.release.save_draft"}}</button>
+			<button class="ds-btn ds-btn-primary rp-sheet-act">{{ctx.Locale.Tr "repo.release.publish"}}</button>
+		</div>
+	</form>
+</dialog>

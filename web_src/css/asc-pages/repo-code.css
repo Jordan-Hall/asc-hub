@@ -778,3 +778,57 @@ tr[data-heat="4"] > td.lines-commit {
     display: none;
   }
 }
+
+/* the New release dialog of the release list: a bottom sheet on a phone, a centred dialog from 1024 px */
+.rp-rel-new-notes-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rp-rel-new-acts {
+  display: grid;
+  gap: 8px;
+}
+
+.rp-rel-new-acts .ds-grow {
+  display: none;
+}
+
+.rp-rel-dialog .dropzone {
+  min-height: 96px;
+}
+
+@media (min-width: 1024px) {
+  .rp-sheet.rp-rel-dialog[open] {
+    display: block;
+    inset: 0;
+    width: min(640px, calc(100vw - 48px));
+    max-height: calc(100vh - 96px);
+    margin: auto;
+    padding: 24px;
+    border-bottom: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .rp-rel-dialog .rp-sheet-grip {
+    display: none;
+  }
+
+  .rp-rel-new-acts {
+    display: flex;
+    align-items: center;
+  }
+
+  .rp-rel-new-acts .ds-grow {
+    display: block;
+    flex: 1;
+  }
+
+  .rp-rel-dialog .rp-sheet-act {
+    width: auto;
+    min-height: 0;
+  }
+}

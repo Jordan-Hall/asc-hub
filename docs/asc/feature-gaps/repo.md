@@ -206,9 +206,9 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Releases | "Download the latest" with `asc release download v2.18.0` and per-platform line | done (2026-11-05: rail lists Linux/macOS/Windows files with arch, size and a copyable `asc release download TAG --asset NAME`; other files below) | right rail in `list.tmpl`; the `asc release` CLI command must exist (check `A:crates/asc/src/cli`) | S |
 | Releases | Release health: cadence, rollbacks | needs-hub-backend | derive from release dates; rollbacks need a data source | M |
 | Releases | Get notified: Watch releases, Atom feed | done | watch menu has releases, `.rss` link in header; Atom naming differs | S |
-| Releases | New release dialog: proposes next tag, "Write from the N landed changes", assets drop zone, pre-release, Save draft, Publish | ui-only-missing | `H:templates/repo/release/new.tmpl` is a full page (no dialog, no generated notes, no tag proposal); Audit 2026-10-30: the data for it exists (GET /releases/asc_draft: proposed tag, notes written from the landed changes); the dialog itself is not built | L |
+| Releases | New release dialog: proposes next tag, "Write from the N landed changes", assets drop zone, pre-release, Save draft, Publish | done (2026-11-05: `release/new_dialog.tmpl` + `asc-release-new.js`; fills the proposed tag from `releases/asc_draft`, appends the drafted notes, dropzone, pre-release, Save draft, Publish; posts to `/releases/new`; no script opens the full page) | `H:templates/repo/release/new.tmpl` is a full page (no dialog, no generated notes, no tag proposal); Audit 2026-10-30: the data for it exists (GET /releases/asc_draft: proposed tag, notes written from the landed changes); the dialog itself is not built | L |
 | Releases | States: no releases (shows `asc release create v1.0.0`), loading, storage error with Retry | needs-asc-backend | the command does not exist in the CLI (see above); `list.tmpl` empty state has no command, loading skeleton or storage-error banner | S |
-| Releases | Mobile: new release as bottom sheet, 44 px downloads | ui-only-missing | `new.tmpl` | M |
+| Releases | Mobile: new release as bottom sheet, 44 px downloads | done (2026-11-05: the dialog is an `rp-sheet` below 1024 px with 44 px actions; rail downloads and copy buttons are 44 px targets) | `new.tmpl` | M |
 
 ## Dependencies
 

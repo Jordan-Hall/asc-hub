@@ -258,6 +258,7 @@ func TestReleasesDownloadRail(t *testing.T) {
 	contexttest.LoadRepo(t, ctx, 1)
 	contexttest.LoadGitRepo(t, ctx)
 	defer ctx.Repo.GitRepo.Close()
+	ctx.Data["RepoLink"] = ctx.Repo.RepoLink
 	Releases(ctx)
 	body := resp.Body.String()
 	require.Equal(t, 200, resp.Code, body)
@@ -267,4 +268,24 @@ func TestReleasesDownloadRail(t *testing.T) {
 	assert.Contains(t, body, `--asset &#39;nova-linux-arm64;id&#39;"`, "a file name is quoted for the shell")
 	i := strings.Index(body, `data-testid="release-platforms"`)
 	assert.Contains(t, body[i:], `download>SHA256SUMS</a>`, "the other files follow the platform lines")
+
+	// The New release dialog: opened by the buttons, posting to the full page's handler from the default branch.
+	assert.Contains(t, body, `data-testid="release-new-dialog"`)
+	assert.Contains(t, body, `data-draft-url="/user2/repo1/releases/asc_draft"`)
+	assert.Contains(t, body, `<form class="ds-form ds-stack-16" action="/user2/repo1/releases/new" method="post">`)
+	assert.Contains(t, body, `<input type="hidden" name="tag_target" value="master">`)
+	assert.Contains(t, body, `class="ui dropzone"`)
+	assert.Contains(t, body, `name="draft" value="1"`)
+	assert.Contains(t, body, `href="/user2/repo1/releases/new" data-rel-new-open>`)
+
+	reader, resp := contexttest.MockContext(t, "user2/repo1/releases")
+	reader.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, reader, 4)
+	contexttest.LoadRepo(t, reader, 1)
+	contexttest.LoadGitRepo(t, reader)
+	defer reader.Repo.GitRepo.Close()
+	reader.Data["RepoLink"] = reader.Repo.RepoLink
+	Releases(reader)
+	require.Equal(t, 200, resp.Code)
+	assert.NotContains(t, resp.Body.String(), "release-new-dialog", "a reader gets no dialog")
 }
