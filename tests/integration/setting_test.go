@@ -286,7 +286,9 @@ func TestOrgSettingsReadOnlyForMembers(t *testing.T) {
 	doc.AssertElement(t, "form fieldset.wk-fieldset-plain[disabled]", true)
 	doc.AssertElement(t, "form[action$='/avatar']", false)
 	doc.AssertElement(t, ".ds-settings-nav a[href$='/settings/hooks']", false)
-	doc.AssertElement(t, "#settings-btn", true)
+	// the head of the organization page links a member to the read-only settings
+	home := NewHTMLParser(t, member.MakeRequest(t, NewRequest(t, "GET", "/org3"), http.StatusOK).Body)
+	home.AssertElement(t, "#settings-btn", true)
 
 	member.MakeRequest(t, NewRequestWithValues(t, "POST", "/org/org3/settings", map[string]string{
 		"name": "org3",
