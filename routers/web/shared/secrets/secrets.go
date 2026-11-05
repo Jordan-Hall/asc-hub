@@ -53,10 +53,12 @@ func EditSecretPost(ctx *context.Context, ownerID, repoID, id int64, redirectURL
 		return
 	}
 
-	secret.Name = form.Name
-	if form.Data != "" {
-		secret.SetData(util.ReserveLineBreakForTextarea(form.Data))
+	// The name is locked (board RepoSettingsSecrets, "Update value"): an edit replaces the value only.
+	if form.Data == "" {
+		ctx.JSONError(ctx.Tr("actions.secrets.mutation.failure_message", secret.Name))
+		return
 	}
+	secret.SetData(util.ReserveLineBreakForTextarea(form.Data))
 
 	err = secret_model.UpdateSecret(ctx, secret)
 	if err != nil {

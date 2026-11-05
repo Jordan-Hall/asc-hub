@@ -217,7 +217,8 @@ func TestActionsSecretsEditSecret(t *testing.T) {
 	}
 }
 
-func TestActionsSecretsEditSecretWithoutChangingItsValue(t *testing.T) {
+// An edit replaces the value only: the name is locked, and an edit without a value is refused.
+func TestActionsSecretsEditSecretKeepsItsName(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 
 	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
@@ -267,26 +268,33 @@ func TestActionsSecretsEditSecretWithoutChangingItsValue(t *testing.T) {
 			secret := unittest.AssertExistsAndLoadBean(t, &secret_model.Secret{OwnerID: testCase.ownerID, RepoID: testCase.repoID, Name: "TEST_SECRET"})
 
 			req = NewRequestWithValues(t, "POST", fmt.Sprintf("%s/%d/edit", testCase.url, secret.ID), map[string]string{
-				"name": "changed_secret",
+				"name": "TEST_SECRET",
 				"data": "",
+			})
+			sess.MakeRequest(t, req, http.StatusBadRequest)
+
+			req = NewRequestWithValues(t, "POST", fmt.Sprintf("%s/%d/edit", testCase.url, secret.ID), map[string]string{
+				"name": "changed_secret",
+				"data": "new value",
 			})
 			sess.MakeRequest(t, req, http.StatusOK)
 
 			flashCookie = sess.GetCookie(app_context.CookieNameFlash)
 			assert.NotNil(t, flashCookie)
-			assert.Equal(t, "success%3DThe%2Bsecret%2B%2522CHANGED_SECRET%2522%2Bhas%2Bbeen%2Bupdated.", flashCookie.Value)
+			assert.Equal(t, "success%3DThe%2Bsecret%2B%2522TEST_SECRET%2522%2Bhas%2Bbeen%2Bupdated.", flashCookie.Value)
 
 			updatedSecret := unittest.AssertExistsAndLoadBean(t, &secret_model.Secret{ID: secret.ID})
 			decryptedValue, err := updatedSecret.GetDecryptedData()
 			require.NoError(t, err)
 
-			assert.Equal(t, "CHANGED_SECRET", updatedSecret.Name)
-			assert.Equal(t, "   \n\tSecrët dåtä\\   \n", decryptedValue)
+			assert.Equal(t, "TEST_SECRET", updatedSecret.Name)
+			assert.Equal(t, "new value", decryptedValue)
 		})
 	}
 }
 
-func TestActionsSecretsEditSecretRejectsInvalidName(t *testing.T) {
+// A name sent with an edit, even one the rules refuse, leaves the locked name as it is.
+func TestActionsSecretsEditSecretIgnoresAnInvalidName(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 
 	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
@@ -337,9 +345,10 @@ func TestActionsSecretsEditSecretRejectsInvalidName(t *testing.T) {
 
 			req = NewRequestWithValues(t, "POST", fmt.Sprintf("%s/%d/edit", testCase.url, secret.ID), map[string]string{
 				"name": "FORGEJO_IS_INVALID",
-				"data": "",
+				"data": "other value",
 			})
-			sess.MakeRequest(t, req, http.StatusBadRequest)
+			sess.MakeRequest(t, req, http.StatusOK)
+			assert.Equal(t, "TEST_SECRET", unittest.AssertExistsAndLoadBean(t, &secret_model.Secret{ID: secret.ID}).Name)
 		})
 	}
 }
@@ -403,4 +412,27 @@ func TestActionsSecretsRemoveSecret(t *testing.T) {
 			unittest.AssertNotExistsBean(t, secret)
 		})
 	}
+}
+
+// The page with no secrets shows the empty state with its Add button; with one, the delete confirmation names it and
+// the update dialog locks the name.
+func TestActionsSecretsPage(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	repo1 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1, OwnerID: user2.ID})
+	sess := loginUser(t, user2.Name)
+	url := "/" + repo1.FullName() + "/settings/actions/secrets"
+
+	doc := NewHTMLParser(t, sess.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
+	doc.AssertElement(t, `[data-testid="secrets-empty"] button.show-modal[data-modal="#add-secret-modal"]`, true)
+
+	sess.MakeRequest(t, NewRequestWithValues(t, "POST", url, map[string]string{"name": "DEPLOY_TOKEN", "data": "v"}), http.StatusOK)
+	doc = NewHTMLParser(t, sess.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
+	doc.AssertElement(t, `[data-testid="secrets-empty"]`, false)
+	confirm, ok := doc.Find(`.link-action[data-modal-confirm]`).Attr("data-modal-confirm")
+	assert.True(t, ok)
+	assert.Contains(t, confirm, "DEPLOY_TOKEN")
+	doc.AssertElement(t, `#dialog-secret-name[readonly]`, true)
+	doc.AssertElement(t, `#dialog-secret-data[required]`, true)
 }
