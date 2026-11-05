@@ -35,6 +35,13 @@ func TwoFactor(ctx *context.Context) {
 		ctx.ServerError("UserSignIn", errors.New("not in 2FA session"))
 		return
 	}
+	// a person with a security key can switch to it ("Use a security key instead")
+	hasKey, err := auth.HasWebAuthnRegistrationsByUID(ctx, ctx.Session.Get("twofaUid").(int64))
+	if err != nil {
+		ctx.ServerError("HasWebAuthnRegistrationsByUID", err)
+		return
+	}
+	ctx.Data["HasSecurityKey"] = hasKey
 
 	ctx.HTML(http.StatusOK, tplTwofa)
 }

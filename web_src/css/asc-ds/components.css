@@ -2683,6 +2683,37 @@ a.ds-stat:hover {
   text-underline-offset: 3px;
 }
 
+/* "Try another way" on the security key screen: a disclosure with the other ways to finish signing in */
+.ds-auth-other summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--link);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ds-auth-other summary::-webkit-details-marker {
+  display: none;
+}
+
+.ds-auth-other ul {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-auth-other li a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 /* a link that stands alone in its line is a target of its own */
 .ds-auth-alt > a:only-child {
   display: inline-flex;
