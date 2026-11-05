@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 112 |
-| ui-only-missing | 20 |
+| done | 113 |
+| ui-only-missing | 19 |
 | needs-hub-backend | 38 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 14, M 48, L 21.
+Open rows by size: S 13, M 48, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -135,7 +135,7 @@ Open rows by size: S 14, M 48, L 21.
 | Download | States: No release yet (build from source, admin note), system not detected | done | `download.tmpl` | - |
 | Download | Loading releases skeleton | ui-only-missing | Page is server rendered; only needed if offers load client side | S |
 | Download | "Signature check failed" and "verified" banners | ui-only-missing | Board shows guidance copy, not a live check (a browser cannot verify minisign without a library). Decide: explainer card, or a WASM minisign check of a chosen file (M) | S |
-| Mobile-Download | Sticky bottom bar "Download for your system"; files as cards | ui-only-missing | `download.tmpl`, `asc-ds/touch.css` | S |
+| Mobile-Download | Sticky bottom bar "Download for your system"; files as cards | done | `download.tmpl` `[data-asc-dl-sticky]` (Download for the system, More); under 640 px each file row is a card with kind and size, hash with Copy and a signature icon, Download (`site.css`) | - |
 
 ## Explore: repositories
 
