@@ -121,6 +121,36 @@ func TestLoadPolicySummaryReadsOnlyTheSource(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestLoadAgentScope(t *testing.T) {
+	f, c := startFake(t)
+	source := func(text string, agents *ascv1.PolicyAgents, parseErr string) {
+		f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+			return &ascv1.GetPolicySourceResponse{Present: true, Text: []byte(text), Parsed: &ascv1.GetPolicyResponse{Agents: agents, Error: parseErr}}, nil
+		}
+	}
+
+	source("[agents]\ndefault_scope = [\"src/**\", \"tests/**\"]\n", &ascv1.PolicyAgents{DefaultScope: []string{"src/**", "tests/**"}}, "")
+	scope, err := LoadAgentScope(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.Equal(t, AgentScope{Paths: "src/ and tests/"}, scope)
+
+	source("[agents]\nenabled = false\n", &ascv1.PolicyAgents{}, "")
+	scope, err = LoadAgentScope(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.Equal(t, AgentScope{Off: true}, scope)
+
+	source("[agents\n", &ascv1.PolicyAgents{DefaultScope: []string{"src/**"}}, "line 1: expected ]")
+	scope, err = LoadAgentScope(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.Equal(t, AgentScope{}, scope, "a policy that cannot be used limits nothing on this page")
+
+	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {
+		return nil, status.Error(codes.Unavailable, "down")
+	}
+	_, err = LoadAgentScope(userCtx(t, "t"), c, "acme/payments")
+	require.Error(t, err)
+}
+
 func TestLoadPolicyPageFailsWithoutTheSource(t *testing.T) {
 	f, c := startFake(t)
 	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) {

@@ -101,6 +101,42 @@ func LoadPolicySummary(ctx context.Context, conn grpc.ClientConnInterface, repoN
 	return sum, nil
 }
 
+// AgentScope is what the policy of a repository lets its agents do, for the agent rows of the access page: the
+// [agents] default scope said the way a person says it ("src/ and tests/"), and whether agents are switched off.
+type AgentScope struct {
+	Paths string
+	Off   bool
+}
+
+// LoadAgentScope reads the policy source of a repository and says what it lets agents write. A policy that is
+// missing, cannot be used or sets neither gives the zero AgentScope: nothing limits the agents beyond their role.
+func LoadAgentScope(ctx context.Context, conn grpc.ClientConnInterface, repoName string) (AgentScope, error) {
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
+	src, err := ascv1.NewPolicyClient(conn).GetSource(cctx, &ascv1.GetPolicySourceRequest{Repo: RepoRef(repoName)})
+	if err != nil {
+		return AgentScope{}, err
+	}
+	if len(src.GetText()) > MaxPolicyBytes {
+		return AgentScope{}, fmt.Errorf("%w: policy text", ErrBadAnswer)
+	}
+	if !src.GetPresent() || src.GetParsed().GetError() != "" {
+		return AgentScope{}, nil
+	}
+	var scope AgentScope
+	if enabled, ok := TomlBool(string(src.GetText()), "agents", "enabled"); ok && !enabled {
+		scope.Off = true
+	}
+	globs := make([]string, 0, len(src.GetParsed().GetAgents().GetDefaultScope()))
+	for _, g := range src.GetParsed().GetAgents().GetDefaultScope() {
+		if g = CleanText(g, MaxSubjectLen); g != "" {
+			globs = append(globs, g)
+		}
+	}
+	scope.Paths = joinWords(displayGlobs(globs))
+	return scope, nil
+}
+
 // QuarantineAllowed says whether the policy of the repository allows a failing check to be quarantined
 // ([ci] allow_quarantine = true). It fails closed: a policy that is missing, cannot be read or cannot be used is "no".
 func QuarantineAllowed(ctx context.Context, conn grpc.ClientConnInterface, repoName string) bool {
