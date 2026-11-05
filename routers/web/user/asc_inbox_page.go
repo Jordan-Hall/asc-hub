@@ -122,6 +122,7 @@ type AscInboxPage struct {
 	NextURL  string // the first row that is not selected, for the phone's "open next" button
 	Return   string
 	Explicit bool // the person picked a row (the address names a listed pull request): a phone then shows its pane instead of the list
+	DayOne   bool // the list is empty and the person has no repository yet
 }
 
 // ascInboxDay names the day of t for the headings of the list: today, yesterday or the date.
@@ -418,6 +419,7 @@ func AscInbox(ctx *context.Context) {
 		ctx.ServerError("ascInboxBuild", err)
 		return
 	}
+	page.DayOne = len(page.Rows) == 0 && !ascDashHasRepo(ctx, ctx.Doer)
 	ctx.Data["AscInbox"] = page
 	ctx.Data["AscInboxSnoozed"] = page.Snoozed
 	ctx.HTML(http.StatusOK, tplAscInbox)

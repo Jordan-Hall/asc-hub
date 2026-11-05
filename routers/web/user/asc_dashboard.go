@@ -367,6 +367,23 @@ func ascDashRepos(ctx gocontext.Context, doer *user_model.User) []AscDashRepo {
 	return out
 }
 
+// ascDashHasRepo reports whether the person owns or works on at least one repository that is not archived.
+func ascDashHasRepo(ctx gocontext.Context, doer *user_model.User) bool {
+	_, n, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
+		ListOptions: db.ListOptions{Page: 1, PageSize: 1},
+		Actor:       doer,
+		OwnerID:     doer.ID,
+		Private:     true,
+		Collaborate: optional.None[bool](),
+		Archived:    optional.Some(false),
+	})
+	if err != nil {
+		log.Error("asc dashboard: repositories of user %d: %v", doer.ID, err)
+		return true
+	}
+	return n > 0
+}
+
 // ascDashTeams lists the teams the person is in, with their organisation.
 func ascDashTeams(ctx gocontext.Context, doer *user_model.User) []AscDashTeam {
 	teams, err := organization.GetUserTeams(ctx, doer.ID)

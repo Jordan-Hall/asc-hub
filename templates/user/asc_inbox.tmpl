@@ -102,6 +102,13 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 					{{end}}
 				</ul>
 				</div>
+			{{else if $p.DayOne}}
+				<div class="ds-empty wk-empty-in" data-asc-inbox-dayone>
+					<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-inbox" 32}}</span>
+					<h3>{{ctx.Locale.Tr "asc_work.inbox_dayone_title"}}</h3>
+					<p>{{ctx.Locale.Tr "asc_work.inbox_dayone_text"}}</p>
+					<div class="ds-empty-acts"><a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a></div>
+				</div>
 			{{else}}
 				<div class="ds-empty wk-empty-in">
 					<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-inbox" 32}}</span>
