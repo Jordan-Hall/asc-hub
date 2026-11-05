@@ -1,5 +1,5 @@
-// Keyboard help of the signed-in app pages (dashboard, inbox): j and k move through a list of rows, s opens
-// the snooze menu, p pins, on a diff v marks the file you are at as viewed (j and k go from file to file), a, r and c
+// Keyboard help of the signed-in app pages (dashboard, inbox): j and k move through a list of rows, e marks the
+// selected item done, s opens the snooze menu, p pins, on a diff v marks the file you are at as viewed (j and k go from file to file), a, r and c
 // open the review panel at its approve button, its request-changes button or its comment field (none of them sends
 // anything: Enter on the button does), n goes to the next change of the stack, "g" then "i" goes to the inbox, and a select that carries data-asc-autosubmit sends
 // its form when it changes. Every key is ignored while a field has the focus or a modifier key is held, and
@@ -7,6 +7,7 @@
 
 import {openOverlay} from './ds-shell.js';
 import {shortcutsEnabled} from './ds-prefs.js';
+import {GET} from '../modules/fetch.js';
 
 const chordMs = 1200;
 
@@ -102,7 +103,7 @@ function moveRow(step) {
   }
   const at = list.indexOf(document.activeElement);
   const selected = list.findIndex((el) => el.getAttribute('aria-current') === 'true');
-  const next = nextRowIndex(at >= 0 ? at : selected, step, list.length);
+  const next = nextRowIndex(at !== -1 ? at : selected, step, list.length);
   if (next >= 0) list[next].focus();
 }
 
@@ -168,6 +169,9 @@ export function initAscKeys() {
         if (details.open) details.querySelector('button')?.focus();
         break;
       }
+      case 'e':
+        document.querySelector('[data-asc-done]')?.click();
+        break;
       case 'p':
         document.querySelector('[data-asc-pin]')?.click();
         break;
@@ -186,6 +190,23 @@ export function initAscKeys() {
     chord = 0;
   };
   document.addEventListener('keydown', keyHandler);
+}
+
+export const doneFadeMs = 120;
+
+// Mark done and Restore on a row of the inbox fade the row out before the form is sent, unless the person asked
+// for less motion. The form is sent either way.
+export function initAscInboxDone() {
+  for (const form of document.querySelectorAll('form[data-asc-done-form]')) {
+    form.addEventListener('submit', (e) => {
+      const row = form.closest('.wk-irow');
+      if (!row || form.dataset.leaving || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+      e.preventDefault();
+      form.dataset.leaving = '1';
+      row.classList.add('is-leaving');
+      setTimeout(() => form.submit(), doneFadeMs);
+    });
+  }
 }
 
 const countKey = 'asc-inbox-count';
@@ -220,7 +241,7 @@ export async function initAscInboxBadge() {
     // no storage: ask the server
   }
   try {
-    const res = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
+    const res = await GET(url, {cache: 'no-store'});
     if (!res.ok) return;
     const data = await res.json();
     show(data.count);
