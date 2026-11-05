@@ -9,6 +9,9 @@ const (
 	// SettingsKeyHideResolved is the setting key whether resolved conversations start collapsed ("false": expanded;
 	// anything else, including no value: collapsed, as before the setting existed)
 	SettingsKeyHideResolved = "asc.hide_resolved"
+	// SettingsKeyAscRole is the setting key for the role the person shows on their profile ("Staff engineer"); no value:
+	// no role line part
+	SettingsKeyAscRole = "asc.role"
 	// SettingsKeyDiffWhitespaceBehavior is the setting key for whitespace behavior of diff
 	SettingsKeyDiffWhitespaceBehavior = "diff.whitespace_behaviour"
 	// SettingsKeyShowOutdatedComments is the setting key whether or not to show outdated comments in PRs
