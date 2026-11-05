@@ -255,6 +255,7 @@ func AscSearch(ctx *context.Context) {
 	if len(targets) == 1 && q.scope == ascSearchScopeVersion {
 		ctx.Data["AscSearchMatched"] = ascSearchDefinitions(callCtx, api, targets[0].scope, ctx.Repo.RepoLink, q, &res)
 		ascSearchChanged(ctx, ascv1.NewRepoClient(conn), callCtx, name, q, res.files)
+		ctx.Data["AscSearchTeasers"] = ascSearchTeasers(callCtx, api, targets[0].scope, ctx.Repo.RepoLink, q)
 	}
 
 	ctx.Data["AscSearchRev"] = ascSearchTargetLabel(q, targets)

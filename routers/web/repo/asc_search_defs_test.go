@@ -80,13 +80,14 @@ func TestAscSearchSymbolsMatched(t *testing.T) {
 	assert.Contains(t, page.body, `>RetryPolicy::delay</a>`)
 	assert.Contains(t, page.body, `href="/user2/repo1/asc/symbols?name=delay&amp;op=def&amp;ref=master"`)
 	assert.Equal(t, 1, strings.Count(page.body, `class="asc-sym-chips"`), "only the declaring file has chips")
-	// One DEF and one REFS call for the word that matched, one DEF for the other, all at the searched version.
+	// One DEF and one REFS call for the word that matched, one DEF for the other, and the FIND of the Symbol
+	// search teaser, all at the searched version.
 	var ops []string
 	for _, f := range fake.finds {
 		ops = append(ops, f.GetName()+" "+f.GetOp().String())
 		assert.Equal(t, "refs/heads/master", f.GetScope().GetRev())
 	}
-	assert.ElementsMatch(t, []string{"delay SYMBOL_OP_DEF", "delay SYMBOL_OP_REFS", "missing SYMBOL_OP_DEF"}, ops)
+	assert.ElementsMatch(t, []string{"delay SYMBOL_OP_DEF", "delay SYMBOL_OP_REFS", "missing SYMBOL_OP_DEF", "delay missing SYMBOL_OP_FIND"}, ops)
 	// The last change of the file comes from the history at master.
 	require.Len(t, last.asked, 1)
 	assert.Empty(t, last.asked[0].GetDir())

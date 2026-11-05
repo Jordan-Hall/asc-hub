@@ -209,6 +209,49 @@
   line-height: 1.5;
 }
 
+.asc-teasers {
+  padding: 12px 16px;
+  background: var(--color-box-body);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius-card, 12px);
+}
+
+.asc-teaser-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asc-teaser {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  min-height: 44px;
+}
+
+.asc-teaser + .asc-teaser {
+  border-top: 1px solid var(--color-secondary);
+}
+
+.asc-teaser-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+}
+
+.asc-teaser-paths {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  min-width: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 .asc-search-sortbar {
   display: flex;
   flex-wrap: wrap;

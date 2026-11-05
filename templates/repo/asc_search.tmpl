@@ -232,6 +232,21 @@
 						</div>
 					{{end}}
 
+					{{if .AscSearchTeasers}}
+						<section class="asc-teasers" aria-labelledby="asc-teasers-h" data-testid="search-teasers">
+							<h2 class="asc-facet-title" id="asc-teasers-h">{{ctx.Locale.Tr "asc_rp.s_other_kinds"}}</h2>
+							<ul class="asc-teaser-list">
+								{{range $t := .AscSearchTeasers}}
+									<li class="asc-teaser">
+										<a class="asc-teaser-link" href="{{$t.Link}}">{{if eq $t.Mode "lexical"}}{{ctx.Locale.Tr "asc_rp.s_text"}}{{else if eq $t.Mode "symbol"}}{{ctx.Locale.Tr "asc_rp.s_symbol"}}{{else}}{{ctx.Locale.Tr "asc_rp.s_meaning"}}{{end}}</a>
+										{{if ge $t.Count 0}}<span class="asc-count">{{$t.Count}}{{if $t.More}}+{{end}}</span>
+										<span class="asc-teaser-paths">{{range $p := $t.Paths}}<a class="tw-font-mono" href="{{$p.Link}}">{{$p.Path}}</a> {{end}}</span>
+										{{else}}<span class="asc-muted">{{ctx.Locale.Tr "asc_rp.s_teaser_meaning"}}</span>{{end}}
+									</li>
+								{{end}}
+							</ul>
+						</section>
+					{{end}}
 					{{if .AscSearchPages.Pages}}
 						<nav class="asc-pages" aria-label="{{ctx.Locale.Tr "asc_rp.s_pages"}}" data-testid="search-pages">
 							{{if .AscSearchPages.Prev}}<a class="asc-chip" href="{{.AscSearchPages.Prev}}" rel="prev">{{ctx.Locale.Tr "asc_rp.s_prev"}}</a>{{end}}
