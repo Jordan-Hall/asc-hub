@@ -151,6 +151,7 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 //	GET  .../asc/ops                          the operation log (signed-in readers)
 //	GET  .../asc/ops/undo                     the dry run and confirmation of an undo (signed-in writers)
 //	POST .../asc/ops/undo                     undo one operation of the signed-in person (CSRF-checked like every POST)
+//	GET  .../asc/ops/undo/last                the newest operation of the person that can be undone: to its dry run
 //	GET  .../asc/deps                         dependencies: findings, newer versions, settings (signed-in readers)
 //	GET  .../asc/deps/outdated                how many packages have a newer version (JSON, for the summary tile)
 //	POST .../asc/deps/scan                    scan trunk (administrators)
@@ -174,6 +175,7 @@ func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 		m.Get("", repo.AscOps)
 		m.Get("/export", repo.AscOpsExport)
 		m.Combo("/undo").Get(repo.AscOpsUndoPreview).Post(context.RepoMustNotBeArchived(), repo.AscOpsUndo)
+		m.Get("/undo/last", repo.AscOpsUndoLast)
 	}, reqSignIn)
 	m.Post("/asc/clone-card/hide", reqSignIn, repo.AscCloneCardHide)
 	m.Group("/asc/checks", func() {
