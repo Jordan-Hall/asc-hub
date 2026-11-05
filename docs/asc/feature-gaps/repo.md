@@ -322,7 +322,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsPolicy | TOML error state: "Line 11: max_minutes must be a whole number", form disabled while invalid | done | diagnostics list (`asc-policy-diagnostics`); form disable does not apply because there is no form | S |
 | RepoSettingsPolicy | Read-only state for non-maintainers with names to ask | done (the page shows a banner naming the maintainers and disables the form; the page itself is for repository administrators, checked by the unit tests of the template data, not seen with a second account) | route needs repo admin (`registerAscTrustRepoSettingsRoutes`); readers cannot see the page; show read-only for readers with maintainers from `GetPolicy` | M |
 | RepoSettingsPolicy | After-propose state: "Proposed as change kz9fw. Waiting for one approval" with Open change | done | `p_proposed` | S |
-| RepoSettingsPolicy | Loading state | ui-only-missing | skeleton | S |
+| RepoSettingsPolicy | Loading state | done | `H:templates/repo/settings/asc_policy_loading.tmpl`: while asc reviews, checks, proposes or toggles, the file header, the three tabs and the fields show as skeleton (`asc-page-loading.js`, reset on back); `asc_policy_loading_test.go` | S |
 
 ## RepoSettingsRules
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 164 |
+| done | 165 |
 | partial | 1 |
-| ui-only-missing | 37 |
+| ui-only-missing | 36 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -438,7 +438,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsMenu | 0 | 2 | 0 | 0 | 0 |
 | RepoSettingsGeneral | 2 | 3 | 3 | 0 | 1 |
 | RepoSettingsAccess | 1 | 3 | 3 | 0 | 1 |
-| RepoSettingsPolicy | 3 | 6 | 0 | 1 | 2 |
+| RepoSettingsPolicy | 4 | 5 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
 | RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
 | RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |

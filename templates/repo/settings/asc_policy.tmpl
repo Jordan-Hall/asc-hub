@@ -37,6 +37,8 @@
 		{{end}}
 
 		{{if .View}}
+		{{template "repo/settings/asc_policy_loading" $}}
+		<div data-loading-body>
 		<section class="ast-card" aria-labelledby="asc-policy-file">
 			<div class="ast-card-head">
 				<h3 id="asc-policy-file" class="ast-card-title">{{ctx.Locale.Tr "asc_rp.p_file"}}</h3>
@@ -58,7 +60,7 @@
 			{{end}}
 			<section id="pf-form" role="tabpanel" aria-labelledby="pf-tab-form" data-doc-panel="pf-form"{{if .Dirty}} hidden{{end}}>
 				<div class="ast-split">
-				<form class="ds-form ast-policy-form" method="post" action="{{.PolicyURL}}/form" data-testid="asc-policy-fields">
+				<form class="ds-form ast-policy-form" method="post" data-loading-form action="{{.PolicyURL}}/form" data-testid="asc-policy-fields">
 					{{$.CsrfTokenHtml}}
 					<fieldset class="ds-fieldset ds-fieldset-bare"{{if and .View.Present (not .View.Maintainer)}} disabled{{end}}>
 					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_landing"}}</legend>
@@ -109,7 +111,7 @@
 			</section>
 			<div id="pf-toml" role="tabpanel" aria-labelledby="pf-tab-toml" data-doc-panel="pf-toml" hidden>
 			<div class="ast-split">
-				<form class="ds-form ast-policy-form" method="post" action="{{.PolicyURL}}/propose" data-testid="asc-policy-form">
+				<form class="ds-form ast-policy-form" method="post" data-loading-form action="{{.PolicyURL}}/propose" data-testid="asc-policy-form">
 					{{$.CsrfTokenHtml}}
 					<input type="hidden" name="op" value="{{.Op}}">
 					<input type="hidden" name="base" value="{{.Base}}">
@@ -208,7 +210,7 @@
 						<div class="asc-trust-sub">{{.Help}}</div>
 					</div>
 					<span class="ast-pill ast-pill-{{if .On}}ok{{else}}ro{{end}}">{{if .On}}{{ctx.Locale.Tr "asc_rp.p_on"}}{{else}}{{ctx.Locale.Tr "asc_rp.p_off"}}{{end}}</span>
-					<form method="post" action="{{$.AscPolicy.PolicyURL}}/protection">
+					<form method="post" data-loading-form action="{{$.AscPolicy.PolicyURL}}/protection">
 						{{$.CsrfTokenHtml}}
 						<input type="hidden" name="key" value="{{.Key}}">
 						<input type="hidden" name="value" value="{{if .On}}off{{else}}on{{end}}">
@@ -220,6 +222,7 @@
 			</ul>
 		</section>
 		{{end}}
+		</div>
 		{{end}}
 	{{end}}
 </div>
