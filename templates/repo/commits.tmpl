@@ -16,9 +16,10 @@
 					<button type="button" data-density="compact" aria-pressed="false">{{ctx.Locale.Tr "asc_rp.density_compact"}}</button>
 				</div>
 				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_view"}}">
-					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}" aria-current="true">{{ctx.Locale.Tr "asc_rp.view_list"}}</a>
-					<a href="{{.RepoLink}}/{{if $isAsc}}asc/graph{{else}}graph{{end}}">{{ctx.Locale.Tr "repo.commit_graph"}}</a>
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}"{{if ne .HistoryView "graph"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.view_list"}}</a>
+					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?view=graph"{{if eq .HistoryView "graph"}} aria-current="true"{{end}} data-testid="history-view-graph">{{ctx.Locale.Tr "repo.commit_graph"}}</a>
 				</div>
+				{{if eq .HistoryView "graph"}}<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.RepoLink}}/{{if $isAsc}}asc/graph{{else}}graph{{end}}" data-testid="history-all-branches">{{ctx.Locale.Tr "asc_rp.graph_all_branches"}}</a>{{end}}
 				<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.history_who"}}" data-testid="history-who" data-loading-links>
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}"{{if not .HistoryWho}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_everyone"}}</a>
 					<a href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}?who=people"{{if eq .HistoryWho "people"}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.who_people"}}</a>

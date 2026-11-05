@@ -285,3 +285,52 @@ a.rp-who:hover {
 .rp-graph-scroll .asc-graph-row {
   min-width: max-content;
 }
+
+/* Graph view: the same rows with the lines between the page's changes drawn beside them. */
+.rp-hist.is-graph .rp-commit {
+  grid-template-columns: var(--rp-lanes-w, 28px) minmax(0, 1fr) auto;
+}
+
+.rp-hist.is-graph .rp-commit::before {
+  display: none;
+}
+
+.rp-lanes {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rp-lanes line {
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.rp-lanes circle.rp-lane-node {
+  stroke: var(--surface);
+  stroke-width: 3;
+}
+
+.rp-lanes circle.rp-lane-hole {
+  fill: var(--surface);
+  stroke: none;
+}
+
+.rp-lanes .rp-lane-k0 { stroke: var(--fill); }
+.rp-lanes .rp-lane-k1 { stroke: #57ab5a; }
+.rp-lanes .rp-lane-k2 { stroke: #c69026; }
+.rp-lanes .rp-lane-k3 { stroke: #986ee2; }
+.rp-lanes .rp-lane-k4 { stroke: #e5679f; }
+.rp-lanes .rp-lane-k5 { stroke: #39c5cf; }
+.rp-lanes .rp-lane-k6 { stroke: #e5534b; }
+.rp-lanes .rp-lane-k7 { stroke: #ae7c4b; }
+.rp-lanes circle.rp-lane-k0 { fill: var(--fill); }
+.rp-lanes circle.rp-lane-k1 { fill: #57ab5a; }
+.rp-lanes circle.rp-lane-k2 { fill: #c69026; }
+.rp-lanes circle.rp-lane-k3 { fill: #986ee2; }
+.rp-lanes circle.rp-lane-k4 { fill: #e5679f; }
+.rp-lanes circle.rp-lane-k5 { fill: #39c5cf; }
+.rp-lanes circle.rp-lane-k6 { fill: #e5534b; }
+.rp-lanes circle.rp-lane-k7 { fill: #ae7c4b; }

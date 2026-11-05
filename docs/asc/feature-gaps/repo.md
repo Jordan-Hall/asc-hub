@@ -127,7 +127,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | History | List view with commit rows, copy hash, view at point, search by message and author, "Open operation log" card | done | `H:templates/repo/commits.tmpl`, `commits_list.tmpl` | S |
 | History | Lane graph from `Repo.CommitGraph` (colour, lanes, refs, review chip) | done | `H:routers/web/repo/asc_graph.go`, `asc_graph.tmpl` (separate page, Forgejo-style form) | M |
-| History | Graph and List as two views of one page with the same rows; graph beside the rows | ui-only-missing | merge `asc_graph.tmpl` rail into `commits.tmpl`; the segment links to two pages today | M |
+| History | Graph and List as two views of one page with the same rows; graph beside the rows | done | `commits.tmpl`: the List / Graph segment switches `?view=graph` on the same page; the graph draws the lines between the page's rows beside them (`asc_history_graph.go`, any backend), and "All branches" opens the full graph; tests `TestHistoryLanes*`, `TestHistoryGraphView` | M |
 | History | Node state shape plus chip (Needs review, Queued, Agent writing); agent vs person nodes; stack brackets; "A stack that landed together" | needs-hub-backend | map graph rows to pulls and queue state (`H:routers/web/repo/asc_queue.go`, `pull_asc_stack.go`), draw shapes in `asc_graph.tmpl` | L |
 | History | "Open on top of main" section listing open changes with stack position, "Waiting on Priya Raman", agent run status | needs-hub-backend | open pulls + reviewers + agent runs; `commits.tmpl` | L |
 | History | Comfy / Compact density switch | done | `commits.tmpl` seg + CSS + localStorage | S |

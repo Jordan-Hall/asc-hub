@@ -114,6 +114,12 @@ func Commits(ctx *context.Context) {
 		}
 	}
 	ctx.Data["Commits"] = git_model.ParseCommitsWithStatus(ctx, commits, ctx.Repo.Repository)
+	// the Graph view draws the lines of the same rows; the people / agents filter drops commits, so it has the List only
+	graph := who == "" && ctx.FormString("view") == "graph"
+	if graph {
+		ctx.Data["HistoryView"] = "graph"
+		ctx.Data["HistoryLanes"], ctx.Data["HistoryLanesWidth"] = historyLanes(commits)
+	}
 
 	commitIDs := make([]string, 0, len(commits))
 	for _, c := range commits {
@@ -134,6 +140,9 @@ func Commits(ctx *context.Context) {
 	pager.SetDefaultParams(ctx)
 	if who != "" {
 		pager.AddParamString("who", who)
+	}
+	if graph {
+		pager.AddParamString("view", "graph")
 	}
 	ctx.Data["Page"] = pager
 
