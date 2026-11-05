@@ -2017,6 +2017,48 @@ body.ds-lock {
   list-style: none;
 }
 
+.site-hits-group {
+  margin: 24px 0 0;
+}
+
+/* a result: its kind as an icon beside the title */
+.site-hit .ds-card-b {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.site-hit .ds-card-b > svg {
+  flex: none;
+  margin-top: 4px;
+  color: var(--text-3);
+}
+
+.site-noresults {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin: 16px 0 0;
+}
+
+.site-noresults > svg {
+  color: var(--text-3);
+}
+
+.site-results-loading {
+  display: grid;
+  gap: 12px;
+  padding-block: 32px;
+}
+
+.site-results-loading[hidden] {
+  display: none;
+}
+
+.site-results-loading .ds-sk {
+  height: 64px;
+}
+
 .site-article-grid {
   display: grid;
   gap: 32px;

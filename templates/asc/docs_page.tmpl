@@ -31,7 +31,7 @@
 			</article>
 			<aside class="site-toc" aria-label="{{ctx.Locale.Tr "asc_site.docs_on_page"}}">
 				<form class="site-docsearch" role="search" method="get" action="{{AppSubUrl}}/-/docs">
-					<div class="ds-inwrap">{{svg "dsi-search" 16}}<label class="ds-sr" for="docs-q">{{ctx.Locale.Tr "asc_site.docs_search"}}</label><input id="docs-q" class="ds-input" type="search" name="q" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}"></div>
+					<div class="ds-inwrap">{{svg "dsi-search" 16}}<label class="ds-sr" for="docs-q">{{ctx.Locale.Tr "asc_site.docs_search"}}</label><input id="docs-q" class="ds-input" type="search" name="q" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}" aria-keyshortcuts="Control+K /" data-asc-docs-q><kbd class="ds-kbd" aria-hidden="true">Ctrl K</kbd></div>
 				</form>
 				{{if .DocsTOC}}
 				<div class="ds-hide-md">

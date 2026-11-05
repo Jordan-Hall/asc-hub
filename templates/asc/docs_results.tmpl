@@ -1,0 +1,31 @@
+{{/* The results of a documentation search (board Docs, Docs search): commands of the reference and guides, or no results with a suggestion. Rendered in the start page, and alone for ?q=&fragment=results while a person types. */}}
+<section class="ds-land-sec site-results" aria-labelledby="docs-results" data-asc-docs-results>
+	<div class="ds-container">
+		<h2 class="ds-t-h3" id="docs-results">{{ctx.Locale.Tr "asc_site.docs_results" .DocsQuery}}</h2>
+		{{if or .DocsCommands .DocsHits}}
+			{{if .DocsCommands}}
+				<h3 class="ds-t-eyebrow site-hits-group">{{ctx.Locale.Tr "asc_site.docs_group_commands"}}</h3>
+				<ul class="site-hits">
+					{{range .DocsCommands}}
+						<li class="ds-card site-hit"><div class="ds-card-b">{{svg "dsi-terminal" 16}}<div><a class="ds-t-h4 ds-mono" href="{{AppSubUrl}}/-/docs/cli#{{.Anchor}}">{{.Name}}</a><p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.docs_cli"}}</p><p class="ds-c-2 ds-mt-8">{{.Summary}}</p></div></div></li>
+					{{end}}
+				</ul>
+			{{end}}
+			{{if .DocsHits}}
+				<h3 class="ds-t-eyebrow site-hits-group">{{ctx.Locale.Tr "asc_site.docs_group_guides"}}</h3>
+				<ul class="site-hits">
+					{{range .DocsHits}}
+						<li class="ds-card site-hit"><div class="ds-card-b">{{svg "dsi-file" 16}}<div><a class="ds-t-h4" href="{{AppSubUrl}}/-/docs/{{.Page.Slug}}">{{.Page.Title}}</a><p class="ds-c-2 ds-mt-8">{{.Snippet}}</p></div></div></li>
+					{{end}}
+				</ul>
+			{{end}}
+		{{else}}
+			<div class="site-noresults" role="status">
+				{{svg "dsi-search" 24}}
+				<p class="ds-t-h4">{{ctx.Locale.Tr "asc_site.docs_none_for" .DocsQuery}}</p>
+				{{if .DocsSuggest}}<p class="ds-c-2">{{ctx.Locale.Tr "asc_site.docs_did_you_mean" (HTMLFormat "<a href=\"%s/-/docs?q=%s\">%s</a>" AppSubUrl (QueryEscape .DocsSuggest) .DocsSuggest)}}</p>{{end}}
+				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/docs/cli">{{ctx.Locale.Tr "asc_site.docs_browse_cli"}}</a>
+			</div>
+		{{end}}
+	</div>
+</section>
