@@ -100,7 +100,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Code | Loading state (lines stream in) | done | `H:templates/repo/code_loading.tmpl`: while the next file, view or tree link loads, lines of code of different lengths take the place of the file (`asc-page-loading.js`, reset on back); `asc_code_keys_test.go`, `asc-page-loading.test.js` | S |
 | Code | Not found at this version ("It was added in change mzu2d. You are looking at main@8d1c7e0.", Go to main, File history) | needs-hub-backend | `H:routers/web/repo/view.go` 404 path, `Repo.Log` for the introducing change | M |
 | Code | Binary preview card | done | `view_file.tmpl` (image/binary branches) | S |
-| Code | Long-press line number to select and Share (mobile), blame as avatar column with change sheet | ui-only-missing | `H:templates/repo/blame.tmpl` has the desktop columns only; add mobile column and sheet reusing the hover endpoint | M |
+| Code | Long-press line number to select and Share (mobile), blame as avatar column with change sheet | done | `repo/blame.tmpl`: under 1024px the avatar is a button that opens the change in a bottom sheet, and a long press on a line number selects it (or extends the selection) and opens Share, Copy permalink and Reference in a new issue (`asc-blame-sheet.js`); tests `TestBlamePhoneSheet`, `asc-blame-sheet.test.js` | M |
 
 ## Changeset
 

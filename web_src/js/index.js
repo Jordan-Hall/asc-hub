@@ -78,6 +78,7 @@ import {initAscCodeBoxes} from './features/asc-codeboxes.js';
 import {initAscOffline} from './features/asc-offline.js';
 import {initAscRepoKeys} from './features/asc-repo-keys.js';
 import {initAscGotoLine} from './features/asc-goto-line.js';
+import {initAscBlameSheet} from './features/asc-blame-sheet.js';
 import {initAscPageLoading} from './features/asc-page-loading.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
@@ -259,6 +260,7 @@ onDomReady(() => {
   initAscOffline();
   initAscRepoKeys();
   initAscGotoLine();
+  initAscBlameSheet();
   initAscPageLoading();
   initAscDensity();
   initAscBoard();
