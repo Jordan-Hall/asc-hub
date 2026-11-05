@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 130 |
-| ui-only-missing | 3 |
+| done | 131 |
+| ui-only-missing | 2 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 3, M 41, L 21.
+Open rows by size: S 3, M 40, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -161,7 +161,7 @@ Open rows by size: S 3, M 41, L 21.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| ExploreUsers | "People and agents" header and Invite people button | ui-only-missing | `explore/navbar.tmpl` offers New repository / New organization only; invite needs a hub-level invite flow (org invite exists) | M |
+| ExploreUsers | "People and agents" header and Invite people button | done | `explore/navbar.tmpl` title `explore.users_title`; Invite people from `inviteHref` in `routers/web/explore/user.go`: Add account for an administrator, a mailto with the sign-up link for others where sign-up is open, none when signed out or sign-up is closed | - |
 | ExploreUsers | Search by name, handle or role | done | `explore/users.tmpl` (role not searchable until roles exist) | - |
 | ExploreUsers | Show filter (People and agents / People / Agents), Organization filter, Sort "Most active" | needs-hub-backend | Sort has Newest, Oldest, A to Z only. Add activity sort and organization filter in `routers/web/explore/user.go` / `user_model.SearchUserOptions` | M |
 | ExploreUsers | Chips All, People, Agents, Maintainers, Online now | needs-both | None present. Agents are not hub users (they are tokens and runs in `proto/asc/v1/agents.proto`); Maintainers needs a role; Online now needs presence | L |
