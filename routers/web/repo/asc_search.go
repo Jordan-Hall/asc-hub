@@ -292,6 +292,13 @@ func ascSearchShowQuery(ctx *context.Context, q ascSearchQuery) {
 	ctx.Data["AscSearchPullInput"] = q.rawPull
 	ctx.Data["AscSearchStackDiff"] = q.stackDiff
 	ctx.Data["AscSearchSort"] = q.sort
+	filters := 0
+	for _, f := range []string{q.rawLang, q.rawPath} {
+		if f != "" {
+			filters++
+		}
+	}
+	ctx.Data["AscSearchFilterCount"] = filters
 }
 
 // ascSearchRawQuery reads the query string without trusting it: what it returns is only echoed into the form.

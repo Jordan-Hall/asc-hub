@@ -189,7 +189,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Rate limited (429) keeps the query | done | `s_err_429` | S |
 | Search | Loading state | done | `repo/asc_search_loading.tmpl`: a new search, a facet or an example query shows three result cards while the page loads (`asc-page-loading.js`); test `TestSearchLoadingState` | S |
 | Search | `/` focuses search in the repository | done | `ds-shell.js` | S |
-| Search | Mobile: sticky search with mode and scope, Filters bottom sheet, results as cards | ui-only-missing | `asc_search.tmpl` + sheet component | M |
+| Search | Mobile: sticky search with mode and scope, Filters bottom sheet, results as cards | done | below 900 px the form (query, kind, scope) is sticky and the narrowing fields sit under it (`form=` attribute); `asc-search-filters.js` moves the facets into a `dialog.rp-sheet` opened by Filters (count of filters set); results are `.asc-card` | M |
 
 ## Releases
 
@@ -397,7 +397,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Mobile-Repo | Stack cards replacing the table; filter chips that snap; pull to refresh; sticky Clone and New stack | needs-hub-backend | as the desktop rows; chips and pull to refresh in `home_cards.tmpl` and a script | M |
 | Mobile-Code | Avatar column for blame, tap opens the change sheet (swipe down closes), Files sheet, long-press range select with Share | done | `blame.tmpl` + `asc-blame-sheet.js` (row 103); drag-down close in `asc-sheet.js`; the Files sheet is the `rp-tree` panel | M |
 | Mobile-History | Rail-and-node list, chips open a bottom sheet, 44 px older-changes button | done | rows 130, 140 and 142 | M |
-| Mobile-Search | Sticky search, Filters bottom sheet, cards with reason first | ui-only-missing | see Search rows | M |
+| Mobile-Search | Sticky search, Filters bottom sheet, cards with reason first | done | as the Search mobile row; the reason line on each card comes with the Search "Why it matched" row (needs-asc-backend) | M |
 | Mobile-Releases | New release as a bottom sheet; channel chips | ui-only-missing | see Releases rows | M |
 | Mobile-NewRepo | Name check after 300 ms, Start from keeps typed values, sticky primary | needs-hub-backend | see NewRepo rows | M |
 | Mobile-RepoSettings* | Detail pages with back arrow and same title, one save bar | done | `ds-settings-nav` shell with `snav_bar` | S |

@@ -36,6 +36,56 @@
   flex: none;
 }
 
+/* on a phone the query, its kind and its scope stay at the top while the results scroll */
+@media (max-width: 899.98px) {
+  .asc-search-form {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    gap: 8px;
+    margin-block: 0 8px;
+    padding-block: 8px;
+    background: var(--color-body);
+    border-bottom: 1px solid var(--color-secondary);
+  }
+  .asc-search-form .asc-scope {
+    flex-wrap: nowrap;
+    margin: 0;
+    overflow-x: auto;
+  }
+  .asc-search-form .asc-scope legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .asc-scope-option span {
+    white-space: nowrap;
+  }
+}
+
+.asc-search-options {
+  margin-bottom: 16px;
+}
+
+.asc-filter-sheet .asc-search-facets {
+  gap: 16px;
+}
+
+.asc-filter-sheet .asc-facet-list {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.asc-filters-open {
+  min-height: 44px;
+}
+
+.asc-filters-open[hidden] {
+  display: none;
+}
+
 /* Text / Symbol / Meaning as a segmented control made of radio buttons: it works without scripts */
 .asc-search-modes {
   display: grid;
