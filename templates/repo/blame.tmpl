@@ -21,7 +21,7 @@
 							<td class="lines-commit">
 								<div class="blame-info">
 									<div class="blame-data">
-										<div class="blame-avatar">{{$row.Avatar}}</div>
+										{{if $row.CommitMessage}}<button type="button" class="blame-avatar rp-blame-open" data-blame-open aria-haspopup="dialog" aria-label="{{ctx.Locale.Tr "asc_rp.blame_who" $row.AuthorName}}">{{$row.Avatar}}</button>{{else}}<div class="blame-avatar">{{$row.Avatar}}</div>{{end}}
 										{{if $row.IsAgent}}<span class="ds-chip ds-chip-agent rp-agent-chip">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
 										<div class="blame-message">
 											{{if $row.CommitMessage}}<a class="suppressed" href="{{$row.CommitURL}}" title="{{$row.CommitMessage}}">{{$row.CommitMessage}}</a>{{end}}
@@ -67,6 +67,18 @@
 				{{end}}
 				<a class="item copy-line-permalink" role="menuitem" data-url="{{.Repository.Link}}/src/commit/{{PathEscape .CommitID}}/{{PathEscapeSegments .TreePath}}{{if $.HasSourceRenderedToggle}}?display=source{{end}}">{{ctx.Locale.Tr "repo.file_copy_permalink"}}</a>
 			</div>
+			{{/* the phone sheets: tap an avatar for its change, long-press a line number to select it and share it */}}
+			<dialog class="rp-sheet" data-blame-sheet aria-labelledby="rp-blame-sheet-h" data-t-line="{{ctx.Locale.Tr "asc_rp.blame_line" "{a}"}}" data-t-lines="{{ctx.Locale.Tr "asc_rp.blame_lines" "{a}" "{b}"}}" data-testid="blame-sheet">
+				<div class="rp-sheet-grip" aria-hidden="true"></div>
+				<h2 class="rp-sheet-h" id="rp-blame-sheet-h" data-blame-sheet-h></h2>
+				<div class="rp-sheet-b" data-blame-sheet-change hidden></div>
+				<div class="rp-sheet-b" data-blame-sheet-line hidden>
+					<button type="button" class="ds-btn ds-btn-primary rp-sheet-act" data-blame-share hidden>{{ctx.Locale.Tr "asc_rp.blame_share"}}</button>
+					<button type="button" class="ds-btn ds-btn-secondary rp-sheet-act" data-blame-copy>{{ctx.Locale.Tr "repo.file_copy_permalink"}}</button>
+					{{if $.Permission.CanRead $.UnitTypeIssues}}<a class="ds-btn ds-btn-secondary rp-sheet-act" data-blame-issue href="{{.RepoLink}}/issues/new" rel="nofollow noindex">{{ctx.Locale.Tr "repo.issues.context.reference_issue"}}</a>{{end}}
+				</div>
+				<form method="dialog"><button class="ds-btn ds-btn-ghost rp-sheet-act">{{ctx.Locale.Tr "asc_rp.blame_close"}}</button></form>
+			</dialog>
 			{{end}}
 		</div>
 	</div>
