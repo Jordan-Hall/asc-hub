@@ -121,7 +121,14 @@
 
 /* get started */
 .site-started .site-started-head {
+  position: relative;
   padding: 24px 0 16px;
+}
+
+.site-started .site-started-hide {
+  position: absolute;
+  top: 20px;
+  right: 0;
 }
 
 .site-started .site-started-head .ds-t-lead {

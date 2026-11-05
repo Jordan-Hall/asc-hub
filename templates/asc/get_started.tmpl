@@ -6,6 +6,12 @@
 			<header class="site-started-head">
 				<p class="ds-t-eyebrow">{{ctx.Locale.Tr "asc_site.started_eyebrow" .GSName}}</p>
 				<h1 class="ds-t-h1">{{ctx.Locale.Tr "asc_site.started_h1"}}</h1>
+				{{if .GSOnHome}}
+				<form class="site-started-hide" method="post" action="{{AppSubUrl}}/-/get-started/hide">
+					{{.CsrfTokenHtml}}
+					<button type="submit" class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_site.started_hide"}}" title="{{ctx.Locale.Tr "asc_site.started_hide"}}">{{svg "dsi-x" 18}}</button>
+				</form>
+				{{end}}
 				<p class="ds-t-lead ds-c-2 gs-d">{{ctx.Locale.Tr "asc_site.started_lead"}}</p>
 			</header>
 

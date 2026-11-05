@@ -661,6 +661,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/-/offline", ignSignIn, AscOffline)
 	m.Get("/-/status", ignSignIn, AscStatus)
 	m.Get("/-/get-started", reqSignIn, AscGetStarted)
+	m.Post("/-/get-started/hide", reqSignIn, AscGetStartedHide)
 	m.Get("/user/welcome", reqSignIn, func(ctx *context.Context) {
 		ctx.Redirect(setting.AppSubURL + "/-/get-started")
 	})

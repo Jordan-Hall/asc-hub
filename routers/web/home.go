@@ -66,6 +66,12 @@ func Home(ctx *context.Context) {
 			}
 		}
 
+		if ascGetStartedOnHome(ctx) {
+			// the checklist stays on the dashboard until the first repository exists (board GetStarted), with Hide
+			ctx.Data["GSOnHome"] = true
+			AscGetStarted(ctx)
+			return
+		}
 		user.Dashboard(ctx)
 		return
 		// Check non-logged users landing page.
