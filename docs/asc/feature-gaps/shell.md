@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 139 |
+| done | 140 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 31 |
+| needs-hub-backend | 30 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 1, M 35, L 20.
+Open rows by size: S 1, M 34, L 20.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -248,7 +248,7 @@ Open rows by size: S 1, M 35, L 20.
 | --- | --- | --- | --- | --- |
 | Inbox | Tabs Needs you, Waiting on others, Agents, Done with counts (hub adds Drafts) | done | `routers/web/user/asc_inbox_page.go`, `asc_inbox.tmpl` | - |
 | Inbox | Filters: All repos, Humans and agents, Sorted by | done | Repo select works; "Humans and agents" missing; "Sorted by" is static text (`wk-sort`). Add `kind` and `sort` in `ascInboxBuild` | S |
-| Inbox | Unread dot plus bold title | needs-hub-backend | No unread state (no `unread` in the template). `last_seen` per pull and user in `models/issues/asc_inbox_state.go` (migration) | M |
+| Inbox | Unread dot plus bold title | done | `is-unread` rows from the person's unread notifications (`ascInboxMarkUnread`), opening a row reads it; `TestAscInboxUnread` | - |
 | Inbox | Row hover actions (Review, Answer, Mark done, Snooze) | done | `templates/user/asc_inbox.tmpl` `[data-asc-row-acts]`: Review, Answer (agent rows that wait), Mark done or Restore, Snooze 4h, each posting to `/-/asc/inbox/state`; tests in `routers/web/user/asc_inbox_test.go` | S |
 | Inbox | Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | done | `asc_inbox.tmpl` bulk bar: ticked box (clears, as Escape does), count in a polite live region, Mark done, Snooze, Unwatch (`ds-bulk.js`); `AscInboxStatePost` `do=unwatch` turns the issue watch off and moves the item to Done | - |
 | Inbox | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | done | `done_unix` on `asc_inbox_state` (migration `v18l_asc_inbox_done.go`); `SetAscInboxDone`; `do=done` and `do=restore` in `AscInboxStatePost`; an item comes back when the pull request changes; the Done tab lists it for `AscInboxDoneKeep` (30 days); fade and once-only send in `initAscInboxDone` (`asc-keys.js`); undo toast `[data-asc-undo]` | M |
