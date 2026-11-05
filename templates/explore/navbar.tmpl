@@ -4,8 +4,12 @@
 {{$primaryHref := ""}}
 {{$primaryLabel := ""}}
 {{if .PageIsExploreUsers}}
-	{{$title = ctx.Locale.Tr "explore.users"}}
+	{{$title = ctx.Locale.Tr "explore.users_title"}}
 	{{$lead = ctx.Locale.Tr "explore.lead_users"}}
+	{{if .InviteHref}}
+		{{$primaryHref = .InviteHref}}
+		{{$primaryLabel = ctx.Locale.Tr "explore.invite_people"}}
+	{{end}}
 {{else if .PageIsExploreOrganizations}}
 	{{$title = ctx.Locale.Tr "explore.organizations"}}
 	{{$lead = ctx.Locale.Tr "explore.lead_organizations"}}
