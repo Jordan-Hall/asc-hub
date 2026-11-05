@@ -238,7 +238,7 @@ func CreateDeployKey(ctx *context.APIContext) {
 		return
 	}
 
-	key, err := asymkey_model.AddDeployKeyBy(ctx, ctx.Repo().Repository.ID, ctx.Doer.ID, form.Title, content, form.ReadOnly)
+	key, err := asymkey_model.AddDeployKeyBy(ctx, ctx.Repo().Repository.ID, ctx.Doer().ID, form.Title, content, form.ReadOnly)
 	if err != nil {
 		HandleAddKeyError(ctx, err)
 		return
