@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 131 |
-| ui-only-missing | 2 |
+| done | 132 |
+| ui-only-missing | 1 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 3, M 40, L 21.
+Open rows by size: S 3, M 39, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -196,7 +196,7 @@ Open rows by size: S 3, M 40, L 21.
 | Docs | OS code tabs remembered; Copy without the prompt | done | `GET /-/docs/install` (`asc/docs_install.tmpl`): the steps of the release the download page offers, one tab for each system with the visitor's first; `initDocTabs` keeps the choice under `data-doc-remember` in `localStorage` (Home and End keys); every command sits behind an `aria-hidden` prompt and Copy copies the commands alone; verify step from the manifest's key; connect step `asc auth login --host <hub>`; without a release, build from source | - |
 | Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | Intersection observer in a new `docs.js`; links to the repository file view | M |
 | Docs | "Was this page helpful?" Yes and No | needs-hub-backend | `POST /-/docs/feedback`, stored (new table or issue on the docs repo), rate limited | M |
-| Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | ui-only-missing | "On this page" row and a next-guide link exist on a phone; the docs menu drawer is missing (the guide list sits under the article) | M |
+| Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | done | `asc/docs_page.tmpl`: Docs menu button before the breadcrumb opens `#site-docs-drawer` (every guide by section from `ascdocs.Sections`, a dialog run by `ds-shell.js` with focus return, `:target` without the script); sticky On this page row and the next-guide link | - |
 
 ## About
 
