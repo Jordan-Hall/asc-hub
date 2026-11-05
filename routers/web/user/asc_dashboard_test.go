@@ -66,8 +66,9 @@ func TestAscDashRows(t *testing.T) {
 	assert.Equal(t, "Conflicts with its base", blocked.Chips[0].Text)
 	assert.Equal(t, "1 check failing", blocked.Chips[1].Text)
 
-	review := ascDashRowFor(l, &AscInboxEntry{Section: issues_model.AscInboxNeedsReview}, nil)
+	review := ascDashRowFor(l, &AscInboxEntry{PullID: 9, Section: issues_model.AscInboxNeedsReview}, nil)
 	assert.Equal(t, "amber", review.Tone)
+	assert.Equal(t, int64(9), review.PullID)
 	assert.Equal(t, "Review requested", review.Chips[0].Text)
 	assert.Empty(t, review.Meta)
 
@@ -132,6 +133,12 @@ func TestAscDashPage(t *testing.T) {
 	// only the actionable sections are rows: the waiting and the merged entries are not
 	assert.NotContains(t, html, "Docs and metrics</div>")
 	assert.NotContains(t, html, "Add jitter to the retry delay")
+	// rows of pull requests carry the hidden form a swipe or e sends, back to the dashboard
+	assert.Contains(t, html, `data-asc-list data-asc-swipe`)
+	assert.Contains(t, html, `name="back" value="dash"`)
+	// pull to refresh in the installed app
+	assert.Contains(t, html, `wk-dash-grid" data-asc-pull-refresh`)
+	assert.Contains(t, html, `data-asc-ptr`)
 
 	t.Run("agents are hidden while the person's switch is off", func(t *testing.T) {
 		user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})

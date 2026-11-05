@@ -443,3 +443,27 @@ func TestAscInboxUnwatch(t *testing.T) {
 	_, body = getAscInbox(t, user2, "?tab=done")
 	assert.Contains(t, body, "watched one")
 }
+
+func TestAscInboxRowState(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	useAscInboxEntries(t, &AscInboxEntry{PullID: 61, Title: "swiped one", Link: "/o/r/pulls/1", RepoFullName: "o/r", Index: 1, Section: issues_model.AscInboxNeedsReview, Updated: time.Now().Add(-time.Hour), Author: "alice"})
+
+	// every inbox row carries the hidden form a swipe or e sends
+	_, body := getAscInbox(t, user2, "")
+	assert.Contains(t, body, "data-asc-swipe")
+	assert.Contains(t, body, "data-asc-row-state hidden")
+
+	// from the dashboard: back to the dashboard, without the undo of the inbox
+	code, loc := postAscInboxState(t, user2, map[string]string{"pull": "61", "do": "done", "back": "dash"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Equal(t, "/", loc)
+	code, loc = postAscInboxState(t, user2, map[string]string{"pull": "61", "do": "snooze", "for": "4h", "back": "dash"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Equal(t, "/", loc)
+	// any other back is the inbox
+	code, loc = postAscInboxState(t, user2, map[string]string{"pull": "61", "do": "restore", "back": "https://example.org/"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Equal(t, "/-/asc/inbox", loc)
+}
