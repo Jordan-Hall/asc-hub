@@ -78,7 +78,7 @@ target/release/asc --version</div>
 				</section>
 				{{end}}
 
-				<div class="site-dl-tabbar">
+				<div class="site-dl-tabbar" id="asc-dl-systems">
 					<nav class="hub-dl-tabs" aria-label="{{ctx.Locale.Tr "asc_download.choose_system"}}">
 						{{range $offers.OSes}}
 							<a class="ds-chip-btn hub-dl-tab" id="asc-dl-tab-{{.OS}}" data-os="{{.OS}}" href="#asc-dl-{{.OS}}"{{if eq .OS $view.ActiveOS}} aria-current="true"{{end}}>{{.Label}}</a>
@@ -112,11 +112,11 @@ target/release/asc --version</div>
 							{{range $arch := $os.Arches}}
 							{{$recommended := and (eq $os.OS $view.ActiveOS) (eq $arch.Arch $view.ActiveArch) $view.Detected}}
 							{{range $arch.Files}}
-								<tr class="hub-dl-arch" data-arch="{{$arch.Arch}}"{{if $recommended}} data-recommended{{end}}>
-									<td class="site-dl-file"><a class="ds-mono ds-link ds-break" href="{{.URL}}" download="{{.Name}}">{{.Name}}</a><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr (printf "asc_download.kind_%s" .Kind)}} &middot; {{$arch.Label}} <span class="ds-chip ds-chip-ok hub-dl-badge"{{if not $recommended}} hidden{{end}}>{{ctx.Locale.Tr "asc_download.recommended"}}</span></span></td>
-									<td class="ds-r ds-num" data-label="{{ctx.Locale.Tr "asc_site.col_size"}}">{{ctx.Locale.TrSize .Size}}</td>
-									<td data-label="{{ctx.Locale.Tr "asc_download.sha256"}}"><span class="site-dl-hash"><code class="ds-mono ds-t-small" title="{{.SHA256}}">{{printf "%.10s" .SHA256}}&hellip;</code><button type="button" class="ds-btn ds-btn-ghost ds-btn-icon" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_hash_toast"}}" data-clipboard-text="{{.SHA256}}" aria-label="{{ctx.Locale.Tr "asc_download.copy_hash"}}">{{svg "dsi-copy" 16}}</button></span></td>
-									<td data-label="{{ctx.Locale.Tr "asc_download.signature"}}">{{if .SignatureURL}}<a class="ds-link ds-t-small" href="{{.SignatureURL}}" download="{{.Signature}}">{{.Signature}}</a>{{end}}</td>
+								<tr class="hub-dl-arch site-dl-row" data-arch="{{$arch.Arch}}"{{if $recommended}} data-recommended{{end}}>
+									<td class="site-dl-file"><a class="ds-mono ds-link ds-break" href="{{.URL}}" download="{{.Name}}">{{.Name}}</a><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr (printf "asc_download.kind_%s" .Kind)}} &middot; {{$arch.Label}}<span class="site-dl-msize"> &middot; {{ctx.Locale.TrSize .Size}}</span> <span class="ds-chip ds-chip-ok hub-dl-badge"{{if not $recommended}} hidden{{end}}>{{ctx.Locale.Tr "asc_download.recommended"}}</span></span></td>
+									<td class="ds-r ds-num site-dl-size" data-label="{{ctx.Locale.Tr "asc_site.col_size"}}">{{ctx.Locale.TrSize .Size}}</td>
+									<td class="site-dl-hashcell" data-label="{{ctx.Locale.Tr "asc_download.sha256"}}"><span class="site-dl-hash"><code class="ds-mono ds-t-small" title="{{.SHA256}}">{{printf "%.10s" .SHA256}}&hellip;</code><button type="button" class="ds-btn ds-btn-ghost ds-btn-icon" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_hash_toast"}}" data-clipboard-text="{{.SHA256}}" aria-label="{{ctx.Locale.Tr "asc_download.copy_hash"}}">{{svg "dsi-copy" 16}}</button></span></td>
+									<td class="site-dl-sigcell" data-label="{{ctx.Locale.Tr "asc_download.signature"}}">{{if .SignatureURL}}<a class="ds-link ds-t-small site-dl-sig" href="{{.SignatureURL}}" download="{{.Signature}}" title="{{ctx.Locale.Tr "asc_download.signature_file"}}"><span class="site-dl-sigic" aria-hidden="true">{{svg "dsi-key" 16}}</span><span class="site-dl-signame">{{.Signature}}</span></a>{{end}}</td>
 									<td class="site-dl-act"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.URL}}" download="{{.Name}}">{{ctx.Locale.Tr "asc_site.dl_download"}}<span class="ds-sr">: {{.Name}}</span></a></td>
 								</tr>
 							{{end}}
@@ -140,6 +140,12 @@ target/release/asc --version</div>
 				</section>
 				{{end}}
 				<p class="ds-t-small ds-c-2 site-dl-note">{{svg "dsi-shield-check" 16}} {{ctx.Locale.Tr "asc_download.install_check_note"}}</p>
+				{{with $view.ActiveArchOffer}}{{with .Primary}}
+				<div class="ds-sticky-actions site-dl-sticky" data-asc-dl-sticky>
+					<a class="ds-btn ds-btn-primary" href="{{.URL}}" download="{{.Name}}">{{ctx.Locale.Tr "asc_download.download_for" $view.ActiveOSOffer.Label}}</a>
+					<a class="ds-btn ds-btn-secondary site-dl-sticky-more" href="#asc-dl-systems">{{ctx.Locale.Tr "asc_download.more"}}</a>
+				</div>
+				{{end}}{{end}}
 			</div>
 
 			<aside class="ds-rail site-dl-rail" aria-label="{{ctx.Locale.Tr "asc_site.dl_side"}}">

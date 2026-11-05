@@ -608,6 +608,73 @@
   white-space: nowrap;
 }
 
+.site-dl .site-dl-msize,
+.site-dl .site-dl-sigic,
+.site-dl .site-dl-sticky {
+  display: none;
+}
+
+/* a phone: every file is a card (name, kind and size, hash with copy and signature, download), and the download for this system sticks to the bottom */
+@media (max-width: 639.98px) {
+  .site-dl .site-dl-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 12px 16px;
+  }
+
+  .site-dl .site-dl-row td {
+    padding: 0;
+  }
+
+  .site-dl .site-dl-row td::before {
+    content: none;
+  }
+
+  .site-dl .site-dl-row .site-dl-file {
+    grid-column: 1 / -1;
+    text-align: start;
+  }
+
+  .site-dl .site-dl-row .site-dl-size {
+    display: none;
+  }
+
+  .site-dl .site-dl-row .site-dl-hashcell {
+    justify-content: flex-start;
+  }
+
+  .site-dl .site-dl-msize {
+    display: inline;
+  }
+
+  .site-dl .site-dl-sig {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .site-dl .site-dl-sigic {
+    display: inline-flex;
+  }
+
+  .site-dl .site-dl-signame {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .site-dl .site-dl-sticky {
+    display: flex;
+  }
+}
+
 .site-dl .site-dl-note {
   display: flex;
   gap: 8px;
@@ -975,9 +1042,10 @@
 }
 
 .ins .ins-sum dd {
-  margin: 0 0 0 auto;
-  font-weight: 700;
-  text-align: right;
+  margin: 0;
+  margin-inline-start: auto;
+  font-weight: var(--font-weight-bold);
+  text-align: end;
   overflow-wrap: anywhere;
 }
 
@@ -1095,7 +1163,7 @@
 
 .ins .ins-done {
   justify-items: stretch;
-  text-align: left;
+  text-align: start;
 }
 
 .ins .ins-done [hidden] {
