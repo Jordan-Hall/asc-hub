@@ -135,22 +135,30 @@ func releaseRecordOf(r *ascv1.Release) *ReleaseRecord {
 // ListReleaseRecords returns the asc records of the releases of repo by tag. Without asc it returns nothing and no error:
 // the page then shows what the hub knows. The caller has checked that the person may read the repository.
 func ListReleaseRecords(ctx context.Context, repo *repo_model.Repository) map[string]*ReleaseRecord {
+	records, _ := ReadReleaseRecords(ctx, repo)
+	return records
+}
+
+// ReadReleaseRecords is ListReleaseRecords that also says whether asc failed to answer (unreachable, timed out, storage error),
+// so the page can say the asc records are missing and offer to try again. A repository asc does not serve is not a failure.
+func ReadReleaseRecords(ctx context.Context, repo *repo_model.Repository) (map[string]*ReleaseRecord, bool) {
 	name, err := RepoName(repo)
 	if err != nil {
-		return nil
+		return nil, false
 	}
 	conn, err := Conn()
 	if err != nil {
-		return nil
+		return nil, false
 	}
 	cctx, cancel := SystemContext(ctx, releaseCallTimeout)
 	defer cancel()
 	resp, err := ascv1.NewReleasesClient(conn).List(cctx, &ascv1.ListReleasesRequest{Repo: RepoRef(name), Limit: releaseListLimit})
 	if err != nil {
-		if status.Code(err) != codes.Unimplemented && status.Code(err) != codes.NotFound {
-			log.Warn("asc releases: List for %s: %v", name, err)
+		if status.Code(err) == codes.Unimplemented || status.Code(err) == codes.NotFound {
+			return nil, false
 		}
-		return nil
+		log.Warn("asc releases: List for %s: %v", name, err)
+		return nil, true
 	}
 	out := make(map[string]*ReleaseRecord, len(resp.GetReleases()))
 	for _, r := range resp.GetReleases() {
@@ -158,7 +166,7 @@ func ListReleaseRecords(ctx context.Context, repo *repo_model.Repository) map[st
 			out[rec.Tag] = rec
 		}
 	}
-	return out
+	return out, false
 }
 
 // ReleaseDraft is the notes and the tag asc proposes for the next release.

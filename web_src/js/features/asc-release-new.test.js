@@ -9,7 +9,7 @@ function page() {
     <input name="tag_name"><p data-rel-new-proposed data-text="asc proposes {tag} (latest release {latest})." data-text-first="asc proposes {tag} for the first release." hidden></p>
     <input name="title">
     <button type="button" data-rel-new-write data-label-one="Write from the landed change" data-label-other="Write from the %d landed changes" hidden></button>
-    <textarea name="content"></textarea><p data-rel-new-state data-failed="failed" data-truncated="first only"></p>
+    <textarea name="content"></textarea><p data-rel-new-state data-loading="asking" data-failed="failed" data-truncated="first only"></p>
     <button type="button" data-rel-new-close>Cancel</button>
   </form></dialog>`;
   const dialog = document.querySelector('dialog');
@@ -48,6 +48,7 @@ test('the button opens the dialog, proposes the tag and writes the notes', async
   open.dispatchEvent(click);
   expect(click.defaultPrevented).toBe(true);
   expect(dialog.showModal).toHaveBeenCalled();
+  expect(dialog.querySelector('[data-rel-new-state]').textContent).toBe('asking');
   await flush();
   expect(GET).toHaveBeenCalledWith('/o/r/releases/asc_draft');
   expect(dialog.querySelector('[name="tag_name"]').value).toBe('v2.19.0');

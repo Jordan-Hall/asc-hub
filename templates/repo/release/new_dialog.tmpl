@@ -23,7 +23,7 @@ the New release buttons open that page. */}}
 				<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-rel-new-write data-label-one="{{ctx.Locale.Tr "asc_rp.rel_write_one"}}" data-label-other="{{ctx.Locale.Tr "asc_rp.rel_write_other"}}" hidden></button>
 			</div>
 			<textarea class="ds-textarea" id="rp-rel-new-notes" name="content" rows="8" aria-describedby="rp-rel-new-notes-state"></textarea>
-			<p class="ds-hint" id="rp-rel-new-notes-state" data-rel-new-state data-failed="{{ctx.Locale.Tr "asc_rp.rel_write_failed"}}" data-truncated="{{ctx.Locale.Tr "asc_rp.rel_write_truncated"}}" role="status"></p>
+			<p class="ds-hint" id="rp-rel-new-notes-state" data-rel-new-state data-loading="{{ctx.Locale.Tr "asc_rp.rel_write_loading"}}" data-failed="{{ctx.Locale.Tr "asc_rp.rel_write_failed"}}" data-truncated="{{ctx.Locale.Tr "asc_rp.rel_write_truncated"}}" role="status"></p>
 		</div>
 		{{if .IsAttachmentEnabled}}
 		<div class="ds-field">
