@@ -776,73 +776,6 @@
   .wk-org-card .wk-pf-actions > * { flex: none; }
 }
 
-/* the repository list of an organization while a search, a sort or a page loads (asc-list-loading.js) */
-.wk-org-list.is-loading > :not([data-asc-list-loading]) {
-  display: none;
-}
-
-.wk-org-loading[hidden] {
-  display: none;
-}
-
-.wk-org-loading .ds-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.wk-sk-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  cursor: progress;
-}
-
-.wk-sk-row + .wk-sk-row {
-  border-top: 1px solid var(--line);
-}
-
-.wk-sk-av {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  flex: none;
-}
-
-.wk-sk-main {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-
-.wk-sk-t {
-  width: 48%;
-  height: 16px;
-}
-
-.wk-sk-s {
-  width: 72%;
-  height: 12px;
-}
-
-.wk-sk-row:nth-child(even) .wk-sk-t {
-  width: 60%;
-}
-
-.wk-sk-row:nth-child(even) .wk-sk-s {
-  width: 56%;
-}
-
-.wk-sk-pill {
-  width: 64px;
-  height: 24px;
-  border-radius: 999px;
-  flex: none;
-}
-
 /* the row menu of a repository row: only on a phone, where it takes the place of the row actions */
 .ds-row-menu {
   display: none;
@@ -871,9 +804,5 @@
 
   .ds-row-menu form {
     display: grid;
-  }
-
-  .wk-sk-pill {
-    display: none;
   }
 }

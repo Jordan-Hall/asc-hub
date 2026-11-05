@@ -74,13 +74,31 @@ func userProfile(ctx *context.Context) {
 	ctx.Data["OpenGraphURL"] = ctx.ContextUser.HTMLURL()
 	ctx.Data["OpenGraphDescription"] = ctx.ContextUser.Description
 
+	// "View as visitor" (board Profile, owner view): the person sees their profile as someone signed out sees it. The
+	// page is prepared without the viewer, then the viewer comes back for the header of the site.
+	asVisitor := ctx.IsSigned && ctx.Doer.ID == ctx.ContextUser.ID && ctx.FormBool("visitor")
+	doer := ctx.Doer
+	if asVisitor {
+		ctx.Doer, ctx.IsSigned = nil, false
+	}
+
 	profileDbRepo, profileGitRepo, profileReadmeBlob, profileClose := shared_user.FindUserProfileReadme(ctx, ctx.Doer)
 	defer profileClose()
 
 	showPrivate := ctx.IsSigned && (ctx.Doer.IsAdmin || ctx.Doer.ID == ctx.ContextUser.ID)
 	prepareUserProfileTabData(ctx, showPrivate, profileDbRepo, profileGitRepo, profileReadmeBlob)
 	// call PrepareContextForProfileBigAvatar later to avoid re-querying the NumFollowers & NumFollowing
-	shared_user.PrepareContextForProfileBigAvatar(ctx)
+	if !ctx.Written() {
+		shared_user.PrepareContextForProfileBigAvatar(ctx)
+	}
+	if asVisitor {
+		ctx.Doer, ctx.IsSigned = doer, true
+		ctx.Data["AscAsVisitor"] = true
+		ctx.Data["SignedUserID"] = int64(0) // the owner parts of the page are left out
+	}
+	if ctx.Written() {
+		return
+	}
 	ctx.HTML(http.StatusOK, tplProfile)
 }
 
@@ -93,6 +111,11 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	}
 	ctx.Data["TabName"] = tab
 	ctx.Data["HasProfileReadme"] = profileReadme != nil
+	// a viewer who sees part of a private profile sees the repositories they share on every tab
+	dataTab := tab
+	if shared_user.AscPrivateLimited(ctx) {
+		dataTab = "repositories"
+	}
 
 	page := ctx.FormInt("page")
 	if page <= 0 {
@@ -160,7 +183,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 		// being online is activity: it follows the same switch as the rest of the person's activity
 		ctx.Data["AscOnline"] = activities_model.ActivityReadable(ctx.ContextUser, ctx.Doer) && ascpresence.Online(ctx, ctx.ContextUser.ID)
 	}
-	switch tab {
+	switch dataTab {
 	case "followers":
 		ctx.Data["Cards"] = followers
 		total = int(numFollowers)
@@ -374,10 +397,10 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	pager := context.NewPagination(total, pagingNum, page, 5)
 	pager.SetDefaultParams(ctx)
 	pager.AddParam(ctx, "tab", "TabName")
-	if tab != "followers" && tab != "following" && tab != "activity" && tab != "projects" {
+	if dataTab != "followers" && dataTab != "following" && dataTab != "activity" && dataTab != "projects" {
 		pager.AddParam(ctx, "language", "Language")
 	}
-	if tab == "activity" {
+	if dataTab == "activity" {
 		pager.AddParam(ctx, "date", "Date")
 	}
 	if has, value := archived.Get(); has {

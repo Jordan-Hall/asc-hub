@@ -7,9 +7,6 @@ The actions of a person's profile as a sheet: a bottom sheet on a phone, a dialo
 		<header>{{ctx.Locale.Tr "profile.actions.tooltip"}}</header>
 		<div class="content">
 			<ul class="wk-sheet-list">
-				{{if eq .SignedUserID .ContextUser.ID}}
-					<li><a href="{{AppSubUrl}}/user/settings">{{svg "dsi-pencil" 18}}<span>{{ctx.Locale.Tr "profile.edit.link"}}</span></a></li>
-				{{end}}
 				{{if .IsAdmin}}
 					<li><a href="{{AppSubUrl}}/admin/users/{{.ContextUser.ID}}">{{svg "dsi-sliders" 18}}<span>{{ctx.Locale.Tr "admin.users.details"}}</span></a></li>
 				{{end}}
@@ -19,7 +16,7 @@ The actions of a person's profile as a sheet: a bottom sheet on a phone, a dialo
 				{{end}}
 				<li><a href="{{.ContextUser.HomeLink}}.keys">{{svg "dsi-key" 18}}<span>{{ctx.Locale.Tr "keys.ssh.link"}}</span></a></li>
 				<li><a href="{{.ContextUser.HomeLink}}.gpg">{{svg "dsi-key" 18}}<span>{{ctx.Locale.Tr "keys.gpg.link"}}</span></a></li>
-				{{if and .IsSigned (ne .SignedUserID .ContextUser.ID)}}
+				{{if and .IsSigned (ne .SignedUserID .ContextUser.ID) (not .AscAsVisitor)}}
 					<li class="wk-sheet-sep" role="presentation"></li>
 					<li hx-target="#profile-avatar-card" hx-indicator="#profile-avatar-card" id="action-block">
 						{{if .IsBlocked}}

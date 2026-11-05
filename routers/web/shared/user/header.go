@@ -35,9 +35,21 @@ func prepareContextForCommonProfile(ctx *context.Context) {
 	ctx.Data["FeedURL"] = ctx.ContextUser.HomeLink()
 }
 
+// AscPrivateLimited tells whether the viewer sees only part of a person's profile (board Profile, private-profile
+// state): the person keeps the profile private and the viewer, who may see it because they share an organization or
+// a repository, is neither the person nor an administrator. Such a viewer sees the name and the repositories they
+// share.
+func AscPrivateLimited(ctx *context.Context) bool {
+	if !ctx.ContextUser.IsIndividual() || !ctx.ContextUser.Visibility.IsPrivate() {
+		return false
+	}
+	return !ctx.IsSigned || !(ctx.Doer.IsAdmin || ctx.Doer.ID == ctx.ContextUser.ID)
+}
+
 // PrepareContextForProfileBigAvatar set the context for big avatar view on the profile page
 func PrepareContextForProfileBigAvatar(ctx *context.Context) {
 	prepareContextForCommonProfile(ctx)
+	ctx.Data["AscPrivateLimited"] = AscPrivateLimited(ctx)
 
 	ctx.Data["IsModerationEnabled"] = setting.Moderation.Enabled
 	ctx.Data["IsBlocked"] = ctx.Doer != nil && user_model.IsBlocked(ctx, ctx.Doer.ID, ctx.ContextUser.ID)
