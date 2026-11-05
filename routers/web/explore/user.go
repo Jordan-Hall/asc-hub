@@ -6,6 +6,8 @@ package explore
 import (
 	"bytes"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"forgejo.org/models/db"
 	"forgejo.org/models/organization"
@@ -200,6 +202,7 @@ func Users(ctx *context.Context) {
 		ctx.SetFormString("sort", sortOrder)
 	}
 
+	ctx.Data["InviteHref"] = inviteHref(ctx)
 	RenderUserSearchWith(ctx, &user_model.SearchUserOptions{
 		Actor:       ctx.Doer,
 		Type:        user_model.UserTypeIndividual,
@@ -209,6 +212,27 @@ func Users(ctx *context.Context) {
 
 		SupportedSortOrders: supportedSortOrders,
 	}, tplExploreUsers, func(users []*user_model.User) { loadExploreUserRows(ctx, users) })
+}
+
+// inviteHref is where Invite people goes on the people page (board ExploreUsers): an administrator adds the
+// account, and where anyone may sign up, a signed-in user sends the sign-up link by email. Empty when neither applies.
+func inviteHref(ctx *context.Context) string {
+	switch {
+	case !ctx.IsSigned:
+		return ""
+	case ctx.Doer.IsAdmin:
+		return setting.AppSubURL + "/admin/users/new"
+	case setting.Service.DisableRegistration || setting.Service.AllowOnlyExternalRegistration:
+		return ""
+	}
+	subject := ctx.Locale.TrString("explore.invite_subject", setting.AppName)
+	body := ctx.Locale.TrString("explore.invite_body", setting.AppName, setting.AppURL+"user/sign_up")
+	return "mailto:?subject=" + mailtoEscape(subject) + "&body=" + mailtoEscape(body)
+}
+
+// mailtoEscape escapes a mailto header value (RFC 6068): a space is %20, as mail clients show a + as itself.
+func mailtoEscape(s string) string {
+	return strings.ReplaceAll(url.QueryEscape(s), "+", "%20")
 }
 
 // Maps a sort query to a database search order.
