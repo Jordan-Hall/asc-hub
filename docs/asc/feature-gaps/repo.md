@@ -375,7 +375,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsAI | "What uses AI" table: Agent runs, Review summaries, Meaning search, each with its provider and monthly cap and spend meter (amber 80%, red 100%) | needs-both | asc caps are per key (`monthly_cap_micro_usd`), not per feature; add feature routing (`AiFeature` -> key + cap) in `A:proto/asc/v1/aiproviders.proto` and the usage grouping; hub table | L |
 | RepoSettingsAI | Cap reached: feature pauses with "until 1 Nov or you raise it" | needs-asc-backend | key state `CAPPED` exists; per-feature pause message and reset date | M |
 | RepoSettingsAI | No keys: "AI features are off" empty state | done | `ascbyo.ai.empty` | S |
-| RepoSettingsAI | Repository-level page (keys are owner scope in asc, page lives under the repository menu) | ui-only-missing | board title "Your keys, your providers, your caps" under repo menu; hub embeds owner list | S |
+| RepoSettingsAI | Repository-level page (keys are owner scope in asc, page lives under the repository menu) | done | `H:templates/shared/asc/byo_ai_repo.tmpl` under the repository menu (`/settings/asc/ai`) with the lead "Your keys, your providers, your caps."; keys of the repository are made there, and the owner's keys are linked, not listed, since agents use a repository key first and then the owner's; `TestRepoAIKeysPage` | S |
 
 ## RepoSettingsStorage
 
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 167 |
+| done | 168 |
 | partial | 1 |
-| ui-only-missing | 34 |
+| ui-only-missing | 33 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -442,7 +442,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
 | RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
 | RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |
-| RepoSettingsAI | 2 | 1 | 0 | 1 | 2 |
+| RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
 | RepoSettingsStorage | 3 | 0 | 0 | 2 | 3 |
 | Mobile-Repo | 0 | 0 | 1 | 0 | 0 |
 | Mobile-Code | 0 | 1 | 0 | 0 | 0 |
