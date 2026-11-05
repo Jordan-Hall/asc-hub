@@ -114,10 +114,6 @@
 						{{template "shared/ds/field" (dict "ID" "run_user" "Name" "run_user" "Label" (ctx.Locale.Tr "install.run_user") "Value" .run_user "Required" true "Readonly" true "Error" .Err_RunUser "Hint" (ctx.Locale.Tr "install.run_user_helper") "Extra" "off")}}
 						<div class="ds-stack ds-stack-12">
 							<div class="ds-field">
-								<div class="ds-check" id="disable-registration"><input id="disable_registration" name="disable_registration" type="checkbox"{{if .disable_registration}} checked{{end}}><label for="disable_registration"{{if .Err_DisabledRegistration}} class="ds-c-err"{{end}}>{{ctx.Locale.Tr "install.disable_registration"}}</label></div>
-								<div class="ds-hint">{{ctx.Locale.Tr "install.disable_registration.description"}}</div>
-							</div>
-							<div class="ds-field">
 								<div class="ds-check"><input id="enable_update_checker" name="enable_update_checker" type="checkbox"{{if .enable_update_checker}} checked{{end}}><label for="enable_update_checker">{{ctx.Locale.Tr "install.enable_update_checker"}}</label></div>
 								<div class="ds-hint">{{ctx.Locale.Tr "install.enable_update_checker_helper_forgejo"}}</div>
 							</div>
@@ -126,8 +122,8 @@
 				</section>
 
 				<!-- Administrator -->
-				<section class="ds-card ins-card" id="ins-admin" data-ins-step="3" aria-labelledby="ins-admin-h">
-					<div class="ds-card-h"><div class="ds-grow"><h2 id="ins-admin-h">{{ctx.Locale.Tr "install.admin_title"}}</h2><p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "install.admin_setting.description"}}</p></div><span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_install.step" 3}}</span></div>
+				<section class="ds-card ins-card" id="ins-admin" data-ins-step="3" aria-labelledby="ins-admin-h" data-ins-admin data-skip-err="{{ctx.Locale.Tr "install.no_admin_and_disable_registration"}}">
+					<div class="ds-card-h"><div class="ds-grow"><h2 id="ins-admin-h">{{ctx.Locale.Tr "asc_install.admin_h"}}</h2><p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_install.admin_t"}}</p></div><span class="ds-chip ds-chip-info">{{ctx.Locale.Tr "asc_install.step" 3}}</span></div>
 					<div class="ds-card-b ds-form">
 						<div class="ds-form-row ds-form-row-2">
 							{{template "shared/ds/field" (dict "ID" "admin_name" "Name" "admin_name" "Label" (ctx.Locale.Tr "install.admin_name") "Value" .admin_name "Error" .Err_AdminName "Autocomplete" "username" "Extra" "off")}}
@@ -136,6 +132,10 @@
 						<div class="ds-form-row ds-form-row-2">
 							{{template "shared/ds/field" (dict "ID" "admin_passwd" "Name" "admin_passwd" "Label" (ctx.Locale.Tr "install.admin_password") "Type" "password" "Value" .admin_passwd "Error" .Err_AdminPasswd "Autocomplete" "new-password" "Reveal" true)}}
 							{{template "shared/ds/field" (dict "ID" "admin_confirm_passwd" "Name" "admin_confirm_passwd" "Label" (ctx.Locale.Tr "install.confirm_password") "Type" "password" "Value" .admin_confirm_passwd "Error" .Err_AdminPasswd "Autocomplete" "new-password" "Reveal" true)}}
+						</div>
+						<div class="ds-stack ds-stack-8">
+							<div class="ds-check"><input id="register_confirm" name="register_confirm" type="checkbox"{{if .register_confirm}} checked{{end}}><label for="register_confirm">{{ctx.Locale.Tr "asc_install.reg_confirm"}}</label></div>
+							<div class="ds-check" id="disable-registration"><input id="disable_registration" name="disable_registration" type="checkbox"{{if .disable_registration}} checked{{end}}><label for="disable_registration"{{if .Err_DisabledRegistration}} class="ds-c-err"{{end}}>{{ctx.Locale.Tr "asc_install.reg_disable"}}</label></div>
 						</div>
 					</div>
 				</section>
@@ -156,7 +156,6 @@
 									{{template "shared/ds/field" (dict "ID" "smtp_user" "Name" "smtp_user" "Label" (ctx.Locale.Tr "install.mailer_user") "Value" .smtp_user "Error" .Err_SMTPUser "Extra" "off" "Autocomplete" "off")}}
 									{{template "shared/ds/field" (dict "ID" "smtp_passwd" "Name" "smtp_passwd" "Label" (ctx.Locale.Tr "install.mailer_password") "Type" "password" "Value" .smtp_passwd "Autocomplete" "new-password" "Reveal" true)}}
 								</div>
-								<div class="ds-check"><input id="register_confirm" name="register_confirm" type="checkbox"{{if .register_confirm}} checked{{end}}><label for="register_confirm">{{ctx.Locale.Tr "install.register_confirm"}}</label></div>
 								<div class="ds-check"><input id="mail_notify" name="mail_notify" type="checkbox"{{if .mail_notify}} checked{{end}}><label for="mail_notify">{{ctx.Locale.Tr "install.mail_notify"}}</label></div>
 							</div>
 						</details>
