@@ -119,6 +119,17 @@ func TestAscInboxPage(t *testing.T) {
 		assert.NotContains(t, body, "mine-snoozed")
 	})
 
+	t.Run("an empty inbox on day one says so", func(t *testing.T) {
+		useAscInboxEntries(t)
+		user8 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 8})
+		_, body := getAscInbox(t, user8, "")
+		assert.Contains(t, body, "data-asc-inbox-dayone")
+		assert.Contains(t, body, "asc_work.inbox_dayone_title")
+		assert.Contains(t, body, `href="/repo/create"`)
+		_, body = getAscInbox(t, user2, "")
+		assert.NotContains(t, body, "data-asc-inbox-dayone", "a person with repositories gets the usual empty state")
+	})
+
 	t.Run("anonymous and disabled", func(t *testing.T) {
 		useAscInboxEntries(t)
 		code, _ := getAscInbox(t, nil, "")

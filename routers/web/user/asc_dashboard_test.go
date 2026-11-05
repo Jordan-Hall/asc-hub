@@ -144,4 +144,21 @@ func TestAscDashPage(t *testing.T) {
 		assert.NotContains(t, html, "Agent runs")
 	})
 
+	t.Run("a person with repositories and teams sees no empty areas", func(t *testing.T) {
+		assert.NotContains(t, html, "data-asc-dash-norepo")
+		assert.NotContains(t, html, "data-asc-dash-alone")
+	})
+
+	t.Run("day one shows the empty areas", func(t *testing.T) {
+		useAscInboxEntries(t)
+		ctx, body := ascRenderContext(t, "/", 8)
+		Dashboard(ctx)
+		require.Equal(t, 200, ctx.Resp.Status())
+		html := string(body())
+		assert.Contains(t, html, "No repositories yet")
+		assert.Contains(t, html, "Create one or import a project to see your stacks.")
+		assert.Contains(t, html, "It is just you for now")
+		assert.Contains(t, html, "Invite teammates and add an agent when you are ready.")
+		assert.Contains(t, html, `href="/org/create">Invite</a>`)
+	})
 }
