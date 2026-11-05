@@ -131,6 +131,7 @@ func NewFuncMap() template.FuncMap {
 		"AppDomain": func() string { // documented in mail-templates.md
 			return setting.Domain
 		},
+		"ShellArg": ShellArg,
 		"AscEnabled": func() bool { // the asc integration is on: the inbox, stacks and the cross repository search exist
 			return setting.Asc.Enabled
 		},
