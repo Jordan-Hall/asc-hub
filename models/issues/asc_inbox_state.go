@@ -18,7 +18,8 @@ import (
 //
 //   - whose turn it is, derived (never stored) from the review requests, each reviewer's latest review and
 //     the version after it: AscInboxFacts and AscInboxSectionFor;
-//   - the user's own marks, stored per (user, pull request): pinned, and snoozed until a time.
+//   - the user's own marks, stored per (user, pull request): pinned, snoozed until a time, and done (the person
+//     put it away until the pull request changes again).
 //
 // The marks are private to their user: every read and write is keyed by the user id the caller passes, which
 // the API takes from the authenticated session, never from a request body.
@@ -154,6 +155,9 @@ func AscInboxSectionFor(f *AscInboxFacts, userID int64) AscInboxSection {
 // AscInboxMaxSnooze is the furthest ahead a snooze can be set.
 const AscInboxMaxSnooze = 365 * 24 * time.Hour
 
+// AscInboxDoneKeep is how long an item marked done is listed in the Done view, where it can be restored.
+const AscInboxDoneKeep = 30 * 24 * time.Hour
+
 // AscInboxState is one user's marks on one pull request. A row exists only while a mark is set.
 type AscInboxState struct {
 	ID           int64              `xorm:"pk autoincr"`
@@ -161,6 +165,7 @@ type AscInboxState struct {
 	PullID       int64              `xorm:"UNIQUE(user_pull) INDEX NOT NULL"`
 	Pinned       bool               `xorm:"NOT NULL DEFAULT false"`
 	SnoozedUntil timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"` // 0: not snoozed
+	DoneUnix     timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"` // when it was marked done; 0: not done
 	UpdatedUnix  timeutil.TimeStamp `xorm:"updated"`
 }
 
@@ -174,6 +179,12 @@ func init() {
 // IsSnoozed reports whether the snooze is still running at now.
 func (s *AscInboxState) IsSnoozed(now time.Time) bool {
 	return s != nil && s.SnoozedUntil > 0 && int64(s.SnoozedUntil) > now.Unix()
+}
+
+// IsDone reports whether the person marked the pull request done and it was not updated after that. A pull
+// request that changes again comes back to its section; the mark is then spent.
+func (s *AscInboxState) IsDone(updated time.Time) bool {
+	return s != nil && s.DoneUnix > 0 && updated.Unix() <= int64(s.DoneUnix)
 }
 
 // ErrAscInboxBadSnooze is returned for a snooze time beyond AscInboxMaxSnooze.
@@ -210,11 +221,40 @@ func ListAscInboxStates(ctx context.Context, userID int64, pullIDs []int64) (map
 // at or before now clears the snooze; one beyond AscInboxMaxSnooze is refused. When no mark remains set the
 // row is deleted. The caller has already checked that the user may see the pull request.
 func SetAscInboxState(ctx context.Context, userID, pullID int64, pinned *bool, snoozedUntil *time.Time, now time.Time) (*AscInboxState, error) {
-	if userID <= 0 || pullID <= 0 {
-		return nil, fmt.Errorf("bad inbox state key")
-	}
 	if snoozedUntil != nil && snoozedUntil.After(now.Add(AscInboxMaxSnooze)) {
 		return nil, ErrAscInboxBadSnooze
+	}
+	return changeAscInboxState(ctx, userID, pullID, func(next *AscInboxState) {
+		if pinned != nil {
+			next.Pinned = *pinned
+		}
+		if snoozedUntil != nil {
+			if snoozedUntil.After(now) {
+				next.SnoozedUntil = timeutil.TimeStamp(snoozedUntil.Unix())
+			} else {
+				next.SnoozedUntil = 0
+			}
+		}
+	})
+}
+
+// SetAscInboxDone marks the pull request done for userID at now, or restores it (done false). Marking done also
+// ends a snooze. The caller has already checked that the user may see the pull request.
+func SetAscInboxDone(ctx context.Context, userID, pullID int64, done bool, now time.Time) (*AscInboxState, error) {
+	return changeAscInboxState(ctx, userID, pullID, func(next *AscInboxState) {
+		next.DoneUnix = 0
+		if done {
+			next.DoneUnix = timeutil.TimeStamp(now.Unix())
+			next.SnoozedUntil = 0
+		}
+	})
+}
+
+// changeAscInboxState applies change to the marks of userID on pullID in one transaction, and deletes the row
+// when no mark remains set.
+func changeAscInboxState(ctx context.Context, userID, pullID int64, change func(*AscInboxState)) (*AscInboxState, error) {
+	if userID <= 0 || pullID <= 0 {
+		return nil, fmt.Errorf("bad inbox state key")
 	}
 	var result *AscInboxState
 	err := db.WithTx(ctx, func(ctx context.Context) error {
@@ -227,17 +267,8 @@ func SetAscInboxState(ctx context.Context, userID, pullID int64, pinned *bool, s
 		if cur != nil {
 			*next = *cur
 		}
-		if pinned != nil {
-			next.Pinned = *pinned
-		}
-		if snoozedUntil != nil {
-			if snoozedUntil.After(now) {
-				next.SnoozedUntil = timeutil.TimeStamp(snoozedUntil.Unix())
-			} else {
-				next.SnoozedUntil = 0
-			}
-		}
-		empty := !next.Pinned && next.SnoozedUntil == 0
+		change(next)
+		empty := !next.Pinned && next.SnoozedUntil == 0 && next.DoneUnix == 0
 		switch {
 		case empty && cur != nil:
 			_, err = e.ID(cur.ID).Delete(new(AscInboxState))
@@ -247,7 +278,7 @@ func SetAscInboxState(ctx context.Context, userID, pullID int64, pinned *bool, s
 		case cur == nil:
 			_, err = e.Insert(next)
 		default:
-			_, err = e.ID(cur.ID).Cols("pinned", "snoozed_until").Update(next)
+			_, err = e.ID(cur.ID).Cols("pinned", "snoozed_until", "done_unix").Update(next)
 		}
 		result = next
 		return err
