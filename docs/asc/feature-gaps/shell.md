@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 124 |
-| ui-only-missing | 9 |
+| done | 125 |
+| ui-only-missing | 8 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 5, M 45, L 21.
+Open rows by size: S 4, M 45, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -277,7 +277,7 @@ Open rows by size: S 5, M 45, L 21.
 | Profile | "Agents Priya runs" with New agent | needs-both | Not on the profile. Hub must list the person's agents (see Explore users) with scope and counts | L |
 | Profile | Recent activity | done | `profile.tmpl` feed | - |
 | Profile | "Knows best" (path share of changes and reviews, six months) | needs-both | No code. Aggregate asc `LastCommits` / blame data per user: new RPC or hub job | L |
-| Profile | Teams and Focus chips beside Repositories and Organizations | ui-only-missing | Teams card is on the profile (templates/user/profile.tmpl wk-pteams, members only). Open: Focus chips from repository topics | S |
+| Profile | Teams and Focus chips beside Repositories and Organizations | done | Teams card (`wk-pteams`, members only) and Focus card (`[data-asc-pf-focus]`): the topics and main language of up to 12 readable repositories the person changes, weighted by their pull requests, six at most, each linked to Explore (`ascProfileRepos`, `ascFocusTally`); tests `routers/web/user/asc_profile_focus_test.go`, `tests/integration/asc_profile_focus_test.go` | S |
 | Profile | States: owner view (Edit profile, View as visitor), private-profile banner, empty pins and contributions, loading skeleton | ui-only-missing | "View as visitor", the private banner (name and shared repositories only) and the empty rows missing | M |
 
 ## OrgProfile
