@@ -1,0 +1,12 @@
+{{/*
+Load more for a paged list on a phone (board Mobile-Explore): the next pages come in as the reader scrolls, with a
+Load more button where they cannot. Takes a dict: Page (the paginator), Link (the list's URL) and List (a selector of
+the list the rows go into). Hidden until asc-explore-more.js shows it on a phone; without it the pager stays.
+*/}}
+{{$params := .Page.GetParams}}
+{{with .Page.Paginater}}{{if .HasNext}}
+<div class="ds-more" data-asc-more="{{$.List}}" data-asc-more-next="{{$.Link}}?page={{.Next}}{{if $params}}&{{$params}}{{end}}" hidden>
+	<button type="button" class="ds-btn ds-btn-secondary" data-asc-more-btn>{{ctx.Locale.Tr "asc_shell.more_load"}}</button>
+	<p class="ds-t-small ds-c-2" role="status" data-asc-more-status data-template="{{ctx.Locale.Tr "asc_shell.more_loaded"}}" data-failed="{{ctx.Locale.Tr "asc_shell.more_failed"}}"></p>
+</div>
+{{end}}{{end}}
