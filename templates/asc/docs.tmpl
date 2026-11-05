@@ -10,7 +10,8 @@
 				<div class="ds-inwrap">
 					{{svg "dsi-search" 16}}
 					<label class="ds-sr" for="docs-q">{{ctx.Locale.Tr "asc_site.docs_search"}}</label>
-					<input id="docs-q" class="ds-input" type="search" name="q" value="{{.DocsQuery}}" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}">
+					<input id="docs-q" class="ds-input" type="search" name="q" value="{{.DocsQuery}}" maxlength="100" autocomplete="off" spellcheck="false" placeholder="{{ctx.Locale.Tr "asc_site.docs_search"}}" aria-keyshortcuts="Control+K /" data-asc-docs-q>
+					<kbd class="ds-kbd" aria-hidden="true">Ctrl K</kbd>
 				</div>
 			</form>
 			{{if .DocsPopular}}
@@ -21,22 +22,14 @@
 		</div>
 	</section>
 
-	{{if .DocsSearched}}
-	<section class="ds-land-sec" aria-labelledby="docs-results">
-		<div class="ds-container">
-			<h2 class="ds-t-h3" id="docs-results">{{ctx.Locale.Tr "asc_site.docs_results" .DocsQuery}}</h2>
-			{{if .DocsHits}}
-				<ul class="site-hits">
-					{{range .DocsHits}}
-						<li class="ds-card"><div class="ds-card-b"><a class="ds-t-h4" href="{{AppSubUrl}}/-/docs/{{.Page.Slug}}">{{.Page.Title}}</a><p class="ds-c-2 ds-mt-8">{{.Snippet}}</p></div></li>
-					{{end}}
-				</ul>
-			{{else}}
-				<p class="ds-t-body" role="status">{{ctx.Locale.Tr "asc_site.docs_none"}}</p>
-			{{end}}
+	<div data-asc-docs-live>
+		<p class="ds-sr" role="status" data-asc-docs-status data-template="{{ctx.Locale.Tr "asc_site.docs_count"}}"></p>
+		<div class="ds-container site-results-loading" data-asc-docs-loading hidden>
+			<span class="ds-sr">{{ctx.Locale.Tr "asc_site.docs_loading"}}</span>
+			<div class="ds-sk" aria-hidden="true"></div><div class="ds-sk" aria-hidden="true"></div><div class="ds-sk" aria-hidden="true"></div>
 		</div>
-	</section>
-	{{end}}
+		{{if .DocsSearched}}{{template "asc/docs_results" .}}{{end}}
+	</div>
 
 	<section class="ds-land-sec" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}">
 		<div class="ds-container">

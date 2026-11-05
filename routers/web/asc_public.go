@@ -26,10 +26,11 @@ import (
 
 // The public pages of the hub: about, documentation start page and the get started checklist.
 const (
-	tplAscAbout      = "asc/about"
-	tplAscDocs       = "asc/docs"
-	tplAscGetStarted = "asc/get_started"
-	tplAscStatus     = "asc/status"
+	tplAscAbout       = "asc/about"
+	tplAscDocs        = "asc/docs"
+	tplAscDocsResults = "asc/docs_results"
+	tplAscGetStarted  = "asc/get_started"
+	tplAscStatus      = "asc/status"
 )
 
 // AscAbout serves GET /-/about.
@@ -119,6 +120,14 @@ func AscDocs(ctx *context.Context) {
 		ctx.Data["DocsQuery"] = q
 		ctx.Data["DocsSearched"] = true
 		ctx.Data["DocsHits"] = ascdocs.Search(q, 20)
+		ctx.Data["DocsCommands"] = ascdocs.SearchCommands(q, 5)
+		ctx.Data["DocsSuggest"] = ascdocs.Suggest(q)
+		if ctx.FormString("fragment") == "results" {
+			// the results alone, for the search as a person types
+			ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+			ctx.HTML(http.StatusOK, tplAscDocsResults)
+			return
+		}
 	}
 	ctx.HTML(http.StatusOK, tplAscDocs)
 }

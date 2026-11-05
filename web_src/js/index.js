@@ -74,6 +74,7 @@ import {initAscDevice} from './features/asc-device.js';
 import {initAscDocsToc} from './features/asc-docs-toc.js';
 import {initAscDrafts} from './features/asc-drafts.js';
 import {initAscDocs} from './features/asc-docs.js';
+import {initAscDocsSearch} from './features/asc-docs-search.js';
 import {initAscDocsFeedback} from './features/asc-docs-feedback.js';
 import {initAscCodeBoxes} from './features/asc-codeboxes.js';
 import {initAscOffline} from './features/asc-offline.js';
@@ -271,6 +272,7 @@ onDomReady(() => {
   initAscDocsToc();
   initAscDrafts();
   initAscDocs();
+  initAscDocsSearch();
   initAscDocsFeedback();
   initAscCodeBoxes();
   initAscOffline();
