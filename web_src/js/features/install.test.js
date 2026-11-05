@@ -286,3 +286,30 @@ test('the post-install page runs the merge queue step, then ticks every step', a
   expect(q('[data-ins-ready]').hidden).toBe(false);
   vi.useRealTimers();
 });
+
+test('the administrator is optional, all or nothing, and needs open registration when skipped', () => {
+  q('#ins-admin').setAttribute('data-ins-admin', '');
+  q('#ins-admin').setAttribute('data-skip-err', 'Keep registration open or add an administrator');
+  initInstall();
+  const name = q('#admin_name');
+  expect(name.required).toBe(false);
+  expect(name.validationMessage).toBe('');
+
+  const reg = q('#disable_registration');
+  reg.checked = true;
+  reg.dispatchEvent(new Event('change', {bubbles: true}));
+  expect(name.validationMessage).toBe('Keep registration open or add an administrator');
+
+  q('#admin_email').value = 'root@example.org';
+  q('#admin_email').dispatchEvent(new Event('input', {bubbles: true}));
+  expect(name.validity.customError).toBe(false);
+  expect(name.validity.valueMissing).toBe(true);
+  for (const id of ['admin_name', 'admin_email', 'admin_passwd', 'admin_confirm_passwd']) expect(q(`#${id}`).required).toBe(true);
+  expect(name.checkValidity()).toBe(false);
+
+  q('#admin_email').value = '';
+  reg.checked = false;
+  reg.dispatchEvent(new Event('change', {bubbles: true}));
+  expect(name.required).toBe(false);
+  expect(name.checkValidity()).toBe(true);
+});
