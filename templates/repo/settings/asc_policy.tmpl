@@ -104,7 +104,16 @@
 				{{if .Diff}}
 				<pre class="ast-diff" aria-label="{{ctx.Locale.Tr "asc_rp.pf_changes"}}">{{range .Diff}}<span class="ast-diff-{{if eq .Op "+"}}add{{else if eq .Op "-"}}del{{else}}ctx{{end}}"><span aria-hidden="true">{{.Op}} </span>{{.Text}}
 </span>{{end}}</pre>
-				<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_is_change"}}{{if .Maintainers}} {{ctx.Locale.Tr "asc_rp.pf_reviewers"}} {{range $i, $m := .Maintainers}}{{if $i}}, {{end}}<strong>{{$m}}</strong>{{end}}.{{end}}</p>
+				<aside class="ast-meaning ast-policy-review" aria-labelledby="pf-review-h" data-testid="asc-policy-review-panel">
+					<h4 id="pf-review-h" class="ast-meaning-title">{{ctx.Locale.Tr "asc_rp.pf_is_change_title"}}</h4>
+					<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_is_change"}}</p>
+					{{if .Maintainers}}
+					<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_reviewers"}}</p>
+					<ul class="ast-meaning-list" data-testid="asc-policy-reviewers">{{range .Maintainers}}<li><strong>{{.}}</strong></li>{{end}}</ul>
+					{{else}}
+					<p class="asc-trust-sub" data-testid="asc-policy-no-reviewers">{{ctx.Locale.Tr "asc_rp.pf_no_reviewers"}}</p>
+					{{end}}
+				</aside>
 				<p><button type="button" class="ds-btn ds-btn-primary" data-doc-goto="pf-toml">{{ctx.Locale.Tr "asc_rp.pf_go_propose"}}</button></p>
 				{{else}}
 				<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_nothing"}}</p>
