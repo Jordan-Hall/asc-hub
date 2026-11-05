@@ -1,9 +1,9 @@
 {{/* The footer (board A2, part 05): the full footer with four link groups on public pages and for visitors, one line in the signed-in application. */}}
 {{$docsURL := print AppSubUrl "/-/docs"}}
 {{$whyURL := print AppSubUrl "/-/about"}}
-{{$stackURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/STACK-OPERATIONS.md"}}
-{{$agentsURL := "https://github.com/Jordan-Hall/asc-hub/blob/asc/v16/docs/asc/AGENTS-UI.md"}}
-{{$releasesURL := "https://github.com/Jordan-Hall/asc/releases"}}
+{{$stackURL := print $docsURL "/stacks-and-operations"}}
+{{$agentsURL := print $docsURL "/agents"}}
+{{$releasesURL := print $docsURL "#docs-new"}}
 {{$compact := or (and .IsSigned (not .FooterFull)) .PageIsSignIn .PageIsSignUp}}
 <footer class="ds-footer{{if $compact}} ds-footer-compact{{end}}" role="group" aria-label="{{ctx.Locale.Tr "aria.footer"}}">
 	<div class="ds-container">
@@ -23,18 +23,18 @@
 				<ul>
 					{{if AscDownloadAvailable}}<li><a href="{{AppSubUrl}}/download">{{ctx.Locale.Tr "asc_shell.footer_download"}}</a></li>{{end}}
 					<li><a href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a></li>
-					<li><a target="_blank" rel="noopener noreferrer" href="{{$stackURL}}">{{ctx.Locale.Tr "asc_shell.footer_stacks"}}</a></li>
-					<li><a target="_blank" rel="noopener noreferrer" href="{{$agentsURL}}">{{ctx.Locale.Tr "asc_shell.footer_agent_runs"}}</a></li>
-					<li><a target="_blank" rel="noopener noreferrer" href="{{$releasesURL}}">{{ctx.Locale.Tr "asc_shell.footer_changelog"}}</a></li>
+					<li><a href="{{$stackURL}}">{{ctx.Locale.Tr "asc_shell.footer_stacks"}}</a></li>
+					<li><a href="{{$agentsURL}}">{{ctx.Locale.Tr "asc_shell.footer_agent_runs"}}</a></li>
+					<li><a href="{{$releasesURL}}">{{ctx.Locale.Tr "asc_shell.footer_changelog"}}</a></li>
 				</ul>
 			</details>
 			<details class="ds-footer-group" open>
 				<summary><h4>{{ctx.Locale.Tr "asc_shell.footer_developers"}}</h4>{{svg "dsi-chevron-down" 18}}</summary>
 				<ul>
 					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "asc_shell.footer_documentation"}}</a></li>
-					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "asc_shell.footer_cli_reference"}}</a></li>
+					<li><a href="{{$docsURL}}/cli">{{ctx.Locale.Tr "asc_shell.footer_cli_reference"}}</a></li>
 					<li><a href="{{if .EnableSwagger}}{{AppSubUrl}}/api/swagger{{else}}{{$docsURL}}{{end}}">{{ctx.Locale.Tr "asc_shell.footer_rest_api"}}</a></li>
-					<li><a href="{{$docsURL}}">{{ctx.Locale.Tr "asc_shell.footer_mcp"}}</a></li>
+					<li><a href="{{$docsURL}}/mcp">{{ctx.Locale.Tr "asc_shell.footer_mcp"}}</a></li>
 					<li><a href="{{AppSubUrl}}/-/status">{{ctx.Locale.Tr "asc_shell.footer_status"}}</a></li>
 				</ul>
 			</details>
