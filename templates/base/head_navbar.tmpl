@@ -255,6 +255,8 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 			<a class="ds-mi" href="{{AppSubUrl}}/org/create">{{svg "dsi-building" 18}}{{ctx.Locale.Tr "new_org.link"}}</a>
 		{{end}}
 		{{if AscEnabled}}
+			<a class="ds-mi" href="{{AppSubUrl}}/-/asc/changeset/new" data-testid="asc-create-changeset">{{svg "dsi-changes" 18}}{{ctx.Locale.Tr "asc_shell.create_changeset"}}</a>
+			<hr>
 			<a class="ds-mi" href="{{AppSubUrl}}/-/asc/agents">{{svg "dsi-agent" 18}}{{ctx.Locale.Tr "asc_shell.create_agent_run"}}</a>
 		{{end}}
 	</div>
