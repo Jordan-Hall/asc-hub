@@ -67,6 +67,7 @@ type Entry struct {
 	Section      issues_model.AscInboxSection
 	Pinned       bool
 	SnoozedUntil time.Time // zero when not snoozed
+	DoneAt       time.Time // when the person marked it done; zero when not done
 	Updated      time.Time
 
 	// What the section was derived from, kept to draw a row without asking again.
@@ -83,6 +84,8 @@ type Options struct {
 	Sections []issues_model.AscInboxSection
 	// IncludeSnoozed keeps entries whose snooze is still running; they are left out otherwise.
 	IncludeSnoozed bool
+	// IncludeDone keeps entries the person marked done (and that did not change since); they are left out otherwise.
+	IncludeDone bool
 }
 
 // List returns the inbox of doer: the entries with their marks applied, filtered by opts and ordered by
@@ -252,7 +255,7 @@ func queued(ctx context.Context, pr *issues_model.PullRequest) bool {
 
 // Arrange applies the marks in states (keyed by pull id, all of one user) to entries, drops what opts leaves
 // out and orders the rest: by section, pinned first, most recently updated first, then by pull id so the
-// order is the same on every call. It sets Pinned and SnoozedUntil on the entries it is given.
+// order is the same on every call. It sets Pinned, SnoozedUntil and DoneAt on the entries it is given.
 func Arrange(entries []*Entry, states map[int64]*issues_model.AscInboxState, now time.Time, opts Options) []*Entry {
 	want := make(map[issues_model.AscInboxSection]bool, len(opts.Sections))
 	for _, s := range opts.Sections {
@@ -269,9 +272,15 @@ func Arrange(entries []*Entry, states map[int64]*issues_model.AscInboxState, now
 		}
 		e.Pinned = false
 		e.SnoozedUntil = time.Time{}
+		e.DoneAt = time.Time{}
 		if st := states[e.PullID]; st != nil {
 			e.Pinned = st.Pinned
-			if st.IsSnoozed(now) {
+			if st.IsDone(e.Updated) {
+				if !opts.IncludeDone {
+					continue
+				}
+				e.DoneAt = time.Unix(int64(st.DoneUnix), 0).UTC()
+			} else if st.IsSnoozed(now) {
 				if !opts.IncludeSnoozed {
 					continue
 				}
