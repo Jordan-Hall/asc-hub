@@ -804,6 +804,7 @@
 @import "./asc-pages/repo-history.css";
 @import "./asc-pages/repo-commit.css";
 @import "./asc-pages/repo-refs.css";
+@import "./asc-pages/repo-deps.css";
 @import "./asc-pages/repo-new.css";
 @import "./asc-pages/repo-compare.css";
 @import "./asc-pages/repo-search.css";

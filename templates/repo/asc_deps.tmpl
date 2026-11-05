@@ -33,10 +33,42 @@ link is only an https address, and the template engine escapes the rest.
 				{{if .NeverScanned}}
 				<div class="ds-banner" role="status" data-testid="asc-deps-never">{{ctx.Locale.Tr "asc_trust.deps.never_scanned"}}</div>
 				{{else}}
-				<p class="asc-trust-sub" data-testid="asc-deps-last">{{ctx.Locale.Tr "asc_trust.deps.last_scan"}} {{DateUtils.TimeSince .LastScan}}</p>
 				{{if ne .LookupKey "complete"}}
 				<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-deps-lookup">{{ctx.Locale.Tr (printf "asc_trust.deps.last_lookup_%s" .LookupKey)}}</div>
 				{{end}}
+				<section class="rp-deps-tiles" aria-label="{{ctx.Locale.TrString "asc_trust.deps.summary_aria"}}" data-testid="asc-deps-tiles">
+					<div class="ds-stat rp-deps-tile-sev" data-testid="asc-deps-tile-findings">
+						<div class="ds-stat-label" id="asc-deps-sev-h">{{ctx.Locale.Tr "asc_trust.deps.tile_findings"}}</div>
+						<div class="ds-stat-value">{{.OpenTotal}}</div>
+						<table class="rp-deps-sev" aria-labelledby="asc-deps-sev-h" data-testid="asc-deps-severity-table">
+							<thead class="tw-sr-only"><tr><th scope="col">{{ctx.Locale.Tr "asc_trust.deps.col_severity"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.deps.col_share"}}</th><th scope="col">{{ctx.Locale.Tr "asc_trust.deps.col_open"}}</th></tr></thead>
+							<tbody>
+							{{range $.AscDeps.SevBars}}
+							<tr data-testid="asc-deps-sev-{{.Key}}">
+								<th scope="row">{{ctx.Locale.Tr (printf "asc_trust.deps.severity.%s" .Key)}}</th>
+								<td class="rp-deps-sev-bar"><svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect class="rp-deps-sev-track" width="100" height="6" rx="3"></rect>{{if .Pct}}<rect class="rp-deps-sev-fill rp-deps-sev-{{.Key}}" width="{{.Pct}}" height="6" rx="3"></rect>{{end}}</svg></td>
+								<td class="rp-deps-sev-n">{{.N}}</td>
+							</tr>
+							{{end}}
+							</tbody>
+						</table>
+					</div>
+					<a class="ds-stat" href="{{$.AscDeps.DepsURL}}?view=updates" data-deps-outdated data-url="{{$.AscDeps.DepsURL}}/outdated" data-testid="asc-deps-tile-outdated">
+						<div class="ds-stat-label">{{ctx.Locale.Tr "asc_trust.deps.tile_outdated"}}</div>
+						<div class="ds-stat-value" data-deps-outdated-n>–</div>
+						<div class="ds-stat-sub" role="status" data-deps-outdated-sub data-loading="{{ctx.Locale.TrString "asc_trust.deps.outdated_loading"}}" data-security="{{ctx.Locale.TrString "asc_trust.deps.outdated_security"}}" data-unknown="{{ctx.Locale.TrString "asc_trust.deps.outdated_unknown"}}" data-failed="{{ctx.Locale.TrString "asc_trust.deps.outdated_failed"}}">{{ctx.Locale.Tr "asc_trust.deps.outdated_open"}}</div>
+					</a>
+					<div class="ds-stat" data-testid="asc-deps-tile-packages">
+						<div class="ds-stat-label">{{ctx.Locale.Tr "asc_trust.deps.tile_packages"}}</div>
+						<div class="ds-stat-value">{{.PackagesChecked}}</div>
+						{{if .PackagesByEcosystem}}<ul class="ds-stat-sub rp-deps-ecos" aria-label="{{ctx.Locale.TrString "asc_trust.deps.by_ecosystem"}}">{{range .PackagesByEcosystem}}<li><span>{{.Key}}</span> <span class="rp-deps-eco-n">{{.N}}</span></li>{{end}}</ul>{{end}}
+					</div>
+					<div class="ds-stat" data-testid="asc-deps-last">
+						<div class="ds-stat-label">{{ctx.Locale.Tr "asc_trust.deps.last_scan"}}</div>
+						<div class="ds-stat-value">{{DateUtils.TimeSince .LastScan}}</div>
+						<div class="ds-stat-sub" data-testid="asc-deps-lookup-state">{{if eq .LookupKey "complete"}}{{ctx.Locale.Tr "asc_trust.deps.scan_complete" .PackagesChecked}}{{else if eq .LookupKey "partial"}}{{ctx.Locale.Tr "asc_trust.deps.scan_partial" .PackagesUnknown .PackagesChecked}}{{else if eq .LookupKey "failed"}}{{ctx.Locale.Tr "asc_trust.deps.scan_failed"}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.scan_unknown"}}{{end}}</div>
+					</div>
+				</section>
 				{{end}}
 			{{end}}
 
@@ -88,10 +120,34 @@ link is only an https address, and the template engine escapes the rest.
 								{{if .FixedIn}} · {{ctx.Locale.Tr "asc_trust.deps.fixed_in" .FixedIn}}{{else}} · {{ctx.Locale.Tr "asc_trust.deps.no_fix"}}{{end}}
 								{{if .Path}} · <code class="asc-trust-code">{{.Path}}</code>{{end}}
 							</div>
-							{{if .Summary}}<div class="asc-trust-sub">{{.Summary}}</div>{{end}}
 							{{if eq .StateKey "dismissed"}}
 							<div class="asc-trust-sub" data-testid="asc-dep-dismissed">{{ctx.Locale.Tr "asc_trust.deps.dismissed_by" .DismissedBy}}{{if .ReasonKey}} · {{ctx.Locale.Tr (printf "asc_trust.deps.reason.%s" .ReasonKey)}}{{end}}{{if .Note}} · {{.Note}}{{end}}</div>
 							{{end}}
+							<button class="ds-btn ds-btn-secondary rp-dep-toggle" type="button" hidden aria-expanded="false" aria-controls="asc-dep-detail-{{.ID}}" data-dep-toggle data-testid="asc-dep-toggle">{{ctx.Locale.Tr "asc_trust.deps.details"}}</button>
+							<div class="rp-dep-detail" id="asc-dep-detail-{{.ID}}" data-dep-detail data-testid="asc-dep-detail">
+								<h4 class="rp-dep-detail-h">{{ctx.Locale.Tr "asc_trust.deps.why_title"}}</h4>
+								<p data-testid="asc-dep-why">{{if .Summary}}{{.Summary}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.why_no_summary"}}{{end}}</p>
+								<dl class="asc-trust-dl rp-dep-facts">
+									<dt>{{ctx.Locale.Tr "asc_trust.deps.col_severity"}}</dt><dd>{{ctx.Locale.Tr (printf "asc_trust.deps.severity.%s" .SeverityKey)}}{{if .CVSS}} · {{ctx.Locale.Tr "asc_trust.deps.cvss" .CVSS}}{{end}}</dd>
+									{{if .Aliases}}<dt>{{ctx.Locale.Tr "asc_trust.deps.aliases"}}</dt><dd>{{range $i, $a := .Aliases}}{{if $i}}, {{end}}<code class="asc-trust-code">{{$a}}</code>{{end}}</dd>{{end}}
+									<dt>{{ctx.Locale.Tr "asc_trust.deps.fixed_versions"}}</dt><dd>{{if .FixedAll}}{{range $i, $v := .FixedAll}}{{if $i}}, {{end}}<code class="asc-trust-code">{{$v}}</code>{{end}}{{else}}{{ctx.Locale.Tr "asc_trust.deps.no_fix"}}{{end}}</dd>
+									<dt>{{ctx.Locale.Tr "asc_trust.deps.first_seen"}}</dt><dd>{{DateUtils.TimeSince .FirstSeen}}</dd>
+								</dl>
+								<h4 class="rp-dep-detail-h">{{ctx.Locale.Tr "asc_trust.deps.how_title"}}</h4>
+								<pre class="rp-dep-tree" tabindex="0" aria-label="{{ctx.Locale.TrString "asc_trust.deps.how_aria" .Name}}" data-testid="asc-dep-tree">{{if .Path}}{{.Path}}{{else}}{{ctx.Locale.TrString "asc_trust.deps.how_no_file"}}{{end}}
+{{if .Direct}}└─ {{.Name}} {{.Version}}  ({{ctx.Locale.TrString "asc_trust.deps.how_direct"}}){{else}}└─ {{ctx.Locale.TrString "asc_trust.deps.how_through"}}
+   └─ {{.Name}} {{.Version}}{{end}}</pre>
+								{{if and $.AscDeps.CanManage (eq .StateKey "open") .FixedIn}}
+								<form class="ast-inline-form" method="post" action="{{$.AscDeps.DepsURL}}/propose" data-testid="asc-dep-propose-form">
+									{{$.CsrfTokenHtml}}
+									<input type="hidden" name="mode" value="preview">
+									<input type="hidden" name="security" value="1">
+									<input type="hidden" name="ecosystem" value="{{.Ecosystem}}">
+									<input type="hidden" name="package" value="{{.Name}}">
+									<button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-dep-propose">{{ctx.Locale.Tr "asc_trust.deps.propose_fix" .FixedIn}}</button>
+								</form>
+								{{end}}
+							</div>
 						</div>
 						{{if $.AscDeps.CanManage}}
 						<div class="ast-op-side">
@@ -117,6 +173,12 @@ link is only an https address, and the template engine escapes the rest.
 					</li>
 					{{end}}
 				</ul>
+				{{else if $.AscDeps.Clean}}
+				<div class="ds-empty" data-testid="asc-deps-clean">
+					<span class="ds-empty-ic" aria-hidden="true">{{svg "octicon-shield-check" 34}}</span>
+					<h3>{{ctx.Locale.Tr "asc_trust.deps.clean_title"}}</h3>
+					<p>{{ctx.Locale.Tr "asc_trust.deps.clean_text" .PackagesChecked (DateUtils.TimeSince .LastScan)}}</p>
+				</div>
 				{{else if not .NeverScanned}}
 				<p data-testid="asc-deps-empty">{{ctx.Locale.Tr "asc_trust.deps.findings_empty"}}</p>
 				{{end}}
