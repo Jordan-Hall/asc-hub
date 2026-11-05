@@ -5,8 +5,15 @@
 		<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-key" 34}}</span>
 		<div class="ds-auth-key-wait"><span class="is-loading ds-auth-spin" aria-hidden="true"></span><span>{{ctx.Locale.Tr "webauthn.press_button"}}</span></div>
 	</div>
-	{{if .HasTwoFactor}}
-		<p class="ds-auth-alt"><a class="ds-link" href="{{AppSubUrl}}/user/two_factor">{{ctx.Locale.Tr "webauthn.use_twofa"}}</a></p>
-	{{end}}
+	<details class="ds-auth-alt ds-auth-other" data-testid="webauthn-other">
+		<summary>{{ctx.Locale.Tr "asc_auth.try_other"}}</summary>
+		<ul>
+			{{if .HasTwoFactor}}
+			<li><a href="{{AppSubUrl}}/user/two_factor">{{ctx.Locale.Tr "asc_auth.other_code"}}</a></li>
+			<li><a href="{{AppSubUrl}}/user/two_factor/scratch">{{ctx.Locale.Tr "asc_auth.use_recovery"}}</a></li>
+			{{end}}
+			<li><a href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "asc_auth.other_restart"}}</a></li>
+		</ul>
+	</details>
 {{template "user/auth/shell_end" (dict "Data" .)}}
 {{template "base/footer" .}}

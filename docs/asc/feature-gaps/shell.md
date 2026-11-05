@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 103 |
-| ui-only-missing | 28 |
+| done | 106 |
+| ui-only-missing | 25 |
 | needs-hub-backend | 39 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 19, M 50, L 21.
+Open rows by size: S 19, M 49, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -73,7 +73,7 @@ Open rows by size: S 19, M 50, L 21.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Onboarding | Split layout: form card plus navy brand panel with promise and quote | done | `templates/user/auth/shell_start.tmpl`, `shell_end.tmpl` | - |
-| Onboarding | Sign in form: username or email, Forgot password, password with Show toggle, Keep me signed in, CLI hint | ui-only-missing | `signin_inner.tmpl`, `ds-shell.js` `onRevealClick`;; Audit 2026-10-30 (was marked done, part missing): Form is there; the CLI hint teaches the up-front asc auth login --prompt with a pasted token, not on-demand per-repository sign-in or the device approval the board names. | - |
+| Onboarding | Sign in form: username or email, Forgot password, password with Show toggle, Keep me signed in, CLI hint | done | `signin_inner.tmpl`, `ds-shell.js` `onRevealClick`; the CLI hint (`user/auth/cli_hint.tmpl`) teaches `asc clone` with no login step and the device code a private repository asks for | - |
 | Onboarding | "Sign in with a passkey" (discoverable credentials) | needs-hub-backend | Only 2FA security keys exist (`webauthn.tmpl`); no passkey login route anywhere in `routers`. Add begin and finish routes in `routers/web/auth/webauthn.go` and the button in `signin_inner.tmpl` | M |
 | Onboarding | Single sign-on button under the primary action | done | `oauth_container.tmpl` renders configured sources | - |
 | Onboarding | Rate limit ("after 5 attempts we wait 5 minutes") | needs-hub-backend | No login throttle in `routers/web/auth/auth.go` or `modules/setting`. Counter per user and IP in cache, message with the wait | M |
@@ -82,9 +82,9 @@ Open rows by size: S 19, M 50, L 21.
 | Onboarding | Sign up: strength meter and three live rules (12 characters, letters and numbers, not found in breaches) | needs-hub-backend | No meter in `web_src`. Rules and meter in `user-auth.js`; breach rule is server side: `PASSWORD_CHECK_PWN` exists (`modules/setting/security.go`, default off, runs on submit only). Add `POST /user/password/check` (k-anonymity range query), default it on | M |
 | Onboarding | Sign up: "I agree to the Terms and the Privacy policy" | needs-hub-backend | Not in the form. Needs Terms and Privacy URLs, a required checkbox and a stored acceptance | M |
 | Onboarding | Sign up has no retyped password on the board; the hub form asks for one | done | Drop the retype field (Show replaces it); relax `forms.RegisterForm` | S |
-| Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | ui-only-missing | `twofa.tmpl` has one field and the scratch link. Six-box component in `user-auth.js` (one real input for screen readers); key link when keys exist;; Audit 2026-10-30 (was marked done, part missing): Six boxes and recovery link exist; the link Use a security key instead is not in twofa.tmpl. | M |
+| Onboarding | Two-factor: six boxes act as one input and auto-advance; recovery code link; "Use a security key instead" | done | `twofa.tmpl` six-box field, "Use a recovery code", and "Use a security key instead" to `/user/webauthn` when the person has a key (`HasSecurityKey` in `routers/web/auth/2fa.go`); test `asc_twofa_test.go` | - |
 | Onboarding | CLI device approval: code entry, confirm with device name, Authorise or Deny, expiry, wrong-code and rate-limit states; hub device-code store and `POST /login/device/code`, `POST /login/device/token` (RFC 8628) | done | `models/auth/asc_device_code.go`, `routers/web/auth/asc_device.go`, `templates/user/auth/asc_device.tmpl`; asc side is Phase 3 | - |
-| Onboarding | Security key waiting screen with spinner and "Try another way" | ui-only-missing | `webauthn.tmpl`;; Audit 2026-10-30 (was marked done, part missing): Marked done; Try another way is not in the template. | - |
+| Onboarding | Security key waiting screen with spinner and "Try another way" | done | `webauthn.tmpl`: waiting spinner and a "Try another way" disclosure with the authenticator code and recovery code (when the person has an authenticator) and sign in again; test `asc_twofa_test.go` | - |
 | Onboarding | Authorise the CLI (device): code, terminal and OS, Authorise and Deny | done | Not present. The CLI signs in with a pasted token (`crates/asc/src/cli/auth.rs`: `--token-stdin`, `--prompt`), no device flow. Hub: device-code endpoints, template, token minting (`models/auth/access_token.go`). asc: `asc auth login` device grant with polling;; Audit 2026-10-30 (built): Gap file says not present; the device page and RFC 8628 routes exist (the token it mints is full-scope and has no expiry, see section 2). | L |
 | Onboarding | Forgot password: sent page, lifetime, resend limit, no account disclosure | done | `forgot_passwd.tmpl` | - |
 | Onboarding | Reset password: new and confirm | done | `reset_passwd.tmpl` | - |
