@@ -1966,7 +1966,7 @@ Order is by effect on the requirement (a visitor sees the board; a person can si
 3. DONE on feat/wu03-tokens: personal access tokens expire and carry the ASC scopes (WU-03).
 4. DONE on feat/wu03-tokens: device login mints a scoped token that expires after 90 days (WU-04).
 5. The CLI hint and `asc clone` use the up-front sign-in model, not on-demand per-repository auth - WU-05.
-6. No passkey sign-in, no login lockout, no password strength meter, no Terms checkbox - WU-06.
+6. DONE: passkey sign-in, the wait after wrong passwords, the password strength meter with the breach rule and the Terms checkbox (WU-06).
 7. Review threads reach asc now (feat/wu07-review-rpcs): comments, replies, resolves and review requests are mirrored, asc-side threads are listed, version compare, suggested reviewers, hunk context, brief editing and the draft from the diff are wired. Open: Apply as vN (PrepareSuggestion, MarkSuggestionApplied) - the hub cannot make an asc version - WU-07.
 8. Stacks board: built by the repo pages work (stack_board.tmpl: rail, filters with counts, sort, Your turn card, New stack, states); only the row hover slide-in and chip pulse remain - WU-08.
 9. Releases: the hub now has a Releases client (publish on the hub makes the asc record with asset checksums; the list shows provenance and checksums; GET /releases/asc_draft gives the proposed tag and notes). Open: the release dialog that uses the draft endpoint, build run only for releases made through asc - WU-09.
