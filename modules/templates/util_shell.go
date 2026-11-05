@@ -6,7 +6,7 @@ package templates
 import "strings"
 
 // ShellArg is one word of a command line a person copies into a POSIX shell: kept as it is when made only of letters, digits and
-// ._+-/:@= (and not starting with -), else single quoted with each ' written as '\''. A tag or a file name from a repository
+// ._+-/:@= (and not starting with -), else single quoted with each quote closed, escaped and reopened. A tag or a file name from a repository
 // cannot then run anything when pasted.
 func ShellArg(s string) string {
 	safe := s != "" && s[0] != '-'
