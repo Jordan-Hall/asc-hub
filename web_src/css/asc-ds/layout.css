@@ -2241,6 +2241,23 @@ body.ds-lock {
   display: none;
 }
 
+.site-feedback {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.site-feedback-acts {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.site-feedback-acts .ds-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .site-next a {
   display: grid;
   gap: 2px;

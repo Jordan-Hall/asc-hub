@@ -655,6 +655,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/-/about", ignSignIn, AscAbout)
 	m.Get("/-/docs", ignSignIn, AscDocs)
 	m.Get("/-/docs/{slug}", ignSignIn, AscDocsPage)
+	m.Post("/-/docs/{slug}/feedback", ignSignIn, AscDocsFeedbackPost)
 	m.Get("/-/asc-sw.js", AscServiceWorker)
 	m.Get("/-/asc/palette", ignSignIn, AscPalette)
 	m.Get("/-/offline", ignSignIn, AscOffline)
