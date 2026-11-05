@@ -17,6 +17,16 @@
 				<h1 class="ds-t-h1">{{.DocsPage.Title}}</h1>
 				{{.DocsHTML}}
 				{{if .DocsInstall}}{{template "asc/docs_install" .}}{{.DocsHTMLAfter}}{{end}}
+				<section class="site-feedback" id="site-feedback" aria-labelledby="site-feedback-title" data-asc-docs-feedback="{{.DocsPage.Slug}}">
+					<h2 class="ds-t-h4" id="site-feedback-title">{{ctx.Locale.Tr "asc_site.docs_helpful"}}</h2>
+					<form class="site-feedback-acts" method="post" action="{{AppSubUrl}}/-/docs/{{.DocsPage.Slug}}/feedback">
+						{{.CsrfTokenHtml}}
+						<button type="submit" class="ds-btn ds-btn-secondary" name="helpful" value="yes"{{if .DocsFeedbackThanks}} disabled{{end}}>{{ctx.Locale.Tr "asc_site.docs_helpful_yes"}}</button>
+						<button type="submit" class="ds-btn ds-btn-secondary" name="helpful" value="no"{{if .DocsFeedbackThanks}} disabled{{end}}>{{ctx.Locale.Tr "asc_site.docs_helpful_no"}}</button>
+					</form>
+					<p class="ds-t-small ds-c-2" role="status" data-thanks="{{ctx.Locale.Tr "asc_site.docs_helpful_thanks"}}" data-failed="{{ctx.Locale.Tr "asc_site.docs_helpful_failed"}}">{{if .DocsFeedbackThanks}}{{ctx.Locale.Tr "asc_site.docs_helpful_thanks"}}{{else}}{{ctx.Locale.Tr "asc_site.docs_helpful_note"}}{{end}}</p>
+					{{with .DocsFeedbackCount}}<p class="ds-t-small ds-c-2" data-asc-docs-feedback-count>{{ctx.Locale.Tr "asc_site.docs_helpful_count" .Yes .No}}</p>{{end}}
+				</section>
 				{{with .DocsNext}}<nav class="site-next" aria-label="{{ctx.Locale.Tr "asc_site.docs_next"}}"><a href="{{AppSubUrl}}/-/docs/{{.Slug}}"><span class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.docs_next"}}</span><b>{{.Title}}</b>{{svg "dsi-chevron-right" 16}}</a></nav>{{end}}
 			</article>
 			<aside class="site-toc" aria-label="{{ctx.Locale.Tr "asc_site.docs_on_page"}}">

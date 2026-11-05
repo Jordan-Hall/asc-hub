@@ -192,6 +192,10 @@ func AscDocsPage(ctx *context.Context) {
 	pages := ascdocs.Pages()
 	ctx.Data["DocsPages"] = pages
 	ctx.Data["DocsSections"] = ascdocs.Sections()
+	if err := ascDocsFeedback(ctx, page.Slug); err != nil {
+		ctx.ServerError("CountAscDocsFeedback", err)
+		return
+	}
 	for i, p := range pages {
 		if p.Slug != page.Slug {
 			continue
