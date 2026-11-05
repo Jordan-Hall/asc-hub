@@ -119,6 +119,7 @@ import {initAscAudit} from './features/asc-audit.js';
 import {initAscListLoading} from './features/asc-list-loading.js';
 import {initAscDashLive} from './features/asc-dash-live.js';
 import {initAscPins} from './features/asc-pins.js';
+import {initAscBell} from './features/asc-bell.js';
 import {initAscRowMenus} from './features/asc-row-menu.js';
 import {initAscNewChangeDraft} from './features/asc-newchange-draft.js';
 import {initRepoIssueDialog} from './features/repo-issue-dialog.js';
@@ -319,6 +320,7 @@ onDomReady(() => {
   initAscListLoading();
   initAscDashLive();
   initAscPins();
+  initAscBell();
   initAscRowMenus();
   initRepoIssueDialog(document, initAscNewChangeDraft());
   initAscResponsiveDetails();

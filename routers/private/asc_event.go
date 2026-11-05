@@ -113,7 +113,7 @@ func AscEvent(ctx *context.PrivateContext) {
 			emailed = true
 		}
 		ascpush.Notify(ctx, u.ID, req.Event, ascpush.Message{Title: req.Title, Body: repo.FullName(), Path: ascEventPath(repo, req), Tag: req.Event + "-" + repo.FullName()})
-		if err := user_model.RecordAscNotification(ctx, u.ID, repo.ID, req.Event, req.Title, req.Path, eventID, emailed); err != nil {
+		if err := user_model.RecordAscEvent(ctx, &user_model.AscNotifyLog{UserID: u.ID, RepoID: repo.ID, Event: req.Event, Title: req.Title, Detail: req.Detail, Path: req.Path, EventID: eventID, Emailed: emailed}); err != nil {
 			log.Error("asc event: recording for user %d: %v", u.ID, err)
 			continue
 		}

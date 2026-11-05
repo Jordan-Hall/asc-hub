@@ -88,7 +88,7 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 				</a>
 				{{end}}
 
-				<a class="ds-hdr-ic" href="{{AppSubUrl}}/notifications" data-tooltip-content="{{ctx.Locale.Tr "notifications"}}" aria-label="{{ctx.Locale.Tr "notifications"}}">
+				<a class="ds-hdr-ic" href="{{AppSubUrl}}/notifications" data-tooltip-content="{{ctx.Locale.Tr "notifications"}}" aria-label="{{ctx.Locale.Tr "notifications"}}"{{if AscEnabled}} data-ds-open="ds-bell" aria-haspopup="dialog" aria-controls="ds-bell" aria-expanded="false"{{end}}>
 					{{svg "dsi-bell" 18}}
 					<span class="notification_count ds-pip-dot{{if not $notificationUnreadCount}} tw-hidden{{end}}">{{$notificationUnreadCount}}</span>
 				</a>
@@ -195,6 +195,17 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 		{{end}}
 	</div>
 </div>
+
+{{if and .IsSigned AscEnabled}}
+{{/* the notifications popover: its inside (user/notification/asc_bell.tmpl) loads when it opens (asc-bell.js) */}}
+<div class="ds-pop ds-pop-bell" id="ds-bell" role="dialog" aria-modal="false" aria-label="{{ctx.Locale.Tr "notifications"}}" data-asc-bell="{{AppSubUrl}}/-/asc/bell">
+	<div class="ds-bell-body" data-asc-bell-body aria-live="polite" aria-busy="true">
+		<div class="ds-bell-head"><b>{{ctx.Locale.Tr "notifications"}}</b></div>
+		<div class="ds-bell-loading" data-asc-bell-loading><span class="ds-sk"></span><span class="ds-sk"></span><span class="ds-sk"></span></div>
+		<p class="ds-bell-empty ds-c-2 tw-hidden" role="alert" data-asc-bell-failed>{{ctx.Locale.Tr "asc_shell.bell_failed"}} <a class="ds-link" href="{{AppSubUrl}}/notifications">{{ctx.Locale.Tr "notifications"}}</a></p>
+	</div>
+</div>
+{{end}}
 
 {{if .IsSigned}}
 {{/* the account menu: a bottom sheet on a phone, a popover on a desktop */}}

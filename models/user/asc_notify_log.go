@@ -23,6 +23,8 @@ type AscNotifyLog struct {
 	Emailed  bool               `xorm:"NOT NULL DEFAULT false"`
 	Digested bool               `xorm:"NOT NULL DEFAULT false"` // listed in a daily summary already
 	SentUnix timeutil.TimeStamp `xorm:"INDEX NOT NULL"`
+	Detail   string             `xorm:"VARCHAR(500) NOT NULL DEFAULT ''"`
+	ReadUnix timeutil.TimeStamp `xorm:"INDEX NOT NULL DEFAULT 0"` // 0 while the person has not seen it in the notifications popover
 }
 
 func init() {
@@ -34,8 +36,56 @@ func (AscNotifyLog) TableName() string { return "asc_notify_log" }
 
 // RecordAscNotification stores one notification.
 func RecordAscNotification(ctx context.Context, userID, repoID int64, event, title, path, eventID string, emailed bool) error {
-	_, err := db.GetEngine(ctx).Insert(&AscNotifyLog{UserID: userID, RepoID: repoID, Event: event, Title: title, Path: path, EventID: eventID, Emailed: emailed, SentUnix: timeutil.TimeStampNow()})
+	return RecordAscEvent(ctx, &AscNotifyLog{UserID: userID, RepoID: repoID, Event: event, Title: title, Path: path, EventID: eventID, Emailed: emailed})
+}
+
+// RecordAscEvent stores one notification, unread, sent now.
+func RecordAscEvent(ctx context.Context, row *AscNotifyLog) error {
+	row.ID = 0
+	row.SentUnix = timeutil.TimeStampNow()
+	row.ReadUnix = 0
+	_, err := db.GetEngine(ctx).Insert(row)
 	return err
+}
+
+// RecentAscNotifications returns the newest notifications of the person, at most limit.
+func RecentAscNotifications(ctx context.Context, userID int64, limit int) ([]*AscNotifyLog, error) {
+	var rows []*AscNotifyLog
+	err := db.GetEngine(ctx).Where("user_id = ?", userID).OrderBy("sent_unix DESC, id DESC").Limit(limit).Find(&rows)
+	return rows, err
+}
+
+// CountUnreadAscNotifications counts the notifications the person has not seen.
+func CountUnreadAscNotifications(ctx context.Context, userID int64) (int64, error) {
+	return db.GetEngine(ctx).Where("user_id = ? AND read_unix = 0", userID).Count(new(AscNotifyLog))
+}
+
+// GetAscNotification returns one notification of the person; nil when it is not theirs or is gone.
+func GetAscNotification(ctx context.Context, userID, id int64) (*AscNotifyLog, error) {
+	row := new(AscNotifyLog)
+	has, err := db.GetEngine(ctx).Where("id = ? AND user_id = ?", id, userID).Get(row)
+	if err != nil || !has {
+		return nil, err
+	}
+	return row, nil
+}
+
+// MarkAscNotificationsRead marks notifications of the person read: the one with the id, or all of them when id is 0.
+func MarkAscNotificationsRead(ctx context.Context, userID, id int64) error {
+	sess := db.GetEngine(ctx).Table("asc_notify_log").Where("user_id = ? AND read_unix = 0", userID)
+	if id != 0 {
+		sess = sess.And("id = ?", id)
+	}
+	_, err := sess.Cols("read_unix").Update(map[string]any{"read_unix": timeutil.TimeStampNow()})
+	return err
+}
+
+// UserIDsWithAscNotificationsBetween returns the people told about something in [since, until), for the live count of
+// the bell.
+func UserIDsWithAscNotificationsBetween(ctx context.Context, since, until timeutil.TimeStamp) ([]int64, error) {
+	var ids []int64
+	err := db.GetEngine(ctx).Table("asc_notify_log").Where("sent_unix >= ? AND sent_unix < ?", since, until).Distinct("user_id").Find(&ids)
+	return ids, err
 }
 
 // PendingAscDigest returns the entries of the person that no email and no summary has carried yet, oldest first, newer

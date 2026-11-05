@@ -56,7 +56,7 @@ func GetNotificationCount(ctx *context.Context) {
 			return -1
 		}
 
-		return count
+		return count + AscUnreadEvents(ctx, ctx.Doer.ID)
 	}
 }
 
@@ -474,5 +474,5 @@ func NewAvailable(ctx *context.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, structs.NotificationCount{New: total})
+	ctx.JSON(http.StatusOK, structs.NotificationCount{New: total + AscUnreadEvents(ctx, ctx.Doer.ID)})
 }

@@ -79,6 +79,7 @@ export function openOverlay(id, trigger) {
     const first = focusables(el)[0];
     first?.focus();
   }
+  el.dispatchEvent(new CustomEvent('ds-open'));
   return true;
 }
 
