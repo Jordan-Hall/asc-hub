@@ -57,16 +57,42 @@
 				<li class="site-step{{if .GSHasRepo}} is-done{{else if .GSConnected}} is-current{{end}}"{{if and .GSConnected (not .GSHasRepo)}} aria-current="step"{{end}}>
 					<div class="site-step-h">
 						<span class="site-step-num" aria-hidden="true">{{if .GSHasRepo}}{{svg "dsi-check" 16}}{{else}}3{{end}}</span>
-						<h2 class="ds-t-h3"><span class="gs-d">{{ctx.Locale.Tr "asc_site.started_s3_h"}}</span><span class="gs-m">{{ctx.Locale.Tr "asc_site.started_s3_hm"}}</span></h2>
+						<h2 class="ds-t-h3" data-gs-imp-h="{{ctx.Locale.Tr "asc_site.started_imp_h"}}"><span class="gs-d">{{ctx.Locale.Tr "asc_site.started_s3_h"}}</span><span class="gs-m">{{ctx.Locale.Tr "asc_site.started_s3_hm"}}</span></h2>
 						{{if .GSHasRepo}}<span class="ds-chip ds-chip-ok gs-d">{{ctx.Locale.Tr "asc_site.started_done"}}</span><span class="site-step-sub gs-m">{{ctx.Locale.Tr "asc_site.started_done"}}</span>{{else}}<span class="site-step-sub gs-m">{{ctx.Locale.Tr "asc_site.started_s3_m"}}</span>{{end}}
 					</div>
 					{{if not .GSHasRepo}}
+					<div class="site-step-body" data-gs-choose>
 					<p class="ds-c-2 gs-d">{{ctx.Locale.Tr "asc_site.started_s3_t"}}</p>
 					<div class="ds-row ds-row-wrap ds-gap-8">
 						<a class="ds-btn {{if .GSConnected}}ds-btn-primary{{else}}ds-btn-secondary{{end}}" href="{{AppSubUrl}}/repo/create"><span class="gs-d">{{ctx.Locale.Tr "asc_site.started_s3_newd"}}</span><span class="gs-m">{{ctx.Locale.Tr "asc_site.started_s3_new"}}</span></a>
-						{{if .GSMigrations}}<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/migrate"><span class="gs-d">{{ctx.Locale.Tr "asc_site.started_s3_importd"}}</span><span class="gs-m">{{ctx.Locale.Tr "asc_site.started_s3_import"}}</span></a>{{end}}
+						{{if .GSMigrations}}<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/migrate" data-gs-imp-open><span class="gs-d">{{ctx.Locale.Tr "asc_site.started_s3_importd"}}</span><span class="gs-m">{{ctx.Locale.Tr "asc_site.started_s3_import"}}</span></a>{{end}}
 					</div>
 					<div class="ds-cmd site-cmd-lines gs-d"><div><span class="ds-pr" aria-hidden="true">$</span><code>asc init acme/payments</code></div><div><span class="ds-pr" aria-hidden="true">$</span><code>asc stack submit</code></div></div>
+					</div>
+					{{if .GSMigrations}}
+					<form class="site-step-body site-import tw-hidden" method="post" action="{{AppSubUrl}}/-/get-started/import" data-gs-imp data-status="{{AppSubUrl}}/-/get-started/import/status" data-t-lost="{{ctx.Locale.Tr "asc_site.started_imp_lost"}}" data-t-done="{{ctx.Locale.Tr "asc_site.started_imp_done"}}">
+						{{.CsrfTokenHtml}}
+						<div class="ds-seg" role="group" aria-label="{{ctx.Locale.Tr "asc_site.started_imp_from"}}">
+							<button type="button" aria-pressed="true">{{ctx.Locale.Tr "asc_site.started_imp_url"}}</button>
+							<a href="{{AppSubUrl}}/repo/migrate">{{ctx.Locale.Tr "asc_site.started_imp_forge"}}</a>
+							<a href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "asc_site.started_imp_empty"}}</a>
+						</div>
+						<label class="tw-sr-only" for="gs-imp-addr">{{ctx.Locale.Tr "asc_site.started_imp_addr"}}</label>
+						<input class="ds-input ds-mono" id="gs-imp-addr" name="clone_addr" type="url" required autocomplete="off" spellcheck="false" placeholder="https://github.com/acme/payments.git" aria-describedby="gs-imp-err">
+						<p class="ds-t-small ds-c-err tw-hidden" id="gs-imp-err" role="alert" data-gs-imp-err></p>
+						<div class="site-import-run tw-hidden" data-gs-imp-run>
+							<div class="ds-row ds-justify-between"><span>{{ctx.Locale.Tr "asc_site.started_imp_reading"}}</span><b class="ds-c-ok ds-num" data-gs-imp-count></b></div>
+							<progress class="ds-bar" max="1" aria-label="{{ctx.Locale.Tr "asc_site.started_imp_reading"}}" data-gs-imp-bar></progress>
+							<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_site.started_imp_note"}}</p>
+							<p class="tw-sr-only" role="status" data-gs-imp-live></p>
+						</div>
+						<div class="ds-row ds-row-wrap ds-gap-8">
+							<button type="submit" class="ds-btn ds-btn-primary" data-gs-imp-go>{{ctx.Locale.Tr "asc_site.started_imp_go"}}</button>
+							<button type="button" class="ds-btn ds-btn-secondary" data-gs-imp-back>{{ctx.Locale.Tr "asc_site.started_imp_back"}}</button>
+							<a class="ds-btn ds-btn-primary tw-hidden" href="{{AppSubUrl}}/" data-gs-imp-repo>{{ctx.Locale.Tr "asc_site.started_imp_open"}}</a>
+						</div>
+					</form>
+					{{end}}
 					{{end}}
 				</li>
 				{{/* 4: team and agents */}}
