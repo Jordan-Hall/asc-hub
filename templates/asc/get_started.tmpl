@@ -1,6 +1,6 @@
 {{/* The get started checklist (board GetStarted, Mobile-GetStarted). Route GET /-/get-started. gs-d is the copy of the wide board, gs-m the shorter copy of the phone board. */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="ds-main site site-started">
+<div role="main" aria-label="{{.Title}}" class="ds-main site site-started"{{if not .GSConnected}} data-gs-watch="{{AppSubUrl}}/-/get-started/status"{{end}}>
 	<div class="ds-container ds-split site-started-split">
 		<div class="ds-min0">
 			<header class="site-started-head">
@@ -13,9 +13,10 @@
 				</form>
 				{{end}}
 				<p class="ds-t-lead ds-c-2 gs-d">{{ctx.Locale.Tr "asc_site.started_lead"}}</p>
+				<p class="tw-sr-only" role="status" data-gs-live data-t-connected="{{ctx.Locale.Tr "asc_site.started_s2_live"}}"></p>
 			</header>
 
-			<div class="site-progress-top">
+			<div class="site-progress-top" data-gs-part="top">
 			<section class="ds-card">
 				<div class="ds-card-b">
 					<div class="ds-row ds-justify-between"><h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.started_progress"}}</h2><span class="ds-t-small ds-c-2 ds-num">{{ctx.Locale.Tr "asc_site.started_of" .GSDone .GSTotal}}</span></div>
@@ -24,7 +25,7 @@
 			</section>
 			</div>
 
-			<ol class="site-steps">
+			<ol class="site-steps" data-gs-part="steps">
 				{{/* 1: the command line is installed once it has signed in */}}
 				<li class="site-step{{if .GSConnected}} is-done{{end}}">
 					<div class="site-step-h">
@@ -87,7 +88,7 @@
 		</div>
 
 		<aside class="ds-rail site-rail" aria-label="{{ctx.Locale.Tr "asc_site.started_check_h"}}">
-			<div class="site-progress-side">
+			<div class="site-progress-side" data-gs-part="side">
 			<section class="ds-card">
 				<div class="ds-card-b">
 					<div class="ds-row ds-justify-between"><h2 class="ds-t-h4">{{ctx.Locale.Tr "asc_site.started_progress"}}</h2><span class="ds-t-small ds-c-2 ds-num">{{ctx.Locale.Tr "asc_site.started_of" .GSDone .GSTotal}}</span></div>
@@ -95,7 +96,7 @@
 				</div>
 			</section>
 			</div>
-			<section class="ds-card gs-d" aria-labelledby="gs-health-title">
+			<section class="ds-card gs-d" aria-labelledby="gs-health-title" data-gs-part="health">
 				<div class="ds-card-b">
 					<h2 class="ds-t-h4" id="gs-health-title">{{ctx.Locale.Tr "asc_site.started_health_h"}}</h2>
 					<p class="ds-t-small ds-c-2 site-health-t">{{ctx.Locale.Tr "asc_site.started_health_t"}}</p>
