@@ -2,7 +2,10 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main site site-docs site-article">
 	<div class="ds-container">
+		<div class="site-docs-crumbs">
+		<a class="ds-ti site-docs-menu" href="#site-docs-drawer" data-ds-open="site-docs-drawer" aria-haspopup="dialog" aria-controls="site-docs-drawer" aria-expanded="false" aria-label="{{ctx.Locale.Tr "asc_site.docs_menu"}}">{{svg "dsi-menu" 20}}</a>
 		<nav class="ds-breadcrumb" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}"><a href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.docs_title"}}</a> <span aria-hidden="true">/</span> <span>{{.DocsPage.Section}}</span> <span aria-hidden="true">/</span> <b aria-current="page">{{.DocsPage.Title}}</b></nav>
+		</div>
 		<div class="site-article-grid">
 			{{if .DocsTOC}}
 			<details class="site-toc-m">
@@ -32,5 +35,18 @@
 			</aside>
 		</div>
 	</div>
+</div>
+{{/* the docs menu on a phone and a tablet (board Mobile-Docs): every guide by section, a dialog that gives the focus back */}}
+<div class="ds-drawer site-docs-drawer" id="site-docs-drawer" role="dialog" aria-modal="true" aria-labelledby="site-docs-drawer-title">
+	<div class="ds-drawer-head">
+		<h2 class="ds-grow ds-t-h4" id="site-docs-drawer-title">{{ctx.Locale.Tr "asc_site.docs_title"}}</h2>
+		<a class="ds-ti ds-ti-light" href="#main-content" data-ds-close aria-label="{{ctx.Locale.Tr "asc_shell.close"}}">{{svg "dsi-x" 20}}</a>
+	</div>
+	<nav class="ds-drawer-body" aria-label="{{ctx.Locale.Tr "asc_site.docs_title"}}">
+		{{range .DocsSections}}
+			<div class="ds-mi-label">{{.Name}}</div>
+			{{range .Pages}}<a class="ds-mi{{if eq .Slug $.DocsPage.Slug}} is-active{{end}}" href="{{AppSubUrl}}/-/docs/{{.Slug}}"{{if eq .Slug $.DocsPage.Slug}} aria-current="page"{{end}}>{{.Title}}</a>{{end}}
+		{{end}}
+	</nav>
 </div>
 {{template "base/footer" .}}

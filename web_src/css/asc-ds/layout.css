@@ -2219,6 +2219,23 @@ body.ds-lock {
   overflow-wrap: anywhere;
 }
 
+/* the docs menu button sits before the breadcrumb on a phone and a tablet */
+.site-docs-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-docs-crumbs > .ds-breadcrumb {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .site-docs-menu {
+    display: none;
+  }
+}
+
 /* documentation on a phone: "On this page" is one row that stays under the header, and the next guide is one tap at the end */
 .site-toc-m {
   display: none;

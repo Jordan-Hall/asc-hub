@@ -107,6 +107,28 @@ func Pages() []Page {
 	return out
 }
 
+// Section is one group of the docs menu: a section name and its pages in the order of the manifest.
+type Section struct {
+	Name  string
+	Pages []Page
+}
+
+// Sections groups the pages by section, the sections in the order each first appears.
+func Sections() []Section {
+	var out []Section
+	at := map[string]int{}
+	for _, p := range Pages() {
+		i, ok := at[p.Section]
+		if !ok {
+			i = len(out)
+			at[p.Section] = i
+			out = append(out, Section{Name: p.Section})
+		}
+		out[i].Pages = append(out[i].Pages, p)
+	}
+	return out
+}
+
 // Changelog lists what is new, newest first.
 func Changelog() []Entry {
 	once.Do(load)
