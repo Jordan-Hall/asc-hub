@@ -1,0 +1,30 @@
+{{/* The inside of the notifications popover (routers/web/user/asc_bell.go), loaded into #ds-bell when it opens */}}
+<div data-asc-bell-content>
+<div class="ds-bell-head">
+	<b>{{ctx.Locale.Tr "notifications"}}</b>
+	{{if .BellUnread}}<span class="ds-count ds-count-hot" data-asc-bell-count>{{.BellUnread}}</span>{{end}}
+	{{if .BellUnread}}<button type="button" class="ds-bell-read ds-link ds-t-small ds-sb" data-asc-bell-read="{{AppSubUrl}}/-/asc/bell/read" data-failed="{{ctx.Locale.Tr "asc_shell.bell_read_failed"}}">{{ctx.Locale.Tr "asc_shell.bell_read_all"}}</button>{{end}}
+</div>
+{{if .BellItems}}
+<ul class="ds-bell-list">
+	{{range .BellItems}}
+	<li>
+		<a class="ds-bell-it{{if .Unread}} is-unread{{end}}" href="{{.Link}}">
+			{{if .Actor}}<span class="ds-av ds-av-32" aria-hidden="true">{{ctx.AvatarUtils.Avatar .Actor 32}}</span>{{else}}<span class="ds-av ds-av-32 ds-av-agent" aria-hidden="true">{{.Initials}}</span>{{end}}
+			<span class="ds-bell-main">
+				<span class="ds-bell-text">{{if .Name}}<b>{{.Name}}</b> {{end}}{{.Text}}</span>
+				<span class="ds-bell-sub ds-t-small">{{.Sub}}</span>
+			</span>
+			<span class="ds-bell-meta">
+				<span class="ds-t-small ds-c-3">{{DateUtils.TimeSince .When}}</span>
+				{{if .Unread}}<span class="ds-dot ds-dot-info" aria-hidden="true"></span><span class="tw-sr-only">{{ctx.Locale.Tr "asc_shell.bell_unread"}}</span>{{end}}
+			</span>
+		</a>
+	</li>
+	{{end}}
+</ul>
+{{else}}
+<p class="ds-bell-empty ds-c-2">{{ctx.Locale.Tr "asc_shell.bell_empty"}}</p>
+{{end}}
+<div class="ds-bell-foot"><a class="ds-link ds-t-small ds-sb" href="{{AppSubUrl}}/-/asc/inbox">{{ctx.Locale.Tr "asc_shell.bell_open_inbox"}}</a></div>
+</div>

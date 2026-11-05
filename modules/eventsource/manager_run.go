@@ -79,6 +79,7 @@ loop:
 			if err != nil {
 				log.Error("Unable to get UIDcounts: %v", err)
 			}
+			uidCounts = ascBellCounts(ctx, uidCounts, then, now)
 			for _, uidCount := range uidCounts {
 				m.SendMessage(uidCount.UserID, &Event{
 					Name: "notification-count",
