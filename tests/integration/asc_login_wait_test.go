@@ -30,8 +30,9 @@ func ascSignInFlash(t *testing.T, resp *httptest.ResponseRecorder) string {
 }
 
 // TestAscLoginWait checks the wait after wrong passwords (board Onboarding): the message of a wrong password names
-// the rule, the try after the last allowed one waits with 429 and Retry-After, even with the right password, every
-// spelling of the account counts the same, another account from the same address does not wait, a right password
+// the rule, the try after the last allowed one waits with 429 and Retry-After, even with the right password, the
+// name counts in any case but is not looked up (an email of the same person counts apart, so the count does not tell
+// which email belongs to which account), another account from the same address does not wait, a right password
 // before the limit clears the count, and basic authentication shares the count.
 func TestAscLoginWait(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
@@ -44,8 +45,10 @@ func TestAscLoginWait(t *testing.T) {
 		wrong := "Could not sign in. The username or password is wrong. After 3 attempts we wait 2 minutes."
 		assert.Equal(t, wrong, ascSignInFlash(t, ascSignIn(t, "user5", "wrongPassword", http.StatusOK)))
 		assert.Equal(t, wrong, ascSignInFlash(t, ascSignIn(t, "USER5", "wrongPassword", http.StatusOK)))
-		// the email of the same person is the same account: the third wrong try starts the wait
-		resp := ascSignIn(t, "user5@example.com", "wrongPassword", http.StatusTooManyRequests)
+		// the email of the same person counts apart
+		assert.Equal(t, wrong, ascSignInFlash(t, ascSignIn(t, "user5@example.com", "wrongPassword", http.StatusOK)))
+		// the third wrong try of the name starts the wait
+		resp := ascSignIn(t, " User5 ", "wrongPassword", http.StatusTooManyRequests)
 		assert.Equal(t, "120", resp.Header().Get("Retry-After"))
 		assert.Equal(t, "Too many attempts to sign in. Try again in 2 minutes.", ascSignInFlash(t, resp))
 		ascSignIn(t, "user5", userPassword, http.StatusTooManyRequests)
