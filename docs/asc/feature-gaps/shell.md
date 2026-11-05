@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 123 |
-| ui-only-missing | 10 |
+| done | 124 |
+| ui-only-missing | 9 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 6, M 45, L 21.
+Open rows by size: S 5, M 45, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -268,7 +268,7 @@ Open rows by size: S 6, M 45, L 21.
 | --- | --- | --- | --- | --- |
 | Profile | Header: avatar, name, handle, location, bio, followers, following, joined, website, Follow | done | `templates/user/overview/header.tmpl`, `shared/user/asc_profile_band.tmpl` | - |
 | Profile | Presence pill ("Online, local time 14:20") | needs-hub-backend | None. Last-seen model plus the person's time zone; pill in `header.tmpl` with text | M |
-| Profile | Role line ("Staff engineer · Payments team · London") | ui-only-missing | Combine existing description, location and team names | S |
+| Profile | Role line ("Staff engineer · Payments team · London") | done | Role is the `asc.role` user setting (Role field in profile settings, 60 characters, trimmed, empty clears it); the line in `profile_big_avatar.tmpl` adds role, the first team the viewer may know about (`AscProfileTeams`) and location; `tests/integration/asc_profile_role_test.go` | S |
 | Profile | Request a review (picker with repository and change) and Mention | needs-both | Absent. Hub: picker modal of the viewer's open pull requests (`routers/web/user/profile.go`) and POST to asc `RequestReview` (exists in `review.proto`) via `asc_rpc_proxy.go`; Mention opens a comment composer | L |
 | Profile | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | Tabs today: Overview, Repositories, Projects, Packages, Code, Activity, Stars (`overview/header.tmpl`). Add Work (`ascProfileWork`) and Reviews with counts | M |
 | Profile | Working-now list (stack, draft, ready) | done | `profile.tmpl`, `ascProfileWork` | - |
