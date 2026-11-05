@@ -398,7 +398,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Mobile-Code | Avatar column for blame, tap opens the change sheet (swipe down closes), Files sheet, long-press range select with Share | done | `blame.tmpl` + `asc-blame-sheet.js` (row 103); drag-down close in `asc-sheet.js`; the Files sheet is the `rp-tree` panel | M |
 | Mobile-History | Rail-and-node list, chips open a bottom sheet, 44 px older-changes button | done | rows 130, 140 and 142 | M |
 | Mobile-Search | Sticky search, Filters bottom sheet, cards with reason first | done | as the Search mobile row; the reason line on each card comes with the Search "Why it matched" row (needs-asc-backend) | M |
-| Mobile-Releases | New release as a bottom sheet; channel chips | ui-only-missing | see Releases rows | M |
+| Mobile-Releases | New release as a bottom sheet; channel chips | done (2026-11-05: the New release dialog is a bottom sheet below 1024 px; the channel chips scroll in one row, `rp-pills`) | see Releases rows | M |
 | Mobile-NewRepo | Name check after 300 ms, Start from keeps typed values, sticky primary | needs-hub-backend | see NewRepo rows | M |
 | Mobile-RepoSettings* | Detail pages with back arrow and same title, one save bar | done | `ds-settings-nav` shell with `snav_bar` | S |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | Same behaviour as the desktop boards | done | covered by the rows of those boards; the twin adds no behaviour beyond 44 px targets | S |
