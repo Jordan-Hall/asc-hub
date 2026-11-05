@@ -1,50 +1,48 @@
 {{/* The repository settings menu: the same shell as the account settings (user/settings/navbar). */}}
 {{$base := print .RepoLink "/settings"}}
-<nav class="ds-settings-nav" id="settings-menu" aria-label="{{ctx.Locale.Tr "repo.settings"}}">
+<nav class="ds-settings-nav" id="settings-menu" aria-label="{{ctx.Locale.Tr "repo.settings"}}"{{if and .AscEnabled (eq .Repository.StorageBackend "asc") .Permission.IsAdmin}} data-snav-live-url="{{$base}}/asc/menu-status"{{end}}>
 	{{template "shared/ds/snav_bar" (dict "Title" (ctx.Locale.Tr "repo.settings"))}}
 	<div class="ds-settings-nav-in">
 		<label class="ds-snav-find"><span class="ds-sr">{{ctx.Locale.Tr "asc_shell.sn_find"}}</span>{{svg "dsi-search" 17}}<input type="search" placeholder="{{ctx.Locale.Tr "asc_shell.sn_find"}}" data-asc-snav-find autocomplete="off"></label>
 		{{template "shared/ds/snav_who" (dict "Icon" "book" "Name" .Repository.Name "Sub" .Repository.OwnerName "Href" .RepoLink "Label" (ctx.Locale.Tr "asc_shell.sn_view_repo"))}}
 
 		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
+		{{/* The groups and entries of board RepoSettingsMenu, in its order; the pages the board does not name follow the board's entries of their group. */}}
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_repository"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "#settings-general") "Label" (ctx.Locale.Tr "asc_shell.sn_general") "Icon" "sliders" "Active" .PageIsSettingsOptions "Status" (index $.AscSetStatus "options"))}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/units") "Label" (ctx.Locale.Tr "repo.settings.units.units") "Icon" "layers" "Active" .PageIsRepoSettingsUnits)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/collaboration") "Label" (ctx.Locale.Tr "asc_shell.sn_access") "Icon" "users" "Active" .PageIsSettingsCollaboration "Status" (index $.AscSetStatus "access"))}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/keys") "Label" (ctx.Locale.Tr "repo.settings.deploy_keys") "Icon" "key" "Active" .PageIsSettingsKeys)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/branchless") "Label" (ctx.Locale.Tr "repo.settings.asc_branchless") "Icon" "branch" "Active" .PageIsSettingsAscBranchless)}}
-		</ul>
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_rules"}}</h2>
-		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/policy") "Label" (ctx.Locale.Tr "asc_shell.sn_policy_trust") "Icon" "shield-check" "Active" .PageIsSettingsAscPolicy)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "#settings-general") "Label" (ctx.Locale.Tr "asc_shell.sn_general") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_general") "Icon" "sliders" "Active" .PageIsSettingsOptions "Status" (index $.AscSetStatus "options"))}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/collaboration") "Label" (ctx.Locale.Tr "asc_shell.sn_access") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_access") "Icon" "users" "Active" .PageIsSettingsCollaboration "Status" (index $.AscSetStatus "access"))}}
 			{{if not .Repository.IsEmpty}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/branches") "Label" (ctx.Locale.Tr "asc_shell.sn_branches_stacks") "Icon" "branch" "Active" .PageIsSettingsBranches)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/branches") "Label" (ctx.Locale.Tr "asc_shell.sn_rules") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_rules") "Icon" "shield-check" "Active" .PageIsSettingsBranches)}}
 			{{end}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/tags") "Label" (ctx.Locale.Tr "repo.settings.tags") "Icon" "tag" "Active" .PageIsSettingsTags)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/policy") "Label" (ctx.Locale.Tr "asc_shell.sn_policy_short") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_policy") "Icon" "shield-check" "Active" .PageIsSettingsAscPolicy)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/branchless") "Label" (ctx.Locale.Tr "asc_shell.sn_branches_stacks") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_branches") "Icon" "branch" "Active" .PageIsSettingsAscBranchless)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/units") "Label" (ctx.Locale.Tr "repo.settings.units.units") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_units") "Icon" "layers" "Active" .PageIsRepoSettingsUnits)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/keys") "Label" (ctx.Locale.Tr "repo.settings.deploy_keys") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_keys") "Icon" "key" "Active" .PageIsSettingsKeys)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/tags") "Label" (ctx.Locale.Tr "repo.settings.tags") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_tags") "Icon" "tag" "Active" .PageIsSettingsTags)}}
 		</ul>
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_automation"}}</h2>
 		<ul class="ds-settings-list">
 			{{if not DisableWebhooks}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks") "Label" (ctx.Locale.Tr "repo.settings.hooks") "Icon" "link" "Active" .PageIsSettingsHooks "Status" (index $.AscSetStatus "hooks") "StatusBad" $.AscSetHooksFailing)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/hooks") "Label" (ctx.Locale.Tr "repo.settings.hooks") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_hooks") "Icon" "link" "Active" .PageIsSettingsHooks "Status" (index $.AscSetStatus "hooks") "StatusBad" $.AscSetHooksFailing)}}
 			{{end}}
 			{{if and .EnableActions (not .UnitActionsGlobalDisabled) (.Permission.CanRead $.UnitTypeActions)}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/secrets") "Label" (ctx.Locale.Tr "asc_shell.sn_secrets_vars") "Icon" "lock" "Active" (or .PageIsSharedSettingsSecrets .PageIsSharedSettingsVariables) "Status" (index $.AscSetStatus "secrets"))}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/runners") "Label" (ctx.Locale.Tr "actions.runners") "Icon" "cpu" "Active" .PageIsSharedSettingsRunners)}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/permissions") "Label" (ctx.Locale.Tr "actions.permissions.title") "Icon" "shield-check" "Active" .PageIsSharedSettingsPermissions)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/secrets") "Label" (ctx.Locale.Tr "asc_shell.sn_secrets_vars") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_secrets") "Icon" "lock" "Active" (or .PageIsSharedSettingsSecrets .PageIsSharedSettingsVariables) "Status" (index $.AscSetStatus "secrets"))}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/runners") "Label" (ctx.Locale.Tr "actions.runners") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_runners") "Icon" "cpu" "Active" .PageIsSharedSettingsRunners)}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/actions/permissions") "Label" (ctx.Locale.Tr "actions.permissions.title") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_permissions") "Icon" "shield-check" "Active" .PageIsSharedSettingsPermissions)}}
 			{{end}}
 		</ul>
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_data"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/storage") "Label" (ctx.Locale.Tr "ascbyo.nav_storage") "Icon" "database" "Active" .PageIsSettingsAscStorage)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/ai") "Label" (ctx.Locale.Tr "ascbyo.nav_ai") "Icon" "sparkles" "Active" .PageIsSettingsAscAI)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/storage") "Label" (ctx.Locale.Tr "ascbyo.nav_storage") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_storage") "Icon" "database" "Active" .PageIsSettingsAscStorage "Live" "storage")}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/ai") "Label" (ctx.Locale.Tr "ascbyo.nav_ai") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_ai") "Icon" "sparkles" "Active" .PageIsSettingsAscAI "Live" "ai")}}
 		</ul>
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_safety"}}</h2>
 		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/security") "Label" (ctx.Locale.Tr "asc_shell.sn_secret_scanning") "Icon" "fingerprint" "Active" .PageIsSettingsAscSecurity)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/workflow-secrets") "Label" (ctx.Locale.Tr "asc_review.wfs_nav") "Icon" "key" "Active" .PageIsSettingsAscWorkflowSecrets)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/path-rules") "Label" (ctx.Locale.Tr "asc_review.pr_nav") "Icon" "lock" "Active" .PageIsSettingsAscPathRules)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Icon" "history" "Active" .PageIsSettingsAscAudit)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/security") "Label" (ctx.Locale.Tr "asc_shell.sn_secret_scanning") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_scanning") "Icon" "fingerprint" "Active" .PageIsSettingsAscSecurity)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_audit") "Icon" "history" "Active" .PageIsSettingsAscAudit)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/workflow-secrets") "Label" (ctx.Locale.Tr "asc_review.wfs_nav") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_wfsecrets") "Icon" "key" "Active" .PageIsSettingsAscWorkflowSecrets)}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/path-rules") "Label" (ctx.Locale.Tr "asc_review.pr_nav") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_pathrules") "Icon" "lock" "Active" .PageIsSettingsAscPathRules)}}
 		</ul>
 		{{else}}
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_general"}}</h2>
@@ -52,9 +50,6 @@
 			{{template "shared/ds/snav_item" (dict "Href" $base "Label" (ctx.Locale.Tr "repo.settings.options") "Icon" "sliders" "Active" .PageIsSettingsOptions)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/units") "Label" (ctx.Locale.Tr "repo.settings.units.units") "Icon" "layers" "Active" .PageIsRepoSettingsUnits)}}
 			{{template "shared/ds/snav_item" (dict "Href" (print $base "/collaboration") "Label" (ctx.Locale.Tr "repo.settings.collaboration") "Icon" "users" "Active" .PageIsSettingsCollaboration)}}
-			{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
-				{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/branchless") "Label" (ctx.Locale.Tr "repo.settings.asc_branchless") "Icon" "branch" "Active" .PageIsSettingsAscBranchless)}}
-			{{end}}
 		</ul>
 
 		{{if .Repository.UnitEnabled $.Context $.UnitTypeCode}}
@@ -87,23 +82,8 @@
 			{{end}}
 		</ul>
 
-		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_byo"}}</h2>
-		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/ai") "Label" (ctx.Locale.Tr "ascbyo.nav_ai") "Icon" "sparkles" "Active" .PageIsSettingsAscAI)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/storage") "Label" (ctx.Locale.Tr "ascbyo.nav_storage") "Icon" "database" "Active" .PageIsSettingsAscStorage)}}
-		</ul>
-		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_policy"}}</h2>
-		<ul class="ds-settings-list">
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/policy") "Label" (ctx.Locale.Tr "asc_shell.sn_policy_trust") "Icon" "shield-check" "Active" .PageIsSettingsAscPolicy)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/security") "Label" (ctx.Locale.Tr "asc_shell.sn_secret_scanning") "Icon" "fingerprint" "Active" .PageIsSettingsAscSecurity)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/workflow-secrets") "Label" (ctx.Locale.Tr "asc_review.wfs_nav") "Icon" "key" "Active" .PageIsSettingsAscWorkflowSecrets)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/path-rules") "Label" (ctx.Locale.Tr "asc_review.pr_nav") "Icon" "lock" "Active" .PageIsSettingsAscPathRules)}}
-			{{template "shared/ds/snav_item" (dict "Href" (print $base "/asc/audit") "Label" (ctx.Locale.Tr "asc_shell.sn_audit_log") "Icon" "history" "Active" .PageIsSettingsAscAudit)}}
-		</ul>
 		{{end}}
-		{{end}}
-		{{if .Permission.IsOwner}}<a class="ds-snav-danger" href="{{print $base "#danger-zone"}}">{{svg "dsi-alert" 20}}<span><b>{{ctx.Locale.Tr "asc_shell.sn_danger"}}</b><span>{{ctx.Locale.Tr "asc_shell.sn_danger_sub"}}</span></span></a>{{end}}
+		{{if .Permission.IsOwner}}<a class="ds-snav-danger" href="{{print $base "#danger-zone"}}" data-snav-desc="{{ctx.Locale.Tr "asc_shell.sn_desc_danger"}}">{{svg "dsi-alert" 20}}<span><b>{{ctx.Locale.Tr "asc_shell.sn_danger"}}</b><span>{{ctx.Locale.Tr "asc_shell.sn_danger_sub"}}</span></span></a>{{end}}
 		<p class="ds-snav-none ds-hidden" data-asc-snav-none>{{ctx.Locale.Tr "asc_shell.sn_find_none"}}</p>
 	</div>
 </nav>
