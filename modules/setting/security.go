@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"forgejo.org/modules/auth/password/hash"
 	"forgejo.org/modules/generate"
@@ -38,6 +39,8 @@ var (
 	PasswordComplexity                 []string
 	PasswordHashAlgo                   string
 	PasswordCheckPwn                   bool
+	LoginMaxAttempts                   int           // wrong passwords for one name from one address before the wait; 0 turns the wait off
+	LoginWait                          time.Duration // how long that name waits from that address
 	SuccessfulTokensCacheSize          int
 	DisableQueryAuthToken              bool
 )
@@ -299,6 +302,11 @@ func loadSecurityFrom(rootCfg ConfigProvider) {
 	}
 
 	PasswordCheckPwn = sec.Key("PASSWORD_CHECK_PWN").MustBool(false)
+	LoginMaxAttempts = max(sec.Key("LOGIN_MAX_ATTEMPTS").MustInt(5), 0)
+	LoginWait = sec.Key("LOGIN_WAIT").MustDuration(5 * time.Minute)
+	if LoginWait < time.Second {
+		LoginWait = time.Second
+	}
 	SuccessfulTokensCacheSize = sec.Key("SUCCESSFUL_TOKENS_CACHE_SIZE").MustInt(20)
 
 	InternalToken = loadSecret(sec, "INTERNAL_TOKEN_URI", "INTERNAL_TOKEN")
