@@ -1,9 +1,16 @@
-{{if or .OAuth2Providers .EnableOpenIDSignIn}}
+{{$passkey := and .AscPasskey (not .LinkAccountMode)}}
+{{if or .OAuth2Providers .EnableOpenIDSignIn $passkey}}
 {{if or (and .PageIsSignUp (not .DisableRegistration)) (and .PageIsSignIn .EnableInternalSignIn)}}
 	<div class="ds-or" role="separator"><span>{{ctx.Locale.Tr "asc_auth.or_continue_with"}}</span></div>
 {{end}}
 <div id="oauth2-login-navigator">
 	<div id="oauth2-login-navigator-inner" class="ds-auth-providers">
+		{{if $passkey}}
+			<button type="button" class="ds-btn ds-btn-secondary ds-btn-lg ds-btn-block" data-asc-passkey data-remember="#remember">
+				{{svg "dsi-key" 18}}
+				{{ctx.Locale.Tr "asc_auth.signin_passkey"}}
+			</button>
+		{{end}}
 		{{range $provider := .OAuth2Providers}}
 			<a class="{{$provider.Name}} ds-btn ds-btn-secondary ds-btn-block oauth-login-link" href="{{AppSubUrl}}/user/oauth2/{{$provider.DisplayName | PathEscape}}">
 				{{$provider.IconHTML 22}}

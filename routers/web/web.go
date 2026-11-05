@@ -745,6 +745,8 @@ func registerRoutes(m *web.Route) {
 			m.Get("", auth.WebAuthn)
 			m.Get("/assertion", auth.WebAuthnLoginAssertion)
 			m.Post("/assertion", auth.WebAuthnLoginAssertionPost)
+			m.Get("/passkey/assertion", auth.AscPasskeyAssertion)
+			m.Post("/passkey/login", auth.AscPasskeyLoginPost)
 		})
 	}, reqSignOut)
 

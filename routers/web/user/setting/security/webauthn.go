@@ -46,7 +46,13 @@ func WebAuthnRegister(ctx *context.Context) {
 		return
 	}
 
-	credentialOptions, sessionData, err := wa.WebAuthn.BeginRegistration((*wa.User)(ctx.Doer))
+	var regOpts []webauthn.RegistrationOption
+	if setting.Asc.Enabled {
+		// ask for a passkey (a key the device keeps for this account), so the key also signs in without a password;
+		// a device that cannot keep one registers a plain security key
+		regOpts = append(regOpts, webauthn.WithResidentKeyRequirement(protocol.ResidentKeyRequirementPreferred))
+	}
+	credentialOptions, sessionData, err := wa.WebAuthn.BeginRegistration((*wa.User)(ctx.Doer), regOpts...)
 	if err != nil {
 		ctx.ServerError("Unable to BeginRegistration", err)
 		return

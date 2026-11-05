@@ -200,6 +200,7 @@ func SignIn(ctx *context.Context) {
 	}
 
 	ctx.Data["DisablePassword"] = !setting.Service.EnableInternalSignIn
+	ctx.Data["AscPasskey"] = ascPasskeyOn()
 
 	ctx.HTML(http.StatusOK, tplSignIn)
 }
@@ -220,6 +221,7 @@ func SignInPost(ctx *context.Context) {
 	ctx.Data["PageIsLogin"] = true
 	ctx.Data["EnableInternalSignIn"] = setting.Service.EnableInternalSignIn
 	ctx.Data["DisablePassword"] = !setting.Service.EnableInternalSignIn
+	ctx.Data["AscPasskey"] = ascPasskeyOn()
 
 	// Permission denied if EnableInternalSignIn is false
 	if !setting.Service.EnableInternalSignIn {
