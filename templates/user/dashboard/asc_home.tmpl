@@ -164,6 +164,25 @@ Template Attributes:
 						{{end}}
 					</ul>
 				</section>
+			{{else if not $d.Repos}}
+				<section class="ds-card wk-card" aria-labelledby="wk-norepo-title" data-asc-dash-norepo>
+					<div class="ds-empty wk-empty-in">
+						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-book" 32}}</span>
+						<h2 id="wk-norepo-title" class="ds-t-h4">{{ctx.Locale.Tr "asc_work.dash_norepo_title"}}</h2>
+						<p>{{ctx.Locale.Tr "asc_work.dash_norepo_text"}}</p>
+						<div class="ds-empty-acts"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a></div>
+					</div>
+				</section>
+			{{end}}
+			{{if not $d.Teams}}
+				<section class="ds-card wk-card" aria-labelledby="wk-alone-title" data-asc-dash-alone>
+					<div class="ds-empty wk-empty-in">
+						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-users" 32}}</span>
+						<h2 id="wk-alone-title" class="ds-t-h4">{{ctx.Locale.Tr "asc_work.dash_alone_title"}}</h2>
+						<p>{{ctx.Locale.Tr "asc_work.dash_alone_text"}}</p>
+						<div class="ds-empty-acts"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/org/create">{{ctx.Locale.Tr "asc_work.dash_invite"}}</a></div>
+					</div>
+				</section>
 			{{end}}
 			{{if .AscHeat}}
 				<section class="ds-card wk-card" aria-labelledby="wk-heat-title">
