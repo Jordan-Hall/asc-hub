@@ -6,8 +6,9 @@ export function matches(kind, filter) {
   return filter === '' || kind === filter;
 }
 
-export function initAscFeedFilter() {
-  for (const group of document.querySelectorAll('[data-feed-filter]')) {
+// root is the page, or a card that was loaded again (asc-dash-live.js)
+export function initAscFeedFilter(root = document) {
+  for (const group of root.querySelectorAll('[data-feed-filter]')) {
     const list = document.querySelector(group.getAttribute('data-feed-filter'));
     if (!list) continue;
     const status = group.parentElement?.querySelector('[data-feed-count]');

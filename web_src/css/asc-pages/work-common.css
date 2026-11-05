@@ -669,6 +669,17 @@ a.wk-act-title:hover {
   flex: none;
 }
 
+/* the rows of the dashboard: a round avatar and the time on the right */
+.wk-sk-round {
+  border-radius: 50%;
+}
+
+.wk-sk-when {
+  width: 48px;
+  height: 12px;
+  flex: none;
+}
+
 .wk-list-loading:not(.ds-card) {
   display: grid;
   gap: 16px;

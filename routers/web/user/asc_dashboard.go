@@ -6,6 +6,7 @@ package user
 import (
 	gocontext "context"
 	"fmt"
+	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/base"
 	"forgejo.org/modules/git/ascbackend"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
@@ -630,4 +632,26 @@ func ascFeedKinds(list activities_model.ActionList) []string {
 		out[i] = ascFeedKind(a)
 	}
 	return out
+}
+
+const tplAscDashToday base.TplName = "user/dashboard/asc_today"
+
+// AscDashTodayCard renders the "Today" card of the dashboard alone (board Dashboard, live activity and the offline
+// state): the card on the page refreshes itself from it, and keeps its items and says so when it cannot load.
+func AscDashTodayCard(ctx *context.Context) {
+	feeds, _, err := activities_model.GetFeeds(ctx, activities_model.GetFeedsOptions{
+		RequestedUser:  ctx.Doer,
+		Actor:          ctx.Doer,
+		IncludePrivate: true,
+		ListOptions:    db.ListOptions{Page: 1, PageSize: setting.UI.FeedPagingNum},
+	})
+	if err != nil {
+		ctx.ServerError("GetFeeds", err)
+		return
+	}
+	today := ascDashToday(feeds, time.Now())
+	ctx.Data["AscDashToday"] = today
+	ctx.Data["AscDashTodayKinds"] = ascFeedKinds(today)
+	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+	ctx.HTML(http.StatusOK, tplAscDashToday)
 }
