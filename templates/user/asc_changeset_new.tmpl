@@ -1,0 +1,37 @@
+{{/*
+"New changeset" of the Create menu (routers/web/user/asc_changeset_new.go): pick the repository; its editor opens on
+the default branch.
+Template Attributes:
+* AscChangesetRepos: []AscChangesetRepo
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main wk-page">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "asc_shell.create_changeset") "BackHref" (print AppSubUrl "/") "BackLabel" (ctx.Locale.Tr "asc_work.dashboard"))}}
+	<div class="ds-container">
+		<div class="wk-page-head">
+			<div class="ds-min0">
+				<h1 class="ds-t-h1 wk-title">{{ctx.Locale.Tr "asc_shell.create_changeset"}}</h1>
+				<p class="ds-c-2 wk-sub">{{ctx.Locale.Tr "asc_shell.changeset_new_lead"}}</p>
+			</div>
+		</div>
+		<section class="ds-card" aria-labelledby="asc-csnew-title">
+			<div class="ds-card-h"><h2 id="asc-csnew-title">{{ctx.Locale.Tr "asc_shell.changeset_new_repos"}}</h2></div>
+			{{if .AscChangesetRepos}}
+				<ul class="ds-list wk-rows" data-testid="asc-changeset-new-repos">
+					{{range .AscChangesetRepos}}
+						<li class="ds-li wk-row">
+							<div class="ds-li-main">
+								<div class="ds-li-title"><a class="ds-link" href="{{.Repo.Link}}">{{.Repo.FullName}}</a>{{if .Repo.IsPrivate}} <span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}</div>
+								{{if .Repo.Description}}<div class="ds-li-meta"><span>{{.Repo.Description}}</span></div>{{end}}
+							</div>
+							<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.NewURL}}" aria-label="{{ctx.Locale.Tr "asc_shell.changeset_new_in" .Repo.FullName}}">{{ctx.Locale.Tr "asc_shell.create_changeset"}}</a>
+						</li>
+					{{end}}
+				</ul>
+			{{else}}
+				{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "asc_shell.changeset_new_empty") "Body" (ctx.Locale.Tr "asc_shell.changeset_new_empty_body") "PrimaryLabel" (ctx.Locale.Tr "new_repo.link") "PrimaryHref" (print AppSubUrl "/repo/create"))}}
+			{{end}}
+		</section>
+	</div>
+</div>
+{{template "base/footer" .}}

@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 96 |
-| ui-only-missing | 35 |
+| done | 97 |
+| ui-only-missing | 34 |
 | needs-hub-backend | 39 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -36,7 +36,7 @@ Open rows by size: S 21, M 50, L 21.
 | Shell | Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo, age, Open inbox) | needs-hub-backend | Bell is a plain link to `/notifications` (`head_navbar.tmpl`). Add a fragment route in `routers/web/user/notification.go` (reuse `NotificationStatusPost` for Mark all read), a popover in `head_navbar.tmpl`, open and close in `ds-shell.js`. Items like "coder-2 finished run 214" need agent and queue events to create hub notifications, which nothing does today | M |
 | Shell | Account menu: identity, profile, inbox with count, agents, settings, Appearance (Light, Dark, Auto), Density (Comfy, Compact), Documentation, Sign out | done | `head_navbar.tmpl` `#ds-account`, `head_style.tmpl` | - |
 | Shell | Theme and density persist per person: localStorage, then the account setting | needs-hub-backend | Only `localStorage` (`asc-theme-mode`, `asc-density`) in `head_style.tmpl`. Add a user setting (`models/user/setting.go`), save on change (fetch to `routers/web/user/setting`), render `data-density` server side | S |
-| Shell | Create menu: New repository, Import a project, New organization, New changeset, Start an agent run | ui-only-missing | New repository, Import, New organization and "Start an agent run" are in #ds-create (head_navbar.tmpl). Open: "New changeset" (needs a repository and stack picker page) | S |
+| Shell | Create menu: New repository, Import a project, New organization, New changeset, Start an agent run | done | All five are in #ds-create (head_navbar.tmpl); "New changeset" opens `/-/asc/changeset/new` (`H:routers/web/user/asc_changeset_new.go`), the asc repositories the person can write, each opening its editor on the default branch | S |
 | Shell | Menus close on Esc or outside click, return focus to trigger, fade and rise, reduced motion | done | `ds-shell.js`, `asc-ds/components.css` | - |
 | Shell | Command palette opens from `/`, Ctrl K, header search, mobile search; Esc, arrows, Enter | done | `ds-shell.js`, `#ds-palette` | - |
 | Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | done | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
