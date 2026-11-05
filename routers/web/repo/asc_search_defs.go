@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -41,6 +42,8 @@ type ascSearchDef struct {
 	Refs     int
 	RefsMore bool
 	RefsLink string // the definition and references page
+	// PanelLink loads the code intelligence panel for this declaration.
+	PanelLink string
 }
 
 // ascSearchDefWords are the words of a text query worth looking up as symbols.
@@ -116,6 +119,13 @@ func ascSearchDefinitions(ctx gocontext.Context, api ascv1.CodeIntelClient, scop
 		if q.rawRef != "" {
 			v.Set("ref", q.rawRef)
 		}
+		panel := func(r ascSymbolsRow) string {
+			p := url.Values{"name": {w}, "at": {r.Path}, "line": {strconv.FormatUint(uint64(r.Line), 10)}}
+			if q.rawRef != "" {
+				p.Set("ref", q.rawRef)
+			}
+			return repoLink + "/asc/search/panel?" + p.Encode()
+		}
 		for _, r := range mine {
 			i, ok := byPath[r.Path]
 			if !ok || chips >= ascSearchDefMaxFiles {
@@ -127,7 +137,7 @@ func ascSearchDefinitions(ctx gocontext.Context, api ascv1.CodeIntelClient, scop
 			}
 			res.files[i].Defs = append(res.files[i].Defs, ascSearchDef{
 				Label: label, Link: r.Link, Refs: elsewhere, RefsMore: more,
-				RefsLink: repoLink + "/asc/symbols?" + v.Encode(),
+				RefsLink: repoLink + "/asc/symbols?" + v.Encode(), PanelLink: panel(r),
 			})
 			chips++
 		}

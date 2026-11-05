@@ -1,0 +1,8 @@
+<ul class="asc-panel-list">
+	{{range $f := .}}
+		<li>
+			{{if $f.Repo}}<span class="asc-muted">{{$f.Repo}}</span> {{end}}<a class="asc-panel-file" href="{{$f.Link}}">{{$f.Path}}</a> <span class="asc-count">{{$f.Count}}</span>
+			{{if $f.Lines}}<span class="asc-panel-lines">{{range $l := $f.Lines}}<a class="tw-font-mono" href="{{$l.Link}}">:{{$l.Line}}</a> {{end}}</span>{{end}}
+		</li>
+	{{end}}
+</ul>

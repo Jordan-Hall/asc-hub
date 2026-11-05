@@ -114,7 +114,7 @@ func TestAscSearchAllBranches(t *testing.T) {
 		}
 		page := getAscSearch(t, "?q=shared&mode=symbol&scope=branches")
 		require.Equal(t, http.StatusOK, page.status, page.body)
-		assert.Equal(t, 1, strings.Count(page.body, `class="tw-font-mono">shared</span>`), "one symbol, two branches")
+		assert.Equal(t, 1, strings.Count(page.body, `>shared</a>`), "one symbol, two branches")
 		assert.Contains(t, page.body, `href="/user2/repo1/src/branch/branch2">branch2</a>`)
 
 		fake.semantic = func(req *ascv1.SemanticRequest) (*ascv1.SemanticResponse, error) {

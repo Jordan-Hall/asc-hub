@@ -1917,6 +1917,7 @@ func registerRoutes(m *web.Route) {
 			m.Get("/graph", repo.Graph)
 			m.Get("/asc/graph", repo.AscGraph)
 			m.Get("/asc/search", repo.AscSearch)
+			m.Get("/asc/search/panel", repo.AscSearchPanel)
 			m.Get("/asc/symbols", repo.AscSymbols)
 			m.Get("/asc/compare", repo.AscCompare)
 			m.Get("/asc/draft_context", reqSignIn, repo.AscDraftContext)

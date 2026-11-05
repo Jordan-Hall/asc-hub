@@ -1,0 +1,40 @@
+{{/* The code intelligence panel of the search page: a fragment loaded into the right column. */}}
+<div class="asc-panel" data-testid="search-panel">
+{{if .AscPanelError}}
+	<p class="asc-muted" role="alert">{{if eq .AscPanelError 404}}{{ctx.Locale.Tr "asc_rp.sp_not_found"}}{{else if eq .AscPanelError 400}}{{ctx.Locale.Tr "asc_rp.sp_bad"}}{{else}}{{ctx.Locale.Tr "asc_rp.sp_failed"}}{{end}}</p>
+{{else}}
+	{{$p := .AscPanel}}
+	<h2 class="asc-panel-h tw-font-mono">{{$p.Name}}</h2>
+	{{if $p.Defs}}
+		{{range $d := $p.Defs}}
+			<section class="asc-panel-def">
+				<p class="asc-panel-meta">{{if $d.Kind}}<span class="asc-pill asc-pill-lang">{{$d.Kind}}</span>{{end}}{{if $d.Container}} <span class="asc-muted">{{ctx.Locale.Tr "asc_rp.s_in" $d.Container}}</span>{{end}}{{if $d.Confidence}} <span class="asc-pill asc-confidence asc-confidence-{{$d.Confidence}}" title="{{ctx.Locale.Tr "asc_rp.s_how_found"}}">{{$d.Confidence}}</span>{{end}}</p>
+				{{if $d.Signature}}<pre class="asc-signature asc-panel-sig">{{$d.Signature}}</pre>{{end}}
+				{{if $d.Doc}}<p class="asc-panel-doc">{{$d.Doc}}</p>{{end}}
+				<p class="asc-panel-at tw-font-mono">{{$d.Path}}{{if $d.Line}}:{{$d.Line}}{{end}}</p>
+				<a class="ds-btn ds-btn-primary asc-panel-go" href="{{$d.Link}}">{{ctx.Locale.Tr "asc_rp.sp_go_def"}}</a>
+			</section>
+		{{end}}
+	{{else}}
+		<p class="asc-muted">{{ctx.Locale.Tr "asc_rp.sp_no_def"}}</p>
+	{{end}}
+
+	<section class="asc-panel-section">
+		<h3>{{ctx.Locale.Tr "asc_rp.sp_refs"}} <span class="asc-count">{{$p.RefCount}}</span></h3>
+		{{if $p.Refs}}{{template "repo/asc_search_panel_files" $p.Refs}}{{else}}<p class="asc-muted">{{ctx.Locale.Tr "asc_rp.sp_none"}}</p>{{end}}
+	</section>
+	<section class="asc-panel-section">
+		<h3>{{ctx.Locale.Tr "asc_rp.sp_callers"}}</h3>
+		{{if $p.Callers}}{{template "repo/asc_search_panel_files" $p.Callers}}{{else}}<p class="asc-muted">{{ctx.Locale.Tr "asc_rp.sp_none"}}</p>{{end}}
+	</section>
+	{{if $p.Cross}}
+		<section class="asc-panel-section">
+			<h3>{{ctx.Locale.Tr "asc_rp.sp_cross"}}</h3>
+			{{template "repo/asc_search_panel_files" $p.Cross}}
+		</section>
+	{{end}}
+	{{if $p.Truncated}}<p class="asc-muted">{{ctx.Locale.Tr "asc_rp.sp_more"}}</p>{{end}}
+	{{if $p.Fallback}}<p class="asc-muted">{{ctx.Locale.Tr "asc_rp.sp_fallback"}}</p>{{end}}
+	<a class="asc-panel-all" href="{{$p.SymbolsLink}}">{{ctx.Locale.Tr "asc_rp.sp_all"}}</a>
+{{end}}
+</div>

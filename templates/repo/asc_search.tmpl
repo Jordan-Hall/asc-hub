@@ -151,7 +151,7 @@
 									{{if or $f.Defs $f.ChangedLink}}
 										<ul class="asc-sym-chips" aria-label="{{ctx.Locale.Tr "asc_rp.s_symbols_here"}}">
 											{{range $d := $f.Defs}}
-												<li><a class="asc-pill asc-pill-def tw-font-mono" href="{{$d.Link}}">{{$d.Label}}</a></li>
+												<li><a class="asc-pill asc-pill-def tw-font-mono" href="{{$d.Link}}" data-search-panel="{{$d.PanelLink}}">{{$d.Label}}</a></li>
 												<li><a class="asc-pill" href="{{$d.RefsLink}}">{{if $d.RefsMore}}{{ctx.Locale.Tr "asc_rp.s_refs_more" $d.Refs}}{{else}}{{ctx.Locale.TrN $d.Refs "asc_rp.s_refs_1" "asc_rp.s_refs_n" $d.Refs}}{{end}}</a></li>
 											{{end}}
 											{{if $f.ChangedLink}}<li><a class="asc-pill" href="{{$f.ChangedLink}}">{{ctx.Locale.Tr "asc_rp.s_changed" (DateUtils.TimeSince $f.Changed)}}</a></li>{{end}}
@@ -184,7 +184,7 @@
 									<div class="asc-card-head">
 										<span class="asc-pill asc-pill-lang">{{$r.Kind}}</span>
 										<a class="tw-font-mono" href="{{$r.Link}}">{{$r.Path}}{{if $r.Line}}:{{$r.Line}}{{end}}</a>
-										<span class="tw-font-mono">{{$r.Name}}</span>
+										<a class="tw-font-mono asc-panel-open" href="{{$.RepoLink}}/asc/symbols?op=def&amp;name={{QueryEscape $r.Name}}{{if $.AscSearchRefInput}}&amp;ref={{QueryEscape $.AscSearchRefInput}}{{end}}" data-search-panel="{{$.RepoLink}}/asc/search/panel?name={{QueryEscape $r.Name}}&amp;at={{QueryEscape $r.Path}}&amp;line={{$r.Line}}{{if $.AscSearchRefInput}}&amp;ref={{QueryEscape $.AscSearchRefInput}}{{end}}">{{$r.Name}}</a>
 										{{if $r.IsDef}}<span class="asc-pill asc-pill-def">{{ctx.Locale.Tr "asc_rp.s_definition"}}</span>{{end}}
 										<span class="asc-pill asc-confidence asc-confidence-{{$r.Confidence}}" title="{{ctx.Locale.Tr "asc_rp.s_how_found"}}">{{$r.Confidence}}</span>
 									</div>
@@ -225,6 +225,11 @@
 					{{if .AscSearchTruncated}}<div class="ds-banner">{{ctx.Locale.Tr "asc_rp.s_more"}}</div>{{end}}
 				</div>
 
+				{{if or .AscSearchSymbols .AscSearchMatched}}
+					<aside class="asc-search-panel" id="asc-search-panel" aria-label="{{ctx.Locale.Tr "asc_rp.sp_label"}}" aria-live="polite" data-loading="{{ctx.Locale.Tr "asc_rp.sp_loading"}}" data-failed="{{ctx.Locale.Tr "asc_rp.sp_failed"}}">
+						<p class="asc-muted">{{ctx.Locale.Tr "asc_rp.sp_hint"}}</p>
+					</aside>
+				{{end}}
 				<div class="asc-search-coverage" id="asc-search-coverage" role="status">
 					<b>{{ctx.Locale.Tr "asc_rp.s_coverage"}}</b>
 					{{if not .AscSearchCoverageKnown}}

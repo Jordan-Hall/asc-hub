@@ -14,9 +14,11 @@ import (
 	"testing"
 
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
+	"forgejo.org/services/ascsearch"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -126,6 +128,11 @@ func startFakeSearch(t *testing.T, f *fakeSearchServer) *fakeSearchServer {
 	go func() { _ = srv.Serve(l) }()
 	t.Cleanup(srv.Stop)
 	useAsc(t, l.Addr().String())
+	// The code intelligence panel asks through ascsearch, which has its own connection.
+	c, err := ascclient.New(ascclient.Config{Target: l.Addr().String(), InternalToken: ascRPCTestToken, Retry: ascclient.RetryConfig{MaxAttempts: 1}})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = c.Close() })
+	t.Cleanup(ascsearch.UseConn(c))
 	return f
 }
 
