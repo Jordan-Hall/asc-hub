@@ -1,4 +1,4 @@
-import {dbSignature, initInstall, summaryHost} from './install.js';
+import {dbSignature, initInstall, setRun, summaryHost} from './install.js';
 import {GET, POST} from '../modules/fetch.js';
 
 vi.mock('../modules/fetch.js', () => ({GET: vi.fn(), POST: vi.fn()}));
@@ -41,6 +41,10 @@ const page = `<div class="page-content install"><form>
 </form></div>`;
 
 const q = (sel) => document.querySelector(sel);
+
+const runStep = (label) => `<li data-ins-run-step><span>${label}</span><span data-ins-run-state></span></li>`;
+const run = (done) => `<div data-ins-run data-done="${done}" data-label="Step {n} of {total}" data-t-done="(done)" data-t-now="(in progress)" data-t-todo="(waiting)"><p data-ins-run-label></p><progress max="10" value="0" data-ins-run-bar></progress><ol>${['Tables', 'Root', 'Admin', 'Queue', 'Open'].map(runStep).join('')}</ol></div>`;
+const states = () => Array.from(document.querySelectorAll('[data-ins-run-state]'), (el) => el.textContent);
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 const answer = (body) => POST.mockResolvedValueOnce({json: () => Promise.resolve(body)});
 
@@ -225,5 +229,60 @@ test('the post-install page waits for the hub, then shows the ready state', asyn
   expect(q('[data-ins-wait]').hidden).toBe(true);
   expect(document.activeElement.textContent).toBe('ASC Hub is ready');
   expect(GET).toHaveBeenCalledWith('/user/login');
+  vi.useRealTimers();
+});
+
+test('setRun marks the steps done, the next one running and the rest waiting', () => {
+  document.body.innerHTML = run(0);
+  const el = q('[data-ins-run]');
+  setRun(el, 2);
+  expect(q('[data-ins-run-label]').textContent).toBe('Step 3 of 5');
+  expect(states()).toEqual(['(done)', '(done)', '(in progress)', '(waiting)', '(waiting)']);
+  expect(Array.from(el.querySelectorAll('li'), (li) => li.className)).toEqual(['is-done', 'is-done', 'is-cur', '', '']);
+  expect(q('[data-ins-run-bar]').value).toBe(5);
+  setRun(el, 5);
+  expect(q('[data-ins-run-label]').textContent).toBe('Step 5 of 5');
+  expect(states().every((s) => s === '(done)')).toBe(true);
+  expect(q('[data-ins-run-bar]').value).toBe(10);
+});
+
+test('sending the form swaps it for the progress, which follows the status route', async () => {
+  vi.useFakeTimers();
+  const form = q('form');
+  q('#ins-db').classList.add('ins-split');
+  form.insertAdjacentHTML('afterbegin', `<section data-ins-running data-url="/-/install/status" hidden><h2 tabindex="-1">Setting up your hub</h2>${run(0)}</section>`);
+  GET.mockResolvedValue({ok: true, json: () => Promise.resolve({done: 2, total: 5})});
+  initInstall();
+  form.dispatchEvent(new Event('submit', {cancelable: true}));
+  expect(q('[data-ins-running]').hidden).toBe(false);
+  expect(q('#ins-db').classList.contains('tw-hidden')).toBe(true);
+  expect(document.activeElement.textContent).toBe('Setting up your hub');
+  expect(states()[0]).toBe('(in progress)');
+  await vi.advanceTimersByTimeAsync(500);
+  expect(GET).toHaveBeenCalledWith('/-/install/status');
+  expect(q('[data-ins-run-label]').textContent).toBe('Step 3 of 5');
+  vi.useRealTimers();
+});
+
+test('a form the page stopped is not swapped for the progress', () => {
+  const form = q('form');
+  form.insertAdjacentHTML('afterbegin', `<section data-ins-running data-url="/-/install/status" hidden>${run(0)}</section>`);
+  initInstall();
+  const stopped = new Event('submit', {cancelable: true});
+  stopped.preventDefault();
+  form.dispatchEvent(stopped);
+  expect(q('[data-ins-running]').hidden).toBe(true);
+});
+
+test('the post-install page runs the merge queue step, then ticks every step', async () => {
+  vi.useFakeTimers();
+  document.body.innerHTML = `<div class="page-content install post-install"><section data-ins-poll="/user/login"><div data-ins-wait hidden><h1 tabindex="-1">Setting up</h1>${run(3)}</div><div data-ins-ready><h1 tabindex="-1">ASC Hub is ready</h1></div></section></div>`;
+  GET.mockResolvedValueOnce({status: 200});
+  initInstall();
+  expect(states()).toEqual(['(done)', '(done)', '(done)', '(in progress)', '(waiting)']);
+  expect(q('[data-ins-run-label]').textContent).toBe('Step 4 of 5');
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(states().every((s) => s === '(done)')).toBe(true);
+  expect(q('[data-ins-ready]').hidden).toBe(false);
   vi.useRealTimers();
 });
