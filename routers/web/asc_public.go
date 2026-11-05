@@ -191,6 +191,7 @@ func AscDocsPage(ctx *context.Context) {
 	ctx.Data["DocsTOC"] = toc
 	pages := ascdocs.Pages()
 	ctx.Data["DocsPages"] = pages
+	ctx.Data["DocsSections"] = ascdocs.Sections()
 	for i, p := range pages {
 		if p.Slug != page.Slug {
 			continue
