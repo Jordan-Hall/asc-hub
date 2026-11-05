@@ -492,7 +492,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Tabs Needs you, Waiting on others, Agents, Done with counts (hub adds Drafts) | done | routers/web/user/asc_inbox_page.go:26 | - |
 | Filters: All repos, Humans and agents, Sorted by | done | see where-cell | - |
-| Unread dot plus bold title | missing (hub) | logged as not built (not re-probed) | No unread state (no unread in the template). last_seen per pull and user in models/issues/asc_inbox_state.go (migration) |
+| Unread dot plus bold title | done | templates/user/asc_inbox.tmpl (`is-unread`), routers/web/user/asc_inbox_page.go `ascInboxMarkUnread` | Unread comes from the person's notifications; opening a row reads it (TestAscInboxUnread) |
 | Row hover actions (Review, Answer, Mark done, Snooze) | missing (UI) | logged as not built (not re-probed) | Rows are a link only; actions posting to /-/asc/inbox/state |
 | Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | done | Mark done, Snooze, Unwatch; `do=unwatch`; `ds-bulk.test.js`, `TestAscInboxUnwatch` | - |
 | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | partial (hub) | logged as not built (not re-probed) | Only pin, unpin, snooze, wake exist; Done tab lists merged items. Add done and restore with expiry in asc_inbox_state.go; asc inb... |
