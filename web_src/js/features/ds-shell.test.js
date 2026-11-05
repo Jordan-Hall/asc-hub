@@ -62,6 +62,34 @@ test('live results: groups become options, a link that leaves the site is droppe
   expect(list.querySelectorAll('.ds-palette-group')).toHaveLength(1);
 });
 
+test('live results: the commands of the page show in the Commands scope', async () => {
+  const {renderLive, liveGroupScopes} = await import('./ds-shell.js');
+  expect(liveGroupScopes.commands).toBe('commands');
+  document.body.innerHTML = '<div id="ds-palette"><div data-ds-palette-list><div data-ds-palette-dynamic></div></div></div>';
+  const list = document.querySelector('[data-ds-palette-list]');
+  const p = {list, dynamic: list.querySelector('[data-ds-palette-dynamic]')};
+  renderLive(p, [{key: 'commands', label: 'Commands', items: [{title: 'Undo last operation', sub: 'acme/pay', href: '/acme/pay/asc/ops/undo/last'}]}]);
+  const item = list.querySelector('.ds-palette-item');
+  expect(item.dataset.dsScope).toBe('commands');
+  expect(item.getAttribute('href')).toBe('/acme/pay/asc/ops/undo/last');
+  expect(list.querySelector('.ds-palette-group').textContent).toBe('Commands');
+});
+
+test('live url: the query and the page the palette is open on', async () => {
+  const {liveUrl} = await import('./ds-shell.js');
+  expect(liveUrl('/-/asc/palette', 'undo x', '/acme/pay/pulls/3')).toBe('/-/asc/palette?q=undo+x&at=%2Facme%2Fpay%2Fpulls%2F3');
+});
+
+test('verb scope: a verb switches to Commands and back, a chosen scope stays', async () => {
+  const {verbScope} = await import('./ds-shell.js');
+  expect(verbScope('all', false, true)).toBe('commands');
+  expect(verbScope('changes', false, true)).toBe('commands');
+  expect(verbScope('commands', true, true)).toBeNull();
+  expect(verbScope('commands', true, false)).toBe('all');
+  expect(verbScope('commands', false, false)).toBeNull();
+  expect(verbScope('all', false, false)).toBeNull();
+});
+
 test('edge swipe: from the left edge opens the drawer, a swipe left closes it, a scroll does nothing', async () => {
   const {edgeSwipe} = await import('./ds-shell.js');
   expect(edgeSwipe({x: 8, y: 300}, {x: 120, y: 310}, false)).toBe('open');
