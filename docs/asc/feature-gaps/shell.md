@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 116 |
-| ui-only-missing | 16 |
+| done | 117 |
+| ui-only-missing | 15 |
 | needs-hub-backend | 38 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 11, M 47, L 21.
+Open rows by size: S 11, M 46, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -152,7 +152,7 @@ Open rows by size: S 11, M 47, L 21.
 | Explore | Contributor avatar stack on a row (people and agents) | needs-hub-backend | Not present. Top contributors from `models/activities` or `repo_model.GetContributors`, cached per repo; agents depend on the agent directory below | M |
 | Explore | Row actions on hover or focus-within: Copy clone command, Star | done | Neither on the row. Buttons with `data-clipboard-text` (`asc clone host/owner/name`) and the existing star action | S |
 | Explore | Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can see | needs-hub-backend | `explore/rail.tmpl` has only the clone card. Trending: weekly merged pull count per repo (`models/issues/pull.go` query, cached); topics: `repo_model.FindTopics` (`routers/web/explore/topic.go`) | M |
-| Explore | States: loading skeleton, empty hub (New repository, Import), no results with removable filter chips and Clear filters, error with request id and Try again | ui-only-missing | Empty and no-results text exist (`shared/ds/empty`); removable chips, skeleton and error card missing (request id: see Errors) | M |
+| Explore | States: loading skeleton, empty hub (New repository, Import), no results with removable filter chips and Clear filters, error with request id and Try again | done | `explore/repo_list.tmpl`: "No repositories yet" with New repository and Import a project (signed in); "Nothing matches" with the count of active filters, the removable chips and Clear filters; a failed search keeps the page and shows "We could not load this list" with the request id, Try again and Status page (`routers/web/explore/repo.go`, status 500). No skeleton: the list is server rendered. Tests `TestAscExploreLoadFailed`, `TestAscExploreEmptyHub`, `TestAscExploreNoMatch` | - |
 | Explore | Pagination "Showing 1 to 8 of 128" | done | `base/paginate.tmpl` | - |
 | Mobile-Explore | Sort and filter bottom sheet with result count on the primary button | done | `repo_search.tmpl` | - |
 | Mobile-Explore | Pull to refresh; infinite scroll after 30 rows with Load more fallback | ui-only-missing | Classic pagination only. New `explore-more.js` plus a list-fragment route | M |
