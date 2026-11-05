@@ -70,9 +70,10 @@ function openReviewPanel() {
 
 // Opens the review panel and puts the focus on the control for kind: "approve" and "reject" are the submit buttons of
 // the same names, "comment" is the text field. A button that is switched off (the author may not approve their own
-// change) leaves the focus on the text field. Nothing is submitted.
+// change) leaves the focus on the text field. Nothing is submitted. On the inbox the reply form of the open item is
+// the panel.
 export function focusReview(kind) {
-  const panel = openReviewPanel();
+  const panel = openReviewPanel() ?? document.querySelector('form.wk-reply');
   if (!panel) return false;
   const field = panel.querySelector('textarea[name="content"]');
   const button = kind === 'comment' ? null : panel.querySelector(`button[name="type"][value="${kind}"]`);
