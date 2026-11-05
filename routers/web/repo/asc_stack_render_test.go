@@ -54,7 +54,7 @@ func TestStackBoardRenders(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.Code, body)
 
 	assert.Contains(t, body, `data-stack-show="needsme"`)
-	assert.Contains(t, body, `data-stack-row data-mine="true" data-agent="true" data-needsme="true"`)
+	assert.Contains(t, body, `data-stack-row data-stack-key="retry-with-backoff" data-mine="true" data-agent="true" data-needsme="true"`)
 	assert.Contains(t, body, "retry-with-backoff")
 	assert.Contains(t, body, "asc_rp.st_needs_review")
 	assert.Contains(t, body, "asc_rp.st_failing")

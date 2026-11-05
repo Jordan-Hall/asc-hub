@@ -1,10 +1,10 @@
 {{/* One stack of the repository home and of the Stacks list (boards Repo and Stacks). Dot: a *stackRow */}}
-<li class="rp-flight rp-flight-link rp-stack" data-stack-row data-mine="{{.Mine}}" data-agent="{{.Agent}}" data-needsme="{{.NeedsMe}}" data-status="{{.Status}}">
+<li class="rp-flight rp-flight-link rp-stack" data-stack-row data-stack-key="{{.Name}}" data-mine="{{.Mine}}" data-agent="{{.Agent}}" data-needsme="{{.NeedsMe}}" data-status="{{.Status}}">
 	{{if .Avatar}}{{ctx.AvatarUtils.Avatar (index .People 0) 32 "ds-av ds-av-32 rp-stack-av"}}{{else}}<span class="ds-dot{{if .Tone}} ds-dot-{{.Tone}}{{end}}" aria-hidden="true"></span>{{end}}
 	<div class="rp-flight-main">
 		<div class="rp-flight-title">
 			<a class="mono" href="{{.Link}}">{{.Name}}</a>
-			<span class="ds-chip{{if .Tone}} ds-chip-{{.Tone}}{{end}}">{{ctx.Locale.Tr (print "asc_rp.st_" .Status)}}</span>
+			<span class="ds-chip{{if .Tone}} ds-chip-{{.Tone}}{{end}}" data-stack-chip>{{ctx.Locale.Tr (print "asc_rp.st_" .Status)}}</span>
 		</div>
 		<div class="rp-stack-intent">{{.Title}}</div>
 		<div class="rp-flight-meta">

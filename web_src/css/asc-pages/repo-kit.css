@@ -817,6 +817,23 @@ a.rp-hash:hover {
   }
 }
 
+/* the status chip of a stack row whose status changed while the list was open: one pulse (board Stacks) */
+@media (prefers-reduced-motion: no-preference) {
+  [data-stack-chip][data-stack-pulse] {
+    animation: rp-chip-pulse 900ms ease-out 1;
+  }
+}
+
+@keyframes rp-chip-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--focus);
+  }
+
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
 /* ---- the title row on a phone: Watch, Star and Fork fold into one "..." menu ---- */
 .rp-acts-more {
   position: relative;

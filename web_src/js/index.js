@@ -86,6 +86,7 @@ import {initAscSheets} from './features/asc-sheet.js';
 import {initAscReleaseNew} from './features/asc-release-new.js';
 import {initAscDeps} from './features/asc-deps.js';
 import {initAscInsights} from './features/asc-insights.js';
+import {initAscStacksLive} from './features/asc-stacks-live.js';
 import {initAscPageLoading} from './features/asc-page-loading.js';
 import {initAscDensity} from './features/asc-density.js';
 import {initAscBoard} from './features/asc-board.js';
@@ -275,6 +276,7 @@ onDomReady(() => {
   initAscReleaseNew();
   initAscDeps();
   initAscInsights();
+  initAscStacksLive();
   initAscPageLoading();
   initAscDensity();
   initAscBoard();
