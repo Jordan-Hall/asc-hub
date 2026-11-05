@@ -4,7 +4,8 @@ ASC is one static binary. It installs without administrator rights, verifies its
 
 ## Before you start
 
-You need an ASC Hub account, or any server that speaks the ASC protocol. You do not need other version control tools installed.
+> [!NOTE]
+> You need an ASC Hub account, or any server that speaks the ASC protocol. You do not need other version control tools installed.
 
 The hub shows the install, verify and connect steps of its current release on this page, with the commands for your system. When the hub has no release to offer, it shows how to build `asc` from source instead.
 

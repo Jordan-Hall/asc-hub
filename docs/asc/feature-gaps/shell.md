@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 141 |
+| done | 142 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 29 |
+| needs-hub-backend | 28 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 1, M 34, L 19.
+Open rows by size: S 1, M 34, L 18.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -192,9 +192,9 @@ Open rows by size: S 1, M 34, L 19.
 | --- | --- | --- | --- | --- |
 | Docs | Docs home: search, Popular chips, six entry cards, "New in ASC 1.4" list, Need a person card | done | `templates/asc/docs.tmpl` has six cards and a help block; no search, popular or what's new | M |
 | Docs | Docs search with grouped results (Commands, Guides), did-you-mean, no results, loading; Ctrl K or `/` opens it | done | `services/ascdocs/commands.go` (commands from the CLI reference, `Suggest` within two edits); `templates/asc/docs_results.tmpl`; `/-/docs?q=&fragment=results` loaded as you type by `asc-docs-search.js`, which also takes Ctrl K and `/`; `TestAscDocsSearch*`, `commands_test.go`, `asc-docs-search.test.js` | - |
-| Docs | Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | needs-hub-backend | Docs live on GitHub (`$docsURL`). Render `docs/asc/**` with the hub markdown renderer: `AscDocs` in `routers/web/asc_public.go`, new `templates/asc/docs_article.tmpl`, sidebar manifest | L |
+| Docs | Article layout: sidebar tree, 720 px column, breadcrumb, steps, callouts, Previous and Next | done | `asc/docs_page.tmpl`: the guides by section in a nav beside the article (`aria-current="page"`, scroll kept per tab by `keepSideScroll` in `asc-docs.js`), a 720 px column with breadcrumb, lead, reading time, last change (`content/updated.json`, written by `make docs-sync`) and hub version; GitHub callouts keep their bold label; a numbered list is a step list; Previous (the docs home on the first guide) and Next; `TestAscDocsArticleLayout` | - |
 | Docs | OS code tabs remembered; Copy without the prompt | done | `GET /-/docs/install` (`asc/docs_install.tmpl`): the steps of the release the download page offers, one tab for each system with the visitor's first; `initDocTabs` keeps the choice under `data-doc-remember` in `localStorage` (Home and End keys); every command sits behind an `aria-hidden` prompt and Copy copies the commands alone; verify step from the manifest's key; connect step `asc auth login --host <hub>`; without a release, build from source | - |
-| Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | Intersection observer in a new `docs.js`; links to the repository file view | M |
+| Docs | On-this-page TOC highlighting the section in view; Edit this page; Open in the hub | done | `initAscDocs` in `asc-docs.js` marks the section in view; "On this page" is a nav; Edit this page opens the source file. Open in the hub has no place here: the hub itself serves the docs | M |
 | Docs | "Was this page helpful?" Yes and No | done | `asc/docs_page.tmpl` section `#site-feedback` with "Feedback goes to the docs team"; `POST /-/docs/{slug}/feedback` (`routers/web/asc_docs_feedback.go`, ten a minute per address) stores yes or no in `asc_docs_feedback` (migration v18m, no reader kept); `asc-docs-feedback.js` sends without leaving the page and remembers the answer; site administrators see the counts | - |
 | Mobile-Docs | Docs menu drawer, sticky "On this page" row, sticky next-page bar | done | `asc/docs_page.tmpl`: Docs menu button before the breadcrumb opens `#site-docs-drawer` (every guide by section from `ascdocs.Sections`, a dialog run by `ds-shell.js` with focus return, `:target` without the script); sticky On this page row and the next-guide link | - |
 
