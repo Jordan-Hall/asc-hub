@@ -202,6 +202,27 @@ test('a, r and c do nothing without a review box, or while typing, or with a mod
   expect(opened.count).toBe(0);
 });
 
+test('on the inbox a and r go to Approve and Request changes of the open item without sending', async () => {
+  document.body.innerHTML = `<form class="wk-reply" method="post" action="/o/r/pulls/1/files/reviews/submit">
+    <textarea name="content"></textarea>
+    <button type="submit" name="type" value="approve">Approve</button>
+    <button type="submit" name="type" value="reject">Request changes</button>
+    <button type="submit" name="type" value="comment">Reply</button></form>`;
+  let sent = 0;
+  document.querySelector('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sent++;
+  });
+  initAscKeys();
+  press('a');
+  await frame();
+  expect(document.activeElement.textContent).toBe('Approve');
+  press('r');
+  await frame();
+  expect(document.activeElement.textContent).toBe('Request changes');
+  expect(sent).toBe(0);
+});
+
 test('a review box that is switched off is left alone', async () => {
   const opened = reviewPage();
   document.querySelector('.js-btn-review').classList.add('disabled');
