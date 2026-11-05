@@ -444,7 +444,7 @@ a.rp-ref-name:hover {
 
 .rp-platform {
   grid-column: 1 / -1;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .rp-platforms a {
