@@ -59,6 +59,7 @@ var ErrNoReducer = errors.New("ascinbox: no authorization reducer")
 // Entry is one pull request in the inbox of one user.
 type Entry struct {
 	PullID       int64
+	IssueID      int64 // the issue of the pull request, which carries the person's notifications
 	Title        string
 	HTMLURL      string
 	Link         string // relative link of the pull request, with the sub-URL
@@ -182,6 +183,7 @@ func entryFor(ctx context.Context, doer *user_model.User, reducer authz.Authoriz
 	}
 	return &Entry{
 		PullID:       pr.ID,
+		IssueID:      issue.ID,
 		Title:        issue.Title,
 		HTMLURL:      issue.HTMLURL(),
 		Link:         issue.Link(),

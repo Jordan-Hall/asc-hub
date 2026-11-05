@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
 	user_model "forgejo.org/models/user"
@@ -80,6 +81,7 @@ type AscInboxRow struct {
 	Agent    *AscDashAgent  // nil for a pull request
 	Dash     AscDashRow
 	Selected bool
+	Unread   bool   // the person has an unread notification on the pull request: a dot and a bold title
 	URL      string // the page with this row selected
 	Day      string // "Today", "Yesterday" or the date: the heading the row sits under
 }
@@ -320,6 +322,9 @@ func ascInboxBuild(ctx *context.Context, now time.Time, tabName, repoFilter stri
 			}
 		}
 	}
+	if err := ascInboxMarkUnread(ctx, doer.ID, p.Rows, sel, p.Explicit); err != nil {
+		log.Warn("asc inbox: unread of user %d: %v", doer.ID, err)
+	}
 	if sel >= 0 {
 		p.Rows[sel].Selected = true
 		p.Detail = ascInboxDetailFor(ctx, p.Rows[sel], tab)
@@ -551,6 +556,39 @@ func AscInboxStatePost(ctx *context.Context) {
 		return
 	}
 	ctx.Redirect(back)
+}
+
+// ascInboxMarkUnread marks the rows whose pull request has an unread notification for the person. A row the person
+// opened (explicit) is read: its notification is marked read, as opening the pull request does.
+func ascInboxMarkUnread(ctx gocontext.Context, userID int64, rows []AscInboxRow, sel int, explicit bool) error {
+	if explicit && sel >= 0 && rows[sel].Entry != nil && rows[sel].Entry.IssueID > 0 {
+		if err := activities_model.SetIssueReadBy(ctx, rows[sel].Entry.IssueID, userID); err != nil {
+			return err
+		}
+	}
+	var ids []int64
+	for _, r := range rows {
+		if r.Entry != nil && r.Entry.IssueID > 0 {
+			ids = append(ids, r.Entry.IssueID)
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	var unread []int64
+	if err := db.GetEngine(ctx).Table("notification").Cols("issue_id").
+		Where("user_id = ? AND status = ?", userID, activities_model.NotificationStatusUnread).
+		In("issue_id", ids).Find(&unread); err != nil {
+		return err
+	}
+	set := make(map[int64]bool, len(unread))
+	for _, id := range unread {
+		set[id] = true
+	}
+	for i := range rows {
+		rows[i].Unread = rows[i].Entry != nil && set[rows[i].Entry.IssueID]
+	}
+	return nil
 }
 
 // ascInboxSep is the separator that adds a query value to u.

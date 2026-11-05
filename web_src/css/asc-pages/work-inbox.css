@@ -135,6 +135,16 @@
 
 .wk-irow-dot {
   margin-top: 6px;
+  visibility: hidden;
+}
+
+/* unread: the dot and a bold title, never the colour alone */
+.wk-irow.is-unread .wk-irow-dot {
+  visibility: visible;
+}
+
+.wk-irow.is-unread .wk-irow-link {
+  font-weight: var(--font-weight-bold);
 }
 
 .wk-irow-main {
@@ -144,7 +154,7 @@
 .wk-irow-link {
   color: var(--text);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: var(--font-weight-medium);
   line-height: 1.35;
   text-decoration: none;
   overflow-wrap: anywhere;

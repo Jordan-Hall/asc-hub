@@ -86,11 +86,11 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 							{{$day = .Day}}
 							<li class="wk-iday">{{.Day}}</li>
 						{{end}}
-						<li class="wk-irow{{if .Selected}} is-selected{{end}}"{{if .Entry}} data-bulk-row data-asc-swipe-row{{end}}>
+						<li class="wk-irow{{if .Selected}} is-selected{{end}}{{if .Unread}} is-unread{{end}}"{{if .Entry}} data-bulk-row data-asc-swipe-row{{end}}>
 							{{if .Entry}}{{template "user/asc_row_state" (dict "PullID" .Entry.PullID "Tab" $p.Tab "Csrf" $.CsrfTokenHtml)}}{{end}}
 							<span class="ds-dot ds-dot-{{if eq .Dash.Tone "amber"}}warn{{else if eq .Dash.Tone "red"}}err{{else if eq .Dash.Tone "green"}}ok{{else if eq .Dash.Tone "violet"}}agent{{end}} wk-irow-dot" aria-hidden="true"></span>
 							<div class="wk-irow-main">
-								<a class="wk-irow-link" href="{{.URL}}" data-asc-row{{if .Entry}} data-section="{{.Entry.Section}}"{{else}} data-section="agent"{{end}}{{if .Selected}} aria-current="true"{{end}}>{{.Dash.Title}}</a>
+								<a class="wk-irow-link" href="{{.URL}}" data-asc-row{{if .Entry}} data-section="{{.Entry.Section}}"{{else}} data-section="agent"{{end}}{{if .Selected}} aria-current="true"{{end}}>{{if .Unread}}<span class="ds-sr">{{ctx.Locale.Tr "user.asc_inbox.unread"}} </span>{{end}}{{.Dash.Title}}</a>
 								<div class="wk-irow-where">{{.Dash.Where}}{{if and .Entry .Entry.Pinned}} &middot; {{ctx.Locale.Tr "user.asc_inbox.pinned"}}{{else if and (not .Entry) .Dash.Meta}} &middot; {{.Dash.Meta}}{{end}}</div>
 								{{if .Dash.Chips}}
 									<div class="wk-chips">
