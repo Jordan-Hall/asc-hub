@@ -320,7 +320,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | missing (hub+asc) | logged as not built (not re-probed) | Buttons are links (aria-hidden, tabindex -1) to the review. Hub: POST handlers for approve (review in routers/web/repo/pull.go),... |
 | Row kinds: reply from a person, agent question, ready to merge with queue position and estimat... | missing (hub+asc) | logged as not built (not re-probed) | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (mergequeue.proto List, stack... |
-| Keys j k, Enter, e (done), g then i, / | missing (hub) | logged as not built (not re-probed) | j, k, g i, / done in asc-keys.js; e needs the done state (Inbox) |
+| Keys j k, Enter, e (done), g then i, / | done | `asc-keys.js` e on the focused row; `asc_dashboard_test.go` | - |
 | Agents working now with budget bar, paused state, All runs | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Stack bars: click a segment opens the review at that segment | done | see where-cell | - |
 | Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | missing (hub+asc) | logged as not built (not re-probed) | No such card. Hub aggregates the person's queue entries (routers/web/repo/asc_queue.go; asc mergequeue.proto List, Get, Watch); m... |
@@ -330,7 +330,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | States: loading skeleton, new account, offline error with retry countdown | partial (UI) | logged as not built (not re-probed) | Inbox zero exists; the others missing |
 | Undo toast ("Added to merge queue. Undo for 10 s") | partial (hub+asc) | logged as not built (not re-probed) | toast.js has no action button; asc Dequeue exists for undo; goes with row actions |
 | Appearance setting hides agent surfaces | done | see where-cell | - |
-| Mobile: Pull to refresh; swipe a row left to snooze, right to mark done | missing (hub) | logged as not built (not re-probed) | New touch module; done state (Inbox) |
+| Mobile: Pull to refresh; swipe a row left to snooze, right to mark done | done | `asc-row-swipe.js`, `data-asc-pull-refresh` on the dashboard; `asc-row-swipe.test.js` | - |
 
 #### Docs (ASC Hub documentation)
 
@@ -494,17 +494,17 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Filters: All repos, Humans and agents, Sorted by | done | see where-cell | - |
 | Unread dot plus bold title | missing (hub) | logged as not built (not re-probed) | No unread state (no unread in the template). last_seen per pull and user in models/issues/asc_inbox_state.go (migration) |
 | Row hover actions (Review, Answer, Mark done, Snooze) | missing (UI) | logged as not built (not re-probed) | Rows are a link only; actions posting to /-/asc/inbox/state |
-| Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | missing (hub) | logged as not built (not re-probed) | None. AscInboxStatePost takes one pull; accept many, add unwatch, selection JS in asc-keys.js |
+| Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | done | Mark done, Snooze, Unwatch; `do=unwatch`; `ds-bulk.test.js`, `TestAscInboxUnwatch` | - |
 | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | partial (hub) | logged as not built (not re-probed) | Only pin, unpin, snooze, wake exist; Done tab lists merged items. Add done and restore with expiry in asc_inbox_state.go; asc inb... |
 | Snooze menu: Later today 17:00, Tomorrow 09:00, Monday 09:00, When the checks finish, Pick a d... | missing (hub+asc) | logged as not built (not re-probed) | Menu has 1 h, 4 h, tomorrow, week. "When the checks finish" needs a check-completion wake (asc ci.proto events); date picker is UI |
 | Detail pane: why waiting, changed since last look, policy line (approvals 1 of 2), thread, rep... | done | templates/user/asc_inbox.tmpl:167 | - |
 | "Ask agent to change" (comment becomes an instruction for the author agent) | missing (hub+asc) | logged as not built (not re-probed) | Reply form has Approve, Request changes, Reply only. Hub: POST to CreateRun or SendInput; asc: instruction flag on review comment... |
-| Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | partial (hub) | logged as not built (not re-probed) | j k s p g i present; x, e need the new states; a and r submit the form with confirm |
+| Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | done | a and r on the reply form; `asc-keys.test.js` | - |
 | Pagination "Showing 8 of 23" | done | templates/user/asc_inbox.tmpl (file) | - |
 | New items slide in from the top without jumping the list | missing (hub+asc) | logged as not built (not re-probed) | No live update. Hub poll or SSE; asc inbox.proto Count is poll friendly |
 | States: bulk bar, inbox zero with Watch more repositories, loading skeleton | done | templates/user/asc_inbox.tmpl:30 (best match) | - |
 | Subscriptions link to Settings, Notifications | done | templates/user/asc_inbox.tmpl:110 (best match) | - |
-| Mobile: Swipe right to mark done, left to snooze; sticky action bar with Open next | missing (hub) | logged as not built (not re-probed) | New touch JS; done state |
+| Mobile: Swipe right to mark done, left to snooze; sticky action bar with Open next | done | `asc-row-swipe.js` on inbox rows; `TestAscInboxRowState` | - |
 
 #### Install (ASC Hub first-run setup)
 
