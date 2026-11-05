@@ -4,6 +4,7 @@
 package repo
 
 import (
+	"strings"
 	"testing"
 
 	"forgejo.org/models/db"
@@ -11,6 +12,9 @@ import (
 	"forgejo.org/models/unit"
 	"forgejo.org/models/unittest"
 	"forgejo.org/modules/optional"
+	"forgejo.org/modules/setting"
+	"forgejo.org/modules/templates"
+	"forgejo.org/modules/test"
 	"forgejo.org/modules/web"
 	"forgejo.org/services/contexttest"
 	"forgejo.org/services/forms"
@@ -211,4 +215,55 @@ func TestLatestStable(t *testing.T) {
 	assert.Equal(t, "v2", latestStable(list).Release.TagName)
 	assert.Nil(t, latestStable(list[:3]))
 	assert.Nil(t, latestStable(nil))
+}
+
+func TestReleasePlatforms(t *testing.T) {
+	names := []string{"nova-2.18.0-windows-amd64.zip", "nova-2.18.0.tar.gz", "nova_2.18.0_linux_x86_64.tar.gz", "SHA256SUMS", "nova-2.18.0-darwin-arm64.tar.gz", "nova-2.18.0-linux-aarch64.tar.gz", "nova.msi", "nova-linux.sig", "linker.txt"}
+	var in []*repo_model.Attachment
+	for _, n := range names {
+		in = append(in, &repo_model.Attachment{Name: n})
+	}
+	in = append(in, &repo_model.Attachment{Name: "nova-linux-amd64", ExternalURL: "https://example.org/x"})
+	got, other := releasePlatforms(in)
+	var lines []string
+	for _, p := range got {
+		lines = append(lines, p.OS+"/"+p.Arch+" "+p.Attach.Name)
+	}
+	assert.Equal(t, []string{
+		"Linux/arm64 nova-2.18.0-linux-aarch64.tar.gz",
+		"Linux/x86-64 nova_2.18.0_linux_x86_64.tar.gz",
+		"macOS/arm64 nova-2.18.0-darwin-arm64.tar.gz",
+		"Windows/x86-64 nova-2.18.0-windows-amd64.zip",
+		"Windows/ nova.msi",
+	}, lines)
+	var rest []string
+	for _, a := range other {
+		rest = append(rest, a.Name)
+	}
+	assert.Equal(t, []string{"nova-2.18.0.tar.gz", "SHA256SUMS", "nova-linux.sig", "linker.txt"}, rest, "a word inside another word is not a platform")
+	got, other = releasePlatforms(nil)
+	assert.Nil(t, got)
+	assert.Nil(t, other)
+}
+
+func TestReleasesDownloadRail(t *testing.T) {
+	unittest.PrepareTestEnv(t)
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	for _, name := range []string{"nova-linux-amd64.tar.gz", "SHA256SUMS"} {
+		require.NoError(t, db.Insert(db.DefaultContext, &repo_model.Attachment{UUID: "rail-" + name, RepoID: 1, ReleaseID: 1, Name: name, Size: 2048}))
+	}
+	ctx, resp := contexttest.MockContext(t, "user2/repo1/releases")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, ctx, 2)
+	contexttest.LoadRepo(t, ctx, 1)
+	contexttest.LoadGitRepo(t, ctx)
+	defer ctx.Repo.GitRepo.Close()
+	Releases(ctx)
+	body := resp.Body.String()
+	require.Equal(t, 200, resp.Code, body)
+	assert.Contains(t, body, `data-testid="release-platforms"`)
+	assert.Contains(t, body, `<span class="rp-platform">Linux <span class="ds-c-2">x86-64</span></span>`)
+	assert.Contains(t, body, `data-clipboard-text="asc release download v1.1 --asset nova-linux-amd64.tar.gz"`)
+	i := strings.Index(body, `data-testid="release-platforms"`)
+	assert.Contains(t, body[i:], `download>SHA256SUMS</a>`, "the other files follow the platform lines")
 }

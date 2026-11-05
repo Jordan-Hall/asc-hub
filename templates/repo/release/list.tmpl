@@ -163,7 +163,16 @@
 				{{if AscEnabled}}
 				<div class="ds-cmd ds-cmd-scroll" data-testid="release-asc-command"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc release download {{.Release.TagName}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc release download {{.Release.TagName}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
 				{{end}}
-				{{if .Release.Attachments}}
+				{{if $.LatestPlatforms}}
+				<ul class="rp-platforms" data-testid="release-platforms">
+					{{range $.LatestPlatforms}}<li><span class="rp-platform">{{.OS}}{{if .Arch}} <span class="ds-c-2">{{.Arch}}</span>{{end}}</span><a href="{{.Attach.DownloadURL}}" download>{{.Attach.Name}}</a><span class="ds-num ds-c-2">{{.Attach.Size | ctx.Locale.TrSize}}</span>{{if AscEnabled}}<button type="button" class="ds-copy" aria-label="{{ctx.Locale.Tr "asc_rp.rel_copy_platform" .Attach.Name}}" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc release download {{$.LatestStable.Release.TagName}} --asset {{.Attach.Name}}">{{svg "dsi-copy" 14}}</button>{{end}}</li>{{end}}
+				</ul>
+				{{if $.LatestOtherFiles}}
+				<ul class="rp-rail-list">
+					{{range $.LatestOtherFiles}}<li><a href="{{.DownloadURL}}" download>{{.Name}}</a><span class="ds-num ds-c-2">{{.Size | ctx.Locale.TrSize}}</span></li>{{end}}
+				</ul>
+				{{end}}
+				{{else if .Release.Attachments}}
 				<ul class="rp-rail-list">
 					{{range .Release.Attachments}}{{if not .ExternalURL}}<li><a href="{{.DownloadURL}}" download>{{.Name}}</a><span class="ds-num ds-c-2">{{.Size | ctx.Locale.TrSize}}</span></li>{{end}}{{end}}
 				</ul>

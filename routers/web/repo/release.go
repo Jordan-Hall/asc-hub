@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"forgejo.org/models"
@@ -239,7 +240,11 @@ func Releases(ctx *context.Context) {
 	}
 
 	ctx.Data["Releases"] = releases
-	ctx.Data["LatestStable"] = latestStable(releases)
+	latest := latestStable(releases)
+	ctx.Data["LatestStable"] = latest
+	if latest != nil {
+		ctx.Data["LatestPlatforms"], ctx.Data["LatestOtherFiles"] = releasePlatforms(latest.Release.Attachments)
+	}
 	addVerifyTagToContext(ctx)
 
 	pager := context.NewPagination(int(releasesCount), listOptions.PageSize, listOptions.Page, 5)
@@ -966,6 +971,72 @@ func releaseChannelCounts(ctx *context.Context, repoID int64, keyword string, ca
 		out = append(out, ReleaseChannelCount{Key: ch, Count: n})
 	}
 	return out
+}
+
+// releasePlatform is one download of a release for an operating system, named from the file.
+type releasePlatform struct {
+	OS     string
+	Arch   string
+	Attach *repo_model.Attachment
+}
+
+// releasePlatforms picks out the files of a release that name an operating system (and maybe an architecture),
+// in the order Linux, macOS, Windows, then by name, and the other files (checksums, signatures, sources) in their
+// order. External links are left out.
+func releasePlatforms(attachments []*repo_model.Attachment) ([]releasePlatform, []*repo_model.Attachment) {
+	var out []releasePlatform
+	var other []*repo_model.Attachment
+	for _, a := range attachments {
+		if a.ExternalURL != "" {
+			continue
+		}
+		name := strings.ToLower(a.Name)
+		if strings.HasSuffix(name, ".sha256") || strings.HasSuffix(name, ".sig") || strings.HasSuffix(name, ".asc") || strings.Contains(name, "checksum") {
+			other = append(other, a)
+			continue
+		}
+		words := strings.FieldsFunc(name, func(r rune) bool { return r == '-' || r == '_' || r == '.' || r == ' ' })
+		has := func(keys ...string) bool {
+			for _, w := range words {
+				for _, k := range keys {
+					if w == k {
+						return true
+					}
+				}
+			}
+			return false
+		}
+		var os string
+		switch {
+		case has("linux"):
+			os = "Linux"
+		case has("darwin", "macos", "mac", "osx", "apple") || strings.HasSuffix(name, ".dmg") || strings.HasSuffix(name, ".pkg"):
+			os = "macOS"
+		case has("windows", "win", "win32", "win64") || strings.HasSuffix(name, ".exe") || strings.HasSuffix(name, ".msi"):
+			os = "Windows"
+		default:
+			other = append(other, a)
+			continue
+		}
+		var arch string
+		switch {
+		case has("x86", "x64", "amd64", "win64") || strings.Contains(name, "x86_64"):
+			arch = "x86-64"
+		case has("arm64", "aarch64"):
+			arch = "arm64"
+		case has("universal"):
+			arch = "universal"
+		}
+		out = append(out, releasePlatform{OS: os, Arch: arch, Attach: a})
+	}
+	rank := map[string]int{"Linux": 0, "macOS": 1, "Windows": 2}
+	slices.SortStableFunc(out, func(a, b releasePlatform) int {
+		if d := rank[a.OS] - rank[b.OS]; d != 0 {
+			return d
+		}
+		return strings.Compare(a.Attach.Name, b.Attach.Name)
+	})
+	return out, other
 }
 
 // latestStable is the newest release of the page that is neither a draft, a pre-release nor a bare tag, or nil.
