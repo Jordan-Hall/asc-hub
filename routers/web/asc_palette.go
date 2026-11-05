@@ -35,13 +35,15 @@ type AscPaletteItem struct {
 
 // AscPaletteGroup is a heading and its results.
 type AscPaletteGroup struct {
-	Key   string           `json:"key"` // changes, people or repos
+	Key   string           `json:"key"` // commands, changes, people or repos
 	Label string           `json:"label"`
 	Items []AscPaletteItem `json:"items"`
 }
 
-// AscPalette serves GET /-/asc/palette?q=: what the palette shows while a person types. Changes and repositories are
-// those the person may read, people are those the person may see; a visitor who is not signed in gets the public ones.
+// AscPalette serves GET /-/asc/palette?q=&at=: what the palette shows while a person types. Changes and repositories
+// are those the person may read, people are those the person may see; a visitor who is not signed in gets the public
+// ones. At is the path of the page the palette is open on, for the commands of that repository or change; "verb" is
+// true when q starts with a command verb, and the palette then shows its commands.
 func AscPalette(ctx *context.Context) {
 	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
 	if !ascPaletteLimiterFor(ctx).Allow(ascPaletteKey(ctx)) {
@@ -55,6 +57,10 @@ func AscPalette(ctx *context.Context) {
 		return
 	}
 	groups := []AscPaletteGroup{}
+	cmds, verb := ascPaletteCommands(ctx, q, ctx.FormString("at"))
+	if len(cmds.Items) > 0 {
+		groups = append(groups, cmds)
+	}
 	if g := ascPaletteChanges(ctx, q); len(g.Items) > 0 {
 		groups = append(groups, g)
 	}
@@ -69,7 +75,7 @@ func AscPalette(ctx *context.Context) {
 			}
 		}
 	}
-	ctx.JSON(http.StatusOK, map[string]any{"groups": groups})
+	ctx.JSON(http.StatusOK, map[string]any{"groups": groups, "verb": verb})
 }
 
 // ascPaletteLimiter bounds the calls of one person (or one address) while they type: the client waits before it asks,

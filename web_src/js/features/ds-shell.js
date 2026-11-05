@@ -298,8 +298,12 @@ function renderRecents(p) {
   }
 }
 
-function setScope(p, next) {
+// verbScoped is true while the scope is Commands because a command verb was typed, not because the person chose it
+let verbScoped = false;
+
+function setScope(p, next, byVerb = false) {
   scope = next;
+  verbScoped = byVerb;
   for (const chip of p.root.querySelectorAll('[data-ds-scope][aria-pressed]')) {
     chip.setAttribute('aria-pressed', String(chip.dataset.dsScope === scope));
   }
@@ -523,7 +527,7 @@ export function initDsShell() {
   initLangMenu();
 }
 
-// ---- live results of the palette: changes, people and repositories that match what is typed ----
+// ---- live results of the palette: the commands of the page, and changes, people and repositories that match ----
 
 const liveMinLength = 2;
 const liveDelay = 180;
@@ -531,7 +535,25 @@ let liveTimer = 0;
 let liveAbort = null;
 
 // groupScope says in which scope chip a group of the live results shows
-export const liveGroupScopes = {changes: 'changes', people: 'people', repos: 'all'};
+export const liveGroupScopes = {commands: 'commands', changes: 'changes', people: 'people', repos: 'all'};
+
+// liveUrl is the address of the live results for q on the page at (its path, for the commands of that page)
+export function liveUrl(base, q, at) {
+  return `${base}?${new URLSearchParams({q, at})}`;
+}
+
+// verbScope is the scope change a typed command verb asks for: a verb switches the list to Commands, and once the
+// verb is gone the list goes back to All, unless the person chose Commands themselves. Null: no change.
+export function verbScope(current, byVerb, verb) {
+  if (verb && current !== 'commands') return 'commands';
+  if (!verb && byVerb && current === 'commands') return 'all';
+  return null;
+}
+
+function applyVerb(p, verb) {
+  const next = verbScope(scope, verbScoped, verb);
+  if (next) setScope(p, next, next === 'commands');
+}
 
 export function liveQuery(raw) {
   const q = String(raw ?? '').trim();
@@ -591,14 +613,17 @@ function scheduleLive() {
   const q = liveQuery(p.input.value);
   if (!q) {
     liveContainer(p).replaceChildren();
+    applyVerb(p, false);
     return;
   }
   liveTimer = setTimeout(async () => {
     liveAbort = new AbortController();
     try {
-      const res = await GET(`${p.root.dataset.liveUrl}?q=${encodeURIComponent(q)}`, {signal: liveAbort.signal});
+      const res = await GET(liveUrl(p.root.dataset.liveUrl, q, window.location.pathname), {signal: liveAbort.signal});
       if (!res.ok || liveQuery(p.input.value) !== q) return;
-      renderLive(p, (await res.json()).groups);
+      const body = await res.json();
+      applyVerb(p, body.verb === true);
+      renderLive(p, body.groups);
       const any = visibleItems(p).length > 0;
       if (p.empty) p.empty.hidden = any;
       if (any && !p.list.querySelector('.is-sel')) select(p, 0);
