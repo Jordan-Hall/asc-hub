@@ -40,6 +40,24 @@ A visitor who is not signed in is sent to sign-in by the router (the handlers an
 without a user). A user who cannot read the pull requests gets 404. Whether the user may do the operation is decided again by the
 service when the form is posted, and it fails closed: a lookup error refuses.
 
+### From the command palette
+
+The command palette (`/` or Ctrl K) has the same actions for the page it is opened on. Typing a command verb
+(`undo`, `restack`, `merge`, `ask`, or the first two letters or more of one) switches the list to Commands; the
+list goes back to All when the verb is removed, unless the person chose Commands themselves. The commands are given
+only to a signed-in person who can write to the code of the repository, on a repository that is not archived:
+
+| Command | Shown | Goes to |
+| --- | --- | --- |
+| Undo last operation | on every page of the repository | `/<owner>/<repo>/asc/ops/undo/last`: the dry run and confirmation of the undo of the person's newest operation that can still be undone (of their 20 newest), or their operation log with "None of your recent operations here can be undone." |
+| Restack this stack | on an open pull request | `?op=restack` |
+| Merge when ready | on an open pull request | `?op=queue` |
+| Ask an agent to change this… | when the person turned agent features on | the new agent task form, with the head branch of the pull request as the target |
+
+Each command opens the same confirmation page as the stack panel, so the palette writes nothing. The palette asks
+for them with `GET /-/asc/palette?q=&at=<path of the page>`; the answer carries `"verb": true` when the query starts
+with a command verb. There is no keyboard shortcut for the undo; it is reached from the palette.
+
 ## Merge when ready
 
 "Merge when ready" on pull request N queues pull requests 1..N of its stack. The queue has one worker per target
