@@ -12,6 +12,7 @@ import (
 
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/svg"
 	"forgejo.org/modules/templates"
@@ -26,8 +27,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ascExploreRender renders /explore/repos with the real templates, as the user at userID (0 for a visitor).
-func ascExploreRender(t *testing.T, path string, userID int64) (*context.Context, *goquery.Document) {
+// ascExploreRender renders path with handle and the real templates, as the user at userID (0 for a visitor).
+func ascExploreRender(t *testing.T, handle func(*context.Context), path string, userID int64) (*context.Context, *goquery.Document) {
 	t.Helper()
 	defer test.MockVariableValue(&setting.Langs, []string{"en-US"})()
 	defer test.MockVariableValue(&setting.Names, []string{"English"})()
@@ -53,7 +54,7 @@ func ascExploreRender(t *testing.T, path string, userID int64) (*context.Context
 		ctx.Data[middleware.ContextDataKeySignedUser] = ctx.Doer
 		ctx.Data["SignedUserID"] = ctx.Doer.ID
 	}
-	Repos(ctx)
+	handle(ctx)
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(resp.Body.Bytes()))
 	require.NoError(t, err)
 	return ctx, doc
@@ -64,7 +65,7 @@ func TestAscExploreLoadFailed(t *testing.T) {
 	defer test.MockVariableValue(&searchRepositories, func(_ stdctx.Context, _ *repo_model.SearchRepoOptions) (repo_model.RepositoryList, int64, error) {
 		return nil, 0, errors.New("database is down")
 	})()
-	ctx, doc := ascExploreRender(t, "/explore/repos?q=ledger", 2)
+	ctx, doc := ascExploreRender(t, Repos, "/explore/repos?q=ledger", 2)
 	assert.Equal(t, http.StatusInternalServerError, ctx.Resp.WrittenStatus())
 	card := doc.Find(`.ds-card[role="alert"] .ds-empty-err`)
 	require.Equal(t, 1, card.Length(), "the list says it could not be loaded, in the page")
@@ -80,7 +81,7 @@ func TestAscExploreEmptyHub(t *testing.T) {
 	defer test.MockVariableValue(&searchRepositories, func(_ stdctx.Context, _ *repo_model.SearchRepoOptions) (repo_model.RepositoryList, int64, error) {
 		return nil, 0, nil
 	})()
-	ctx, doc := ascExploreRender(t, "/explore/repos", 2)
+	ctx, doc := ascExploreRender(t, Repos, "/explore/repos", 2)
 	assert.Equal(t, http.StatusOK, ctx.Resp.WrittenStatus())
 	empty := doc.Find(".ds-card .ds-empty")
 	require.Equal(t, 1, empty.Length())
@@ -88,7 +89,20 @@ func TestAscExploreEmptyHub(t *testing.T) {
 	assert.Equal(t, "/repo/create", empty.Find("a.ds-btn-primary").AttrOr("href", ""))
 	assert.Equal(t, "Import a project", empty.Find("a.ds-btn-secondary").Text())
 
-	_, visitor := ascExploreRender(t, "/explore/repos", 0)
+	_, visitor := ascExploreRender(t, Repos, "/explore/repos", 0)
 	assert.Equal(t, "No repositories yet", visitor.Find(".ds-card .ds-empty h2").Text())
 	assert.Zero(t, visitor.Find(".ds-card .ds-empty a").Length(), "a visitor is offered no create button")
+}
+
+func TestAscExploreUsersLoadFailed(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	defer test.MockVariableValue(&searchUsers, func(_ stdctx.Context, _ *user_model.SearchUserOptions) ([]*user_model.User, int64, error) {
+		return nil, 0, errors.New("database is down")
+	})()
+	ctx, doc := ascExploreRender(t, Users, "/explore/users?q=maya", 2)
+	assert.Equal(t, http.StatusInternalServerError, ctx.Resp.WrittenStatus())
+	card := doc.Find(`.ds-card[role="alert"] .ds-empty-err`)
+	require.Equal(t, 1, card.Length())
+	assert.Contains(t, card.Text(), "request id 7f3a91")
+	assert.Equal(t, "?q=maya", card.Find("a.ds-btn-primary").AttrOr("href", ""))
 }
