@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 117 |
-| ui-only-missing | 15 |
+| done | 120 |
+| ui-only-missing | 12 |
 | needs-hub-backend | 38 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 11, M 46, L 21.
+Open rows by size: S 8, M 46, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -167,12 +167,12 @@ Open rows by size: S 11, M 46, L 21.
 | ExploreUsers | Chips All, People, Agents, Maintainers, Online now | needs-both | None present. Agents are not hub users (they are tokens and runs in `proto/asc/v1/agents.proto`); Maintainers needs a role; Online now needs presence | L |
 | ExploreUsers | Role chip (Owner, Maintainer, Member, Agent) and "Roles on this hub" card | needs-hub-backend | No hub-level role beyond site admin. Define Owner = site admin, Maintainer = write on any repo, Member; compute in the search; `user_list.tmpl`, `rail.tmpl` | M |
 | ExploreUsers | Agent rows: violet square avatar, `@org/name`, owner, scope, View runs | needs-both | asc has repo-scoped `ListTokens` and `ListRuns`; no hub-wide agent directory. asc: `ListAgents(owner)` RPC; hub: row type in `user_list.tmpl`, links to `/-/asc/agents` | L |
-| ExploreUsers | Meta row: location, joined, organizations, public email as own labelled item | ui-only-missing | `user_list.tmpl` shows location, email, joined; organizations missing | S |
+| ExploreUsers | Meta row: location, joined, organizations, public email as own labelled item | done | `user_list.tmpl` meta row with icons; organizations from `loadExploreUserRows` in `routers/web/explore/user.go` | - |
 | ExploreUsers | Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | needs-hub-backend | No sparkline component anywhere. Weekly series from `models/activities/user_heatmap.go` or pull and review tables, cached; partial `shared/ds/sparkline.tmpl` with a text label | M |
-| ExploreUsers | Hover action Follow; View runs for agents | ui-only-missing | Follow endpoint exists (profile htmx); row button in `user_list.tmpl` | S |
+| ExploreUsers | Hover action Follow; View runs for agents | done | Row Follow/Unfollow form in `user_list.tmpl` posting to the profile action with `redirect_to`; View runs for agents moves with the agent rows (row 169) | - |
 | ExploreUsers | Rail "Who is active now" with presence and current activity | needs-both | No presence model. Hub: last-seen heartbeat (`models/user`); asc: run state for agents (`GetRun`) | L |
 | ExploreUsers | Grid layout | done | With the layout toggle (Explore) | M |
-| ExploreUsers | States: loading, no people match, filter chips, error | ui-only-missing | Empty text exists; rest as in Explore | S |
+| ExploreUsers | States: loading, no people match, filter chips, error | done | Error, no-match with chips and empty states in `user_list.tmpl`; loading not shown, server rendered | - |
 | Mobile-ExploreUsers | Chips filter People, Agents, Maintainers, Online now; Follow inside the row at 44 px | needs-both | As above | M |
 
 ## Explore: organizations
