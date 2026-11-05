@@ -115,7 +115,7 @@ func prepareAscPeople(ctx *context.Context) {
 	pg.Rows = personRows(resp.GetContributors())
 	linkPeople(ctx, repo, pg.Rows, resp.GetContributors())
 	pg.ReviewLoad = reviewLoadOf(pg.Rows)
-	if st := fetchInsightsStats(ctx, repo, insWhoEveryone, days); st != nil {
+	if st, _ := fetchInsightsStats(ctx, repo, insWhoEveryone, days); st != nil {
 		people, agents := int(st.GetLandedByPeople()), int(st.GetLandedByAgents())
 		if people+agents > 0 {
 			pg.HasAgentPct, pg.AgentPct = true, agents*100/(people+agents)

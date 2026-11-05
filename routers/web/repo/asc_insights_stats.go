@@ -102,33 +102,35 @@ func insWeeksOf(days []insDay) []insDay {
 	return out
 }
 
-// fetchInsightsStats asks asc for the statistics as the viewer. It returns nil when asc is off, the viewer is a guest,
-// the repository is not stored in asc, or the call fails.
-func fetchInsightsStats(ctx *context.Context, repo *repo_model.Repository, who string, days int) *ascv1.InsightsStatsResponse {
+// fetchInsightsStats asks asc for the statistics as the viewer. asked is false when the statistics are not asked of asc
+// at all (the viewer is a guest, or the repository is not stored in asc); a nil response with asked true is a failure.
+func fetchInsightsStats(ctx *context.Context, repo *repo_model.Repository, who string, days int) (resp *ascv1.InsightsStatsResponse, asked bool) {
 	if ctx.Doer == nil {
-		return nil
+		return nil, false
 	}
 	name, err := asctrust.RepoName(repo)
 	if err != nil {
-		return nil
+		return nil, false
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		return nil
+		log.Debug("insights: no connection to asc serve: %v", err)
+		return nil, true
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
 	if err != nil {
-		return nil
+		log.Debug("insights: credential for %s: %v", repo.FullName(), err)
+		return nil, true
 	}
 	defer release()
 	cctx, cancel := gocontext.WithTimeout(callCtx, asctrust.CallTimeout)
 	defer cancel()
-	resp, err := ascv1.NewInsightsClient(conn).GetStats(cctx, &ascv1.InsightsStatsRequest{
+	resp, err = ascv1.NewInsightsClient(conn).GetStats(cctx, &ascv1.InsightsStatsRequest{
 		Repo: asctrust.RepoRef(name), Days: uint32(days), Kind: insKind(who),
 	})
 	if err != nil {
 		log.Debug("insights: asc statistics of %s: %v", repo.FullName(), err)
-		return nil
+		return nil, true
 	}
-	return resp
+	return resp, true
 }
