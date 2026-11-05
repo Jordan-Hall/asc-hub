@@ -266,3 +266,32 @@ func TestNormaliseAscDownloadSource(t *testing.T) {
 		assert.Error(t, normaliseAscDownload(), name)
 	}
 }
+
+func TestLoadAscSiteContacts(t *testing.T) {
+	t.Cleanup(func() { Asc.ContactEmail, Asc.SecurityEmail, Asc.PoliciesURL = "", "", "" })
+	cfg, err := NewConfigProviderFromData(`
+[asc]
+CONTACT_EMAIL = hello@example.org
+POLICIES_URL = https://example.org/policies
+`)
+	require.NoError(t, err)
+	loadAscFrom(cfg)
+	assert.Equal(t, "hello@example.org", Asc.ContactEmail)
+	assert.Equal(t, "hello@example.org", Asc.SecurityEmail, "security reports go to the contact without their own address")
+	assert.Equal(t, "https://example.org/policies", Asc.PoliciesURL)
+
+	Asc.ContactEmail, Asc.SecurityEmail, Asc.PoliciesURL = "hello@example.org", "security@example.org", ""
+	require.NoError(t, normaliseAscSite())
+	assert.Equal(t, "security@example.org", Asc.SecurityEmail)
+
+	for _, bad := range []struct{ contact, policies string }{
+		{"Hello <hello@example.org>", ""},
+		{"not an address", ""},
+		{"", "http://example.org/policies"},
+		{"", "https://user:pw@example.org/policies"},
+		{"", "javascript:alert(1)"},
+	} {
+		Asc.ContactEmail, Asc.SecurityEmail, Asc.PoliciesURL = bad.contact, "", bad.policies
+		assert.Error(t, normaliseAscSite(), "%+v", bad)
+	}
+}
