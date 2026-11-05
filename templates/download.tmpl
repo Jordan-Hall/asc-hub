@@ -179,6 +179,10 @@ target/release/asc --version</div>
 							<div class="ds-term-bd" tabindex="0">{{$offers.VerifyCommand}}</div>
 						</div>
 						{{end}}
+						<div class="ds-stack ds-stack-8" data-asc-dl-outcomes>
+							<div class="ds-banner ds-banner-ok" data-asc-dl-outcome="verified">{{svg "dsi-shield-check" 16}}<p class="ds-banner-body">{{ctx.Locale.Tr "asc_download.sig_verified"}}</p></div>
+							<div class="ds-banner ds-banner-err" data-asc-dl-outcome="failed">{{svg "dsi-alert" 16}}<p class="ds-banner-body"><strong>{{ctx.Locale.Tr "asc_download.sig_failed_title"}}</strong> {{ctx.Locale.Tr "asc_download.sig_failed_text"}}</p></div>
+						</div>
 					</div>
 				</section>
 				{{end}}
