@@ -16,6 +16,10 @@
 		{{template "user/auth/password_meter" (dict "ID" "password")}}
 	{{end}}
 
+	{{if .AscTerms}}
+		<div class="ds-check"><input type="checkbox" id="agree" name="agree" required{{if .agree}} checked{{end}}{{if .Err_Agree}} aria-invalid="true"{{end}}><label for="agree">{{ctx.Locale.Tr "asc_auth.signup_agree" .AscTermsURL .AscPrivacyURL}}</label></div>
+	{{end}}
+
 	{{template "user/auth/captcha" .}}
 
 	<button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block">
