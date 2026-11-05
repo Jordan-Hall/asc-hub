@@ -270,7 +270,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Stacks | New stack button | done | no web create-stack flow; `H:routers/web/repo/pull.go` creates pulls by compare; agents or terminal create stacks; Audit 2026-10-30 (read): stacks_new links to the compare page in the empty state and the header | M |
 | Stacks | Keyboard `j`/`k` and Enter | done | list-nav helper | S |
 | Stacks | States: empty (Nothing is in flight, New stack, Open history), skeleton, error with request id | done | list template; Audit 2026-10-30 (read): stacks_empty_title, stacks_failed with request id and Try again in stack_board.tmpl | S |
-| Stacks | Row hover slide-in, status chip pulses once on change | ui-only-missing (slide-in done; chip pulse on SSE change remains) | CSS + SSE event (`H:services/ascinbox` / `eventsource.sharedworker.js`) | S |
+| Stacks | Row hover slide-in, status chip pulses once on change | done | CSS + SSE event (`H:services/ascinbox` / `eventsource.sharedworker.js`) | S |
 | Stacks | Mobile: 44 px rows, chips scroll | done | list template | S |
 
 ## RepoSettingsMenu (mobile) and the shared settings shell
