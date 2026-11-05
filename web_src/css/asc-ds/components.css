@@ -3415,6 +3415,23 @@ a.ds-stat:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .ds-savebar.is-dirty {
+    animation: ds-savebar-in 180ms ease-out;
+  }
+}
+
+@keyframes ds-savebar-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.ds-savebar.is-saving [data-savebar-discard] {
+  visibility: hidden;
+}
+
 .ds-savebar.is-dirty [data-savebar-discard] {
   display: inline-flex;
 }

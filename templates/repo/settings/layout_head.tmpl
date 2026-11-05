@@ -7,5 +7,10 @@
 		{{template "repo/settings/navbar" .ctxData}}
 		<div class="ds-settings-body" id="settings-general" data-loading="{{ctx.Locale.Tr "loading"}}">
 			<div class="rp-set-head ds-only-desktop"><h2 class="rp-h1">{{.ctxData.Title}}</h2>{{with .ctxData.SettingsLead}}<p class="rp-set-lead">{{.}}</p>{{end}}</div>
+			{{/* Saving the General form reports itself in a toast that leaves after 5 s (board RepoSettingsGeneral); every other message keeps its banner. */}}
+			{{if and .ctxData.PageIsSettingsOptions (not .ctxData.Flash.ErrorMsg) (eq .ctxData.Flash.SuccessMsg (ctx.Locale.TrString "repo.settings.update_settings_success"))}}
+			<div id="flash-message" hidden data-ds-flash-toast="{{.ctxData.Flash.SuccessMsg}}"></div>
+			{{else}}
 			{{template "base/alert" .ctxData}}
+			{{end}}
 			{{/* block: repo-setting-content */}}
