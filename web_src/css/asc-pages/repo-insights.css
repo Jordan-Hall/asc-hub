@@ -185,6 +185,16 @@
   inline-size: 40%;
 }
 
+.rp-ins-skel-line {
+  block-size: 22px;
+  margin-block-start: 10px;
+}
+
+.rp-ins-skel-row {
+  block-size: 18px;
+  margin-block-start: 12px;
+}
+
 .rp-ins-skel-bars {
   display: flex;
   align-items: flex-end;
