@@ -143,6 +143,8 @@ type insPage struct {
 	Waiting                 []*stackRow
 	Trend                   string // faster, slower or ""
 	Truncated               bool   // asc cut the data: the numbers are lower bounds
+	Behind                  bool   // asc could not be asked: the numbers come from the hub's own copy of the pull requests
+	New                     bool   // the default branch holds no commit yet
 }
 
 // insMedian is the median of minutes (the mean of the two middle values for an even count); ok is false for none.
@@ -518,9 +520,12 @@ func prepareAscInsights(ctx *context.Context) {
 		}
 	}
 	pg.Sizes = insSizes(mine)
-	if r := fetchInsightsStats(ctx, repo, who, days); r != nil {
+	r, asked := fetchInsightsStats(ctx, repo, who, days)
+	if r != nil {
 		applyInsightsStats(pg, r)
 	}
+	pg.Behind = asked && r == nil
+	pg.New = repo.IsEmpty
 	pg.Recent = insRecentStacks(mine, now.AddDate(0, 0, -14), 5)
 
 	if changes, landed, err := loadStackChanges(ctx, repo, ctx.Repo.GitRepo, ctx.Doer); err == nil {

@@ -169,9 +169,47 @@
 }
 
 /* ---- Insights of an asc repository: tiles, chart, review time, recent and waiting stacks (board Insights) ---- */
-.rp-ins {
+.rp-ins,
+.rp-ins-body,
+.rp-ins-skel {
   display: grid;
   gap: 16px;
+}
+
+.rp-ins-skel-tile {
+  block-size: 86px;
+}
+
+.rp-ins-skel-title {
+  block-size: 14px;
+  inline-size: 40%;
+}
+
+.rp-ins-skel-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  block-size: 160px;
+  margin-block-start: 8px;
+}
+
+.rp-ins-skel-bars > .ds-sk {
+  flex: 1;
+  block-size: 30%;
+}
+
+.rp-ins-skel-bars > .ds-sk:nth-child(3n) {
+  block-size: 70%;
+}
+
+.rp-ins-skel-bars > .ds-sk:nth-child(4n + 1) {
+  block-size: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-ins-skel .ds-sk {
+    animation: none;
+  }
 }
 
 .rp-ins-head {

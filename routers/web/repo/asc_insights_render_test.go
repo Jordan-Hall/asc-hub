@@ -38,3 +38,37 @@ func TestInsightsRender(t *testing.T) {
 	assert.Contains(t, body, "asc_rp.ins_size_under_50")
 	assert.Contains(t, body, `aria-current="true"`)
 }
+
+func renderInsights(t *testing.T, pg *insPage) string {
+	t.Helper()
+	ctx, resp := contexttest.MockContext(t, "/user2/repo1/activity")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadRepo(t, ctx, 1)
+	ctx.Data["RepoLink"] = ctx.Repo.RepoLink
+	ctx.Data["AscInsightsLink"] = ctx.Repo.RepoLink + "/activity"
+	ctx.Data["AscInsights"] = pg
+	ctx.HTML(http.StatusOK, "repo/insights_asc")
+	require.Equal(t, http.StatusOK, resp.Code, resp.Body.String())
+	return resp.Body.String()
+}
+
+func TestInsightsRenderStates(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	body := renderInsights(t, &insPage{Who: "everyone", Range: "30d", Days: 30, New: true})
+	assert.Contains(t, body, `data-testid="asc-insights-new"`)
+	assert.Contains(t, body, "asc_rp.ins_new_body")
+	assert.NotContains(t, body, "rp-ins-tiles", "a new repository shows no tiles of zeros")
+	assert.NotContains(t, body, "data-ins-segs")
+
+	body = renderInsights(t, &insPage{Who: "everyone", Range: "30d", Days: 30, Behind: true})
+	assert.Contains(t, body, `data-testid="asc-insights-behind"`)
+	assert.Contains(t, body, "asc_rp.ins_behind")
+	assert.NotContains(t, body, `data-testid="asc-insights-new"`)
+
+	body = renderInsights(t, &insPage{Who: "everyone", Range: "30d", Days: 30})
+	assert.NotContains(t, body, `data-testid="asc-insights-behind"`)
+	assert.Contains(t, body, "<template data-ins-skeleton>", "the loading state is drawn from the page, not from script text")
+	assert.Contains(t, body, `data-loading="asc_rp.ins_loading"`)
+	assert.Contains(t, body, "data-ins-body")
+}

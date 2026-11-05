@@ -6,9 +6,12 @@ package repo
 import (
 	"testing"
 
+	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestApplyInsightsStats(t *testing.T) {
@@ -65,4 +68,13 @@ func TestInsKind(t *testing.T) {
 	assert.Equal(t, ascv1.AuthorKind_AUTHOR_KIND_AGENT, insKind("agents"))
 	assert.Equal(t, ascv1.AuthorKind_AUTHOR_KIND_PERSON, insKind("people"))
 	assert.Equal(t, ascv1.AuthorKind_AUTHOR_KIND_UNSPECIFIED, insKind("everyone"))
+}
+
+func TestFetchInsightsStatsAskedOnlyForSignedIn(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx, _ := contexttest.MockContext(t, "/user2/repo1/activity")
+	contexttest.LoadRepo(t, ctx, 1)
+	r, asked := fetchInsightsStats(ctx, ctx.Repo.Repository, insWhoEveryone, 30)
+	assert.Nil(t, r)
+	assert.False(t, asked, "a guest gets the hub's numbers and no banner")
 }
