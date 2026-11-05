@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 146 |
+| done | 147 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 24 |
+| needs-hub-backend | 23 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 31, L 18.
+Open rows by size: S 0, M 31, L 17.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -42,7 +42,7 @@ Open rows by size: S 0, M 31, L 18.
 | Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | done | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
 | Shell | Palette scope chips All, Changes, Code, People, Commands; Tab cycles the scope | done | `ds-palette-bar` has input and Cancel only. Chips in `head_navbar.tmpl`, Tab handling in `onPaletteKeydown` | S |
 | Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | needs-asc-backend | Today only static destinations plus "search for ..." links (`filterPalette`). Hub: JSON route (for example `GET /-/asc/palette?q=&scope=`) in `routers/web/explore/asc_search.go` merging pull requests (`issues_model`), users (`user_model.SearchUsers`) and symbols (asc `CrossSearch.Search`, `LookupSymbol`; `services/ascsearch`), read-checked per repo. JS: debounce, abort, render, live count;; Audit 2026-10-30 (part built): Server results exist for Changes, People and repositories; the Code group (path, symbol from asc CrossSearch) was not found. | L |
-| Shell | Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last operation (Cmd Z) and Ask an agent to change this... | needs-hub-backend | Static Commands group has New repository and New organization only. asc RPCs exist: `UndoRef`, `Restack`, `RequestMerge`, `CreateRun`. Hub needs a context (current repo, stack) and POST handlers (`routers/web/repo/asc_ops.go`, `asc_restack.go`, `asc_stack_actions.go`, `asc_agents.go`) callable from the palette with a confirm step | L |
+| Shell | Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last operation (Cmd Z) and Ask an agent to change this... | done | `routers/web/asc_palette_commands.go` (commands of the page from `at`, writers of the code only; `"verb"` in the answer), `routers/web/repo/asc_ops_last.go` (`GET .../asc/ops/undo/last` to the undo dry run), `ds-shell.js` (`verbScope`, commands scope). Every command opens its confirmation page. No Cmd Z shortcut: documented in `STACK-OPERATIONS.md` | - |
 | Shell | Empty query shows Recent items and Shortcuts (Go to inbox: g i) | done | Recents in `localStorage` (visited repos and changes), static shortcuts; `ds-shell.js`, `head_navbar.tmpl` | M |
 | Shell | No-results text names the query and suggests a symbol, handle or title | done | `asc_shell.palette_empty` is a different sentence ("Press Enter to search this text") | S |
 | Shell | Keyboard shortcuts overlay (`?`, "All shortcuts") | done | No handler in `asc-keys.js`; dialog listing the keys of the page | S |

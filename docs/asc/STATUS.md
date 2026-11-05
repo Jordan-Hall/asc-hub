@@ -684,7 +684,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Shell (ASC Hub shell: header, menus, palette, footer)
 
-Area shell/settings. Rows 23: done 17, partial 1, missing 5. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
+Area shell/settings. Rows 23: done 18, partial 1, missing 4. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
 
 Board copy not found word for word in locale, templates or scripts: Four links, one clear way in; Search always one key away, Inbox always one click away; Account, create and notifications; New changeset; Mark all read; approved Backoff with jitter.
 
@@ -705,7 +705,7 @@ Board copy not found word for word in locale, templates or scripts: Four links, 
 | Palette is a combobox: role=combobox input, listbox results, aria-activedescendant | done | templates/base/head_navbar.tmpl:275 | the where-cell cites role=dialog, role=search, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Palette scope chips All, Changes, Code, People, Commands; Tab cycles the scope | done | templates/base/head_navbar.tmpl:271 | - |
 | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched... | partial (asc) | routers/web/asc_palette.go:34-60 GET /-/asc/palette (groups changes, people, repos); web_src/js/fea... | Server results exist for Changes, People and repositories; the Code group (path, symbol from asc CrossSearch) was not found. |
-| Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last... | missing (hub) | absent: no undo or restack command text in locale, templates/base or ds-shell.js | Static Commands group has New repository and New organization only. asc RPCs exist: UndoRef, Restack, RequestMerge, CreateRun. Hu... |
+| Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last... | done | routers/web/asc_palette_commands.go, routers/web/repo/asc_ops_last.go, web_src/js/features/ds-shell.js (verbScope) | No Cmd Z shortcut; the undo is reached from the palette (STACK-OPERATIONS.md) |
 | Empty query shows Recent items and Shortcuts (Go to inbox: g i) | done | web_src/js/features/ds-shell.js:186 | - |
 | No-results text names the query and suggests a symbol, handle or title | done | see where-cell | the where-cell cites asc_shell.palette_empty, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Keyboard shortcuts overlay (?, "All shortcuts") | done | web_src/js/features/asc-keys.js (file) | - |
