@@ -1,0 +1,55 @@
+{{/* The steps of the install page (/-/docs/install, board Docs): the release this hub offers, with one tab for each
+system (the choice is kept in the browser), its signature check and the command that connects asc to this hub.
+Without a release, how to build asc from source. Copy copies the command without the prompt. */}}
+<ol class="site-install" data-asc-docs-install>
+	<li class="site-install-step">
+		<span class="site-install-n" aria-hidden="true">1</span>
+		<div class="site-install-b">
+		{{if .AscNoRelease}}
+			<h2 id="install-step-1">{{ctx.Locale.Tr "asc_site.docs_install_step_source"}}</h2>
+			<p>{{ctx.Locale.Tr "asc_site.docs_install_source_text"}}</p>
+			{{template "asc/docs_install_term" dict "Commands" (StringUtils.Make "cargo build --release -p asc" "target/release/asc --version")}}
+		{{else}}
+			{{$view := .AscDownload}}
+			<h2 id="install-step-1">{{ctx.Locale.Tr "asc_site.docs_install_step_install"}}</h2>
+			<p>{{ctx.Locale.Tr "asc_site.docs_install_pick"}}{{if $.AscHasPackages}} {{ctx.Locale.Tr "asc_site.docs_install_pm"}}{{end}}</p>
+			<div class="ds-tabs site-install-tabs" role="tablist" aria-label="{{ctx.Locale.Tr "asc_download.choose_system"}}" data-doc-tabs data-doc-remember="asc-docs-os">
+				{{range $view.Offers.OSes}}<button type="button" class="ds-tab" role="tab" id="install-tab-{{.OS}}" aria-controls="install-panel-{{.OS}}" aria-selected="{{if eq .OS $view.ActiveOS}}true{{else}}false{{end}}"{{if ne .OS $view.ActiveOS}} tabindex="-1"{{end}} data-doc-tab="{{.OS}}">{{.Label}}</button>{{end}}
+			</div>
+			{{range $os := $view.Offers.OSes}}
+			<div class="site-install-panel" role="tabpanel" id="install-panel-{{$os.OS}}" aria-labelledby="install-tab-{{$os.OS}}" data-doc-panel="{{$os.OS}}"{{if ne $os.OS $view.ActiveOS}} hidden{{end}}>
+				{{if $os.PackageCommands}}
+					{{$c := index $os.PackageCommands 0}}
+					{{template "asc/docs_install_term" dict "Title" $c.Title "Commands" (StringUtils.Split $c.Text "\n") "Shell" $c.Shell}}
+				{{else}}
+					{{range $arch := $os.Arches}}{{if $arch.Commands}}
+					{{$c := index $arch.Commands 0}}
+					{{template "asc/docs_install_term" dict "Title" $arch.Label "Commands" (StringUtils.Split $c.Text "\n") "Shell" $c.Shell}}
+					{{end}}{{end}}
+				{{end}}
+				<p class="ds-t-small"><a href="{{AppSubUrl}}/download#asc-dl-{{$os.OS}}">{{ctx.Locale.Tr "asc_site.docs_install_files" $os.Label}}</a></p>
+			</div>
+			{{end}}
+		{{end}}
+		</div>
+	</li>
+	{{with .AscDownload}}{{if .Offers.VerifyCommand}}
+	<li class="site-install-step">
+		<span class="site-install-n" aria-hidden="true">2</span>
+		<div class="site-install-b">
+			<h2 id="install-step-verify">{{ctx.Locale.Tr "asc_site.docs_install_step_verify"}}</h2>
+			<p>{{ctx.Locale.Tr "asc_site.docs_install_verify_text" (print AppSubUrl "/download")}}</p>
+			{{template "asc/docs_install_term" dict "Commands" (StringUtils.Make .Offers.VerifyCommand .Offers.CheckCommand)}}
+		</div>
+	</li>
+	{{end}}{{end}}
+	<li class="site-install-step">
+		<span class="site-install-n" aria-hidden="true">{{.DocsConnectStep}}</span>
+		<div class="site-install-b">
+			<h2 id="install-step-connect">{{ctx.Locale.Tr "asc_site.docs_install_step_connect"}}</h2>
+			<p>{{ctx.Locale.Tr "asc_site.docs_install_connect_text"}}</p>
+			{{template "asc/docs_install_term" dict "Commands" (StringUtils.Make .AscSignInCommand)}}
+			<p class="ds-t-small">{{ctx.Locale.Tr "asc_site.docs_install_ci" (print AppSubUrl "/user/settings/applications")}}</p>
+		</div>
+	</li>
+</ol>
