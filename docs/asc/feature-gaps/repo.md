@@ -239,7 +239,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Insights | Seg controls Everyone / People / Agents and 7 days / 30 days / Year that update chart and tiles together | done | query params + client update; depends on data above;; Audit 2026-10-30 (built): templates/repo/insights_asc.tmpl:10-15 ins_who, ins_range segmented controls | M |
 | Insights | Median review time by week ("Getting faster") and by size of change (Under 50 / 50 to 300 / Over 300) | done | review events in hub DB (`models/issues/review.go`);; Audit 2026-10-30 (built): templates/repo/insights_asc.tmpl:76-86 by week, by size of change | M |
 | Insights | Recently landed stacks and "Waiting the longest" list | done (seen on a live hub (ui10)) | pulls + queue + last activity | M |
-| Insights | States: new repository, loading, "Index behind" banner | ui-only-missing | `pulse.tmpl` | S |
+| Insights | States: new repository, loading, "Index behind" banner | done | `pulse.tmpl` | S |
 | InsightsPeople | Contributors table: landed, reviews given, median review, 12-week sparkline, share, role, "Agent run by Priya Raman" | done | agent ownership from `Agents`/`AgentTokens`; counts as above; replaces `contributors.tmpl`;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl (people_weeks, run_by, people_share) | L |
 | InsightsPeople | Who writes the code (46/54) with "every agent change approved by a person" sentence | done | same statistics;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl (who_writes, who_split, ins_all_approved) | M |
 | InsightsPeople | Review load list ("Agents never review") | done | review counts per reviewer;; Audit 2026-10-30 (built): templates/repo/insights_people.tmpl:58 review_load, agents_never_review | S |
