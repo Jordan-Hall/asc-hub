@@ -1,0 +1,8 @@
+{{/* Shown by asc-page-loading.js while a new search runs, in the place of the results: three result cards of the size of a file hit. */}}
+<div class="asc-search-loading" role="status" data-loading-skel data-testid="search-loading" hidden>
+	<span class="ds-sr">{{ctx.Locale.Tr "asc_rp.s_loading"}}</span>
+	{{range 3}}<div class="asc-card rp-searchload-card" aria-hidden="true">
+		<div class="asc-card-head"><span class="rp-sk rp-sk-line"></span><span class="rp-sk rp-sk-word"></span></div>
+		<div class="rp-searchload-lines">{{range 3}}<span class="rp-sk rp-searchload-line"></span>{{end}}</div>
+	</div>{{end}}
+</div>

@@ -157,3 +157,29 @@
   padding: 0 16px 20px;
   list-style: none;
 }
+
+/* a new search running: result cards of the size of a file hit */
+.rp-searchload-card {
+  margin-bottom: 12px;
+}
+
+.rp-searchload-card .asc-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rp-searchload-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 12px;
+}
+
+.rp-searchload-line {
+  width: 85%;
+}
+
+.rp-searchload-line:nth-child(2) {
+  width: 60%;
+}

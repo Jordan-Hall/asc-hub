@@ -3,7 +3,7 @@
 	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.s_title") "SubBack" .RepoLink)}}
 	<div class="ds-container rp-body">
 		<h1 class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.s_title"}}</h1>
-		<form id="asc-search-form" class="asc-search-form ds-form" method="get" action="{{.RepoLink}}/asc/search" role="search">
+		<form id="asc-search-form" class="asc-search-form ds-form" method="get" action="{{.RepoLink}}/asc/search" role="search" data-loading-form>
 			<div class="asc-search-bar">
 				<label class="tw-sr-only" for="asc-search-q">{{ctx.Locale.Tr "asc_rp.s_label"}}</label>
 				<input id="asc-search-q" name="q" type="search" maxlength="4096" value="{{.AscSearchText}}" autocomplete="off" placeholder="{{ctx.Locale.Tr "asc_rp.s_placeholder"}}" required>
@@ -65,6 +65,8 @@
 			</details>
 		</form>
 
+		{{template "repo/asc_search_loading" .}}
+		<div data-loading-body data-loading-links>
 		{{if and (not .AscSearchDone) (not .AscSearchError)}}
 		<section class="ds-card asc-first-visit" data-testid="asc-search-first-visit" aria-labelledby="asc-first-h">
 			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.s_first_title") "Body" (ctx.Locale.Tr "asc_rp.s_first_body"))}}
@@ -219,6 +221,7 @@
 				</div>
 			</div>
 		{{end}}
+		</div>
 	</div>
 </div>
 {{template "base/footer" .}}
