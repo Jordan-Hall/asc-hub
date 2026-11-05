@@ -4,7 +4,11 @@
 package user
 
 import (
+	"cmp"
 	gocontext "context"
+	"net/url"
+	"slices"
+	"strings"
 	"time"
 
 	activities_model "forgejo.org/models/activities"
@@ -40,6 +44,10 @@ const (
 	ascProfileScan = 40
 	// ascProfileActivityMax is how many activities the overview shows.
 	ascProfileActivityMax = 8
+	// ascProfileFocusMax is how many Focus chips the overview shows, drawn from the topics and the main language
+	// of at most ascProfileFocusRepos readable repositories the person changes most.
+	ascProfileFocusMax   = 6
+	ascProfileFocusRepos = 12
 )
 
 // AscHeatDay is one square of the grid.
@@ -231,8 +239,17 @@ func ascCanReadPulls(ctx gocontext.Context, viewer *user_model.User, repo *repo_
 	return err == nil && perm.CanRead(unit.TypePullRequests)
 }
 
-// ascProfileRepos lists the repositories where user wrote the most pull requests, as far as viewer may read them.
-func ascProfileRepos(ctx gocontext.Context, user, viewer *user_model.User) []AscProfileRepo {
+// AscProfileFocus is a subject the person works on (a Focus chip): a topic or the main language of the
+// repositories they change, linked to the repositories with it.
+type AscProfileFocus struct {
+	Name string
+	Link string
+}
+
+// ascProfileRepos lists the repositories where user wrote the most pull requests, as far as viewer may read them,
+// and the Focus of user: the topics and main languages of those repositories, weighted by the pull requests
+// there, the heaviest first.
+func ascProfileRepos(ctx gocontext.Context, user, viewer *user_model.User) ([]AscProfileRepo, []AscProfileFocus) {
 	var rows []struct {
 		RepoID int64
 		N      int64
@@ -243,18 +260,78 @@ func ascProfileRepos(ctx gocontext.Context, user, viewer *user_model.User) []Asc
 		GroupBy("repo_id").OrderBy("n DESC, repo_id").Limit(ascProfileScan).Find(&rows)
 	if err != nil {
 		log.Error("asc profile: repositories of user %d: %v", user.ID, err)
-		return nil
+		return nil, nil
 	}
 	var out []AscProfileRepo
+	focus := ascFocusTally{}
+	readable := 0
 	for _, r := range rows {
-		if len(out) == ascProfileReposMax {
+		if len(out) == ascProfileReposMax && readable == ascProfileFocusRepos {
 			break
 		}
 		repo, err := repo_model.GetRepositoryByID(ctx, r.RepoID)
 		if err != nil || !ascCanReadPulls(ctx, viewer, repo) {
 			continue
 		}
-		out = append(out, AscProfileRepo{FullName: repo.FullName(), Link: repo.Link(), Changes: r.N})
+		if len(out) < ascProfileReposMax {
+			out = append(out, AscProfileRepo{FullName: repo.FullName(), Link: repo.Link(), Changes: r.N})
+		}
+		if readable == ascProfileFocusRepos {
+			continue
+		}
+		readable++
+		for _, t := range repo.Topics {
+			focus.add(t, setting.AppSubURL+"/explore/repos?q="+url.QueryEscape(t)+"&topic=1", r.N)
+		}
+		langs, err := repo_model.GetTopLanguageStats(ctx, repo, 1)
+		if err != nil {
+			log.Error("asc profile: languages of repository %d: %v", repo.ID, err)
+			continue
+		}
+		for _, l := range langs {
+			if l.Language == "other" { // the rest of the languages together, not a subject
+				continue
+			}
+			focus.add(l.Language, setting.AppSubURL+"/explore/repos?language="+url.QueryEscape(l.Language), r.N)
+		}
+	}
+	return out, focus.top(ascProfileFocusMax)
+}
+
+// ascFocusTally adds up the weight of each Focus subject; names that differ only in case are one subject, the
+// first link seen kept.
+type ascFocusTally map[string]*ascFocusWeight
+
+type ascFocusWeight struct {
+	AscProfileFocus
+	weight int64
+}
+
+func (f ascFocusTally) add(name, link string, weight int64) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return
+	}
+	key := strings.ToLower(name)
+	if w, ok := f[key]; ok {
+		w.weight += weight
+		return
+	}
+	f[key] = &ascFocusWeight{AscProfileFocus{Name: name, Link: link}, weight}
+}
+
+// top is at most n subjects, the heaviest first, then by name.
+func (f ascFocusTally) top(n int) []AscProfileFocus {
+	all := make([]*ascFocusWeight, 0, len(f))
+	for _, w := range f {
+		all = append(all, w)
+	}
+	slices.SortFunc(all, func(a, b *ascFocusWeight) int {
+		return cmp.Or(cmp.Compare(b.weight, a.weight), strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)))
+	})
+	var out []AscProfileFocus
+	for _, w := range all[:min(n, len(all))] {
+		out = append(out, w.AscProfileFocus)
 	}
 	return out
 }
@@ -289,6 +366,6 @@ func ascProfileOverview(ctx *context.Context) {
 	}
 	ctx.Data["Feeds"] = feeds
 	ctx.Data["AscProfileWork"] = ascProfileWork(ctx, person, ctx.Doer, ctx.Locale)
-	ctx.Data["AscProfileRepos"] = ascProfileRepos(ctx, person, ctx.Doer)
+	ctx.Data["AscProfileRepos"], ctx.Data["AscProfileFocus"] = ascProfileRepos(ctx, person, ctx.Doer)
 	ctx.Data["AscPins"] = ascProfilePins(ctx, person, ctx.Doer)
 }
