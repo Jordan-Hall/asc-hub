@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 134 |
+| done | 139 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 36 |
+| needs-hub-backend | 31 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 3, M 38, L 20.
+Open rows by size: S 1, M 35, L 20.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -230,7 +230,7 @@ Open rows by size: S 3, M 38, L 20.
 | Dashboard | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | `asc_home.tmpl`, `ascDashRowFor` | - |
 | Dashboard | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | needs-both | Buttons are links (`aria-hidden`, tabindex -1) to the review. Hub: POST handlers for approve (review in `routers/web/repo/pull.go`), queue (`asc_queue.go`, asc `Enqueue`), answer (asc `SendInput`), htmx row swap | L |
 | Dashboard | Row kinds: reply from a person, agent question, ready to merge with queue position and estimate, trunk moved with restack summary | needs-both | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (`mergequeue.proto` `List`, `stacks.proto` restack result); `services/ascinbox` | L |
-| Dashboard | Keys j k, Enter, e (done), g then i, `/` | needs-hub-backend | j, k, g i, `/` done in `asc-keys.js`; `e` needs the done state (Inbox) | S |
+| Dashboard | Keys j k, Enter, e (done), g then i, `/` | done | `asc-keys.js`: j k, Enter on the row link, g i and `/`; e on the focused row sends its hidden state form (`user/asc_row_state.tmpl`, `asc-row-swipe.js`), back to the dashboard | - |
 | Dashboard | Agents working now with budget bar, paused state, All runs | done | `asc_home.tmpl`, `ascDashAgentsFromServe` | - |
 | Dashboard | Stack bars: click a segment opens the review at that segment | done | `wk-segs` items are not links; `ascDashStackFrom` has the pull link per segment | S |
 | Dashboard | Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | needs-both | No such card. Hub aggregates the person's queue entries (`routers/web/repo/asc_queue.go`; asc `mergequeue.proto` `List`, `Get`, `Watch`); median wait needs an asc statistic | L |
@@ -240,7 +240,7 @@ Open rows by size: S 3, M 38, L 20.
 | Dashboard | States: loading skeleton, new account, offline error with retry countdown | done | `user/dashboard/asc_home.tmpl`: the main column is `data-asc-list-main` with a three-row skeleton a scope chip shows (`asc-list-loading.js`); new account and inbox zero empty states; `user/dashboard/asc_today.tmpl` Today card refreshes every minute from `GET /-/asc/dash/today` (`asc-dash-live.js`: not while hidden or in use) and on a failed load keeps its items and shows "Offline. Activity could not load." with Try again and "Retrying in N s" (8, 16, 32, 60 s), the `online` event retries at once | - |
 | Dashboard | Undo toast ("Added to merge queue. Undo for 10 s") | needs-both | `toast.js` has no action button; asc `Dequeue` exists for undo; goes with row actions | M |
 | Dashboard | Appearance setting hides agent surfaces | done | `ascagentui.FeaturesEnabled` | - |
-| Mobile-Dashboard | Pull to refresh; swipe a row left to snooze, right to mark done | needs-hub-backend | New touch module; done state (Inbox) | M |
+| Mobile-Dashboard | Pull to refresh; swipe a row left to snooze, right to mark done | done | `asc_home.tmpl`: `data-asc-pull-refresh` with the arrow (`asc-pull-refresh.js`, installed app); `asc-row-swipe.js` on `data-asc-swipe` rows: right marks done, left snoozes 4 h through `POST /-/asc/inbox/state` with `back=dash` | - |
 
 ## Inbox
 
@@ -250,17 +250,17 @@ Open rows by size: S 3, M 38, L 20.
 | Inbox | Filters: All repos, Humans and agents, Sorted by | done | Repo select works; "Humans and agents" missing; "Sorted by" is static text (`wk-sort`). Add `kind` and `sort` in `ascInboxBuild` | S |
 | Inbox | Unread dot plus bold title | needs-hub-backend | No unread state (no `unread` in the template). `last_seen` per pull and user in `models/issues/asc_inbox_state.go` (migration) | M |
 | Inbox | Row hover actions (Review, Answer, Mark done, Snooze) | done | `templates/user/asc_inbox.tmpl` `[data-asc-row-acts]`: Review, Answer (agent rows that wait), Mark done or Restore, Snooze 4h, each posting to `/-/asc/inbox/state`; tests in `routers/web/user/asc_inbox_test.go` | S |
-| Inbox | Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | needs-hub-backend | None. `AscInboxStatePost` takes one pull; accept many, add `unwatch`, selection JS in `asc-keys.js` | M |
+| Inbox | Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | done | `asc_inbox.tmpl` bulk bar: ticked box (clears, as Escape does), count in a polite live region, Mark done, Snooze, Unwatch (`ds-bulk.js`); `AscInboxStatePost` `do=unwatch` turns the issue watch off and moves the item to Done | - |
 | Inbox | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | done | `done_unix` on `asc_inbox_state` (migration `v18l_asc_inbox_done.go`); `SetAscInboxDone`; `do=done` and `do=restore` in `AscInboxStatePost`; an item comes back when the pull request changes; the Done tab lists it for `AscInboxDoneKeep` (30 days); fade and once-only send in `initAscInboxDone` (`asc-keys.js`); undo toast `[data-asc-undo]` | M |
 | Inbox | Snooze menu: Later today 17:00, Tomorrow 09:00, Monday 09:00, When the checks finish, Pick a date | needs-both | Menu has 1 h, 4 h, tomorrow, week. "When the checks finish" needs a check-completion wake (asc `ci.proto` events); date picker is UI | M |
 | Inbox | Detail pane: why waiting, changed since last look, policy line (approvals 1 of 2), thread, reply box with Approve and Request changes | done | `asc_inbox.tmpl` | - |
 | Inbox | "Ask agent to change" (comment becomes an instruction for the author agent) | needs-both | Reply form has Approve, Request changes, Reply only. Hub: POST to `CreateRun` or `SendInput`; asc: instruction flag on review comments (`review.proto` `AddComment`) | L |
-| Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | needs-hub-backend | j k s p g i e present (e: `[data-asc-done]`); x needs selection; a and r submit the form with confirm | S |
+| Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | done | `asc-keys.js`: j k, e (focused row or open item), s, p, g i; x in `ds-bulk.js`; a and r put the focus on Approve and Request changes of the reply form (Enter sends); Enter opens the row link | - |
 | Inbox | Pagination "Showing 8 of 23" | done | None in `asc_inbox.tmpl`; list is capped (`ascInboxInfoRows`) | M |
 | Inbox | New items slide in from the top without jumping the list | needs-both | No live update. Hub poll or SSE; asc `inbox.proto` `Count` is poll friendly | M |
 | Inbox | States: bulk bar, inbox zero with Watch more repositories, loading skeleton | done | Empty exists; the other two missing | S |
 | Inbox | Subscriptions link to Settings, Notifications | done | `/notifications/subscriptions` | - |
-| Mobile-Inbox | Swipe right to mark done, left to snooze; sticky action bar with Open next | needs-hub-backend | New touch JS; done state | M |
+| Mobile-Inbox | Swipe right to mark done, left to snooze; sticky action bar with Open next | done | `asc-row-swipe.js` on `.wk-ilist` rows: right marks done, left snoozes 4 h; the sticky Open next bar is `ds-sticky-actions` in `asc_inbox.tmpl` | - |
 
 ## Profile
 
