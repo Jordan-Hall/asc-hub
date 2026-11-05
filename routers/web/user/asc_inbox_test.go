@@ -74,7 +74,8 @@ func TestAscInboxPageGroup(t *testing.T) {
 		4: {SnoozedUntil: timeutil.TimeStamp(now.Add(time.Hour).Unix())},
 		5: {SnoozedUntil: timeutil.TimeStamp(now.Add(-time.Hour).Unix())}, // expired
 	}
-	groups, snoozed := ascInboxGroup(es, states, now)
+	groups, snoozed, done := ascInboxGroup(es, states, now)
+	assert.Empty(t, done)
 	assert.Equal(t, 1, snoozed)
 	require.Len(t, groups, 3)
 	assert.Equal(t, issues_model.AscInboxNeedsReview, groups[0].Section)
@@ -352,4 +353,64 @@ func TestAscInboxCount(t *testing.T) {
 
 	code, _, _ = get(nil)
 	assert.Equal(t, http.StatusNotFound, code)
+}
+
+func TestAscInboxDone(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	now := time.Now()
+	first := &AscInboxEntry{PullID: 51, Title: "first one", Link: "/o/r/pulls/1", RepoFullName: "o/r", Index: 1, Section: issues_model.AscInboxNeedsReview, Updated: now.Add(-time.Hour), Author: "alice"}
+	old := &AscInboxEntry{PullID: 53, Title: "long done", Link: "/o/r/pulls/3", RepoFullName: "o/r", Index: 3, Section: issues_model.AscInboxNeedsReview, Updated: now.AddDate(0, 0, -40), Author: "alice"}
+	useAscInboxEntries(t, first,
+		&AscInboxEntry{PullID: 52, Title: "second one", Link: "/o/r/pulls/2", RepoFullName: "o/r", Index: 2, Section: issues_model.AscInboxNeedsReview, Updated: now.Add(-2 * time.Hour), Author: "alice"},
+		old,
+	)
+	_, err := issues_model.SetAscInboxDone(db.DefaultContext, user2.ID, 53, true, now.AddDate(0, 0, -31))
+	require.NoError(t, err)
+
+	// the row and the pane offer Mark done
+	_, body := getAscInbox(t, user2, "")
+	assert.Contains(t, body, `name="do" value="done"`)
+	assert.Contains(t, body, `data-asc-done-form`)
+	assert.Contains(t, body, `data-asc-done>`)
+	assert.NotContains(t, body, "long done", "done 31 days ago: gone from its section")
+
+	code, loc := postAscInboxState(t, user2, map[string]string{"pull": "51", "do": "done", "tab": "needs"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Equal(t, "/-/asc/inbox?undo=51", loc)
+
+	// it leaves its section, and the toast can take it back
+	_, body = getAscInbox(t, user2, "?undo=51")
+	assert.NotContains(t, body, "pull=51")
+	assert.Contains(t, body, "second one")
+	assert.Contains(t, body, "data-asc-undo")
+	_, body = getAscInbox(t, user2, "?undo=52")
+	assert.NotContains(t, body, "data-asc-undo", "no toast for an item that is not done")
+
+	// the Done tab lists it with Restore; one done more than 30 days ago is no longer listed
+	_, body = getAscInbox(t, user2, "?tab=done")
+	assert.Contains(t, body, "first one")
+	assert.Contains(t, body, `name="do" value="restore"`)
+	assert.NotContains(t, body, "long done")
+
+	// the badge does not count it
+	ctx, resp := contexttest.MockContext(t, "/-/asc/inbox/count")
+	ctx.Doer = user2
+	AscInboxCount(ctx)
+	assert.JSONEq(t, `{"count":1}`, resp.Body.String())
+
+	// Restore brings it back
+	code, loc = postAscInboxState(t, user2, map[string]string{"pull": "51", "do": "restore", "tab": "done"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.Equal(t, "/-/asc/inbox?tab=done", loc)
+	_, body = getAscInbox(t, user2, "")
+	assert.Contains(t, body, "pull=51")
+
+	// done again, then the pull request changes: it is back in its section
+	code, _ = postAscInboxState(t, user2, map[string]string{"pull": "51", "do": "done"})
+	assert.Equal(t, http.StatusSeeOther, code)
+	first.Updated = time.Now().Add(time.Minute)
+	_, body = getAscInbox(t, user2, "")
+	assert.Contains(t, body, "pull=51")
 }
