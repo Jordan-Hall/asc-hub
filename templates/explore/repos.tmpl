@@ -2,7 +2,8 @@
 <div role="main" aria-label="{{.Title}}" class="ds-main ds-explore repositories">
 	{{template "explore/navbar" .}}
 	{{template "shared/repo_search" .}}
-	<div class="ds-container ds-container-wide ds-explore-body">
+	<div class="ds-ptr" data-asc-ptr aria-hidden="true">{{svg "dsi-refresh" 20}}</div>
+	<div class="ds-container ds-container-wide ds-explore-body" data-asc-pull-refresh>
 		<div class="ds-split">
 			<div class="ds-min0">
 				<div class="ds-results-bar">
@@ -16,6 +17,7 @@
 				{{if .Repos}}{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Sort" .SortType)}}{{end}}
 				{{template "explore/repo_list" .}}
 				{{template "base/paginate" .}}
+				{{template "shared/ds/more" (dict "Page" .Page "Link" .Link "List" ".ds-repolist")}}
 			</div>
 			{{template "explore/rail" .}}
 		</div>

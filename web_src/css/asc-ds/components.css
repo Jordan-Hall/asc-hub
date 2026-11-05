@@ -1361,6 +1361,49 @@ ul.ds-list {
 .ds-crumbs .ds-sep { color: var(--text-3); }
 .ds-crumbs b { color: var(--text); }
 
+/* ---- more rows on a phone (asc-explore-more.js) and the pull to refresh arrow (asc-pull-refresh.js) ---- */
+.ds-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 0 4px;
+}
+
+.ds-more[hidden] { display: none; }
+
+.ds-more .ds-btn { min-height: 44px; }
+
+.ds-ptr {
+  position: fixed;
+  top: -36px;
+  inset-inline-start: calc(50% - 18px);
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-2);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ds-ptr.is-pulling,
+.ds-ptr.is-loading { opacity: 1; }
+
+.ds-ptr.is-armed { color: var(--link); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ds-ptr.is-loading svg { animation: ds-ptr-spin 800ms linear infinite; }
+}
+
+@keyframes ds-ptr-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ---- pager ---- */
 .ds-pager-wrap {
   display: flex;
