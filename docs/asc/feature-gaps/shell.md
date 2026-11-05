@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 120 |
-| ui-only-missing | 12 |
+| done | 121 |
+| ui-only-missing | 11 |
 | needs-hub-backend | 38 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 8, M 46, L 21.
+Open rows by size: S 7, M 46, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -184,7 +184,7 @@ Open rows by size: S 8, M 46, L 21.
 | ExploreOrgs | Agents count; member stack with up to four avatars and +N | needs-both | Members: `organization.GetOrgUsersByOrgID` (hub). Agents count: asc, as for Explore users | M |
 | ExploreOrgs | 12-week sparkline and "Active 12 min ago" | needs-hub-backend | Sparkline partial; org activity from the `action` table | M |
 | ExploreOrgs | Chips All, Verified, Has agents, I am a member; Size filter; Sort most active | needs-hub-backend | `routers/web/explore/org.go`; membership filter is simple, the others depend on rows above | M |
-| ExploreOrgs | View hover action; Start an organization card; grid layout; states | ui-only-missing | `user_list.tmpl`, `explore/rail.tmpl`, layout toggle | S |
+| ExploreOrgs | View hover action; Start an organization card; grid layout; states | done | View row action and empty, no-match and error states in `explore/user_list.tmpl`; Start an organization and verified explainer cards in `explore/users.tmpl`; List and Grid via `shared/ds/layout_toggle`; loading not shown, server rendered | - |
 
 ## Docs
 
