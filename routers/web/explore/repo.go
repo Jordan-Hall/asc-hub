@@ -118,7 +118,7 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 	private := ctx.FormOptionalBool("private")
 	ctx.Data["IsPrivate"] = private
 
-	repos, count, err = repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
+	repos, count, err = searchRepositories(ctx, &repo_model.SearchRepoOptions{
 		ListOptions: db.ListOptions{
 			Page:     page,
 			PageSize: opts.PageSize,
@@ -141,7 +141,17 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 		IsPrivate:          private,
 	})
 	if err != nil {
-		ctx.ServerError("SearchRepository", err)
+		if isSitemap || opts.TplName != tplExploreRepos {
+			ctx.ServerError("SearchRepository", err)
+			return
+		}
+		// the directory keeps its header, search and filters and says in the list that it could not be loaded, with the
+		// request id the log line carries
+		log.Error("explore: searching repositories (request %s): %v", ctx.RequestIDForLog(), err)
+		ctx.Data["Keyword"] = keyword
+		ctx.Data["ExploreLoadFailed"] = true
+		ctx.Data["ExploreRetryHref"] = "?" + ctx.Req.URL.RawQuery
+		ctx.HTML(http.StatusInternalServerError, opts.TplName)
 		return
 	}
 	if isSitemap {
@@ -192,6 +202,9 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 
 	ctx.HTML(http.StatusOK, opts.TplName)
 }
+
+// searchRepositories runs the repository search of the directory. Tests replace it.
+var searchRepositories = repo_model.SearchRepository
 
 // Repos render explore repositories page
 func Repos(ctx *context.Context) {

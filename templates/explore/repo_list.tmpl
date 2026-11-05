@@ -68,11 +68,21 @@
 	{{end}}
 </ul>
 {{else}}
-<div class="ds-card">
-	{{if or .Keyword .Language}}
-		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" "?" "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
+<div class="ds-card"{{if .ExploreLoadFailed}} role="alert"{{end}}>
+	{{if .ExploreLoadFailed}}
+		{{template "shared/ds/empty" (dict "Icon" "alert" "Tone" "err" "Title" (ctx.Locale.Tr "asc_shell.list_failed_title") "Body" (ctx.Locale.Tr "asc_shell.list_failed_text" .RequestID) "PrimaryHref" .ExploreRetryHref "PrimaryLabel" (ctx.Locale.Tr "asc_shell.try_again") "SecondaryHref" (print AppSubUrl "/-/status") "SecondaryLabel" (ctx.Locale.Tr "asc_err.status_page"))}}
+	{{else if or .Keyword .Language}}
+		<div class="ds-empty" data-asc-explore-nomatch>
+			<div class="ds-empty-ic" aria-hidden="true">{{svg "dsi-search" 34}}</div>
+			<h2>{{if .Keyword}}{{ctx.Locale.Tr "asc_shell.nomatch_title" .Keyword}}{{else}}{{ctx.Locale.Tr "asc_shell.nomatch_title_filters"}}{{end}}</h2>
+			<p>{{if and .Keyword .Language}}{{ctx.Locale.Tr "asc_shell.nomatch_text_n" 2}}{{else}}{{ctx.Locale.Tr "asc_shell.nomatch_text_1" 1}}{{end}}</p>
+			{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Sort" .SortType "NoClear" true)}}
+			<div class="ds-empty-acts"><a class="ds-btn ds-btn-primary" href="?sort={{QueryEscape .SortType}}">{{ctx.Locale.Tr "asc_shell.filters_clear"}}</a></div>
+		</div>
 	{{else if and .IsSigned .PageIsExplore}}
-		{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" (print AppSubUrl "/repo/create") "PrimaryLabel" (ctx.Locale.Tr "new_repo.link") "SecondaryHref" (print AppSubUrl "/repo/migrate") "SecondaryLabel" (ctx.Locale.Tr "new_migrate.link"))}}
+		{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "asc_shell.norepos_title") "Body" (ctx.Locale.Tr "asc_shell.norepos_text") "PrimaryHref" (print AppSubUrl "/repo/create") "PrimaryLabel" (ctx.Locale.Tr "new_repo.link") "SecondaryHref" (print AppSubUrl "/repo/migrate") "SecondaryLabel" (ctx.Locale.Tr "asc_shell.norepos_import"))}}
+	{{else if .PageIsExplore}}
+		{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "asc_shell.norepos_title") "Body" (ctx.Locale.Tr "asc_shell.norepos_text"))}}
 	{{else}}
 		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_repos_title") "Body" (ctx.Locale.Tr "search.no_results"))}}
 	{{end}}

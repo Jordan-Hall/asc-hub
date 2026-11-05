@@ -13,7 +13,7 @@
 					</div>
 					{{template "shared/ds/layout_toggle" (dict "Target" ".ds-repolist")}}
 				</div>
-				{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Sort" .SortType)}}
+				{{if .Repos}}{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Sort" .SortType)}}{{end}}
 				{{template "explore/repo_list" .}}
 				{{template "base/paginate" .}}
 			</div>
