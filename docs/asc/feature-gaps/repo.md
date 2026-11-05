@@ -177,8 +177,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Result card: path, language, branch list, snippet with highlights | done | `asc_search.tmpl` | S |
 | Search | Relevance percentage with a bar (grows over 300 ms) | done | `Chunk` score is shown as a raw number pill (`$c.Score`); convert to percent bar in `asc_search.tmpl` | S |
 | Search | "Why it matched" reason sentence per result | needs-asc-backend | `A:proto/asc/v1/codeintel.proto` `Chunk` has no reason; add a reason from the retrieval source or a short model-written line; show in `asc_search.tmpl` | L |
-| Search | Symbol chips under a result ("RetryPolicy::delay", "14 references elsewhere", "changed 3 h ago") | ui-only-missing | symbol and reference counts from `CodeIntel.Symbols`; last change from `Repo.LastCommits` | M |
-| Search | "Symbols matched: RetryPolicy, retry" line | ui-only-missing | `asc_search.tmpl` header line from `CodeIntel.Symbols` | S |
+| Search | Symbol chips under a result ("RetryPolicy::delay", "14 references elsewhere", "changed 3 h ago") | done | `H:routers/web/repo/asc_search_defs.go`: DEF and REFS per word of a text search of one version, last change from `Repo.LastCommits`; test `TestAscSearchSymbolsMatched` | M |
+| Search | "Symbols matched: RetryPolicy, retry" line | done | repository search (`ascSearchDefinitions`) and the all-repositories search (`definitions`) | S |
 | Search | Code intelligence side panel (definition, signature, Go to definition, references, Called from, cross-repo callers) | ui-only-missing | `CrossSearch.SymbolPanel` (hub client `H:services/ascsearch/panel.go`, REST only) and `GET /asc/symbols`; no template renders it; add right-column fragment and update on symbol select | L |
 | Search | Coverage line ("Indexed at e91b0d4, 99.2% of files; 4 files too large, listed in settings") | done | `asc_search.tmpl` coverage block (percent and lag); link to settings is missing | S |
 | Search | Sort: best match, pagination "Showing 4 of 38", page links | ui-only-missing | `asc_search.tmpl` has a Truncated banner only | M |

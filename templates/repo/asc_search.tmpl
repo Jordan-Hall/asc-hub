@@ -127,6 +127,7 @@
 					<p class="asc-search-where" id="asc-search-where" role="status">
 						<b>{{.AscSearchCount}} {{ctx.Locale.TrN .AscSearchCount "asc_rp.s_result_1" "asc_rp.s_result_n"}}</b> {{ctx.Locale.Tr "asc_rp.s_at"}} <span class="tw-font-mono">{{.AscSearchRev}}</span>
 						{{if eq .AscSearchMode "semantic"}}{{if .AscSearchModel}} {{ctx.Locale.Tr "asc_rp.s_using_model"}} <span class="tw-font-mono">{{.AscSearchModel}}</span>{{end}}{{end}}
+						{{if .AscSearchMatched}}<span class="asc-pill asc-pill-info" data-testid="search-symbols-matched">{{ctx.Locale.Tr "asc_rp.s_symbols_matched"}} {{range $i, $m := .AscSearchMatched}}{{if $i}}, {{end}}<span class="tw-font-mono">{{$m}}</span>{{end}}</span>{{end}}
 					</p>
 					{{if .AscSearchFailed}}
 						<div class="ds-banner ds-banner-warn" role="status">{{ctx.Locale.Tr "asc_rp.s_failed" .AscSearchFailed .AscSearchTargets}}</div>
@@ -147,6 +148,15 @@
 										<a class="asc-path" href="{{$f.Link}}">{{$f.Path}}</a>
 										{{if $f.Lang}}<span class="asc-pill asc-pill-lang">{{$f.Lang}}</span>{{end}}
 									</div>
+									{{if or $f.Defs $f.ChangedLink}}
+										<ul class="asc-sym-chips" aria-label="{{ctx.Locale.Tr "asc_rp.s_symbols_here"}}">
+											{{range $d := $f.Defs}}
+												<li><a class="asc-pill asc-pill-def tw-font-mono" href="{{$d.Link}}">{{$d.Label}}</a></li>
+												<li><a class="asc-pill" href="{{$d.RefsLink}}">{{if $d.RefsMore}}{{ctx.Locale.Tr "asc_rp.s_refs_more" $d.Refs}}{{else}}{{ctx.Locale.TrN $d.Refs "asc_rp.s_refs_1" "asc_rp.s_refs_n" $d.Refs}}{{end}}</a></li>
+											{{end}}
+											{{if $f.ChangedLink}}<li><a class="asc-pill" href="{{$f.ChangedLink}}">{{ctx.Locale.Tr "asc_rp.s_changed" (DateUtils.TimeSince $f.Changed)}}</a></li>{{end}}
+										</ul>
+									{{end}}
 									{{if $f.Redacted}}
 										<p class="asc-redacted">{{ctx.Locale.Tr "asc_rp.s_hidden_file"}}</p>
 									{{else}}
