@@ -455,3 +455,19 @@ a.rp-ref-name:hover {
   min-width: 32px;
   min-height: 32px;
 }
+
+/* a phone: each download of the rail is a 44 px target */
+@media (max-width: 1023.98px) {
+  .rp-rel-rail .rp-platforms a,
+  .rp-rel-rail .rp-rail-list a,
+  .rp-rel-rail .rp-platforms .ds-copy {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .rp-rel-rail .rp-platforms .ds-copy {
+    min-width: 44px;
+    justify-content: center;
+  }
+}
