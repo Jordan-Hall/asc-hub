@@ -4,6 +4,9 @@
 	<div class="ds-container rp-body">
 		{{template "base/alert" .}}
 		{{template "repo/release_tag_header" .}}
+		{{if .AscReleasesFailed}}
+		<div class="ds-banner ds-banner-warn" role="status" data-testid="release-storage-error"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_rp.rel_storage_error"}}</div><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.AscRetryURL}}">{{ctx.Locale.Tr "asc_rp.rel_retry"}}</a></div>
+		{{end}}
 		{{if .Releases}}
 		<div class="ds-split">
 		<div class="ds-min0">
@@ -191,6 +194,9 @@
 		{{else}}
 			<div class="rp-sec rp-sec-b">
 				{{template "shared/ds/empty" (dict "Icon" "package" "Title" (ctx.Locale.Tr "asc_rp.no_releases_title") "Body" (ctx.Locale.Tr "asc_rp.no_releases_body"))}}
+				{{if and AscEnabled .CanCreateRelease (not .Keyword)}}
+				<div class="ds-cmd ds-cmd-scroll rp-rel-empty-cmd" data-testid="release-empty-command"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc release create v1.0.0</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc release create v1.0.0">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+				{{end}}
 			</div>
 		{{end}}
 		{{template "base/paginate" .}}

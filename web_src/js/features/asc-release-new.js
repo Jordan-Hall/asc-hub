@@ -49,8 +49,10 @@ function applyDraft(dialog, draft) {
 
 async function loadDraft(dialog) {
   const state = dialog.querySelector('[data-rel-new-state]');
+  state.textContent = state.getAttribute('data-loading');
   try {
     const res = await GET(dialog.getAttribute('data-draft-url'));
+    state.textContent = '';
     if (res.ok) {
       applyDraft(dialog, await res.json());
     } else if (res.status === 503) {

@@ -471,3 +471,18 @@ a.rp-ref-name:hover {
     justify-content: center;
   }
 }
+
+/* the release list states: the asc command under the empty state, the storage banner above the list */
+.rp-rel-empty-cmd {
+  max-width: 420px;
+  margin: 0 auto 24px;
+}
+
+[data-testid="release-storage-error"] {
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+[data-testid="release-storage-error"] .ds-banner-body {
+  flex: 1;
+}

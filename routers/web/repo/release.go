@@ -225,7 +225,9 @@ func Releases(ctx *context.Context) {
 	applyReleaseChannel(findOpts, channel)
 	ctx.Data["ReleaseChannel"] = channel
 	// The releases that exist only in asc are listed with the hub's (asc_release_merge.go).
-	records := asctrust.ListReleaseRecords(ctx, ctx.Repo.Repository)
+	records, recordsFailed := asctrust.ReadReleaseRecords(ctx, ctx.Repo.Repository)
+	ctx.Data["AscReleasesFailed"] = recordsFailed
+	ctx.Data["AscRetryURL"] = ctx.Req.URL.RequestURI()
 	ascOnly := ascOnlyReleases(ctx, records, writeAccess)
 	ctx.Data["ReleaseChannels"] = ascAddChannelCounts(releaseChannelCounts(ctx, ctx.Repo.Repository.ID, keyword, writeAccess), ascOnly, keyword)
 
