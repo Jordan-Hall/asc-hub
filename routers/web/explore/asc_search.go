@@ -418,6 +418,7 @@ func AscExploreSearch(ctx *context.Context) {
 	ctx.Data["AscMatched"] = view.matched
 	ctx.Data["AscLangFacets"] = view.langs
 	ctx.Data["AscDirFacets"] = view.dirs
+	ctx.Data["AscRepoFacets"], ctx.Data["AscRepoFacetsMore"] = ascExploreRepoFacets(q, view.groups)
 	if view.next != "" {
 		ctx.Data["AscMore"] = q.url(map[string]string{"page_token": view.next})
 	}

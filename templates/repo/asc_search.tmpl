@@ -91,6 +91,16 @@
 		{{else if .AscSearchDone}}
 			<div class="asc-search-layout">
 				<div class="asc-search-facets" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.s_filters"}}">
+					{{if .AscSearchBranchFacets}}
+						<section data-testid="search-facet-branch">
+							<h2 class="asc-facet-title">{{ctx.Locale.Tr "asc_rp.s_branch_facet"}}</h2>
+							<ul class="asc-facet-list">
+								{{range .AscSearchBranchFacets}}
+									<li><a class="asc-chip tw-font-mono" href="{{.URL}}"><span>{{.Name}}</span><span class="asc-count">{{.Count}}</span></a></li>
+								{{end}}
+							</ul>
+						</section>
+					{{end}}
 					{{if .AscSearchLangFacets}}
 						<section>
 							<h2 class="asc-facet-title">{{ctx.Locale.Tr "asc_rp.s_language"}}</h2>

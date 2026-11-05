@@ -276,6 +276,9 @@ func TestAscExploreText(t *testing.T) {
 	assert.Contains(t, page.body, "Language")
 	assert.Contains(t, page.body, "Rust")
 	assert.Contains(t, page.body, "mode=text")
+	assert.Contains(t, page.body, `data-testid="search-facet-repo"`)
+	assert.Contains(t, page.body, `<span>user2/repo1</span><span class="asc-count">2</span>`)
+	assert.Contains(t, page.body, `href="/user2/repo1/asc/search?case=1&amp;lang=Rust&amp;match=word&amp;mode=lexical&amp;path=src&amp;q=retry"`)
 	assert.Contains(t, page.body, "50% of files")
 	assert.Contains(t, page.body, "Results may be incomplete")
 	assert.Contains(t, page.body, "Try meaning search")
@@ -547,4 +550,27 @@ func TestAscExploreHelpers(t *testing.T) {
 	assert.Equal(t, "needle", lines[3].Segments[1].Text)
 	assert.True(t, lines[3].Segments[1].Hit)
 	assert.Nil(t, ascExploreLines(r, ascsearch.FileHit{Path: "c.rs", Redacted: true, Matches: []ascsearch.LineMatch{{Line: 1}}}, ""))
+}
+
+func TestAscExploreRepoFacets(t *testing.T) {
+	q := ascExploreQuery{mode: "meaning", text: "where", match: "regex", cs: true}
+	groups := []ascExploreGroup{
+		{Name: "o/one", Link: "/o/one", Chunks: make([]ascExploreChunk, 1)},
+		{Name: "o/empty", Link: "/o/empty"},
+		{Name: "o/four", Link: "/o/four", Chunks: make([]ascExploreChunk, 4)},
+		{Name: "o/b", Link: "/o/b", Chunks: make([]ascExploreChunk, 2)},
+		{Name: "o/a", Link: "/o/a", Chunks: make([]ascExploreChunk, 2)},
+	}
+	shown, more := ascExploreRepoFacets(q, groups)
+	var names []string
+	for _, f := range append(shown, more...) {
+		names = append(names, f.Name)
+	}
+	assert.Equal(t, []string{"o/four", "o/a", "o/b", "o/one"}, names, "most hits first, then by name; a repository without hits is left out")
+	assert.Len(t, shown, ascExploreRepoFacetsShown)
+	assert.Equal(t, "/o/four/asc/search?mode=semantic&q=where", shown[0].URL, "the mode of the repository search, and no text options")
+
+	shown, more = ascExploreRepoFacets(q, groups[:2])
+	assert.Len(t, shown, 1)
+	assert.Nil(t, more)
 }

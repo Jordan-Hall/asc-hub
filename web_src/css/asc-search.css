@@ -169,6 +169,15 @@
   background: var(--color-primary-light-7);
 }
 
+.asc-facet-more > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 8px;
+  cursor: pointer;
+  color: var(--color-primary);
+}
+
 .asc-chip .asc-count {
   color: var(--color-text-light-2);
   font-size: 12.5px;

@@ -249,6 +249,7 @@ func AscSearch(ctx *context.Context) {
 	ctx.Data["AscSearchFailed"] = failed
 	ctx.Data["AscSearchTargets"] = len(targets)
 	ctx.Data["AscSearchLangFacets"], ctx.Data["AscSearchDirFacets"] = ascSearchFacets(ctx.Repo.RepoLink, q, res)
+	ctx.Data["AscSearchBranchFacets"] = ascSearchBranchFacets(ctx.Repo.RepoLink, q, res)
 
 	// The coverage note is advice about the answer, so its failure never fails the page. It is read for the
 	// first place searched; an all-branches search says so.
