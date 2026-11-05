@@ -71,10 +71,13 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 			{{if $p.Rows}}
 				<div data-bulk>
 				<div class="wk-bulkbar" data-bulk-bar hidden>
-					<span class="wk-bulkbar-count" data-bulk-count role="status" aria-live="polite" data-one="{{ctx.Locale.Tr "asc_work.bulk_one"}}" data-n="{{ctx.Locale.Tr "asc_work.bulk_n"}}"></span>
-					<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"snooze","for":"4h","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.snooze"}}</button>
-					<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"pin","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.pin"}}</button>
-					<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-bulk-clear>{{ctx.Locale.Tr "asc_work.bulk_clear"}}</button>
+					<label class="wk-irow-check wk-bulkbar-all"><input type="checkbox" checked data-bulk-unselect><span class="ds-sr">{{ctx.Locale.Tr "asc_work.bulk_clear"}}</span></label>
+					<b class="wk-bulkbar-count" data-bulk-count role="status" aria-live="polite" data-one="{{ctx.Locale.Tr "asc_work.bulk_one"}}" data-n="{{ctx.Locale.Tr "asc_work.bulk_n"}}"></b>
+					<span class="wk-bulkbar-acts">
+						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"done","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.mark_done"}}</button>
+						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"snooze","for":"4h","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.snooze"}}</button>
+						<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-bulk-do data-bulk-url="{{AppSubUrl}}/-/asc/inbox/state" data-bulk-field="pull" data-bulk-fields='{"do":"unwatch","tab":"{{$p.Tab}}"}' data-failed="{{ctx.Locale.Tr "asc_work.bulk_failed"}}">{{ctx.Locale.Tr "user.asc_inbox.unwatch"}}</button>
+					</span>
 				</div>
 				<ul class="wk-ilist" data-asc-list>
 					{{$day := ""}}

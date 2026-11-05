@@ -263,6 +263,16 @@
   font-weight: 600;
 }
 
+.wk-bulkbar-all {
+  margin: 0;
+}
+
+.wk-bulkbar-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .wk-irow-go {
   color: var(--ok);
   font-size: 13px;

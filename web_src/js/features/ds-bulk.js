@@ -3,10 +3,11 @@
 //     <input type="checkbox" data-bulk-item value="<id>"> ... one per row
 //     <div data-bulk-bar hidden> <span data-bulk-count data-one="1 selected" data-n="%d selected"></span>
 //       <button data-bulk-do data-bulk-url="/post/here" data-bulk-field="pull" data-bulk-fields='{"do":"snooze","for":"1h"}'>...</button>
-//       <button data-bulk-clear>...</button> </div>
+//       <input type="checkbox" checked data-bulk-unselect> clears the selection when unticked </div>
 //   </div>
 // The bar is a polite live region that says how many rows are chosen. A bulk action sends one request per row to
-// the endpoint that already handles one row (same form fields, the page's CSRF token), then reloads the page.
+// the endpoint that already handles one row (same form fields, the page's CSRF token), then reloads the page. Escape
+// in the list clears the selection, as the ticked box of the bar does.
 // Every row action keeps working without this script.
 
 import {shortcutsEnabled} from './ds-prefs.js';
@@ -26,18 +27,27 @@ function updateBar(root, bar, note) {
   for (const el of bulkItems(root)) el.closest('[data-bulk-row]')?.classList.toggle('is-checked', el.checked);
 }
 
+function clearAll(root, bar, note) {
+  for (const el of bulkItems(root)) el.checked = false;
+  updateBar(root, bar, note);
+}
+
 export function initBulk() {
   for (const root of document.querySelectorAll('[data-bulk]')) {
     const bar = root.querySelector('[data-bulk-bar]');
     const note = root.querySelector('[data-bulk-count]');
     if (!bar || !note) continue;
-    const items = () => bulkItems(root);
     const chosen = () => bulkChosen(root);
     const update = () => updateBar(root, bar, note);
     root.addEventListener('change', (e) => {
       if (e.target instanceof Element && e.target.matches('input[data-bulk-item]')) update();
     });
+    const clear = () => clearAll(root, bar, note);
     root.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && chosen().length) {
+        clear();
+        return;
+      }
       // x toggles the row that has the focus, when shortcuts are not in a field
       if (e.key !== 'x' || e.ctrlKey || e.metaKey || e.altKey || !shortcutsEnabled()) return;
       const row = e.target instanceof Element ? e.target.closest('[data-bulk-row]') : null;
@@ -46,9 +56,10 @@ export function initBulk() {
       box.checked = !box.checked;
       update();
     });
-    root.querySelector('[data-bulk-clear]')?.addEventListener('click', () => {
-      for (const el of items()) el.checked = false;
-      update();
+    const unselect = root.querySelector('input[data-bulk-unselect]');
+    unselect?.addEventListener('change', () => {
+      unselect.checked = true;
+      clear();
     });
     for (const btn of root.querySelectorAll('[data-bulk-do]')) {
       btn.addEventListener('click', async () => {
