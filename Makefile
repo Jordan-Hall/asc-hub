@@ -1070,3 +1070,4 @@ endif
 .PHONY: docs-sync
 docs-sync:
 	for f in README INSTALL STACK-OPERATIONS AGENTS-UI WORKFLOWS CLI MCP STORAGE-AND-KEYS OPERATIONS ARCHITECTURE WHY; do cp docs/asc/$$f.md services/ascdocs/content/$$f.md; done
+	{ printf '{'; sep=; for f in README INSTALL STACK-OPERATIONS AGENTS-UI WORKFLOWS CLI MCP STORAGE-AND-KEYS OPERATIONS ARCHITECTURE WHY; do printf '%s"%s.md": "%s"' "$$sep" $$f "$$(git log -1 --format=%cs -- docs/asc/$$f.md)"; sep=', '; done; printf '}\n'; } > services/ascdocs/content/updated.json

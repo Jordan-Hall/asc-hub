@@ -11,7 +11,36 @@ export function pickActive(tops, offset = 96) {
   return active ?? tops[0]?.id ?? null;
 }
 
+const sideKey = 'asc-docs-side';
+
+function safeGet(storage) {
+  try {
+    return storage.getItem(sideKey);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The guides beside an article keep their scroll position from page to page: it is kept for the tab when a page is left
+ * and put back when the next one opens; the page open is then brought into view if it is not.
+ */
+export function keepSideScroll(side, storage = window.sessionStorage) {
+  const top = Number(safeGet(storage));
+  if (top > 0) side.scrollTop = top;
+  side.querySelector('a[aria-current="page"]')?.scrollIntoView?.({block: 'nearest'});
+  window.addEventListener('pagehide', () => {
+    try {
+      storage.setItem(sideKey, String(Math.round(side.scrollTop)));
+    } catch {
+      // storage is blocked: the list opens at its top
+    }
+  });
+}
+
 export function initAscDocs() {
+  const side = document.querySelector('[data-asc-docs-side]');
+  if (side) keepSideScroll(side);
   const toc = document.querySelector('.site-toc [data-toc]');
   if (!toc) return;
   const links = Array.from(toc.querySelectorAll('a[href^="#"]'));

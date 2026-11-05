@@ -14,18 +14,21 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
-//go:embed content/*.md content/manifest.json content/changelog.json
+//go:embed content/*.md content/manifest.json content/changelog.json content/updated.json
 var content embed.FS
 
 // Page is one documentation page.
 type Page struct {
-	Slug    string `json:"slug"`
-	File    string `json:"file"`
-	Title   string `json:"title"`
-	Summary string `json:"summary"`
-	Section string `json:"section"`
+	Slug    string    `json:"slug"`
+	File    string    `json:"file"`
+	Title   string    `json:"title"`
+	Summary string    `json:"summary"`
+	Section string    `json:"section"`
+	Updated time.Time `json:"-"` // the last change of the source (content/updated.json, written by make docs-sync)
+	Minutes int       `json:"-"` // reading time at 200 words a minute, at least one
 }
 
 // Entry is one line of the "New in ASC" list.
@@ -74,6 +77,15 @@ func load() {
 		loadErr = fmt.Errorf("docs manifest: %w", err)
 		return
 	}
+	var updated map[string]string
+	raw, err = content.ReadFile("content/updated.json")
+	if err == nil {
+		err = json.Unmarshal(raw, &updated)
+	}
+	if err != nil {
+		loadErr = fmt.Errorf("docs updated dates: %w", err)
+		return
+	}
 	bySlug = map[string]*doc{}
 	for _, p := range m.Pages {
 		b, err := content.ReadFile("content/" + p.File)
@@ -81,6 +93,11 @@ func load() {
 			loadErr = fmt.Errorf("docs page %s: %w", p.Slug, err)
 			return
 		}
+		if p.Updated, err = time.Parse(time.DateOnly, updated[p.File]); err != nil {
+			loadErr = fmt.Errorf("docs page %s: no updated date: %w", p.Slug, err)
+			return
+		}
+		p.Minutes = max(1, (len(strings.Fields(string(b)))+199)/200)
 		d := doc{page: p, body: string(b), lower: strings.ToLower(string(b))}
 		docs = append(docs, d)
 	}
