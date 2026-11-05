@@ -304,7 +304,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | done | policy lookup per agent identity;; Audit 2026-10-30 (was marked done, part missing): Marked done; the text Limited by policy to ... was not found. | M |
 | RepoSettingsAccess | Remove agent confirm that says the running run stops and open changes stay with the owner | needs-both | `Agents.CancelRun` on removal in `collaboration.go`; confirm dialog text | M |
 | RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | done (seen on a live hub (ui26): the invite answers "rev already has Write access to this repository.") | `collaboration.go` error text | S |
-| RepoSettingsAccess | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used, Add dialog | ui-only-missing | `H:templates/repo/settings/deploy_keys.tmpl` is its own page at `/settings/keys`; the board says both routes render one layout | M |
+| RepoSettingsAccess | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used, Add dialog | done | `/settings/collaboration` and `/settings/keys` both render the access page; `H:templates/repo/settings/deploy_keys_section.tmpl` with the Add dialog (`asc-deploy-key-add.js`); `deploy_key.added_by_id` (migration v18k) set on web and API add | M |
 | RepoSettingsAccess | No deploy keys empty state | done | `settings.no_deploy_keys` | S |
 
 ## RepoSettingsPolicy
@@ -409,9 +409,9 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 168 |
+| done | 169 |
 | partial | 1 |
-| ui-only-missing | 33 |
+| ui-only-missing | 32 |
 | needs-hub-backend | 33 |
 | needs-asc-backend | 11 |
 | needs-both | 17 |
@@ -437,7 +437,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Stacks | 1 | 6 | 6 | 0 | 0 |
 | RepoSettingsMenu | 0 | 2 | 0 | 0 | 0 |
 | RepoSettingsGeneral | 2 | 3 | 3 | 0 | 1 |
-| RepoSettingsAccess | 1 | 3 | 3 | 0 | 1 |
+| RepoSettingsAccess | 2 | 2 | 3 | 0 | 1 |
 | RepoSettingsPolicy | 6 | 3 | 0 | 1 | 2 |
 | RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
 | RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 74, M 91, L 33.
+Open-size totals of the rows that are not done: S 74, M 90, L 33.

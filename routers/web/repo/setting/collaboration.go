@@ -27,11 +27,20 @@ import (
 func Collaboration(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("repo.settings.collaboration")
 	ctx.Data["PageIsSettingsCollaboration"] = true
+	if !loadAccess(ctx) {
+		return
+	}
+	ctx.HTML(http.StatusOK, tplCollaboration)
+}
 
+// loadAccess puts the page data of the access page in place: the people, the teams and the deploy keys of the
+// repository. Both /settings/collaboration and /settings/keys render that page. It reports false after it has
+// answered with an error.
+func loadAccess(ctx *context.Context) bool {
 	users, err := repo_model.GetCollaborators(ctx, ctx.Repo.Repository.ID, db.ListOptions{})
 	if err != nil {
 		ctx.ServerError("GetCollaborators", err)
-		return
+		return false
 	}
 	ctx.Data["Collaborators"] = users
 	ctx.Data["AgentScope"] = ascAgentScope(ctx, users)
@@ -39,7 +48,7 @@ func Collaboration(ctx *context.Context) {
 	teams, err := organization.GetRepoTeams(ctx, ctx.Repo.Repository)
 	if err != nil {
 		ctx.ServerError("GetRepoTeams", err)
-		return
+		return false
 	}
 	ctx.Data["Teams"] = teams
 	ctx.Data["Repo"] = ctx.Repo.Repository
@@ -47,8 +56,7 @@ func Collaboration(ctx *context.Context) {
 	ctx.Data["OrgName"] = ctx.Repo.Repository.OwnerName
 	ctx.Data["Org"] = ctx.Repo.Repository.Owner
 	ctx.Data["Units"] = unit_model.Units
-
-	ctx.HTML(http.StatusOK, tplCollaboration)
+	return loadDeployKeys(ctx)
 }
 
 // CollaborationPost response for actions for a collaboration of a repository

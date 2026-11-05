@@ -23,7 +23,7 @@
 						<div class="flex-item-trailing">
 							<div class="flex-text-block">
 								{{svg "octicon-shield-lock"}}
-								<div class="ui inline dropdown access-mode" data-url="{{$.Link}}/access_mode" data-uid="{{.ID}}" data-last-value="{{printf "%d" .Collaboration.Mode}}" data-changed="{{ctx.Locale.Tr "asc_rp.access_changed" .GetDisplayName}}" data-undo="{{ctx.Locale.Tr "asc_rp.access_undo"}}" data-close="{{ctx.Locale.Tr "asc_rp.access_close"}}">
+								<div class="ui inline dropdown access-mode" data-url="{{$.RepoLink}}/settings/collaboration/access_mode" data-uid="{{.ID}}" data-last-value="{{printf "%d" .Collaboration.Mode}}" data-changed="{{ctx.Locale.Tr "asc_rp.access_changed" .GetDisplayName}}" data-undo="{{ctx.Locale.Tr "asc_rp.access_undo"}}" data-close="{{ctx.Locale.Tr "asc_rp.access_close"}}">
 									<div class="text">{{if eq .Collaboration.Mode 1}}{{ctx.Locale.Tr "repo.settings.collaboration.read"}}{{else if eq .Collaboration.Mode 2}}{{ctx.Locale.Tr "repo.settings.collaboration.write"}}{{else if eq .Collaboration.Mode 3}}{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}{{else}}{{ctx.Locale.Tr "repo.settings.collaboration.undefined"}}{{end}}</div>
 									{{svg "octicon-triangle-down" 14 "dropdown icon"}}
 									<div class="menu">
@@ -33,7 +33,7 @@
 									</div>
 								</div>
 							</div>
-							<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button" data-url="{{$.Link}}/delete" data-id="{{.ID}}" data-modal-id="delete-collaborator">
+							<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button" data-url="{{$.RepoLink}}/settings/collaboration/delete" data-id="{{.ID}}" data-modal-id="delete-collaborator">
 								{{ctx.Locale.Tr "repo.settings.delete_collaborator"}}
 							</button>
 						</div>
@@ -43,7 +43,7 @@
 		</div>
 		{{end}}
 		<div class="ds-card ds-card-b ds-card-attach">
-			<form class="ui form ds-form" id="repo-collab-form" action="{{.Link}}" method="post">
+			<form class="ui form ds-form" id="repo-collab-form" action="{{.RepoLink}}/settings/collaboration" method="post">
 				<div id="search-user-box" class="ui search input tw-align-middle">
 					<input class="prompt" name="collaborator" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" autofocus required>
 				</div>
@@ -78,7 +78,7 @@
 						</div>
 						{{if $allowedToChangeTeams}}
 							<div class="flex-item-trailing" {{if .IncludesAllRepositories}} data-tooltip-content="{{ctx.Locale.Tr "repo.settings.delete_team_tip"}}"{{end}}>
-								<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button {{if .IncludesAllRepositories}}disabled {{end}}" data-url="{{$.Link}}/team/delete" data-id="{{.ID}}" data-modal-id="delete-collaborator">
+								<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button {{if .IncludesAllRepositories}}disabled {{end}}" data-url="{{$.RepoLink}}/settings/collaboration/team/delete" data-id="{{.ID}}" data-modal-id="delete-collaborator">
 										{{ctx.Locale.Tr "repo.settings.delete_collaborator"}}
 								</button>
 							</div>
@@ -90,7 +90,7 @@
 		{{end}}
 		<div class="ds-card ds-card-b ds-card-attach">
 			{{if $allowedToChangeTeams}}
-				<form class="ui form ds-form" id="repo-collab-team-form" action="{{.Link}}/team" method="post">
+				<form class="ui form ds-form" id="repo-collab-team-form" action="{{.RepoLink}}/settings/collaboration/team" method="post">
 					<div id="search-team-box" class="ui search input tw-align-middle" data-org-name="{{.OrgName}}">
 						<input class="prompt" name="team" placeholder="{{ctx.Locale.Tr "search.team_kind"}}" autocomplete="off" autofocus required>
 					</div>
@@ -103,6 +103,7 @@
 			{{end}}
 		</div>
 		{{end}}
+		{{template "repo/settings/deploy_keys_section" .}}
 	</div>
 
 <div class="ui g-modal-confirm delete modal" id="delete-collaborator">
