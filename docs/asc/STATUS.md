@@ -315,7 +315,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Greeting by time of day and summary line | done | routers/web/user/asc_dashboard.go (file) | - |
 | Work list with counts (Inbox, My stacks, Review requests, Agent runs), repositories, teams | done | templates/user/dashboard/asc_home.tmpl:17 | - |
-| Pinned repositories per person; counts update live | missing (hub) | logged as not built (not re-probed) | ascDashRepos takes the five latest. Pin table (models/user) and a star-like action; counts need the live update below |
+| Pinned repositories per person; counts update live | done | routers/web/user/asc_dashboard.go `ascDashRepos`, `AscDashCounts`; web_src/js/features/asc-dash-live.js `refreshCounts` | Profile pins lead the work switcher; the counts load again with the Today card every minute (TestAscDashReposPutThePinsFirst) |
 | Scope chips Everything / org / Personal filter the whole page, remembered | done | templates/user/dashboard/asc_home.tmpl:48 (best match) | - |
 | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | missing (hub+asc) | logged as not built (not re-probed) | Buttons are links (aria-hidden, tabindex -1) to the review. Hub: POST handlers for approve (review in routers/web/repo/pull.go),... |
@@ -656,7 +656,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Request a review (picker with repository and change) and Mention | partial (hub+asc) | logged as not built (not re-probed) | Absent. Hub: picker modal of the viewer's open pull requests (routers/web/user/profile.go) and POST to asc RequestReview (exists... |
 | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | templates/user/overview/header.tmpl (file) | - |
 | Working-now list (stack, draft, ready) | done | templates/user/profile.tmpl (file) | - |
-| Pinned repositories (up to six) with Customize dialog and drag reorder | missing (hub) | logged as not built (not re-probed) | None. Pin table, POST /user/settings/pins, keyboard dialog, htmx |
+| Pinned repositories (up to six) with Customize dialog and drag reorder | done | templates/user/settings/pins_form.tmpl, web_src/js/features/asc-pins.js, routers/web/user/asc_profile_tabs.go `ascPinRows` | Cards show stacks and changes; drag the cards, or Customize in a dialog with Move up and Move down (TestAscProfilePins) |
 | Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for ag... | partial (hub+asc) | logged as not built (not re-probed) | One-colour grid exists (asc_heatmap.tmpl) with a text total. Agent attribution needs asc (changeset author kind via changes.proto... |
 | "Agents Priya runs" with New agent | missing (hub+asc) | logged as not built (not re-probed) | Not on the profile. Hub must list the person's agents (see Explore users) with scope and counts |
 | Recent activity | done | templates/user/profile.tmpl:76 | - |
