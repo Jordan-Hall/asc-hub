@@ -12,8 +12,8 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 127 |
-| ui-only-missing | 6 |
+| done | 128 |
+| ui-only-missing | 5 |
 | needs-hub-backend | 37 |
 | needs-asc-backend | 2 |
 | needs-both | 23 |
@@ -21,7 +21,7 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 3, M 44, L 21.
+Open rows by size: S 3, M 43, L 21.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -237,7 +237,7 @@ Open rows by size: S 3, M 44, L 21.
 | Dashboard | Today feed with Filter | done | Feed present; filter menu missing | S |
 | Dashboard | From your terminal card with Copy; g i tip | done | `asc_home.tmpl` | - |
 | Dashboard | Live updates | needs-both | Counts load once. Hub: poll `/-/asc/inbox/count` or reuse `eventsource.sharedworker.js`; asc `WatchRefs` / queue `Watch` for pushes | L |
-| Dashboard | States: loading skeleton, new account, offline error with retry countdown | ui-only-missing | Inbox zero exists; the others missing | M |
+| Dashboard | States: loading skeleton, new account, offline error with retry countdown | done | `user/dashboard/asc_home.tmpl`: the main column is `data-asc-list-main` with a three-row skeleton a scope chip shows (`asc-list-loading.js`); new account and inbox zero empty states; `user/dashboard/asc_today.tmpl` Today card refreshes every minute from `GET /-/asc/dash/today` (`asc-dash-live.js`: not while hidden or in use) and on a failed load keeps its items and shows "Offline. Activity could not load." with Try again and "Retrying in N s" (8, 16, 32, 60 s), the `online` event retries at once | - |
 | Dashboard | Undo toast ("Added to merge queue. Undo for 10 s") | needs-both | `toast.js` has no action button; asc `Dequeue` exists for undo; goes with row actions | M |
 | Dashboard | Appearance setting hides agent surfaces | done | `ascagentui.FeaturesEnabled` | - |
 | Mobile-Dashboard | Pull to refresh; swipe a row left to snooze, right to mark done | needs-hub-backend | New touch module; done state (Inbox) | M |
