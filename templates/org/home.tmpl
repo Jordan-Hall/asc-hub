@@ -25,8 +25,19 @@
 					</div>
 				{{end}}
 				{{template "shared/repo_search" .}}
-				{{template "explore/repo_list" .}}
-				{{template "base/paginate" .}}
+				{{/* a search, a sort, a filter or a page loads the page again; until it does the list shows skeleton rows (asc-list-loading.js) */}}
+				<div class="wk-org-list" data-asc-list-main>
+					<div class="ds-card wk-org-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "loading"}}" data-asc-list-loading hidden>
+						<ul class="ds-list">
+						<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+						<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+						<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+						<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+						</ul>
+					</div>
+					{{template "explore/repo_list" .}}
+					{{template "base/paginate" .}}
+				</div>
 			</div>
 
 			{{if .ShowMemberAndTeamTab}}

@@ -1,3 +1,5 @@
+import {showListLoading} from './asc-list-loading.js';
+
 export function initRepositorySearch() {
   const repositorySearchForm = document.querySelector('#repo-search-form');
   if (!repositorySearchForm) return;
@@ -17,6 +19,8 @@ export function initRepositorySearch() {
     }
 
     params.delete('clear-filter');
+    const main = document.querySelector('[data-asc-list-main]');
+    if (main) showListLoading(main);
     window.location.search = params.toString();
   });
 }

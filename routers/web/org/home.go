@@ -138,6 +138,7 @@ func Home(ctx *context.Context) {
 	ctx.Data["Teams"] = ctx.Org.Teams
 	ctx.Data["DisableNewPullMirrors"] = setting.Mirror.DisableNewPull
 	ctx.Data["PageIsViewRepositories"] = true
+	ctx.Data["AscRowMenu"] = true // on a phone the row actions sit in a row menu (board Mobile-OrgProfile)
 
 	err = shared_user.LoadHeaderCount(ctx)
 	if err != nil {

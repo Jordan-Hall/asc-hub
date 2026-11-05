@@ -17,7 +17,7 @@ Under 768 a "Sort and filter" button opens a sheet with the same choices; from 7
 <div class="ds-filterbar">
 	<div class="ds-container ds-container-wide">
 		<div class="ds-filterbar-row">
-			<form id="repo-search-form" class="ds-filterbar-form" role="search" method="get">
+			<form id="repo-search-form" class="ds-filterbar-form" role="search" method="get" data-asc-list-filter>
 				{{if and .Language (not .ExploreLanguages)}}<input type="hidden" name="language" value="{{.Language}}">{{end}}
 				{{if .TopicOnly}}<input type="hidden" name="topic" value="{{.TopicOnly}}">{{end}}
 				{{if $pageIsExplore}}<input type="hidden" name="only_show_relevant" value="{{.OnlyShowRelevant}}">{{else if .TabName}}<input type="hidden" name="tab" value="{{.TabName}}">{{end}}

@@ -17,8 +17,9 @@ export function hideListLoading(main) {
 
 /**
  * The runs of Agents, the definitions of Workflows, the policy gate and the operation log (templates/repo/asc_agents.tmpl,
- * asc_workflows.tmpl, asc_gate.tmpl, asc_ops.tmpl): a state chip, the agent filter, the search, a filter form, a page
- * of the pager or the window switch loads the page again, and until it does the list shows skeleton rows.
+ * asc_workflows.tmpl, asc_gate.tmpl, asc_ops.tmpl) and the repositories of an organization (templates/org/home.tmpl): a
+ * state chip, the agent filter, the search, a filter form, a kind pill, a page of the pager or the window switch loads
+ * the page again, and until it does the list shows skeleton rows.
  */
 export function initAscListLoading(doc = document) {
   const main = doc.querySelector('[data-asc-list-main]');
