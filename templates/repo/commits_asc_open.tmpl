@@ -1,0 +1,46 @@
+{{/* The open changes on top of the shown branch of an asc repository (board History): a node whose shape tells the
+state, a chip that names it, the size, who made it, its place in its stack and what it waits on. */}}
+{{with .AscOpenChanges}}
+<section class="rp-open" aria-labelledby="rp-open-h" data-testid="asc-open-changes">
+	<h2 class="rp-open-h" id="rp-open-h">{{ctx.Locale.Tr "asc_rp.open_title" $.BranchName}}</h2>
+	<ol class="rp-open-list">
+		{{range .}}
+		<li class="rp-open-row" data-testid="asc-open-change" data-state="{{.State}}">
+			<svg class="rp-open-node is-{{.State}}" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+				<circle cx="8" cy="8" r="5.5"/>
+				{{if eq .State "queued"}}<path d="M5.4 8.2l1.8 1.8 3.4-3.6"/>{{end}}
+				{{if eq .State "changes"}}<path d="M5.5 8h5"/>{{end}}
+			</svg>
+			<div class="rp-open-main">
+				<div class="rp-open-title">
+					<a href="{{.Link}}">{{.Title | RenderEmoji ctx}}</a>
+					{{if eq .State "writing"}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.open_chip_writing"}}</span>
+					{{else if eq .State "queued"}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.open_chip_queued"}}</span>
+					{{else if eq .State "draft"}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_rp.open_chip_draft"}}</span>
+					{{else if eq .State "changes"}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.open_chip_changes"}}</span>
+					{{else if eq .State "review"}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_rp.open_chip_review"}}</span>{{end}}
+					{{if .HasStat}}<span class="rp-open-stat ds-mono"><span class="ds-c-ok">+{{.Additions}}</span> <span class="ds-c-err">&minus;{{.Deletions}}</span></span>{{end}}
+				</div>
+				<div class="rp-open-meta">
+					{{if .Poster}}{{ctx.AvatarUtils.Avatar .Poster 20 "ds-avatar"}}<a class="rp-who" href="{{.Poster.HomeLink}}">{{.Poster.GetDisplayName}}</a>{{end}}
+					{{if .Change}}<span aria-hidden="true">&middot;</span><span class="ds-mono ds-c-3">{{.Change}}</span>{{end}}
+					{{if gt .Size 1}}<span class="ds-chip ds-chip-outline" title="{{.Stack}}">{{ctx.Locale.Tr "asc_rp.open_stack_place" .Position .Size}}</span>{{end}}
+				</div>
+			</div>
+			<div class="rp-open-side">
+				<span class="rp-open-status">
+					{{if eq .State "writing"}}{{ctx.Locale.Tr "asc_rp.open_status_writing" .Run .RunMinutes}}
+					{{else if eq .State "queued"}}{{if eq .QueueAhead 0}}{{ctx.Locale.Tr "asc_rp.open_status_next"}}{{else}}{{ctx.Locale.TrN .QueueAhead "asc_rp.open_status_queue_1" "asc_rp.open_status_queue_n" .QueueAhead}}{{end}}
+					{{else if eq .State "draft"}}{{ctx.Locale.Tr "asc_rp.open_status_draft"}}
+					{{else if eq .State "changes"}}{{ctx.Locale.Tr "asc_rp.open_status_changes" .People}}
+					{{else if eq .State "approved"}}{{ctx.Locale.Tr "asc_rp.open_status_approved" .People}}
+					{{else if .People}}{{ctx.Locale.Tr "asc_rp.open_status_waiting" .People}}
+					{{else}}{{ctx.Locale.Tr "asc_rp.open_status_noreviewer"}}{{end}}
+				</span>
+				<time class="rp-open-when">{{DateUtils.TimeSince .UpdatedUnix}}</time>
+			</div>
+		</li>
+		{{end}}
+	</ol>
+</section>
+{{end}}

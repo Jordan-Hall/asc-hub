@@ -145,6 +145,10 @@ func Commits(ctx *context.Context) {
 		pager.AddParamString("view", "graph")
 	}
 	ctx.Data["Page"] = pager
+	prepareAscLandedBrackets(ctx, commits)
+	if who == "" {
+		prepareAscOpenChanges(ctx)
+	}
 
 	ctx.HTML(http.StatusOK, tplCommits)
 }

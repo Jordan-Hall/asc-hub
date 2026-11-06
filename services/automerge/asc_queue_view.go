@@ -199,3 +199,17 @@ func AscQueueDryRunOf(ctx context.Context, doer *user_model.User, pr *issues_mod
 	}
 	return d, nil
 }
+
+// AscQueuePositions returns the place in the merge queue of a branch of each pull request that waits in it or is
+// landing, counted from 1.
+func AscQueuePositions(ctx context.Context, repoID int64, branch string) (map[int64]int, error) {
+	active, err := ascQueueEntries(ctx, repoID, branch, AscQueueQueued, AscQueueLanding)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[int64]int, len(active))
+	for i, e := range active {
+		out[e.PullID] = i + 1
+	}
+	return out, nil
+}

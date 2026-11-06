@@ -3,7 +3,8 @@
 <ol class="rp-hist commit-list{{if $.HistoryLanes}} is-graph{{end}}" id="commits-table" data-asc-list data-density="comfy"{{if $.HistoryLanes}} style="--rp-lanes-w: {{$.HistoryLanesWidth}}px"{{end}}>
 	{{range .Commits}}
 		{{$userName := .Author.Name}}
-		<li class="rp-commit" data-asc-row tabindex="-1" data-asc-id="{{.ID}}">
+		{{$bracket := ""}}{{if $.AscLandedBrackets}}{{$bracket = index $.AscLandedBrackets .ID.String}}{{end}}
+		<li class="rp-commit{{if $bracket}} rp-landed-{{$bracket}}{{end}}" data-asc-row tabindex="-1" data-asc-id="{{.ID}}"{{if $bracket}} data-landed="{{$bracket}}"{{end}}>
 			{{$lane := ""}}{{if $.HistoryLanes}}{{$lane = index $.HistoryLanes .ID.String}}{{end}}
 			{{if $lane}}
 				<svg class="rp-lanes" width="{{$.HistoryLanesWidth}}" height="100%" aria-hidden="true" focusable="false">
@@ -12,9 +13,10 @@
 				</svg>
 				<span class="rp-lanes-col" aria-hidden="true"></span>
 			{{else}}
-			<span class="rp-node{{if gt .ParentCount 1}} is-merge{{end}}" aria-hidden="true"></span>
+			<span class="rp-node{{if gt .ParentCount 1}} is-merge{{end}}{{if and .User .User.IsBot}} is-agent{{end}}" aria-hidden="true"></span>
 			{{end}}
 			<div class="rp-commit-main">
+				{{if eq $bracket "start"}}<span class="ds-sr">{{ctx.Locale.Tr "asc_rp.landed_together"}}</span>{{end}}
 				<div class="rp-commit-title">
 					{{$commitLink := printf "%s/commit/%s" $commitRepoLink (PathEscape .ID.String)}}
 					{{if $.PageIsWiki}}

@@ -79,6 +79,7 @@
 		</div>
 		<div class="ds-split">
 			<div class="ds-min0">
+				{{if $isAsc}}{{template "repo/commits_asc_open" .}}{{end}}
 				{{template "repo/commits_table" .}}
 			</div>
 			<aside class="ds-rail">
