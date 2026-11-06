@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	git_model "forgejo.org/models/git"
+	issues_model "forgejo.org/models/issues"
 	api "forgejo.org/modules/structs"
 
 	"github.com/stretchr/testify/assert"
@@ -57,4 +58,17 @@ func TestRelChecks(t *testing.T) {
 	pass, total = relChecks(nil)
 	assert.Zero(t, pass)
 	assert.Zero(t, total)
+}
+
+func TestSetRelChangeIDs(t *testing.T) {
+	landed := []*issues_model.LandedAscStackPull{
+		{PullID: 1, AscChange: "kkkkllllmmmmnnnnooooppppqqqqrrrr", MergedCommitID: "aaa"},
+		{PullID: 2, AscChange: "", MergedCommitID: "bbb"},
+	}
+	changes := []*relChange{{Sha: "aaa"}, {Sha: "bbb"}, {Sha: "ccc"}}
+	setRelChangeIDs(changes, landed)
+	assert.Equal(t, "kkkkllll", changes[0].Change, "a landed change is named by its short change id")
+	assert.Empty(t, changes[1].Change, "a pull request without a change id names none")
+	assert.Empty(t, changes[2].Change, "a commit that did not land through a stack keeps its commit id")
+	setRelChangeIDs(nil, landed)
 }
