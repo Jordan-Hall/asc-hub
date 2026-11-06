@@ -54,7 +54,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | Empty repository state with `asc init` and `asc push` commands | done | `H:templates/repo/empty.tmpl` | S |
 | Repo | Clone popover: asc login and clone, Install asc, Open in IDE, Copy | done | `H:templates/repo/clone_dialog.tmpl` | S |
 | Repo | Git compatibility note collapsed and expanded in the clone sheet | done | `H:templates/repo/clone_asc_tabs.tmpl` | S |
-| Repo | "Switch version" popover that lists shared refs, stacks and tags with labels | needs-hub-backend | `H:web_src/js/components/RepoBranchTagSelector.vue` and `H:templates/repo/branch_dropdown.tmpl` list branches and tags only; add stacks (`Stacks`/open pulls) and a "Shared ref" label | M |
+| Repo | "Switch version" popover that lists shared refs, stacks and tags with labels | done | `H:routers/web/repo/asc_refs_menu.go` (`GET /{owner}/{repo}/asc/refs`: shared refs, open stacks and tags with their kind; in a branchless repository the shared refs are asc's `RepoConfig.shared_refs`), the asc mode of `H:web_src/js/components/RepoBranchTagSelector.vue` (one searched list, ✓ on the current ref, kind label, the branchless note; falls back to branches and tags when asc does not answer) | M |
 | Repo | Pull to refresh and sticky Clone / New stack buttons (Mobile-Repo) | done | sticky buttons `rp-sticky-m` in `home_dir.tmpl`; pull to refresh by `data-asc-pull-refresh` on `.rp-body` and the `ds-ptr` arrow, run by `web_src/js/features/asc-pull-refresh.js` in the installed app | - |
 | Repo | Clone card shown before first clone ("Work on it locally", `asc stack new fix-refund-timeout`) | done | `H:templates/repo/home_cards.tmpl` "Work on it locally" with the clone, create and submit commands to copy, shown to a person who may write code here and has sent no change yet; Hide posts `/asc/clone-card/hide`, which hides it in that browser (`asc_clone_card.go`); `asc_clone_card_test.go` | S |
 
@@ -163,7 +163,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Compare | From / To as labelled selects listing shared refs, stacks and tags (text inputs today) | done | `asc_compare.tmpl`; options from refs/pulls | S |
 | Compare | Per-change and per-file +/- counts and avatars | done (seen on a live hub (ui10)) | `AscCompareCommit`/`AscCompareFile` carry no stats; `Repo.Compare` returns `PathChange` and `LogEntry`; add numstat (`Repo.Diff`) | M |
 | Compare | Same version state ("Both sides are main@a41f9c2") | done | `asc_compare.tmpl` shows "Nothing to compare" without the ref | S |
-| Compare | Unknown ref with "Did you mean retry-with-backoff?" | needs-hub-backend | resolve error in `asc_compare.go`; suggest nearest ref name | S |
+| Compare | Unknown ref with "Did you mean retry-with-backoff?" | done | `H:routers/web/repo/asc_compare_hints.go` suggests the nearest ref name for an unknown one | S |
 | Compare | Open any change or file from the lists, both sides kept in the address | done | links and query string | S |
 
 ## Search
