@@ -51,6 +51,7 @@
 								</span>
 								<span class="released">{{ctx.Locale.Tr "repo.released_this"}}</span>
 								{{if $release.CreatedUnix}}<span class="time">{{DateUtils.TimeSince $release.CreatedUnix}}</span>{{end}}
+								{{with $info.Changes}}{{if .Total}}<span class="rp-rel-count" data-testid="release-count">{{ctx.Locale.TrN .Total "asc_rp.n_changes_one" "asc_rp.n_changes_other" (ctx.Locale.PrettyNumber .Total)}}{{if .Agents}}, {{ctx.Locale.Tr "asc_rp.rel_by_agents" .Agents}}{{end}}</span>{{end}}{{end}}
 								{{if and $release.Sha1 ($.Permission.CanRead $.UnitTypeCode)}}
 									<a class="rp-hash" href="{{$.RepoLink}}/src/commit/{{$release.Sha1}}" rel="nofollow">{{ShortSha $release.Sha1}}</a>
 								{{end}}
@@ -75,25 +76,38 @@
 								</div>
 							{{end}}
 							{{with $info.Changes}}
-								{{if .Total}}
-								<details class="rp-rel-changes" data-testid="release-changes"{{if eq $idx 0}} open{{end}}>
-									<summary>
-										<span class="rp-assets-t">{{ctx.Locale.TrN .Total "asc_rp.rel_changes_one" "asc_rp.rel_changes_other" (ctx.Locale.PrettyNumber .Total)}}{{if .Agents}} &middot; {{ctx.Locale.Tr "asc_rp.rel_by_agents" .Agents}}{{end}}</span>
-										{{svg "dsi-chevron-down" 16}}
-									</summary>
-									<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_written_from"}}{{if .Previous}} {{ctx.Locale.Tr "asc_rp.rel_since_tag" .Previous}}{{end}}</p>
+								{{if and .Groups (not $release.RenderedNote)}}
+								<div class="rp-rel-notes rp-rel-notes-written" data-testid="release-notes-written">
+									<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_written_from"}}{{if $.CanCreateRelease}} {{ctx.Locale.Tr "asc_rp.rel_edit_before"}}{{end}}</p>
 									{{range .Groups}}
 										<h5 class="rp-rel-group">{{ctx.Locale.Tr (print "asc_rp.rel_cat_" .Category)}}</h5>
-										<ul class="rp-rel-list">
-											{{range .Changes}}
-												<li>
-													<a href="{{$.RepoLink}}/commit/{{PathEscape .Sha}}">{{.Summary}}</a>
-													<span class="rp-rel-who">{{if .User}}{{.User.GetDisplayName}}{{else}}{{.Author}}{{end}}{{if .Agent}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}</span>
-													<a class="rp-hash" href="{{$.RepoLink}}/commit/{{PathEscape .Sha}}">{{ShortSha .Sha}}</a>
-												</li>
-											{{end}}
-										</ul>
+										<ul class="rp-rel-notes-list">{{range .Changes}}<li>{{.Summary}}</li>{{end}}</ul>
 									{{end}}
+								</div>
+								{{end}}
+								{{if .Total}}
+								<details class="rp-rel-changes" data-testid="release-changes" data-rel-changes{{if eq $idx 0}} open{{end}}>
+									<summary>
+										<span class="rp-assets-t">{{ctx.Locale.TrN .Total "asc_rp.rel_changes_one" "asc_rp.rel_changes_other" (ctx.Locale.PrettyNumber .Total)}}</span>
+										{{svg "dsi-chevron-down" 16}}
+									</summary>
+									{{if .Previous}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_since_tag" .Previous}}</p>{{end}}
+									<div class="rp-rel-filter" role="group" aria-label="{{ctx.Locale.Tr "asc_rp.rel_filter"}}">
+										<button type="button" class="ds-chip ds-chip-btn" data-rel-cat="" aria-pressed="true">{{ctx.Locale.Tr "asc_rp.rel_filter_all" (ctx.Locale.PrettyNumber .Total)}}</button>
+										{{if gt (len .Groups) 1}}{{range .Groups}}<button type="button" class="ds-chip ds-chip-btn" data-rel-cat="{{.Category}}" aria-pressed="false">{{ctx.Locale.Tr (print "asc_rp.rel_cat_" .Category)}} {{len .Changes}}</button>{{end}}{{end}}
+									</div>
+									<ul class="rp-rel-list">
+										{{range .Changes}}
+											<li data-rel-cat="{{.Category}}">
+												{{if .User}}{{ctx.AvatarUtils.Avatar .User 24 "ds-av ds-av-24"}}{{end}}
+												<a href="{{$.RepoLink}}/commit/{{PathEscape .Sha}}">{{.Summary}}</a>
+												<span class="rp-rel-who">{{if .User}}{{.User.GetDisplayName}}{{else}}{{.Author}}{{end}}{{if .Agent}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}</span>
+												<span class="ds-chip ds-chip-outline rp-rel-cat">{{ctx.Locale.Tr (print "asc_rp.rel_cat_" .Category)}}</span>
+												<a class="rp-hash" href="{{$.RepoLink}}/commit/{{PathEscape .Sha}}"{{if .Change}} title="{{ctx.Locale.Tr "asc_rp.rel_change_id"}}"{{end}}>{{if .Change}}{{.Change}}{{else}}{{ShortSha .Sha}}{{end}}</a>
+											</li>
+										{{end}}
+									</ul>
+									{{if gt .Total (len .Changes)}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_more" (ctx.Locale.PrettyNumber (Eval .Total "-" (len .Changes)))}}</p>{{end}}
 								</details>
 								{{end}}
 							{{end}}
