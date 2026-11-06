@@ -3,7 +3,7 @@
 	{{template "explore/navbar" .}}
 	<div class="ds-container">
 		<h1 class="tw-sr-only">{{.Title}}</h1>
-		<form id="asc-search-form" class="asc-search-form" method="get" action="{{AppSubUrl}}/explore/code" role="search">
+		<form id="asc-search-form" class="asc-search-form" method="get" action="{{AppSubUrl}}/-/asc/search" role="search">
 			<div class="asc-search-bar">
 				<label class="tw-sr-only" for="asc-search-q">Search the code of every repository you can read</label>
 				<input class="ds-input" id="asc-search-q" name="q" type="search" value="{{.AscText}}" maxlength="4096" autocomplete="off" placeholder="Search code, symbols or ideas" required>
@@ -212,7 +212,7 @@
 						{{if and (eq .AscMode "text") .AscGroups}}
 							<div class="asc-tip">
 								<b>Try meaning search.</b> A question in words, such as <span class="tw-font-mono">where do we stop retrying a refund?</span>, finds the code that answers it even when it never uses those words.
-								<a class="asc-tip-link" href="{{AppSubUrl}}/explore/code?mode=meaning&amp;q={{.AscText}}">Switch to Meaning</a>
+								<a class="asc-tip-link" href="{{AppSubUrl}}/-/asc/search?mode=meaning&amp;q={{.AscText}}">Switch to Meaning</a>
 							</div>
 						{{end}}
 					{{end}}
