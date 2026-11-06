@@ -1288,7 +1288,9 @@ PostRecentBranchCheck:
 	}
 	isFile, _ := ctx.Data["IsViewFile"].(bool)
 	prepareAscTree(ctx, !isFile)
-	if !isFile {
+	if isFile {
+		prepareAscMyStacks(ctx)
+	} else {
 		prepareHomeCards(ctx)
 	}
 	ctx.HTML(http.StatusOK, tplRepoHome)

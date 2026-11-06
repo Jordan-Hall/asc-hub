@@ -367,6 +367,13 @@
   flex: 1;
 }
 
+.rp-editnote-acts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .rp-keys {
   margin: 0;
   padding: 0;

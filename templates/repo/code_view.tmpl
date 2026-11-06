@@ -83,7 +83,25 @@
 			<div class="ds-banner rp-editnote">
 				{{svg "dsi-pencil" 18}}
 				<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_rp.edit_note_title"}}</b> {{if $isAsc}}{{ctx.Locale.Tr "asc_rp.edit_note_body_asc" .BranchName}}{{else}}{{ctx.Locale.Tr "asc_rp.edit_note_body" .BranchName}}{{end}}</div>
-				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}">{{if $isAsc}}{{ctx.Locale.Tr "asc_rp.start_change"}}{{else}}{{ctx.Locale.Tr "asc_rp.edit_file"}}{{end}}</a>
+				{{if $isAsc}}
+				<span class="rp-editnote-acts">
+					<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}?commit_choice=commit-to-new-branch">{{ctx.Locale.Tr "asc_rp.start_change"}}</a>
+					{{if eq (len .AscMyStacks) 1}}
+					<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{(index .AscMyStacks 0).EditLink}}" title="{{(index .AscMyStacks 0).Title}}">{{ctx.Locale.Tr "asc_rp.add_to_stack"}}</a>
+					{{else if .AscMyStacks}}
+					<details class="dropdown rp-dd rp-addstack">
+						<summary class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "asc_rp.add_to_stack"}}</summary>
+						<div class="content rp-pop">
+							<ul aria-label="{{ctx.Locale.Tr "asc_rp.add_to_stack"}}">
+								{{range .AscMyStacks}}<li><a href="{{.EditLink}}">{{.Title}}</a></li>{{end}}
+							</ul>
+						</div>
+					</details>
+					{{end}}
+				</span>
+				{{else}}
+				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.RepoLink}}/_edit/{{PathEscapeSegments .BranchName}}/{{PathEscapeSegments .TreePath}}">{{ctx.Locale.Tr "asc_rp.edit_file"}}</a>
+				{{end}}
 			</div>
 			{{end}}
 		</div>
