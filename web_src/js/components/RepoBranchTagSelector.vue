@@ -17,7 +17,7 @@ export default {
     },
     filteredItems() {
       return this.items.filter((item) => {
-        return ((this.mode === 'branches' && item.branch) || (this.mode === 'tags' && item.tag)) &&
+        return ((this.mode === 'asc' && item.asc) || (this.mode === 'branches' && item.branch && !item.asc) || (this.mode === 'tags' && item.tag && !item.asc)) &&
           (!this.searchTerm || item.name.toLowerCase().includes(this.searchTerm.toLowerCase()));
       });
     },
@@ -25,7 +25,8 @@ export default {
       return !this.filteredItems.length && !this.showCreateNewBranch;
     },
     showCreateNewBranch() {
-      if (this.disableCreateBranch || !this.searchTerm) {
+      // an asc repository starts stacks with asc, not branches from this menu
+      if (this.disableCreateBranch || !this.searchTerm || this.mode === 'asc') {
         return false;
       }
       return !this.items.filter((item) => {
@@ -50,6 +51,10 @@ export default {
   },
 
   beforeMount() {
+    if (this.ascRefs) {
+      this.fallbackMode = this.mode;
+      this.mode = 'asc';
+    }
     if (this.viewType === 'tree') {
       this.isViewTree = true;
       this.refNameText = this.commitIdShort;
@@ -181,7 +186,39 @@ export default {
       this.focusSearchField();
       this.fetchBranchesOrTags();
     },
+    async fetchAscRefs() {
+      if (this.hasListInitialized.asc || this.isLoading) return;
+      this.isLoading = true;
+      let answered = false;
+      try {
+        const resp = await GET(`${this.repoLink}/asc/refs`);
+        if (resp.ok) {
+          const {refs, branchless} = await resp.json();
+          for (const ref of refs) {
+            const tag = ref.kind === 'tag';
+            const selected = ref.name === this.defaultSelectedRefName;
+            this.items.push({name: ref.name, url: pathEscapeSegments(ref.name), branch: !tag, tag, asc: true, kind: ref.kind, selected});
+          }
+          this.ascBranchless = branchless;
+          this.hasListInitialized.asc = true;
+          answered = true;
+        }
+      } catch (e) {
+        showErrorToast(`Network error when fetching refs, error: ${e}`);
+      } finally {
+        this.isLoading = false;
+      }
+      if (!answered) {
+        // without the asc menu the dropdown is the usual branches and tags one
+        this.mode = this.fallbackMode;
+        this.fetchBranchesOrTags();
+      }
+    },
     async fetchBranchesOrTags() {
+      if (this.mode === 'asc') {
+        this.fetchAscRefs();
+        return;
+      }
       if (!['branches', 'tags'].includes(this.mode) || this.isLoading) return;
       // only fetch when branch/tag list has not been initialized
       if (this.hasListInitialized[this.mode] ||
@@ -227,12 +264,12 @@ export default {
       </span>
       <svg-icon name="octicon-triangle-down" :size="14" class="dropdown icon"/>
     </button>
-    <div class="menu transition" :class="{visible: menuVisible}" v-show="menuVisible" v-cloak>
+    <div class="menu transition" :class="{visible: menuVisible, 'asc-refs': mode === 'asc'}" v-show="menuVisible" v-cloak :role="mode === 'asc' ? 'dialog' : null" :aria-label="mode === 'asc' ? textAscLabel : null">
       <div class="ui icon search input">
-        <i class="icon"><svg-icon name="octicon-filter" :size="16"/></i>
-        <input name="search" ref="searchField" autocomplete="off" v-model="searchTerm" @keydown="keydown($event)" :placeholder="searchFieldPlaceholder">
+        <i class="icon"><svg-icon :name="mode === 'asc' ? 'octicon-search' : 'octicon-filter'" :size="16"/></i>
+        <input name="search" ref="searchField" autocomplete="off" v-model="searchTerm" @keydown="keydown($event)" :placeholder="mode === 'asc' ? textAscFind : searchFieldPlaceholder" :aria-label="mode === 'asc' ? textAscFind : null">
       </div>
-      <div v-if="showBranchesInDropdown" class="branch-tag-tab">
+      <div v-if="showBranchesInDropdown && mode !== 'asc'" class="branch-tag-tab">
         <a class="branch-tag-item muted" :class="{active: mode === 'branches'}" href="#" @click="handleTabSwitch('branches')">
           <svg-icon name="octicon-git-branch" :size="16"/>{{ textBranches }}
         </a>
@@ -240,12 +277,19 @@ export default {
           <svg-icon name="octicon-tag" :size="16"/>{{ textTags }}
         </a>
       </div>
-      <div class="branch-tag-divider"/>
+      <div v-if="mode !== 'asc'" class="branch-tag-divider"/>
       <div class="scrolling menu" ref="scrollContainer">
         <svg-icon name="octicon-rss" symbol-id="svg-symbol-octicon-rss"/>
         <div class="loading-indicator is-loading" v-if="isLoading"/>
         <div v-for="(item, index) in filteredItems" :key="item.name" class="item" :class="{selected: item.selected, active: active === index}" @click="selectItem(item)" :ref="'listItem' + index">
-          {{ item.name }}
+          <template v-if="mode === 'asc'">
+            <span class="asc-ref-check" aria-hidden="true">{{ item.selected ? '✓' : '' }}</span>
+            <span class="asc-ref-name tw-font-mono">{{ item.name }}</span>
+            <span class="asc-ref-kind">{{ textAscKinds[item.kind] }}</span>
+          </template>
+          <template v-else>
+            {{ item.name }}
+          </template>
           <div class="ui label" v-if="item.name===repoDefaultBranch && mode === 'branches'">
             {{ textDefaultBranchLabel }}
           </div>
@@ -280,6 +324,9 @@ export default {
       <div class="message" v-if="showNoResults && !isLoading">
         {{ noResults }}
       </div>
+      <div class="asc-refs-note" v-if="mode === 'asc' && ascBranchless">
+        {{ textAscBranchless }}
+      </div>
     </div>
   </div>
 </template>
@@ -306,6 +353,39 @@ export default {
 
 .menu .item:hover .rss-icon {
   display: inline-block;
+}
+
+.asc-refs .scrolling.menu .item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.asc-refs .scrolling.menu .item.selected {
+  background: var(--color-primary-alpha-10);
+}
+
+.asc-ref-check {
+  width: 16px;
+  color: var(--color-primary);
+}
+
+.asc-ref-name {
+  flex: 1;
+  font-size: 13px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asc-ref-kind,
+.asc-refs-note {
+  font-size: 12px;
+  color: var(--color-text-light-2);
+}
+
+.asc-refs-note {
+  padding: 8px 10px 4px;
 }
 
 .scrolling.menu .loading-indicator {

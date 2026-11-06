@@ -57,6 +57,16 @@
 		'treePath': {{.root.TreePath}},
 		'branchNameSubURL': {{.root.BranchNameSubURL}},
 		'noResults': {{ctx.Locale.Tr "repo.pulls.no_results"}},
+		{{/* an asc repository lists its shared refs, stacks and tags as one menu when the dropdown navigates */}}
+		'ascRefs': {{and (eq .root.Repository.GetStorageBackend "asc") (not .release) (not .noTag) (not .branchForm)}},
+		'textAscLabel': {{ctx.Locale.Tr "repo.asc_refs.label"}},
+		'textAscFind': {{ctx.Locale.Tr "repo.asc_refs.find"}},
+		'textAscKinds': {
+			'shared': {{ctx.Locale.Tr "repo.asc_refs.shared"}},
+			'stack': {{ctx.Locale.Tr "repo.asc_refs.stack"}},
+			'tag': {{ctx.Locale.Tr "repo.asc_refs.tag"}},
+		},
+		'textAscBranchless': {{ctx.Locale.Tr "repo.asc_refs.branchless"}},
 	};
 	{{if .release}}
 	data.release = {

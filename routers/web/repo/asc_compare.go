@@ -591,7 +591,14 @@ func ascCompareGroups(shared, stacks, tags []string, current ...string) []ascRef
 // prepareAscCompareRefs lists what the From and To selects offer. A failed lookup leaves its group out; the
 // selects still show the value of the query.
 func prepareAscCompareRefs(ctx *context.Context, repo *repo_model.Repository, a, b string) {
-	var shared, stacks, tags []string
+	shared, stacks, tags := ascRefLists(ctx, repo)
+	ctx.Data["AscCompareGroups"] = ascCompareGroups(shared, stacks, tags, a, b)
+}
+
+// ascRefLists returns the shared refs (the branches that are not the head of an open stack), the stacks (the head
+// branches of open pull requests the person can read) and the tags of a repository, each at most ascCompareMaxRefs
+// long. A failed lookup leaves its list empty.
+func ascRefLists(ctx *context.Context, repo *repo_model.Repository) (shared, stacks, tags []string) {
 	if names, err := git_model.FindBranchNames(ctx, git_model.FindBranchOptions{
 		ListOptions: db.ListOptions{PageSize: ascCompareMaxRefs, Page: 1}, RepoID: repo.ID, IsDeletedBranch: optional.Some(false),
 	}); err != nil {
@@ -624,7 +631,7 @@ func prepareAscCompareRefs(ctx *context.Context, repo *repo_model.Repository, a,
 		isStack[s] = true
 	}
 	shared = slices.DeleteFunc(slices.Clone(shared), func(n string) bool { return isStack[n] })
-	ctx.Data["AscCompareGroups"] = ascCompareGroups(shared, stacks, tags, a, b)
+	return shared, stacks, tags
 }
 
 // ascCompareRev checks one revision of the query. An empty value is allowed (the form is shown empty).
