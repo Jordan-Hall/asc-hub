@@ -124,6 +124,166 @@
   border: 3px solid var(--fill);
 }
 
+/* a change an agent landed: the agent colour with a hole */
+.rp-node.is-agent {
+  background: var(--surface);
+  border: 3px solid var(--agent);
+}
+
+/* the rows that landed together as one stack: a thick line beside them */
+.rp-landed-start::after,
+.rp-landed-mid::after,
+.rp-landed-end::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 3px;
+  background: var(--primary-line);
+}
+
+.rp-landed-start::after {
+  top: 14px;
+  border-radius: 2px 2px 0 0;
+}
+
+.rp-landed-end::after {
+  bottom: calc(100% - 30px);
+  border-radius: 0 0 2px 2px;
+}
+
+/* the open changes on top of the branch */
+.rp-open {
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.rp-open-h {
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-3);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.rp-open-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-open-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 0 10px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line-3);
+}
+
+.rp-open-row:first-child {
+  border-top: 0;
+}
+
+.rp-open-node {
+  margin-top: 3px;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rp-open-node.is-writing {
+  stroke: var(--agent);
+  stroke-dasharray: 3 2.5;
+}
+
+.rp-open-node.is-review {
+  stroke: var(--warn);
+}
+
+.rp-open-node.is-changes {
+  stroke: var(--err);
+}
+
+.rp-open-node.is-queued {
+  stroke: var(--ok);
+}
+
+.rp-open-node.is-approved {
+  stroke: var(--ok);
+  fill: var(--ok-soft);
+}
+
+.rp-open-node.is-draft {
+  stroke: var(--text-3);
+  stroke-dasharray: 2 2;
+}
+
+.rp-open-main {
+  min-width: 0;
+}
+
+.rp-open-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.rp-open-title a {
+  color: var(--text);
+}
+
+.rp-open-stat {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rp-open-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.rp-open-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: right;
+}
+
+.rp-open-when {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+@media (max-width: 640px) {
+  .rp-open-row {
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+
+  .rp-open-side {
+    grid-column: 2;
+    align-items: flex-start;
+    margin-top: 6px;
+    text-align: left;
+  }
+}
+
 .rp-commit-main {
   min-width: 0;
 }
