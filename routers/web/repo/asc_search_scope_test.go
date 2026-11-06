@@ -195,7 +195,7 @@ func TestAscSearchScopeRepos(t *testing.T) {
 		require.Equal(t, http.StatusSeeOther, page.status, query)
 		loc, err := url.Parse(page.ctx.Resp.Header().Get("Location"))
 		require.NoError(t, err)
-		assert.Equal(t, "/explore/code", loc.Path)
+		assert.Equal(t, "/-/asc/search", loc.Path)
 		for k, v := range want {
 			assert.Equal(t, v, loc.Query()[k], "%s %s", query, k)
 		}
