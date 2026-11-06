@@ -9,7 +9,9 @@
 				<input type="hidden" name="action" value="update">
 				<div class="ds-required ds-field {{if .Err_RepoName}}is-err{{end}}">
 					<label class="ds-label" for="repo_name">{{ctx.Locale.Tr "repo.repo_name"}}</label>
-					<input class="ds-input" id="repo_name" name="repo_name" value="{{.Repository.Name}}" data-repo-name="{{.Repository.Name}}" autofocus required autocorrect="off" autocapitalize="none" spellcheck="false">
+					<input class="ds-input" id="repo_name" name="repo_name" value="{{if .RepoNameTaken}}{{.repo_name}}{{else}}{{.Repository.Name}}{{end}}" data-repo-name="{{.Repository.Name}}" aria-describedby="repo-name-hint{{if .RepoNameTaken}} repo-name-err{{end}}"{{if .RepoNameTaken}} aria-invalid="true"{{end}} autofocus required autocorrect="off" autocapitalize="none" spellcheck="false">
+					{{if .RepoNameTaken}}<p class="ds-err-msg" id="repo-name-err" role="alert">{{ctx.Locale.Tr "asc_rp.rename_taken" .RepoNameTaken}}</p>{{end}}
+					<p class="ds-hint" id="repo-name-hint">{{ctx.Locale.Tr "asc_rp.rename_redirect_note" .RedirectKeepDays}}</p>
 				</div>
 				<div class="ds-field">
 					<label class="ds-label">{{ctx.Locale.Tr "repo.repo_size"}}</label>

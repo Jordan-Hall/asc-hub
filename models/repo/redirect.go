@@ -7,10 +7,15 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/timeutil"
 	"forgejo.org/modules/util"
 )
+
+// RedirectKeepDays is how long the old address of a renamed or moved repository keeps redirecting.
+const RedirectKeepDays = 90
 
 // ErrRedirectNotExist represents a "RedirectNotExist" kind of error.
 type ErrRedirectNotExist struct {
@@ -39,6 +44,8 @@ type Redirect struct {
 	OwnerID        int64  `xorm:"UNIQUE(s)"`
 	LowerName      string `xorm:"UNIQUE(s) INDEX NOT NULL"`
 	RedirectRepoID int64  // repoID to redirect to
+	// ExpiresUnix is when the redirect stops; 0 for a redirect made before redirects expired, which never stops.
+	ExpiresUnix timeutil.TimeStamp `xorm:"INDEX NOT NULL DEFAULT 0"`
 }
 
 // TableName represents real table name in database
@@ -59,6 +66,13 @@ func GetRedirect(ctx context.Context, ownerID int64, repoName string) (int64, er
 	} else if !has {
 		return 0, ErrRedirectNotExist{OwnerID: ownerID, RepoName: repoName}
 	}
+	if redirect.ExpiresUnix > 0 && redirect.ExpiresUnix <= timeutil.TimeStampNow() {
+		// the old address has stopped redirecting: it is free for a new repository
+		if err := DeleteRedirect(ctx, ownerID, repoName); err != nil {
+			return 0, err
+		}
+		return 0, ErrRedirectNotExist{OwnerID: ownerID, RepoName: repoName}
+	}
 	return redirect.RedirectRepoID, nil
 }
 
@@ -75,6 +89,7 @@ func NewRedirect(ctx context.Context, ownerID, repoID int64, oldRepoName, newRep
 		OwnerID:        ownerID,
 		LowerName:      oldRepoName,
 		RedirectRepoID: repoID,
+		ExpiresUnix:    timeutil.TimeStampNow().AddDuration(RedirectKeepDays * 24 * time.Hour),
 	})
 }
 

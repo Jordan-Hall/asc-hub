@@ -33,6 +33,7 @@ import (
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/validation"
 	"forgejo.org/modules/web"
+	"forgejo.org/modules/web/middleware"
 	actions_service "forgejo.org/services/actions"
 	asymkey_service "forgejo.org/services/asymkey"
 	"forgejo.org/services/context"
@@ -60,6 +61,7 @@ func SettingsCtxData(ctx *context.Context) {
 	ctx.Data["PageIsSettingsOptions"] = true
 	ctx.Data["ForcePrivate"] = setting.Repository.ForcePrivate
 	ctx.Data["MirrorsEnabled"] = setting.Mirror.Enabled
+	ctx.Data["RedirectKeepDays"] = repo_model.RedirectKeepDays
 	ctx.Data["DisableNewPullMirrors"] = setting.Mirror.DisableNewPull
 	ctx.Data["DisableNewPushMirrors"] = setting.Mirror.DisableNewPush
 	ctx.Data["DefaultMirrorInterval"] = setting.Mirror.DefaultInterval
@@ -309,6 +311,7 @@ func SettingsPost(ctx *context.Context) {
 
 	ctx.Data["ForcePrivate"] = setting.Repository.ForcePrivate
 	ctx.Data["MirrorsEnabled"] = setting.Mirror.Enabled
+	ctx.Data["RedirectKeepDays"] = repo_model.RedirectKeepDays
 	ctx.Data["DisableNewPullMirrors"] = setting.Mirror.DisableNewPull
 	ctx.Data["DisableNewPushMirrors"] = setting.Mirror.DisableNewPush
 	ctx.Data["DefaultMirrorInterval"] = setting.Mirror.DefaultInterval
@@ -330,7 +333,8 @@ func SettingsPost(ctx *context.Context) {
 
 		newRepoName := form.RepoName
 		// Check if repository name has been changed.
-		if repo.LowerName != strings.ToLower(newRepoName) {
+		renamed := repo.LowerName != strings.ToLower(newRepoName)
+		if renamed {
 			// Close the GitRepo if open
 			if ctx.Repo.GitRepo != nil {
 				ctx.Repo.GitRepo.Close()
@@ -340,7 +344,10 @@ func SettingsPost(ctx *context.Context) {
 				ctx.Data["Err_RepoName"] = true
 				switch {
 				case repo_model.IsErrRepoAlreadyExist(err):
-					ctx.RenderWithErr(ctx.Tr("form.repo_name_been_taken"), tplSettingsOptions, &form)
+					// the taken name is said under the name field, with the name typed kept in it
+					middleware.AssignForm(&form, ctx.Data)
+					ctx.Data["RepoNameTaken"] = ctx.Repo.Owner.Name + "/" + newRepoName
+					ctx.HTML(http.StatusOK, tplSettingsOptions)
 				case db.IsErrNameReserved(err):
 					ctx.RenderWithErr(ctx.Tr("repo.form.name_reserved", err.(db.ErrNameReserved).Name), tplSettingsOptions, &form)
 				case repo_model.IsErrRepoFilesAlreadyExist(err):
@@ -408,7 +415,11 @@ func SettingsPost(ctx *context.Context) {
 		}
 		log.Trace("Repository basic settings updated: %s/%s", ctx.Repo.Owner.Name, repo.Name)
 
-		ctx.Flash.Success(ctx.Tr("repo.settings.update_settings_success"))
+		if renamed {
+			ctx.Flash.Success(ctx.Tr("asc_rp.rename_saved", repo_model.RedirectKeepDays))
+		} else {
+			ctx.Flash.Success(ctx.Tr("repo.settings.update_settings_success"))
+		}
 		ctx.Redirect(repo.Link() + "/settings")
 
 	case "federation":
