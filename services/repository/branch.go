@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"forgejo.org/models"
@@ -61,12 +62,7 @@ type Branch struct {
 
 // LoadBranches loads branches from the repository limited by page & pageSize.
 func LoadBranches(ctx context.Context, repo *repo_model.Repository, gitRepo *git.Repository, isDeletedBranch optional.Option[bool], keyword string, page, pageSize int) (*Branch, []*Branch, int64, error) {
-	defaultDBBranch, err := git_model.GetBranch(ctx, repo.ID, repo.DefaultBranch)
-	if err != nil {
-		return nil, nil, 0, err
-	}
-
-	branchOpts := git_model.FindBranchOptions{
+	return loadBranches(ctx, repo, gitRepo, git_model.FindBranchOptions{
 		RepoID:          repo.ID,
 		IsDeletedBranch: isDeletedBranch,
 		ListOptions: db.ListOptions{
@@ -75,6 +71,37 @@ func LoadBranches(ctx context.Context, repo *repo_model.Repository, gitRepo *git
 		},
 		Keyword:            keyword,
 		ExcludeBranchNames: []string{repo.DefaultBranch},
+	})
+}
+
+// LoadSharedBranches loads the default branch and the other branches named in shared that are not deleted: the shared
+// refs of an asc branchless repository. A name may be given in full (refs/heads/main).
+func LoadSharedBranches(ctx context.Context, repo *repo_model.Repository, gitRepo *git.Repository, shared []string, keyword string, page, pageSize int) (*Branch, []*Branch, int64, error) {
+	names := make([]string, 0, len(shared))
+	for _, r := range shared {
+		if n := strings.TrimPrefix(r, git.BranchPrefix); n != "" && n != repo.DefaultBranch && !slices.Contains(names, n) {
+			names = append(names, n)
+		}
+	}
+	opts := git_model.FindBranchOptions{
+		RepoID:          repo.ID,
+		IsDeletedBranch: optional.Some(false),
+		ListOptions:     db.ListOptions{Page: page, PageSize: pageSize},
+		Keyword:         keyword,
+		BranchNames:     names,
+	}
+	if len(names) == 0 {
+		// only the default branch is shared: no other branch is listed
+		opts.ListOptions.PageSize, opts.BranchNames = 0, []string{repo.DefaultBranch}
+		opts.ExcludeBranchNames = []string{repo.DefaultBranch}
+	}
+	return loadBranches(ctx, repo, gitRepo, opts)
+}
+
+func loadBranches(ctx context.Context, repo *repo_model.Repository, gitRepo *git.Repository, branchOpts git_model.FindBranchOptions) (*Branch, []*Branch, int64, error) {
+	defaultDBBranch, err := git_model.GetBranch(ctx, repo.ID, repo.DefaultBranch)
+	if err != nil {
+		return nil, nil, 0, err
 	}
 
 	dbBranches, totalNumOfBranches, err := db.FindAndCount[git_model.Branch](ctx, branchOpts)

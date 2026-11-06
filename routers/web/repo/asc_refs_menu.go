@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -79,7 +80,7 @@ func AscRefsMenu(ctx *context.Context) {
 	shared, stacks, tags := ascRefLists(ctx, repo)
 	var ascShared []string
 	branchless := false
-	if bs, err := ascsync.LoadBranchlessSettings(ctx, repo); err != nil {
+	if bs, err := ascLoadBranchless(ctx, repo); err != nil {
 		// without asc the menu still lists the hub's branches and tags
 		log.Warn("asc refs menu: branchless settings of %s: %v", repo.FullName(), err)
 	} else {
@@ -87,4 +88,24 @@ func AscRefsMenu(ctx *context.Context) {
 	}
 	ctx.Resp.Header().Set("Cache-Control", "no-store")
 	ctx.JSON(http.StatusOK, ascRefsMenu{Refs: ascRefsMenuItems(shared, stacks, tags, ascShared, branchless), Branchless: branchless})
+}
+
+// ascBranchlessSharedRefs returns the shared refs of an asc repository that is branchless, and false for any other
+// repository or when asc cannot say (the page then lists every branch, as before).
+func ascBranchlessSharedRefs(ctx *context.Context) ([]string, bool) {
+	repo := ctx.Repo.Repository
+	if !setting.Asc.Enabled || repo == nil || repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc) {
+		return nil, false
+	}
+	bs, err := ascLoadBranchless(ctx, repo)
+	if err != nil {
+		log.Warn("refs: branchless settings of %s: %v", repo.FullName(), err)
+		return nil, false
+	}
+	return bs.SharedRefs, bs.Branchless
+}
+
+// ascLoadBranchless reads the branchless settings from asc. A variable, so tests answer without asc.
+var ascLoadBranchless = func(ctx *context.Context, repo *repo_model.Repository) (ascsync.BranchlessSettings, error) {
+	return ascsync.LoadBranchlessSettings(ctx, repo)
 }

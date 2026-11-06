@@ -51,7 +51,20 @@ func Branches(ctx *context.Context) {
 
 	kw := ctx.FormString("q")
 
-	defaultBranch, branches, branchesCount, err := repo_service.LoadBranches(ctx, ctx.Repo.Repository, ctx.Repo.GitRepo, optional.None[bool](), kw, page, pageSize)
+	var (
+		defaultBranch *repo_service.Branch
+		branches      []*repo_service.Branch
+		branchesCount int64
+		err           error
+	)
+	if shared, ok := ascBranchlessSharedRefs(ctx); ok {
+		// a branchless asc repository lists its shared refs only; the stacks have their own section
+		ctx.Data["AscBranchless"] = true
+		defaultBranch, branches, branchesCount, err = repo_service.LoadSharedBranches(ctx, ctx.Repo.Repository, ctx.Repo.GitRepo, shared, kw, page, pageSize)
+		ctx.Data["AscSharedRefCount"] = branchesCount + 1
+	} else {
+		defaultBranch, branches, branchesCount, err = repo_service.LoadBranches(ctx, ctx.Repo.Repository, ctx.Repo.GitRepo, optional.None[bool](), kw, page, pageSize)
+	}
 	if err != nil {
 		ctx.ServerError("LoadBranches", err)
 		return
