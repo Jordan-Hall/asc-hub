@@ -63,7 +63,9 @@ type FindBranchOptions struct {
 	db.ListOptions
 	RepoID             int64
 	ExcludeBranchNames []string
-	IsDeletedBranch    optional.Option[bool]
+	// BranchNames, when set, keeps only these branches (an asc branchless repository lists its shared refs only)
+	BranchNames     []string
+	IsDeletedBranch optional.Option[bool]
 	OrderBy            string
 	Keyword            string
 }
@@ -76,6 +78,9 @@ func (opts FindBranchOptions) ToConds() builder.Cond {
 
 	if len(opts.ExcludeBranchNames) > 0 {
 		cond = cond.And(builder.NotIn("name", opts.ExcludeBranchNames))
+	}
+	if len(opts.BranchNames) > 0 {
+		cond = cond.And(builder.In("name", opts.BranchNames))
 	}
 	if has, value := opts.IsDeletedBranch.Get(); has {
 		cond = cond.And(builder.Eq{"is_deleted": value})
