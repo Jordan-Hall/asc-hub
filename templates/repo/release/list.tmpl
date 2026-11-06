@@ -196,6 +196,16 @@
 				{{else}}<p class="rp-quiet">{{ctx.Locale.Tr "asc_rp.rel_no_assets"}}</p>{{end}}
 			</section>
 			{{end}}
+			{{with .ReleaseHealth}}
+			<section class="rp-card" aria-labelledby="rp-health-h" data-testid="release-health">
+				<h2 class="rp-rail-title" id="rp-health-h">{{ctx.Locale.Tr "asc_rp.rel_health"}}</h2>
+				<dl class="rp-rel-health">
+					<div><dt class="ds-stat-label">{{ctx.Locale.Tr "asc_rp.rel_cadence"}}</dt><dd class="ds-stat-value" data-testid="release-cadence">{{.Cadence}}</dd><dd class="ds-stat-sub">{{ctx.Locale.Tr "asc_rp.rel_median_gap"}}</dd></div>
+					<div><dt class="ds-stat-label">{{ctx.Locale.Tr "asc_rp.rel_rollbacks"}}</dt><dd class="ds-stat-value" data-testid="release-rollbacks">{{.Rollbacks}}</dd><dd class="ds-stat-sub">{{ctx.Locale.TrN .Window "asc_rp.rel_last_releases_one" "asc_rp.rel_last_releases_other" .Window}}</dd></div>
+				</dl>
+				{{if .Points}}<svg class="rp-spark" viewBox="0 0 100 24" preserveAspectRatio="none" role="img" aria-label="{{ctx.Locale.TrN .Recent "asc_rp.rel_activity_label_one" "asc_rp.rel_activity_label_other" .Recent .Weeks}}"><polyline points="{{.Points}}" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>{{end}}
+			</section>
+			{{end}}
 			{{if .EnableFeed}}
 			<section class="rp-card" aria-labelledby="rp-notify-h">
 				<h2 class="rp-rail-title" id="rp-notify-h">{{ctx.Locale.Tr "asc_rp.rel_notify"}}</h2>
