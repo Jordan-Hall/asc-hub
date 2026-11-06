@@ -5,6 +5,7 @@ package repo
 
 import (
 	"net/http"
+	"strings"
 
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
@@ -43,7 +44,11 @@ type ascRefsMenu struct {
 // out, since a branchless repository has no other branches to show.
 func ascRefsMenuItems(shared, stacks, tags, ascShared []string, branchless bool) []ascRefItem {
 	if branchless {
-		shared = ascShared
+		// asc names its shared refs in full (refs/heads/main); the menu shows and links the branch name
+		shared = make([]string, 0, len(ascShared))
+		for _, r := range ascShared {
+			shared = append(shared, strings.TrimPrefix(r, "refs/heads/"))
+		}
 	}
 	out := make([]ascRefItem, 0, len(shared)+len(stacks)+len(tags))
 	seen := map[string]bool{}
