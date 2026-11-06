@@ -19,6 +19,7 @@
 				{{end}}
 				<p class="rp-tree-hint"><a href="{{.BranchLink}}">{{.Repository.FullName}}</a></p>
 				<p class="rp-tree-hint">{{ctx.Locale.Tr "asc_rp.tree_keys_hint"}}</p>
+				{{if .AscTreeTouched}}<p class="rp-tree-hint">{{ctx.Locale.TrN .AscTreeTouched "asc_rp.tree_touched_1" "asc_rp.tree_touched_n" (HTMLFormat `<span class="ds-count ds-count-hot rp-tree-count" aria-hidden="true">%d</span><span class="ds-sr">%d</span>` .AscTreeTouched .AscTreeTouched)}}</p>{{end}}
 			</div>
 		</aside>
 		<div class="rp-codemain">

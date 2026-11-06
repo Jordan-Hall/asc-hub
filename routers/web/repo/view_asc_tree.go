@@ -28,6 +28,8 @@ type AscTreeNode struct {
 	Children []*AscTreeNode
 	// Cut is true on a directory whose list was cut at ascTreeMaxEntries.
 	Cut bool
+	// Stacks is the number of open stacks onto the shown branch that change this file.
+	Stacks int
 }
 
 // ascTreeEntry is what the builder needs to know about a tree entry.
@@ -130,6 +132,7 @@ func prepareAscTree(ctx *context.Context, isDir bool) {
 		log.Warn("the folder rail of %s is left out: %v", ctx.Repo.Repository.FullName(), err)
 		return
 	}
+	prepareAscTreeTouched(ctx, nodes)
 	ctx.Data["AscTree"] = nodes
 	ctx.Data["AscTreeCut"] = cut
 }
