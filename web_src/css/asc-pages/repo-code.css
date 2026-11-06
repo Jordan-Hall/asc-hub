@@ -832,3 +832,12 @@ tr[data-heat="4"] > td.lines-commit {
     min-height: 0;
   }
 }
+
+/* the number of open stacks that change a file of the folder rail */
+.rp-tree-count {
+  flex: none;
+  margin-inline-start: auto;
+  min-width: 0;
+  padding: 0 6px;
+  font-size: 11px;
+}

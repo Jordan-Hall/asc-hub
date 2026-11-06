@@ -9,7 +9,7 @@
 				</a>
 				{{if and .Open .Children}}{{template "repo/code_tree" .Children}}{{end}}
 			{{else}}
-				<a class="rp-tree-item rp-tree-file" href="{{.Link}}"{{if .Current}} aria-current="page"{{end}}><span class="rp-tree-caret" aria-hidden="true"></span><span class="rp-tree-name">{{.Name}}</span></a>
+				<a class="rp-tree-item rp-tree-file" href="{{.Link}}"{{if .Current}} aria-current="page"{{end}}><span class="rp-tree-caret" aria-hidden="true"></span><span class="rp-tree-name">{{.Name}}</span>{{if .Stacks}}<span class="ds-count ds-count-hot rp-tree-count" title="{{ctx.Locale.Tr "asc_rp.tree_touched_title"}}">{{.Stacks}}<span class="ds-sr"> {{ctx.Locale.Tr "asc_rp.tree_touched_title"}}</span></span>{{end}}</a>
 			{{end}}
 		</li>
 	{{end}}
