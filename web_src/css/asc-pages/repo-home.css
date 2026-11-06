@@ -1616,6 +1616,21 @@
   margin: 8px 0 4px;
 }
 
+.rp-rel-health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 12px 0 0;
+}
+
+.rp-rel-health dd {
+  margin: 0;
+}
+
+.rp-rel-health + .rp-spark {
+  margin-top: 12px;
+}
+
 .rp-rel-notes-list {
   margin: 0 0 4px;
   padding-left: 1.2em;

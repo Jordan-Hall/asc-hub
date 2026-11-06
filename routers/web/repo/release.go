@@ -250,6 +250,7 @@ func Releases(ctx *context.Context) {
 	if latest != nil {
 		ctx.Data["LatestPlatforms"], ctx.Data["LatestOtherFiles"] = releasePlatforms(latest.Release.Attachments)
 	}
+	prepareReleaseHealth(ctx)
 	addVerifyTagToContext(ctx)
 
 	pager := context.NewPagination(int(releasesCount), listOptions.PageSize, listOptions.Page, 5)
