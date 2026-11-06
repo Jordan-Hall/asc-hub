@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/unit"
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/log"
 	"forgejo.org/services/context"
@@ -22,6 +23,8 @@ const (
 	ascTreeMaxStacks = 50
 	// ascTreeMaxStackPaths bounds the paths kept for one stack.
 	ascTreeMaxStackPaths = 5000
+	// ascStackPathsFailed is cached for a head whose changed paths could not be read. A path never contains NUL.
+	ascStackPathsFailed = "\x00"
 )
 
 // ascStackPathsLister returns the paths that one open pull request changes.
@@ -69,7 +72,8 @@ func markAscTreeTouched(nodes []*AscTreeNode, touched map[string]int) int {
 
 // prepareAscTreeTouched marks the rail's files with the open stacks onto the shown branch.
 func prepareAscTreeTouched(ctx *context.Context, nodes []*AscTreeNode) {
-	if !ctx.Repo.IsViewBranch || ctx.Repo.GitRepo == nil || !ctx.Repo.Repository.CanEnablePulls() {
+	// the counts tell which files open pull requests change: only for a person who may read the pull requests
+	if !ctx.Repo.IsViewBranch || ctx.Repo.GitRepo == nil || !ctx.Repo.Repository.CanEnablePulls() || !ctx.Repo.CanRead(unit.TypePullRequests) {
 		return
 	}
 	prs, err := issues_model.GetUnmergedPullRequestsByBaseInfo(ctx, ctx.Repo.Repository.ID, ctx.Repo.BranchName)
@@ -90,14 +94,16 @@ func prepareAscTreeTouched(ctx *context.Context, nodes []*AscTreeNode) {
 		joined, err := cache.GetString(key, func() (string, error) {
 			paths, err := gitRepo.GetFilesChangedBetween(pr.MergeBase, head)
 			if err != nil {
-				return "", err
+				// remembered, so a head that cannot be compared is not compared again on every page
+				log.Debug("the changed paths of pull %d: %v", pr.ID, err)
+				return ascStackPathsFailed, nil
 			}
 			if len(paths) > ascTreeMaxStackPaths {
 				paths = paths[:ascTreeMaxStackPaths]
 			}
 			return strings.Join(paths, "\n"), nil
 		})
-		if err != nil || joined == "" {
+		if err != nil || joined == "" || joined == ascStackPathsFailed {
 			return nil, err
 		}
 		return strings.Split(joined, "\n"), nil
