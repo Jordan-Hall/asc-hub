@@ -8,10 +8,14 @@ import (
 
 	"forgejo.org/models/db"
 	git_model "forgejo.org/models/git"
+	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
+	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/git"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/setting"
 	"forgejo.org/services/context"
 
 	"xorm.io/builder"
@@ -40,6 +44,8 @@ type relChange struct {
 	User     *user_model.User
 	Agent    bool
 	Category string
+	// Change is the short asc change id the commit landed as; "" when it is not a landed asc change.
+	Change string
 }
 
 // relGroup is the changes of one category.
@@ -54,6 +60,7 @@ type relChanges struct {
 	Total    int
 	Agents   int // changes written by agents among the listed ones
 	Groups   []*relGroup
+	Changes  []*relChange // the listed changes, newest first
 }
 
 // relCategoryOf sorts an intent into Added, Changed or Fixed by its first word or its conventional prefix.
@@ -168,7 +175,43 @@ func releaseChangesOf(ctx *context.Context, r *repo_model.Release) *relChanges {
 			agents++
 		}
 	}
-	return &relChanges{Previous: prev, Total: total, Agents: agents, Groups: groupRelChanges(changes)}
+	relChangeIDs(ctx, changes)
+	return &relChanges{Previous: prev, Total: total, Agents: agents, Groups: groupRelChanges(changes), Changes: changes}
+}
+
+// relChangeIDs names the asc change each commit of an asc repository landed as, for a viewer who may read the pull
+// requests. A commit that did not land through a stack keeps no change id.
+func relChangeIDs(ctx *context.Context, changes []*relChange) {
+	repo := ctx.Repo.Repository
+	if !setting.Asc.Enabled || repo == nil || len(changes) == 0 || repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc) ||
+		!ctx.Repo.CanRead(unit.TypePullRequests) {
+		return
+	}
+	shas := make([]string, 0, len(changes))
+	for _, c := range changes {
+		shas = append(shas, c.Sha)
+	}
+	landed, err := issues_model.ListLandedAscStackPulls(ctx, repo.ID, shas)
+	if err != nil {
+		log.Warn("the change ids of the releases of %s are left out: %v", repo.FullName(), err)
+		return
+	}
+	setRelChangeIDs(changes, landed)
+}
+
+// setRelChangeIDs sets the short change id of each change that landed as one of the landed pull requests.
+func setRelChangeIDs(changes []*relChange, landed []*issues_model.LandedAscStackPull) {
+	byCommit := make(map[string]string, len(landed))
+	for _, l := range landed {
+		if l.AscChange != "" {
+			byCommit[l.MergedCommitID] = l.AscChange
+		}
+	}
+	for _, c := range changes {
+		if id := byCommit[c.Sha]; id != "" {
+			c.Change = id[:min(len(id), ascChangeIDShort)]
+		}
+	}
 }
 
 // relChecks counts the latest result of each check of a commit: how many passed of how many.

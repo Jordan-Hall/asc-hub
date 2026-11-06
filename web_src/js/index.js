@@ -87,6 +87,7 @@ import {initAscBlameSheet} from './features/asc-blame-sheet.js';
 import {initAscHistorySheet} from './features/asc-history-sheet.js';
 import {initAscSheets} from './features/asc-sheet.js';
 import {initAscReleaseNew} from './features/asc-release-new.js';
+import {initAscReleaseChanges} from './features/asc-release-changes.js';
 import {initAscDeps} from './features/asc-deps.js';
 import {initAscInsights} from './features/asc-insights.js';
 import {initAscStacksLive} from './features/asc-stacks-live.js';
@@ -289,6 +290,7 @@ onDomReady(() => {
   initAscHistorySheet();
   initAscSheets();
   initAscReleaseNew();
+  initAscReleaseChanges();
   initAscDeps();
   initAscInsights();
   initAscStacksLive();

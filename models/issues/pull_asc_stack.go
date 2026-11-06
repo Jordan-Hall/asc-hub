@@ -161,10 +161,11 @@ func ListAscStackRepoIDs(ctx context.Context) ([]int64, error) {
 	return ids, db.GetEngine(ctx).Table("pull_request_asc_stack").Distinct("repo_id").Find(&ids)
 }
 
-// LandedAscStackPull is a merged change of a stack: its pull request, the commit it landed as and the pull request
-// of the change below it.
+// LandedAscStackPull is a merged change of a stack: its pull request, its change id, the commit it landed as and the
+// pull request of the change below it.
 type LandedAscStackPull struct {
 	PullID         int64
+	AscChange      string
 	MergedCommitID string
 	StackParentID  int64
 }
@@ -177,7 +178,7 @@ func ListLandedAscStackPulls(ctx context.Context, repoID int64, commits []string
 	var rows []*LandedAscStackPull
 	err := db.GetEngine(ctx).
 		Table("pull_request").
-		Select("pull_request.id AS pull_id, pull_request.merged_commit_id, pull_request_asc_stack.stack_parent_id").
+		Select("pull_request.id AS pull_id, pull_request_asc_stack.asc_change, pull_request.merged_commit_id, pull_request_asc_stack.stack_parent_id").
 		Join("INNER", "pull_request_asc_stack", "pull_request_asc_stack.pull_id = pull_request.id").
 		Where("pull_request.base_repo_id = ? AND pull_request.has_merged = ?", repoID, true).
 		In("pull_request.merged_commit_id", commits).

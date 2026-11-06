@@ -1593,6 +1593,34 @@
   color: var(--text-2);
   font-size: 12.5px;
 }
+
+.rp-rel-list li > .ds-av {
+  align-self: center;
+}
+
+.rp-rel-list li > a:nth-child(2) {
+  flex: 1 1 14rem;
+  min-width: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.rp-rel-list li[hidden] {
+  display: none;
+}
+
+.rp-rel-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 4px;
+}
+
+.rp-rel-notes-list {
+  margin: 0 0 4px;
+  padding-left: 1.2em;
+  font-size: 14px;
+}
 /* ---- who writes the code: people and agents as one bar, agents in the agent colour ---- */
 .rp-who-bar progress {
   display: block;
