@@ -2,6 +2,24 @@
 <div role="main" aria-label="{{.Title}}" class="ds-main st-main{{if .IsRepo}} repository{{end}}">
 	{{if .IsRepo}}{{template "repo/header" .}}{{end}}
 	<div class="ds-container st-wrap">
+		{{with .AscNotFound}}
+		{{/* asc: the path is not in this version; say where it is on the default branch (board Code) */}}
+		<section class="st-card" aria-labelledby="st-title" data-testid="asc-not-found">
+			<span class="st-ic" aria-hidden="true">{{svg "dsi-search" 40}}</span>
+			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_rp.nf_title" .Name}}</h1>
+			<p class="st-text">
+				{{if and .OnMain .Change}}{{ctx.Locale.Tr "asc_rp.nf_added" (HTMLFormat `<a class="ds-mono" href="%s">%s</a>` .ChangeLink .Change)}}
+				{{else if .Change}}{{ctx.Locale.Tr "asc_rp.nf_removed" .Main (HTMLFormat `<a class="ds-mono" href="%s">%s</a>` .ChangeLink .Change)}}
+				{{else if not .OnMain}}{{ctx.Locale.Tr "asc_rp.nf_never" .Main}}
+				{{end}}
+				{{ctx.Locale.Tr "asc_rp.nf_looking" (HTMLFormat `<span class="ds-mono">%s</span>` .Version)}}
+			</p>
+			<div class="st-actions">
+				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{.MainLink}}">{{ctx.Locale.Tr "asc_rp.nf_go" .Main}}</a>
+				{{if .HistoryLink}}<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.HistoryLink}}">{{ctx.Locale.Tr "asc_rp.nf_history"}}</a>{{end}}
+			</div>
+		</section>
+		{{else}}
 		<section class="st-card" aria-labelledby="st-title">
 			<span class="st-ic" aria-hidden="true">{{svg "dsi-search" 40}}</span>
 			<p class="st-code ds-mono">404</p>
@@ -14,6 +32,7 @@
 			</div>
 			{{if .ShowFooterVersion}}<p class="st-meta ds-mono">{{ctx.Locale.Tr "admin.config.app_ver"}}: {{AppVerNoMetadata}}</p>{{end}}
 		</section>
+		{{end}}
 	</div>
 </div>
 {{template "base/footer" .}}

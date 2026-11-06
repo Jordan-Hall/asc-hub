@@ -37,6 +37,7 @@ func HandleGitError(ctx *context.Context, msg string, err error) {
 		}
 		ctx.Data["NotFoundPrompt"] = ctx.Locale.Tr("repo.tree_path_not_found."+refType, ctx.Repo.TreePath, url.PathEscape(ctx.Repo.RefName))
 		ctx.Data["NotFoundGoBackURL"] = ctx.Repo.RepoLink + "/src/" + refType + "/" + url.PathEscape(ctx.Repo.RefName)
+		prepareAscNotFound(ctx)
 		ctx.NotFound(msg, err)
 	} else {
 		ctx.ServerError(msg, err)
