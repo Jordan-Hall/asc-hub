@@ -285,3 +285,19 @@ func qLonePull(t *testing.T) *issues_model.PullRequest {
 	require.True(t, has)
 	return pr
 }
+
+func TestAscQueuePositions(t *testing.T) {
+	newQFixture(t)
+	for i, state := range []string{AscQueueLanding, AscQueueBlocked, AscQueueQueued, AscQueueQueued} {
+		require.NoError(t, db.Insert(t.Context(), &AscStackQueueEntry{RepoID: 999, Branch: "main", PullID: int64(9001 + i), AscChange: "k", State: state}))
+	}
+	require.NoError(t, db.Insert(t.Context(), &AscStackQueueEntry{RepoID: 999, Branch: "other", PullID: 9100, AscChange: "k", State: AscQueueQueued}))
+
+	got, err := AscQueuePositions(t.Context(), 999, "main")
+	require.NoError(t, err)
+	assert.Equal(t, map[int64]int{9001: 1, 9003: 2, 9004: 3}, got, "a blocked entry and another branch have no place")
+
+	got, err = AscQueuePositions(t.Context(), 999, "gone")
+	require.NoError(t, err)
+	assert.Empty(t, got)
+}
