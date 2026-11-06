@@ -688,6 +688,8 @@ func registerRoutes(m *web.Route) {
 		}, explore.CodeSearch)
 		m.Get("/topics/search", explore.TopicSearch)
 	}, ignExploreSignIn)
+	// the search of every repository (board Search): the address the header search and the palette send to
+	m.Get("/-/asc/search", ignExploreSignIn, explore.AscGlobalSearch)
 	m.Group("/issues", func() {
 		m.Get("", user.Issues)
 		m.Get("/search", repo.SearchIssues)

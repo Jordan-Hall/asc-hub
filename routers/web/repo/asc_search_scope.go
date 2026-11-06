@@ -105,7 +105,7 @@ func ascSearchExploreURL(q ascSearchQuery) string {
 	if q.path != "" {
 		v.Set("path", q.path)
 	}
-	return setting.AppSubURL + "/explore/code?" + v.Encode()
+	return setting.AppSubURL + "/-/asc/search?" + v.Encode()
 }
 
 // ascSearchURL is the address of this page with the query, changed by set (a key set to "" is dropped).

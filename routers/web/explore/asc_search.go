@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"forgejo.org/models/unit"
 	"forgejo.org/modules/ascclient"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
@@ -172,6 +173,19 @@ func CodeSearch(ctx *context.Context) {
 	Code(ctx)
 }
 
+// AscSearchPath is the address of the search of every repository.
+const AscSearchPath = "/-/asc/search"
+
+// AscGlobalSearch serves `GET /-/asc/search`: the asc search of every repository, grouped by repository. It exists
+// only while the asc integration is on and code is not turned off for the whole site.
+func AscGlobalSearch(ctx *context.Context) {
+	if !setting.Asc.Enabled || unit.TypeCode.UnitGlobalDisabled() {
+		ctx.NotFound("AscGlobalSearch", nil)
+		return
+	}
+	AscExploreSearch(ctx)
+}
+
 // ascExploreRaw reads one form field, bounded and valid UTF-8, so it can be shown again.
 func ascExploreRaw(ctx *context.Context, key string) (string, bool) {
 	s := ctx.FormString(key)
@@ -268,7 +282,7 @@ func (q ascExploreQuery) url(set map[string]string) string {
 			v.Set(k, val)
 		}
 	}
-	return setting.AppSubURL + "/explore/code?" + v.Encode()
+	return setting.AppSubURL + AscSearchPath + "?" + v.Encode()
 }
 
 func ascExploreShowQuery(ctx *context.Context, q ascExploreQuery) {
