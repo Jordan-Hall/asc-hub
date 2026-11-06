@@ -203,6 +203,7 @@ func prepareAscOpenChanges(ctx *context.Context) {
 			log.Warn("the open changes of %s: issue of pull %d: %v", repo.FullName(), pr.ID, err)
 			continue
 		}
+		pr.Issue.Repo = repo
 		if link, err := issues_model.GetPullRequestAscStack(ctx, pr.ID); err == nil && link != nil {
 			parent[pr.ID], stacks[pr.ID] = link.StackParentID, link
 		}
