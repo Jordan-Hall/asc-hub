@@ -523,10 +523,10 @@ func TestAscExploreHelpers(t *testing.T) {
 	assert.Equal(t, "o", v.Get("owner"))
 	assert.False(t, v.Has("lang"), "a key set to empty is dropped")
 	assert.Equal(t, "t", v.Get("page_token"))
-	assert.Equal(t, "/explore/code", u.Path)
+	assert.Equal(t, "/-/asc/search", u.Path)
 
 	sym := ascExploreQuery{mode: "symbol", text: "x", match: "regex", cs: true}
-	v2, _ := url.ParseQuery(strings.TrimPrefix(sym.url(nil), "/explore/code?"))
+	v2, _ := url.ParseQuery(strings.TrimPrefix(sym.url(nil), "/-/asc/search?"))
 	assert.False(t, v2.Has("match"), "text options are only for text")
 	assert.False(t, v2.Has("case"))
 
@@ -573,4 +573,22 @@ func TestAscExploreRepoFacets(t *testing.T) {
 	shown, more = ascExploreRepoFacets(q, groups[:2])
 	assert.Len(t, shown, 1)
 	assert.Nil(t, more)
+}
+
+func TestAscGlobalSearch(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	// off while the asc integration is off
+	defer test.MockVariableValue(&setting.Asc.Enabled, false)()
+	ctx, resp := contexttest.MockContext(t, AscSearchPath)
+	AscGlobalSearch(ctx)
+	assert.Equal(t, http.StatusNotFound, resp.Code)
+
+	// on: the empty form, which sends to itself
+	setting.Asc.Enabled = true
+	ctx, resp = contexttest.MockContext(t, AscSearchPath)
+	ctx.Render = templates.HTMLRenderer()
+	AscGlobalSearch(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	assert.Contains(t, resp.Body.String(), `action="/-/asc/search"`)
 }
