@@ -26,7 +26,12 @@ export async function initRepoBranchTagSelector() {
           hasListInitialized: {
             branches: false,
             tags: false,
+            asc: false,
           },
+          // an asc repository in branchless mode says so under its menu
+          ascBranchless: false,
+          // the mode the dropdown falls back to when the asc menu is not available
+          fallbackMode: '',
           ...window.config.pageData.branchDropdownDataList[elIndex],
         };
       },
