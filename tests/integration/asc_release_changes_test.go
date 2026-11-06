@@ -76,3 +76,30 @@ func TestAscReleaseChangesList(t *testing.T) {
 
 	})
 }
+
+// The Release health card shows the median gap between releases, the rollbacks among the newest six and a line of
+// releases per week; a release cut from an older commit than the release before it is a rollback.
+func TestAscReleaseHealth(t *testing.T) {
+	onApplicationRun(t, func(t *testing.T, _ *url.URL) {
+		user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+		repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
+		session := loginUser(t, "user2")
+
+		createNewRelease(t, session, "/user2/repo1", "v9.0", "v9.0", false, false)
+		commitFile(t, user, repo, "health.txt", "Add health check")
+		createNewRelease(t, session, "/user2/repo1", "v9.1", "v9.1", false, false)
+		// v9.2 is cut from the commit of v9.0: a rollback
+		createNewReleaseTarget(t, session, "/user2/repo1", "v9.2", "v9.2", "v9.0", false, false)
+
+		doc := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/releases"), http.StatusOK).Body)
+		card := doc.Find(`[data-testid="release-health"]`)
+		require.Equal(t, 1, card.Length())
+		assert.Equal(t, "Release health", card.Find("h2").Text())
+		assert.Equal(t, "< 1 d", card.Find(`[data-testid="release-cadence"]`).Text(), "the releases were cut seconds apart")
+		assert.Equal(t, "1", card.Find(`[data-testid="release-rollbacks"]`).Text())
+		assert.Contains(t, card.Text(), "median gap")
+		assert.Contains(t, card.Text(), "releases")
+		label := card.Find("svg.rp-spark").AttrOr("aria-label", "")
+		assert.Contains(t, label, "in the last 12 weeks")
+	})
+}
