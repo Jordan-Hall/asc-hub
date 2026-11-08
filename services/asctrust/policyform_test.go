@@ -57,6 +57,38 @@ func TestApplyFormSquash(t *testing.T) {
 	assert.Equal(t, "squash", FormOfText(out).MergeStrategy)
 }
 
+// Board RepoSettingsRules, longest stack and clean-up: the form writes `[stacks]`, and an emptied field takes the
+// key out, since asc reads a missing key as "no limit" and "the server's setting" and refuses 0.
+func TestApplyFormStacks(t *testing.T) {
+	f := FormOfText(formSample)
+	assert.Zero(t, f.MaxStackDepth)
+	assert.Zero(t, f.CleanupDays)
+	f.MaxStackDepth, f.CleanupDays = 8, 7
+	out, err := ApplyForm(formSample, f)
+	require.NoError(t, err)
+	assert.Contains(t, out, "[stacks]\nmax_depth = 8\ncleanup_days = 7\n")
+	back := FormOfText(out)
+	assert.EqualValues(t, 8, back.MaxStackDepth)
+	assert.EqualValues(t, 7, back.CleanupDays)
+
+	back.MaxStackDepth = 0
+	out, err = ApplyForm(out, back)
+	require.NoError(t, err)
+	assert.NotContains(t, out, "max_depth")
+	assert.Contains(t, out, "[stacks]\ncleanup_days = 7\n")
+
+	// A file without the keys stays without them.
+	out, err = ApplyForm(formSample, FormOfText(formSample))
+	require.NoError(t, err)
+	assert.NotContains(t, out, "[stacks]")
+}
+
+func TestRemoveKeyKeepsTheRest(t *testing.T) {
+	text := "[stacks]\n# kept\nmax_depth = 8 # old\ncleanup_days = 7\n"
+	assert.Equal(t, "[stacks]\n# kept\ncleanup_days = 7\n", removeKey(text, "stacks", "max_depth"))
+	assert.Equal(t, text, removeKey(text, "stacks", "restack_on_main_move"))
+}
+
 func TestApplyFormRefuses(t *testing.T) {
 	for name, mutate := range map[string]func(*PolicyForm){
 		"approvals":  func(f *PolicyForm) { f.RequireApprovals = 65 },
@@ -64,6 +96,9 @@ func TestApplyFormRefuses(t *testing.T) {
 		"strategy":   func(f *PolicyForm) { f.MergeStrategy = "octopus" },
 		"glob":       func(f *PolicyForm) { f.AgentScope = []string{"../x"} },
 		"check name": func(f *PolicyForm) { f.RequireChecks = []string{"a\"b"} },
+		"depth":      func(f *PolicyForm) { f.MaxStackDepth = MaxStackDepth + 1 },
+		"depth sign": func(f *PolicyForm) { f.MaxStackDepth = -1 },
+		"cleanup":    func(f *PolicyForm) { f.CleanupDays = MaxCleanupDays + 1 },
 	} {
 		f := FormOfText(formSample)
 		mutate(&f)

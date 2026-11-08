@@ -149,6 +149,23 @@ queue = false
 	assert.False(t, sum.Queue)
 }
 
+// The clean-up days come from what asc parsed, not from the text, so a policy asc refused never shows them.
+func TestLoadPolicySummaryCleanupDays(t *testing.T) {
+	f, c := startFake(t)
+	src := policySource()
+	src.Text = []byte("[stacks]\ncleanup_days = 7\n")
+	src.Parsed.Stacks = &ascv1.PolicyStacks{CleanupDays: 7}
+	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) { return src, nil }
+	sum, err := LoadPolicySummary(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.EqualValues(t, 7, sum.CleanupDays)
+
+	src.Parsed.Stacks = nil
+	sum, err = LoadPolicySummary(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.Zero(t, sum.CleanupDays, "left to the server")
+}
+
 func TestRunBudgetWords(t *testing.T) {
 	assert.Equal(t, "1 h, 1.5k tokens and $2.50", RunBudgetWords(`[agents]
 max_runtime_seconds = 3600
