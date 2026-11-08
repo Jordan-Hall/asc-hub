@@ -429,6 +429,7 @@ func TestActionsSecretsPage(t *testing.T) {
 
 	doc := NewHTMLParser(t, sess.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
 	doc.AssertElement(t, `[data-testid="secrets-empty"] button.show-modal[data-modal="#add-secret-modal"]`, true)
+	assert.Contains(t, doc.Find(`[data-testid="secrets-redacted"]`).Text(), "its log shows *** in place of the value", "the page says a log never shows a value")
 
 	sess.MakeRequest(t, NewRequestWithValues(t, "POST", url, map[string]string{"name": "DEPLOY_TOKEN", "data": "v"}), http.StatusOK)
 	doc = NewHTMLParser(t, sess.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
