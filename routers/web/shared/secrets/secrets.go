@@ -8,6 +8,7 @@ import (
 
 	"forgejo.org/models/db"
 	secret_model "forgejo.org/models/secret"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
@@ -24,6 +25,26 @@ func SetSecretsContext(ctx *context.Context, ownerID, repoID int64) {
 	}
 
 	ctx.Data["Secrets"] = secrets
+
+	// Who last set each value (board RepoSettingsSecrets, "Updated by X, 12 d ago").
+	ids := make([]int64, 0, len(secrets))
+	for _, s := range secrets {
+		if s.UpdaterID > 0 {
+			ids = append(ids, s.UpdaterID)
+		}
+	}
+	updaters := make(map[int64]*user_model.User, len(ids))
+	if len(ids) > 0 {
+		users, err := user_model.GetUsersByIDs(ctx, ids)
+		if err != nil {
+			ctx.ServerError("GetUsersByIDs", err)
+			return
+		}
+		for _, u := range users {
+			updaters[u.ID] = u
+		}
+	}
+	ctx.Data["SecretUpdaters"] = updaters
 }
 
 func CreateSecretPost(ctx *context.Context, ownerID, repoID int64, redirectURL string) {
@@ -34,6 +55,10 @@ func CreateSecretPost(ctx *context.Context, ownerID, repoID int64, redirectURL s
 	if err != nil {
 		log.Error("InsertEncryptedSecret failed: %v", err)
 		ctx.JSONError(ctx.Tr("secrets.creation.failed"))
+		return
+	}
+	if err := secret_model.MarkUpdated(ctx, secret.ID, ctx.Doer.ID); err != nil {
+		ctx.ServerError("MarkUpdated", err)
 		return
 	}
 
@@ -64,6 +89,10 @@ func EditSecretPost(ctx *context.Context, ownerID, repoID, id int64, redirectURL
 	if err != nil {
 		log.Error("UpdateSecret failed: %v", err)
 		ctx.JSONError(ctx.Tr("actions.secrets.mutation.failure_message", secret.Name))
+		return
+	}
+	if err := secret_model.MarkUpdated(ctx, secret.ID, ctx.Doer.ID); err != nil {
+		ctx.ServerError("MarkUpdated", err)
 		return
 	}
 

@@ -46,6 +46,24 @@ type Secret struct {
 	Name        string             `xorm:"UNIQUE(owner_repo_name) NOT NULL"`
 	Data        []byte             `xorm:"BLOB"` // encrypted data
 	CreatedUnix timeutil.TimeStamp `xorm:"created NOT NULL"`
+	// UpdatedUnix is when the value was last set; UpdaterID who set it (0: not recorded).
+	UpdatedUnix timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"`
+	UpdaterID   int64              `xorm:"NOT NULL DEFAULT 0"`
+}
+
+// MarkUpdated records that doerID set the value of the secret id just now.
+func MarkUpdated(ctx context.Context, id, doerID int64) error {
+	_, err := db.GetEngine(ctx).ID(id).Cols("updated_unix", "updater_id").
+		Update(&Secret{UpdatedUnix: timeutil.TimeStampNow(), UpdaterID: doerID})
+	return err
+}
+
+// LastSet is when the value was last set: UpdatedUnix, else the creation time.
+func (s *Secret) LastSet() timeutil.TimeStamp {
+	if s.UpdatedUnix != 0 {
+		return s.UpdatedUnix
+	}
+	return s.CreatedUnix
 }
 
 // ErrSecretNotFound represents a "secret not found" error.

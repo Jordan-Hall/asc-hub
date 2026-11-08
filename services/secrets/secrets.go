@@ -10,7 +10,8 @@ import (
 	secret_model "forgejo.org/models/secret"
 )
 
-func CreateOrUpdateSecret(ctx context.Context, ownerID, repoID int64, name, data string) (*secret_model.Secret, bool, error) {
+// CreateOrUpdateSecret sets the secret name to data and records doerID as the one who set it.
+func CreateOrUpdateSecret(ctx context.Context, doerID, ownerID, repoID int64, name, data string) (*secret_model.Secret, bool, error) {
 	if err := secret_model.ValidateName(name); err != nil {
 		return nil, false, err
 	}
@@ -29,14 +30,14 @@ func CreateOrUpdateSecret(ctx context.Context, ownerID, repoID int64, name, data
 		if err != nil {
 			return nil, false, err
 		}
-		return s, true, nil
+		return s, true, secret_model.MarkUpdated(ctx, s.ID, doerID)
 	}
 
 	s.SetData(data)
 	if _, err := db.GetEngine(ctx).Cols("data").ID(s.ID).Update(s); err != nil {
 		return nil, false, err
 	}
-	return s, false, nil
+	return s, false, secret_model.MarkUpdated(ctx, s.ID, doerID)
 }
 
 func DeleteSecretByID(ctx context.Context, ownerID, repoID, secretID int64) error {
