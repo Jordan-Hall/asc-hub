@@ -527,7 +527,7 @@ export function initDsShell() {
   initLangMenu();
 }
 
-// ---- live results of the palette: the commands of the page, and changes, people and repositories that match ----
+// ---- live results of the palette: the commands of the page, and changes, code, people and repositories that match ----
 
 const liveMinLength = 2;
 const liveDelay = 180;
@@ -535,7 +535,7 @@ let liveTimer = 0;
 let liveAbort = null;
 
 // groupScope says in which scope chip a group of the live results shows
-export const liveGroupScopes = {commands: 'commands', changes: 'changes', people: 'people', repos: 'all'};
+export const liveGroupScopes = {commands: 'commands', changes: 'changes', code: 'code', people: 'people', repos: 'all'};
 
 // liveUrl is the address of the live results for q on the page at (its path, for the commands of that page)
 export function liveUrl(base, q, at) {

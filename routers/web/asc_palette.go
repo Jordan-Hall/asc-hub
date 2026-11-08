@@ -4,6 +4,7 @@
 package web
 
 import (
+	gocontext "context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,10 +14,14 @@ import (
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
 	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/ascclient"
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/ascratelimit"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/util"
+	"forgejo.org/services/ascsearch"
 	"forgejo.org/services/context"
 )
 
@@ -24,7 +29,12 @@ const (
 	ascPaletteMinQuery = 2
 	ascPaletteMaxQuery = 80
 	ascPaletteEach     = 5
+	// ascPaletteCodeTimeout bounds the symbol lookup of one keystroke; a slow asc serve leaves the Code group out.
+	ascPaletteCodeTimeout = 1500 * time.Millisecond
 )
+
+// ascPaletteCodeSlots bounds the symbol lookups that run at once over the whole hub; past it the Code group is left out.
+var ascPaletteCodeSlots = make(chan struct{}, 8)
 
 // AscPaletteItem is one result of the command palette; Href is always a path of this hub.
 type AscPaletteItem struct {
@@ -35,15 +45,16 @@ type AscPaletteItem struct {
 
 // AscPaletteGroup is a heading and its results.
 type AscPaletteGroup struct {
-	Key   string           `json:"key"` // commands, changes, people or repos
+	Key   string           `json:"key"` // commands, changes, code, people or repos
 	Label string           `json:"label"`
 	Items []AscPaletteItem `json:"items"`
 }
 
 // AscPalette serves GET /-/asc/palette?q=&at=: what the palette shows while a person types. Changes and repositories
 // are those the person may read, people are those the person may see; a visitor who is not signed in gets the public
-// ones. At is the path of the page the palette is open on, for the commands of that repository or change; "verb" is
-// true when q starts with a command verb, and the palette then shows its commands.
+// ones. Code is the symbol definitions asc finds in the repositories the person may read, each with its path and
+// line, while the asc integration is on. At is the path of the page the palette is open on, for the commands of that
+// repository or change; "verb" is true when q starts with a command verb, and the palette then shows its commands.
 func AscPalette(ctx *context.Context) {
 	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
 	if !ascPaletteLimiterFor(ctx).Allow(ascPaletteKey(ctx)) {
@@ -66,6 +77,9 @@ func AscPalette(ctx *context.Context) {
 	}
 	// A visitor who is not signed in gets the groups the explore pages would show, no more.
 	if ascPaletteExploreOpen(ctx) {
+		if g := ascPaletteCode(ctx, q); len(g.Items) > 0 {
+			groups = append(groups, g)
+		}
 		if g := ascPaletteRepos(ctx, q); len(g.Items) > 0 {
 			groups = append(groups, g)
 		}
@@ -126,6 +140,63 @@ func ascPaletteChanges(ctx *context.Context, q string) AscPaletteGroup {
 	for _, r := range rows {
 		full := r.Owner + "/" + r.Repo
 		g.Items = append(g.Items, AscPaletteItem{Title: r.Name, Sub: full + " #" + strconv.FormatInt(r.Index, 10), Href: setting.AppSubURL + "/" + full + "/pulls/" + strconv.FormatInt(r.Index, 10)})
+	}
+	return g
+}
+
+// ascPaletteCode looks q up as a symbol name over the repositories the person may read, definitions only. Any
+// failure (no asc, busy, slow, a refused name) leaves the group empty: the "Search code" link still finds it.
+func ascPaletteCode(ctx *context.Context, q string) AscPaletteGroup {
+	g := AscPaletteGroup{Key: "code", Label: ctx.Locale.TrString("asc_shell.palette_scope_code")}
+	if !setting.Asc.Enabled || unit.TypeCode.UnitGlobalDisabled() || !ascsearch.Plain(q, ascsearch.MaxName) {
+		return g
+	}
+	select {
+	case ascPaletteCodeSlots <- struct{}{}:
+		defer func() { <-ascPaletteCodeSlots }()
+	default:
+		return g
+	}
+	svc, err := ascsearch.Default()
+	if err != nil {
+		log.Debug("asc palette: code: %v", err)
+		return g
+	}
+	resolved, err := ascsearch.Resolve(ctx, ctx.Doer, nil, ascsearch.Selector{})
+	if err != nil || len(resolved.Repos) == 0 {
+		if err != nil {
+			log.Error("asc palette: code: %v", err)
+		}
+		return g
+	}
+	callCtx, cancel := gocontext.WithTimeout(ascclient.WithSystem(ctx.Req.Context()), ascPaletteCodeTimeout)
+	defer cancel()
+	res, err := svc.Symbols(callCtx, resolved.Repos, ascsearch.SymbolQuery{
+		Name: q, Match: ascv1.SymbolMatch_SYMBOL_MATCH_FUZZY, DefinitionsOnly: true, Limit: ascPaletteEach,
+	})
+	if err != nil {
+		log.Debug("asc palette: code: %v", err)
+		return g
+	}
+	for _, h := range res.Hits {
+		r, ok := resolved.ByName(h.Repo)
+		if !ok {
+			continue // asc named a repository Forgejo did not hand it
+		}
+		s := h.Symbol
+		line := strconv.FormatUint(uint64(s.Line), 10)
+		sub := r.FullName + " · " + s.Path + ":" + line
+		if s.Kind != "" {
+			sub = s.Kind + " · " + sub
+		}
+		href := r.Link + "/src/branch/" + util.PathEscapeSegments(r.Branch) + "/" + util.PathEscapeSegments(s.Path)
+		if s.Line > 0 {
+			href += "#L" + line
+		}
+		g.Items = append(g.Items, AscPaletteItem{Title: s.Name, Sub: sub, Href: href})
+		if len(g.Items) == ascPaletteEach {
+			break
+		}
 	}
 	return g
 }
