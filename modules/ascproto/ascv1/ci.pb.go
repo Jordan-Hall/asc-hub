@@ -845,7 +845,9 @@ func (x *ReportRunResponse) GetRun() *CiRun {
 	return nil
 }
 
-// `dropped` is true when the job's log is full and these bytes were not kept.
+// `dropped` is true when the job's log is full and these bytes were not kept. The repository's secret values and
+// recognised credentials are replaced with `***` before the bytes are stored, and again when the log is read; an
+// append or read the server cannot check (a locked vault) is refused with UNAVAILABLE.
 type AppendJobLogRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
