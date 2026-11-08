@@ -137,6 +137,9 @@ const (
 	StorageVerifyStep_STORAGE_VERIFY_STEP_PUT         StorageVerifyStep = 3 // write a probe object under `<prefix>.asc-probe/<random>`
 	StorageVerifyStep_STORAGE_VERIFY_STEP_GET         StorageVerifyStep = 4 // read it back and compare
 	StorageVerifyStep_STORAGE_VERIFY_STEP_DELETE      StorageVerifyStep = 5
+	// Advisory: ok when the bucket keeps old object versions. A failure here never fails the
+	// verification (`VerifyStorageTargetResponse.ok` reads only steps 1 to 5).
+	StorageVerifyStep_STORAGE_VERIFY_STEP_VERSIONING StorageVerifyStep = 6
 )
 
 // Enum value maps for StorageVerifyStep.
@@ -148,6 +151,7 @@ var (
 		3: "STORAGE_VERIFY_STEP_PUT",
 		4: "STORAGE_VERIFY_STEP_GET",
 		5: "STORAGE_VERIFY_STEP_DELETE",
+		6: "STORAGE_VERIFY_STEP_VERSIONING",
 	}
 	StorageVerifyStep_value = map[string]int32{
 		"STORAGE_VERIFY_STEP_UNSPECIFIED": 0,
@@ -156,6 +160,7 @@ var (
 		"STORAGE_VERIFY_STEP_PUT":         3,
 		"STORAGE_VERIFY_STEP_GET":         4,
 		"STORAGE_VERIFY_STEP_DELETE":      5,
+		"STORAGE_VERIFY_STEP_VERSIONING":  6,
 	}
 )
 
@@ -1031,11 +1036,14 @@ func (*DeleteStorageTargetResponse) Descriptor() ([]byte, []int) {
 }
 
 type StorageVerifyCheck struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Step          StorageVerifyStep      `protobuf:"varint,1,opt,name=step,proto3,enum=asc.v1.StorageVerifyStep" json:"step,omitempty"`
-	Ok            bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
-	LatencyMs     uint32                 `protobuf:"varint,3,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
-	Message       string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"` // sanitised
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Step      StorageVerifyStep      `protobuf:"varint,1,opt,name=step,proto3,enum=asc.v1.StorageVerifyStep" json:"step,omitempty"`
+	Ok        bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
+	LatencyMs uint32                 `protobuf:"varint,3,opt,name=latency_ms,json=latencyMs,proto3" json:"latency_ms,omitempty"`
+	Message   string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"` // sanitised
+	// The S3 permission the key lacks when the step was refused (`s3:PutObject`, `s3:GetObject`,
+	// `s3:DeleteObject`, `s3:GetBucketVersioning`); empty otherwise.
+	Needs         string `protobuf:"bytes,5,opt,name=needs,proto3" json:"needs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1094,6 +1102,13 @@ func (x *StorageVerifyCheck) GetLatencyMs() uint32 {
 func (x *StorageVerifyCheck) GetMessage() string {
 	if x != nil {
 		return x.Message
+	}
+	return ""
+}
+
+func (x *StorageVerifyCheck) GetNeeds() string {
+	if x != nil {
+		return x.Needs
 	}
 	return ""
 }
@@ -1997,13 +2012,14 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"\x06target\x18\x01 \x01(\v2\x15.asc.v1.StorageTargetR\x06target\",\n" +
 	"\x1aDeleteStorageTargetRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1d\n" +
-	"\x1bDeleteStorageTargetResponse\"\x8c\x01\n" +
+	"\x1bDeleteStorageTargetResponse\"\xa2\x01\n" +
 	"\x12StorageVerifyCheck\x12-\n" +
 	"\x04step\x18\x01 \x01(\x0e2\x19.asc.v1.StorageVerifyStepR\x04step\x12\x0e\n" +
 	"\x02ok\x18\x02 \x01(\bR\x02ok\x12\x1d\n" +
 	"\n" +
 	"latency_ms\x18\x03 \x01(\rR\tlatencyMs\x12\x18\n" +
-	"\amessage\x18\x04 \x01(\tR\amessage\",\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\x12\x14\n" +
+	"\x05needs\x18\x05 \x01(\tR\x05needs\",\n" +
 	"\x1aVerifyStorageTargetRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x90\x01\n" +
 	"\x1bVerifyStorageTargetResponse\x12\x0e\n" +
@@ -2070,14 +2086,15 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"\x11StorageAddressing\x12\x1b\n" +
 	"\x17STORAGE_ADDRESSING_AUTO\x10\x00\x12\x1b\n" +
 	"\x17STORAGE_ADDRESSING_PATH\x10\x01\x12#\n" +
-	"\x1fSTORAGE_ADDRESSING_VIRTUAL_HOST\x10\x02*\xd4\x01\n" +
+	"\x1fSTORAGE_ADDRESSING_VIRTUAL_HOST\x10\x02*\xf8\x01\n" +
 	"\x11StorageVerifyStep\x12#\n" +
 	"\x1fSTORAGE_VERIFY_STEP_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bSTORAGE_VERIFY_STEP_RESOLVE\x10\x01\x12\x1f\n" +
 	"\x1bSTORAGE_VERIFY_STEP_CONNECT\x10\x02\x12\x1b\n" +
 	"\x17STORAGE_VERIFY_STEP_PUT\x10\x03\x12\x1b\n" +
 	"\x17STORAGE_VERIFY_STEP_GET\x10\x04\x12\x1e\n" +
-	"\x1aSTORAGE_VERIFY_STEP_DELETE\x10\x05*\xc4\x02\n" +
+	"\x1aSTORAGE_VERIFY_STEP_DELETE\x10\x05\x12\"\n" +
+	"\x1eSTORAGE_VERIFY_STEP_VERSIONING\x10\x06*\xc4\x02\n" +
 	"\x15StorageMigrationState\x12'\n" +
 	"#STORAGE_MIGRATION_STATE_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eSTORAGE_MIGRATION_STATE_QUEUED\x10\x01\x12#\n" +
