@@ -285,9 +285,13 @@ func TestAscMergeDefaults(t *testing.T) {
 	assert.True(t, m.GetQueue() && m.GetHumanApproval())
 	assert.False(t, m.GetRequireSigned() || m.GetAllowForce(), "what is not checked is off")
 
+	r = runOrg(t, "POST", "/x", 2, true, url.Values{"op": {opOf()}, "strategy": {"squash"}}, nil, AscMergeSave)
+	assert.Equal(t, http.StatusSeeOther, r.status, r.flash)
+	assert.Equal(t, "squash", f.reqs[len(f.reqs)-1].(*ascv1.SetOrgMergeDefaultsRequest).GetMerge().GetStrategy())
+
 	n := f.calls()
 	for _, bad := range []url.Values{
-		{"op": {opOf()}, "strategy": {"squash"}},
+		{"op": {opOf()}, "strategy": {"octopus"}},
 		{"op": {opOf()}, "require_approvals": {"21"}},
 		{"op": {opOf()}, "require_checks": {manyLines(33)}},
 		{"op": {opOf()}, "require_checks": {strings.Repeat("c", 101)}},

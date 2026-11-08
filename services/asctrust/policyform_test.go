@@ -48,6 +48,15 @@ func TestFormRoundTrip(t *testing.T) {
 	assert.Contains(t, out, "[roles]", "other sections stay")
 }
 
+func TestApplyFormSquash(t *testing.T) {
+	f := FormOfText(formSample)
+	f.MergeStrategy = "squash"
+	out, err := ApplyForm(formSample, f)
+	require.NoError(t, err)
+	assert.Contains(t, out, `strategy = "squash"`)
+	assert.Equal(t, "squash", FormOfText(out).MergeStrategy)
+}
+
 func TestApplyFormRefuses(t *testing.T) {
 	for name, mutate := range map[string]func(*PolicyForm){
 		"approvals":  func(f *PolicyForm) { f.RequireApprovals = 65 },

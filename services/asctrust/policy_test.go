@@ -72,6 +72,20 @@ func TestMeaningPrefersWhatAscAnswered(t *testing.T) {
 	assert.Contains(t, got, "skips tests/fixtures/.")
 }
 
+func TestMeaningOfASquash(t *testing.T) {
+	land := &ascv1.PolicyLandRequirements{MergeStrategy: "squash"}
+	got := strings.Join(Meaning(boardPolicy(), boardPolicyText, land, nil, true), "\n")
+	assert.Contains(t, got, "each stack lands as one change")
+}
+
+func TestPolicyViewKeepsTheStrategyInForce(t *testing.T) {
+	src := &ascv1.GetPolicySourceResponse{Present: true, Text: []byte(boardPolicyText), Parsed: boardPolicy()}
+	assert.Equal(t, "rebase", BuildPolicyView(PolicyInput{Source: src}).Strategy, "the file's")
+	v := BuildPolicyView(PolicyInput{Source: src, Land: &ascv1.PolicyLandRequirements{MergeStrategy: "squash"}})
+	assert.Equal(t, "squash", v.Strategy, "what asc answered wins")
+	assert.Contains(t, v.MergeNote, "one change")
+}
+
 func TestMeaningWithoutAPolicyFile(t *testing.T) {
 	got := Meaning(nil, "", nil, nil, false)
 	require.Len(t, got, 1)
