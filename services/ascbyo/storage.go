@@ -204,6 +204,15 @@ type VerifyCheck struct {
 	OK        bool
 	LatencyMS uint32
 	Message   string // cleaned
+	// Advisory marks a step that never fails the verification (the bucket's versioning).
+	Advisory bool
+	// Needs is the S3 permission the key lacks when the step was refused, one of knownPermissions, or empty.
+	Needs string
+}
+
+// knownPermissions are the permissions asc names for a refused step. Anything else from the answer is dropped.
+var knownPermissions = map[string]bool{
+	"s3:PutObject": true, "s3:GetObject": true, "s3:DeleteObject": true, "s3:GetBucketVersioning": true,
 }
 
 func verifyStepKey(st ascv1.StorageVerifyStep) string {
@@ -218,6 +227,8 @@ func verifyStepKey(st ascv1.StorageVerifyStep) string {
 		return "ascbyo.storage.step.get"
 	case ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_DELETE:
 		return "ascbyo.storage.step.delete"
+	case ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_VERSIONING:
+		return "ascbyo.storage.step.versioning"
 	}
 	return "ascbyo.storage.step.unknown"
 }
@@ -248,9 +259,15 @@ func (s *Service) VerifyTarget(ctx context.Context, sc Scope, id, op string) (*V
 		if len(res.Checks) >= maxVerifyChecks {
 			break
 		}
+		needs := c.GetNeeds()
+		if !knownPermissions[needs] {
+			needs = ""
+		}
 		res.Checks = append(res.Checks, VerifyCheck{
 			Step: c.GetStep(), StepKey: verifyStepKey(c.GetStep()), OK: c.GetOk(), LatencyMS: c.GetLatencyMs(),
-			Message: CleanText(c.GetMessage(), 200),
+			Message:  CleanText(c.GetMessage(), 200),
+			Advisory: c.GetStep() == ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_VERSIONING,
+			Needs:    needs,
 		})
 	}
 	return res, nil

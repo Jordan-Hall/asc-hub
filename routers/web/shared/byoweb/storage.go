@@ -263,7 +263,10 @@ func StorageUpdate(ctx *context.Context, lvl *Level) {
 func verifyViewOf(ctx *context.Context, res *svc.VerifyResult) *VerifyView {
 	v := &VerifyView{OK: res.OK}
 	for _, c := range res.Checks {
-		v.Checks = append(v.Checks, VerifyStep{Name: ctx.Locale.TrString(c.StepKey), OK: c.OK, Latency: c.LatencyMS, Message: c.Message})
+		v.Checks = append(v.Checks, VerifyStep{
+			Name: ctx.Locale.TrString(c.StepKey), OK: c.OK, Latency: c.LatencyMS, Message: c.Message,
+			Advisory: c.Advisory, Needs: c.Needs,
+		})
 	}
 	return v
 }

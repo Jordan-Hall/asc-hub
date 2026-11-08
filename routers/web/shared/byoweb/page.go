@@ -196,6 +196,10 @@ type VerifyStep struct {
 	OK      bool
 	Latency uint32
 	Message string
+	// Advisory is a step that is reported but never fails the verification.
+	Advisory bool
+	// Needs names the permission the key lacks, or is empty.
+	Needs string
 }
 
 // TestView is the result of a key test as shown.

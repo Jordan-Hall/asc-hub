@@ -36,10 +36,11 @@
 				{{if .Checks}}
 					<ol class="asc-byo-steps">
 						{{range .Checks}}
-							<li class="{{if .OK}}ok{{else}}fail{{end}}">
-								{{if .OK}}{{svg "octicon-check-circle-fill" 14}}{{else}}{{svg "octicon-x-circle-fill" 14}}{{end}}
-								<span>{{.Name}}: {{if .OK}}{{ctx.Locale.Tr "ascbyo.storage.detail.step_ok"}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.detail.step_failed"}}{{end}}{{if .Latency}} ({{ctx.Locale.Tr "ascbyo.storage.detail.latency" .Latency}}){{end}}</span>
+							<li class="{{if .OK}}ok{{else if .Advisory}}warn{{else}}fail{{end}}" data-testid="asc-verify-step">
+								{{if .OK}}{{svg "octicon-check-circle-fill" 14}}{{else if .Advisory}}{{svg "octicon-alert-fill" 14}}{{else}}{{svg "octicon-x-circle-fill" 14}}{{end}}
+								<span>{{.Name}}: {{if .OK}}{{ctx.Locale.Tr "ascbyo.storage.detail.step_ok"}}{{else if .Advisory}}{{ctx.Locale.Tr "ascbyo.storage.detail.step_advisory"}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.detail.step_failed"}}{{end}}{{if .Latency}} ({{ctx.Locale.Tr "ascbyo.storage.detail.latency" .Latency}}){{end}}</span>
 								{{if .Message}}<span class="asc-byo-detail">{{.Message}}</span>{{end}}
+								{{if .Needs}}<span class="asc-byo-detail" data-testid="asc-verify-needs">{{ctx.Locale.Tr "ascbyo.storage.detail.needs" .Needs}}</span>{{end}}
 							</li>
 						{{end}}
 					</ol>

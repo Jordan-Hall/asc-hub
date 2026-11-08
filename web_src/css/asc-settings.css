@@ -477,6 +477,10 @@
   color: var(--color-error-text);
 }
 
+.asc-byo-steps li.warn svg {
+  color: var(--color-warning-text);
+}
+
 .asc-byo-models {
   margin: 0;
   padding-inline-start: 1.2em;
