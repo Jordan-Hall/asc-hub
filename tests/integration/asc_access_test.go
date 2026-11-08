@@ -57,6 +57,18 @@ func TestAscAccessMaintain(t *testing.T) {
 	assert.True(t, readonly)
 	m.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/settings/branches"), http.StatusOK)
 	m.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/settings/tags"), http.StatusOK)
+	branches := NewHTMLParser(t, m.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/settings/branches"), http.StatusOK).Body)
+	branches.AssertElement(t, "[data-testid=maintain-default-note]", true)
+	branches.AssertElement(t, "input[name=branch]", false)
+
+	// the default branch stays: it is neither switched nor renamed; another branch can be renamed
+	m.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/settings/branches", map[string]string{"action": "default_branch", "branch": "branch2"}), http.StatusNotFound)
+	m.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/settings/rename_branch", map[string]string{"from": "master", "to": "main"}), http.StatusNotFound)
+	assert.Equal(t, "master", unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1}).DefaultBranch)
+	m.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/settings/rename_branch", map[string]string{"from": "branch2", "to": "branch2-renamed"}), http.StatusSeeOther)
+	assert.Contains(t, m.GetCookie(app_context.CookieNameFlash).Value, "success")
+	list := NewHTMLParser(t, m.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/branches"), http.StatusOK).Body)
+	list.AssertElement(t, `.show-rename-branch-modal[data-old-branch-name=master]`, false)
 	for _, p := range []string{"/settings/collaboration", "/settings/keys", "/settings/hooks", "/settings/units", "/settings/actions/secrets", "/settings/collaboration/search?q=user"} {
 		m.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"+p), http.StatusNotFound)
 	}
@@ -146,6 +158,14 @@ func TestAscAccessList(t *testing.T) {
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &found))
 	require.NotEmpty(t, found.Data)
 	assert.Equal(t, "team", found.Data[0].Kind)
+	// a repository admin who may not add teams is not shown the teams of the organization
+	owner.MakeRequest(t, NewRequestWithValues(t, "POST", "/org3/repo3/settings/collaboration", map[string]string{"collaborator": "user8", "role": "admin"}), http.StatusSeeOther)
+	resp = loginUser(t, "user8").MakeRequest(t, NewRequest(t, "GET", "/org3/repo3/settings/collaboration/search?q=test_team"), http.StatusOK)
+	found.Data = nil
+	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &found))
+	for _, r := range found.Data {
+		assert.NotEqual(t, "team", r.Kind, r.Name)
+	}
 	owner.MakeRequest(t, NewRequestWithValues(t, "POST", "/org3/repo3/settings/collaboration", map[string]string{"collaborator": "test_team", "kind": "team", "role": "admin"}), http.StatusSeeOther)
 	assert.True(t, organization.HasTeamRepo(t.Context(), 3, 7, 3))
 	owner.MakeRequest(t, NewRequestWithValues(t, "POST", "/org3/repo3/settings/collaboration", map[string]string{"collaborator": "teamcreaterepo"}), http.StatusSeeOther)
