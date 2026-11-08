@@ -292,6 +292,44 @@ func AscDepsOutdated(ctx *context.Context) {
 	ctx.JSON(http.StatusOK, map[string]uint32{"outdated": o.Outdated, "security": o.Security, "unknown": o.Unknown})
 }
 
+// AscDepsScanStatus serves GET /{owner}/{repo}/asc/deps/scan/status: {"running", "phase", "done", "total",
+// "permille", "eta"}, what the running scan has done, polled by the page while its Scan now form waits. A failure is
+// {"error"} with the status of the failure; the page then keeps the bar without a number.
+func AscDepsScanStatus(ctx *context.Context) {
+	repo, name, ok := trustweb.CodeRepo(ctx, false)
+	if !ok {
+		return
+	}
+	trustweb.NoStore(ctx)
+	fail := func(status int, msg string) { ctx.JSON(status, map[string]string{"error": msg}) }
+	if !asctrust.HasFeature(ctx, asctrust.FeatureDeps) {
+		ctx.NotFound("asc deps", nil)
+		return
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		log.Error("asc deps: no connection to asc serve: %v", err)
+		fail(http.StatusBadGateway, ctx.Locale.TrString("asc_trust.err.unavailable"))
+		return
+	}
+	callCtx, release, err := trustweb.ReadCall(ctx, repo)
+	if err != nil {
+		f := trustweb.FailureOf("deps credential", err)
+		fail(f.Status, f.Localized(ctx))
+		return
+	}
+	defer release()
+	s, err := asctrust.LoadDepScanStatus(callCtx, conn, name)
+	if err != nil {
+		f := trustweb.FailureOf("deps scan status", err)
+		fail(f.Status, f.Localized(ctx))
+		return
+	}
+	ctx.JSON(http.StatusOK, map[string]any{
+		"running": s.Running, "phase": s.Phase, "done": s.Done, "total": s.Total, "permille": s.Permille, "eta": s.ETA,
+	})
+}
+
 // ascDepsFail answers a failed change: a message on the page the person came from, 403 and 404 as the status.
 func ascDepsFail(ctx *context.Context, op, back string, err error) {
 	f := trustweb.FailureOf(op, err)

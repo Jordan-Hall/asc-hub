@@ -1,7 +1,8 @@
 // The dependencies page (repo/asc_deps). A finding opens in place: its Details button shows why it matters, how the
 // package gets in and the fix. Without scripts every finding is drawn open and the buttons stay hidden. The Outdated tile
 // asks the registries after the page is drawn (GET asc/deps/outdated), because that takes a while; a failure is said as
-// such and never drawn as zero.
+// such and never drawn as zero. While the Scan now form waits for its answer, the page asks what the scan has done
+// (GET asc/deps/scan/status) every second and draws a bar, the phase and "About N seconds left".
 
 import {GET} from '../modules/fetch.js';
 
@@ -40,8 +41,56 @@ export async function loadOutdated(tile) {
   }
 }
 
+// The phase line of a scan status: the advisory phase says how many steps of how many.
+export function scanPhaseText(el, status) {
+  const text = el.getAttribute(`data-${status.phase}`);
+  if (!text) return el.textContent;
+  if (status.phase !== 'advisories') return text;
+  return text.replace('%d', String(status.done)).replace('%d', String(status.total));
+}
+
+// The time left of a scan status; empty when there is no estimate.
+export function scanEtaText(el, eta) {
+  if (!eta) return '';
+  if (eta === 1) return el.getAttribute('data-one');
+  return el.getAttribute('data-many').replace('%d', String(eta));
+}
+
+const scanPollMs = 1000;
+
+export function drawScanStatus(panel, status) {
+  if (!status.running) return;
+  panel.querySelector('[data-deps-progress-bar]').value = status.permille;
+  const phase = panel.querySelector('[data-deps-progress-phase]');
+  phase.textContent = scanPhaseText(phase, status);
+  const eta = panel.querySelector('[data-deps-progress-eta]');
+  eta.textContent = scanEtaText(eta, status.eta);
+}
+
+async function pollScan(form, panel) {
+  try {
+    const res = await GET(form.getAttribute('data-status-url'));
+    if (res.ok) drawScanStatus(panel, await res.json());
+  } catch {
+    // A failed poll keeps what is drawn; the scan itself answers the form.
+  }
+}
+
+export function initScanProgress(form) {
+  const panel = form.querySelector('[data-deps-progress]');
+  if (!panel) return;
+  form.addEventListener('submit', () => {
+    panel.hidden = false;
+    form.querySelector('[type="submit"]').disabled = true;
+    const timer = setInterval(() => pollScan(form, panel), scanPollMs);
+    window.addEventListener('pagehide', () => clearInterval(timer), {once: true});
+  });
+}
+
 export function initAscDeps() {
   for (const button of document.querySelectorAll('[data-dep-toggle]')) initDepToggle(button);
   const tile = document.querySelector('[data-deps-outdated]');
   if (tile) loadOutdated(tile);
+  const form = document.querySelector('[data-deps-scan-form]');
+  if (form) initScanProgress(form);
 }

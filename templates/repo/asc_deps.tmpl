@@ -73,10 +73,15 @@ link is only an https address, and the template engine escapes the rest.
 			{{end}}
 
 			{{if .CanManage}}
-			<form class="ast-inline-form asc-trust-actions" method="post" action="{{.DepsURL}}/scan" data-testid="asc-deps-scan-form">
+			<form class="ast-inline-form asc-trust-actions" method="post" action="{{.DepsURL}}/scan" data-testid="asc-deps-scan-form" data-deps-scan-form data-status-url="{{.DepsURL}}/scan/status">
 				{{$.CsrfTokenHtml}}
 				<div class="ds-check"><input id="asc-deps-refresh" name="refresh" type="checkbox" value="1"><label for="asc-deps-refresh">{{ctx.Locale.Tr "asc_trust.deps.refresh"}}</label></div>
 				<button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-deps-scan">{{ctx.Locale.Tr "asc_trust.deps.scan"}}</button>
+				<div class="rp-deps-scanning" role="status" hidden data-deps-progress data-testid="asc-deps-progress">
+					<progress class="ds-bar" max="1000" aria-label="{{ctx.Locale.Tr "asc_trust.deps.scan_progress"}}" data-deps-progress-bar></progress>
+					<span class="rp-deps-scanning-phase" data-deps-progress-phase data-reading="{{ctx.Locale.Tr "asc_trust.deps.scan_phase_reading"}}" data-advisories="{{ctx.Locale.Tr "asc_trust.deps.scan_phase_advisories"}}" data-recording="{{ctx.Locale.Tr "asc_trust.deps.scan_phase_recording"}}">{{ctx.Locale.Tr "asc_trust.deps.scan_running"}}</span>
+					<span class="rp-deps-scanning-eta" data-deps-progress-eta data-one="{{ctx.Locale.Tr "asc_trust.deps.scan_eta_1"}}" data-many="{{ctx.Locale.Tr "asc_trust.deps.scan_eta_n"}}"></span>
+				</div>
 			</form>
 			{{end}}
 

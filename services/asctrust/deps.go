@@ -593,6 +593,51 @@ func ScanDeps(ctx context.Context, conn grpc.ClientConnInterface, repoName strin
 	return out, nil
 }
 
+// DepScanStatus is what the newest running scan of a repository has done.
+type DepScanStatus struct {
+	Running bool
+	// Phase is reading, advisories or recording; empty when nothing runs.
+	Phase string
+	// Done and Total count the steps of the advisory phase; Done is never above Total.
+	Done, Total uint32
+	// Permille is how far the scan is, 0 to 1000.
+	Permille uint32
+	// ETA is the estimated time left in seconds; 0 when there is no estimate.
+	ETA uint32
+}
+
+// maxScanETA is the longest estimate drawn, in seconds; a longer one says nothing useful.
+const maxScanETA = 24 * 60 * 60
+
+// LoadDepScanStatus asks asc what the running scan of the repository has done. It is for a reader.
+func LoadDepScanStatus(ctx context.Context, conn grpc.ClientConnInterface, repoName string) (*DepScanStatus, error) {
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	resp, err := ascv1.NewDepsServiceClient(conn).ScanStatus(cctx, &ascv1.DepScanStatusRequest{Repo: RepoRef(repoName)})
+	if err != nil {
+		return nil, err
+	}
+	out := &DepScanStatus{Running: resp.GetRunning()}
+	if !out.Running {
+		return out, nil
+	}
+	switch resp.GetPhase() {
+	case ascv1.DepScanPhase_DEP_SCAN_PHASE_READING:
+		out.Phase = "reading"
+	case ascv1.DepScanPhase_DEP_SCAN_PHASE_ADVISORIES:
+		out.Phase = "advisories"
+	case ascv1.DepScanPhase_DEP_SCAN_PHASE_RECORDING:
+		out.Phase = "recording"
+	}
+	out.Total = resp.GetTotal()
+	out.Done = min(resp.GetDone(), out.Total)
+	out.Permille = min(resp.GetPermille(), 1000)
+	if eta := resp.GetEtaSeconds(); eta <= maxScanETA {
+		out.ETA = eta
+	}
+	return out, nil
+}
+
 // ---------------------------------------------------------------------------------------------------- propose
 
 // DepProposeQuery is what a proposal is asked for.

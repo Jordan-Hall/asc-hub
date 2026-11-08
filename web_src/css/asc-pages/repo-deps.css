@@ -131,3 +131,27 @@
   line-height: 1.5;
   white-space: pre;
 }
+
+/* the running scan: the bar, what it is doing and the time left, under the Scan now button */
+.rp-deps-scanning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.rp-deps-scanning[hidden] {
+  display: none;
+}
+
+.rp-deps-scanning progress {
+  flex-basis: 100%;
+}
+
+.rp-deps-scanning-eta {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+}
