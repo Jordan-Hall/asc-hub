@@ -18,11 +18,11 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 149 |
+| done | 150 |
 | partial | 1 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 5 |
-| needs-asc-backend | 1 |
+| needs-asc-backend | 0 |
 | needs-both | 18 |
 | total | 174 |
 
@@ -200,7 +200,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminPackages | Run cleanup rules with a preview of counts (hub runs CleanupExpiredData directly) | done | `services/packages/cleanup/preview.go` PreviewRules (per enabled rule: owner, type, versions and packages it would delete; deletes nothing), `routers/web/admin/asc_packages_cleanup.go` (`GET/POST /admin/packages/cleanup/rules`: the preview page with a Run button that runs ExecuteCleanupRules), link from the packages list; tests: TestPreviewRulesCountsWhatARuleWouldDeleteAndDeletesNothing | - |
 | AdminNotices | Notices list, dismiss, dismiss all with confirm | done | templates/admin/notice.tmpl | - |
 | Drafts | List of drafts from the hub (name, repo, change count, saved time), terminal card, empty and error states | done | routers/web/user/asc_drafts.go, templates/user/asc_drafts.tmpl | - |
-| Drafts | Location line "On this laptop and on the hub / only on this laptop" | needs-asc-backend | Cloud.GetWorkspace returns hub heads only; local-only drafts need a client report RPC | M |
+| Drafts | Location line "On this laptop and on the hub / only on this laptop" | done | asc `Cloud.ReportDevice` (SPEC 21.3.9): after each sync every device reports its visible drafts and their upload state (`asc.cloud.device`, else the host name); `GetWorkspace` with `include_devices` names the devices of each hub draft and returns the drafts only a device holds. `routers/web/user/asc_drafts.go` (ascDraftsBuild, ascDraftsDevices) and `templates/user/asc_drafts.tmpl` show "On laptop and on the hub", "On the hub" or "Only on desk · waiting to upload"; tests TestAscDraftsLocation, TestAscDraftsPage "says where each draft is" | - |
 | Drafts | Continue (open in editor or show asc stack resume) and Discard buttons, 30-day undo, discarded banner | needs-both | asc: Cloud.Purge deletes for good, add soft discard + undo; hub: POST /-/asc/drafts/discard and undo, buttons in asc_drafts.tmpl | M |
 | Issues | List with filters, sort, open/closed counts, label rail, milestone rail | done | templates/repo/issue/list.tmpl, filters.tmpl | - |
 | Issues | Search accepts label: and author: filters and chips apply the same | done | `routers/web/repo/asc_issue_search.go` (parseIssueQuery takes `label:name`, `label:"two words"` and `author:login` out of the search box; the label ids and the poster feed the same variables as the label and author menus, so the chips and menus show them chosen; a name that matches nothing matches nothing; labels of the repository and of its organization; at most 10 of each), used by `issues()` in `routers/web/repo/issue.go`; tests: TestParseIssueQuery, TestQueryFiltersResolveToIdsAndUnknownNamesMatchNothing, integration TestIssueSearchLabelAndAuthorFilters. The indexer is not asked for the filters: the label and poster filters were already there | - |
