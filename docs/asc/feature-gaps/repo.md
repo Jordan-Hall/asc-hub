@@ -383,7 +383,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | RepoSettingsStorage | Choose ASC Hub storage or own S3-compatible bucket (endpoint https only, region, bucket, prefix, access key, secret with Replace, path-style) | done | `H:templates/shared/asc/byo_storage.tmpl`, `H:services/ascbyo/storage.go`, `Storage` RPCs | S |
 | RepoSettingsStorage | Test connection with four steps (reachable, can write, can read, versioning on) and AccessDenied explanation naming the needed permissions | done | `VerifyStorageTarget` reports resolve, connect (TLS, with its time), put, get, delete and an advisory `versioning` step (a signed `GET ?versioning`; off or suspended is a warning, never a failure), and a refused step names the permission in `needs` (`s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, `s3:GetBucketVersioning`) in `A:crates/asc-serve/src/storage/live.rs`; the hub shows the warning and `storage.detail.needs` in `templates/shared/asc/byo_storage_target.tmpl`, keeping only the permissions it knows (`services/ascbyo/storage.go`); tests in `services/ascbyo/service_test.go` and `routers/web/shared/byoweb/byoweb_test.go` | M |
-| RepoSettingsStorage | Usage: 38.2 GB split into changes, large files, search indexes plus objects and "read this month" | needs-asc-backend | no usage RPC in `A:proto/asc/v1/storage.proto`; add per-repo usage by kind and monthly reads | M |
+| RepoSettingsStorage | Usage: 38.2 GB split into changes, large files, search indexes plus objects and "read this month" | done | `A:proto/asc/v1/storage.proto` `Storage.GetRepoUsage` (last scan by kind, bytes read this month; scanned in the background, `A:crates/asc-serve/src/storage/usage.rs`); `H:services/ascbyo/storage_usage.go`, the Usage card of `H:templates/shared/asc/byo_storage_repo.tmpl` with Count again (`POST .../asc/storage/usage/refresh`); tests in `services/ascbyo/service_test.go` and `routers/web/shared/byoweb/byoweb_test.go` | M |
 | RepoSettingsStorage | Moving data: 64% progress, Pause, Cancel and keep current | needs-both | `StartMigration/GetMigration/CancelMigration` exist; no Pause RPC; hub progress UI | M |
 | RepoSettingsStorage | Managed storage selected: "38.2 GB of 100 GB on your plan", Use my own bucket | needs-both | plan quota from `H:models/quota`; usage as above | M |
 | RepoSettingsStorage | Local-option and http refused message | done | `H:services/ascbyo/validate.go` | S |
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 246 |
+| done | 247 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
-| needs-asc-backend | 1 |
+| needs-asc-backend | 0 |
 | needs-both | 16 |
 | total | 263 |
 
