@@ -373,7 +373,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsAI | Provider list (Anthropic, OpenAI, own endpoint) with key hint, added by, verified time, Replace, Remove; stored encrypted | done | `H:templates/shared/asc/byo_ai*.tmpl`, `H:services/ascbyo/aikeys.go`, `AiProviders` RPCs | S |
 | RepoSettingsAI | Replace key dialog that verifies before swapping and shows "Anthropic rejected this key (401)" | needs-both | `UpdateKey` + `TestKey` exist; asc must keep the old key until the new one passes (atomic verify in `UpdateAiKey`), hub dialog | M |
 | RepoSettingsAI | "What uses AI" table: Agent runs, Review summaries, Meaning search, each with its provider and monthly cap and spend meter (amber 80%, red 100%) | needs-both | asc caps are per key (`monthly_cap_micro_usd`), not per feature; add feature routing (`AiFeature` -> key + cap) in `A:proto/asc/v1/aiproviders.proto` and the usage grouping; hub table | L |
-| RepoSettingsAI | Cap reached: feature pauses with "until 1 Nov or you raise it" | needs-asc-backend | key state `CAPPED` exists; per-feature pause message and reset date | M |
+| RepoSettingsAI | Cap reached: feature pauses with "until 1 Nov or you raise it" | done | `ListAiFeatures` returns `paused`, `resumes_at` and `paused_by`; `services/ascbyo/view.go` builds the pause line, `templates/shared/asc/byo_ai_features.tmpl` shows it with `ai.feature.*.paused` ("Cap reached. Agent runs are paused until %s or you raise it.") and `.paused_by`; tests in `routers/web/shared/byoweb/aifeatures_test.go` | M |
 | RepoSettingsAI | No keys: "AI features are off" empty state | done | `ascbyo.ai.empty` | S |
 | RepoSettingsAI | Repository-level page (keys are owner scope in asc, page lives under the repository menu) | done | `H:templates/shared/asc/byo_ai_repo.tmpl` under the repository menu (`/settings/asc/ai`) with the lead "Your keys, your providers, your caps."; keys of the repository are made there, and the owner's keys are linked, not listed, since agents use a repository key first and then the owner's; `TestRepoAIKeysPage` | S |
 
@@ -382,7 +382,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | RepoSettingsStorage | Choose ASC Hub storage or own S3-compatible bucket (endpoint https only, region, bucket, prefix, access key, secret with Replace, path-style) | done | `H:templates/shared/asc/byo_storage.tmpl`, `H:services/ascbyo/storage.go`, `Storage` RPCs | S |
-| RepoSettingsStorage | Test connection with four steps (reachable, can write, can read, versioning on) and AccessDenied explanation naming the needed permissions | needs-asc-backend | `VerifyStorageTarget` returns `checks`; confirm it covers TLS time, write, read and versioning, and the permission wording in `A:crates/asc-serve` storage verify | M |
+| RepoSettingsStorage | Test connection with four steps (reachable, can write, can read, versioning on) and AccessDenied explanation naming the needed permissions | done | `VerifyStorageTarget` reports resolve, connect (TLS, with its time), put, get, delete and an advisory `versioning` step (a signed `GET ?versioning`; off or suspended is a warning, never a failure), and a refused step names the permission in `needs` (`s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, `s3:GetBucketVersioning`) in `A:crates/asc-serve/src/storage/live.rs`; the hub shows the warning and `storage.detail.needs` in `templates/shared/asc/byo_storage_target.tmpl`, keeping only the permissions it knows (`services/ascbyo/storage.go`); tests in `services/ascbyo/service_test.go` and `routers/web/shared/byoweb/byoweb_test.go` | M |
 | RepoSettingsStorage | Usage: 38.2 GB split into changes, large files, search indexes plus objects and "read this month" | needs-asc-backend | no usage RPC in `A:proto/asc/v1/storage.proto`; add per-repo usage by kind and monthly reads | M |
 | RepoSettingsStorage | Moving data: 64% progress, Pause, Cancel and keep current | needs-both | `StartMigration/GetMigration/CancelMigration` exist; no Pause RPC; hub progress UI | M |
 | RepoSettingsStorage | Managed storage selected: "38.2 GB of 100 GB on your plan", Use my own bucket | needs-both | plan quota from `H:models/quota`; usage as above | M |
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 244 |
+| done | 246 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
-| needs-asc-backend | 3 |
+| needs-asc-backend | 1 |
 | needs-both | 16 |
 | total | 263 |
 
@@ -442,8 +442,8 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsRules | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
-| RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
-| RepoSettingsStorage | 3 | 0 | 0 | 2 | 3 |
+| RepoSettingsAI | 4 | 0 | 0 | 0 | 2 |
+| RepoSettingsStorage | 4 | 0 | 0 | 1 | 3 |
 | Mobile-Repo | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Code | 1 | 0 | 0 | 0 | 0 |
 | Mobile-History | 1 | 0 | 0 | 0 | 0 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 73, M 85, L 30.
+Open-size totals of the rows that are not done: S 73, M 83, L 30.
