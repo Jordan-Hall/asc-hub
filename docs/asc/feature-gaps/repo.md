@@ -223,7 +223,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Dependencies | Updates table: package, current, latest, kind, security, proposal link (Change kq2nv) or Propose | done | `asc_deps.tmpl` updates view | S |
 | Dependencies | Propose updates panel: Security fixes only, Largest jump, Most proposals, 5-stack limit, Preview, Propose | done | `asc_deps.tmpl`, `asc_deps_plan.tmpl` | S |
 | Dependencies | Configuration view: ecosystems, schedule ("Weekly, Mondays 06:00 UTC, next run in 4 days"), threshold, grouping, ignored, "Propose a change" to `.asc/deps.toml` | done | `asc_deps.tmpl` (read-only list); "Propose a change" button not verified | S |
-| Dependencies | Scan running state with real progress bar ("About 20 seconds left") | needs-asc-backend | `DepsService.Scan` is unary (`A:proto/asc/v1/deps.proto`); add a scan status/progress RPC or stream, hub polling | M |
+| Dependencies | Scan running state with real progress bar ("About 20 seconds left") | done | `DepsService.ScanStatus` (`A:proto/asc/v1/deps.proto`, `A:crates/asc-serve/src/deps/progress.rs`) says the phase, the advisory steps done of total, a bar in thousandths and an estimate; the hub polls `asc/deps/scan/status` once a second while the scan form is submitted (`routers/web/repo/asc_deps.go` `AscDepsScanStatus`, `services/asctrust/deps.go` `LoadDepScanStatus` clamps every number, `web_src/js/features/asc-deps.js` draws the bar, the phase and "About N seconds left") | M |
 | Dependencies | No findings state ("Checked 214 packages 2 hours ago against 3 sources") | done | `asc_deps.tmpl` prints a short empty line | S |
 | Dependencies | Never scanned state with package count | done | `never_scanned` banner (count not shown) | S |
 | Dependencies | Unsupported ecosystem ("2 files are not scanned. tools/build.zig.zon") | done | `unsupported` banner (file names not listed) | S |
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 242 |
+| done | 243 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
-| needs-asc-backend | 5 |
+| needs-asc-backend | 4 |
 | needs-both | 16 |
 | total | 263 |
 
