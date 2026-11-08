@@ -8610,7 +8610,7 @@ type GetPolicyResponse struct {
 	Trunk         *PolicyTrunk           `protobuf:"bytes,8,opt,name=trunk,proto3" json:"trunk,omitempty"`
 	Paths         []*PolicyPathRule      `protobuf:"bytes,9,rep,name=paths,proto3" json:"paths,omitempty"`
 	Agents        *PolicyAgents          `protobuf:"bytes,10,opt,name=agents,proto3" json:"agents,omitempty"`
-	MergeStrategy string                 `protobuf:"bytes,11,opt,name=merge_strategy,json=mergeStrategy,proto3" json:"merge_strategy,omitempty"` // rebase, rebase-disjoint or fast-forward
+	MergeStrategy string                 `protobuf:"bytes,11,opt,name=merge_strategy,json=mergeStrategy,proto3" json:"merge_strategy,omitempty"` // rebase, rebase-disjoint, fast-forward or squash
 	Decisions     []*PolicyDecision      `protobuf:"bytes,12,rep,name=decisions,proto3" json:"decisions,omitempty"`                              // one per requested path, in order
 	Review        *PolicyReview          `protobuf:"bytes,13,opt,name=review,proto3" json:"review,omitempty"`
 	Merge         *PolicyMerge           `protobuf:"bytes,14,opt,name=merge,proto3" json:"merge,omitempty"`

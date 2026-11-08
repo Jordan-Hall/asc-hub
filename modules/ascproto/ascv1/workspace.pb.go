@@ -1447,9 +1447,11 @@ func (*MountResponse) Descriptor() ([]byte, []int) {
 	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{19}
 }
 
+// list_deleted: first list the items the user deleted while the workspace was served (worktree convert --plain).
 type UnmountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WsId          string                 `protobuf:"bytes,1,opt,name=ws_id,json=wsId,proto3" json:"ws_id,omitempty"`
+	ListDeleted   bool                   `protobuf:"varint,2,opt,name=list_deleted,json=listDeleted,proto3" json:"list_deleted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1491,8 +1493,17 @@ func (x *UnmountRequest) GetWsId() string {
 	return ""
 }
 
+func (x *UnmountRequest) GetListDeleted() bool {
+	if x != nil {
+		return x.ListDeleted
+	}
+	return false
+}
+
+// deleted: root-relative paths of the deleted items, a deleted directory as one path; empty unless asked.
 type UnmountResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Deleted       [][]byte               `protobuf:"bytes,1,rep,name=deleted,proto3" json:"deleted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1525,6 +1536,13 @@ func (x *UnmountResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use UnmountResponse.ProtoReflect.Descriptor instead.
 func (*UnmountResponse) Descriptor() ([]byte, []int) {
 	return file_asc_v1_workspace_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UnmountResponse) GetDeleted() [][]byte {
+	if x != nil {
+		return x.Deleted
+	}
+	return nil
 }
 
 type SwitchRequest struct {
@@ -3674,10 +3692,12 @@ const file_asc_v1_workspace_proto_rawDesc = "" +
 	"\tuptime_ms\x18\x03 \x01(\x04R\buptimeMs\"#\n" +
 	"\fMountRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\"\x0f\n" +
-	"\rMountResponse\"%\n" +
+	"\rMountResponse\"H\n" +
 	"\x0eUnmountRequest\x12\x13\n" +
-	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\"\x11\n" +
-	"\x0fUnmountResponse\"\x8e\x01\n" +
+	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12!\n" +
+	"\flist_deleted\x18\x02 \x01(\bR\vlistDeleted\"1\n" +
+	"\x0fUnmountResponse\x12\x1e\n" +
+	"\adeleted\x18\x01 \x03(\fB\x04\xa8\xbb\x18\x03R\adeleted\"\x8e\x01\n" +
 	"\rSwitchRequest\x12\x13\n" +
 	"\x05ws_id\x18\x01 \x01(\tR\x04wsId\x12!\n" +
 	"\tfrom_root\x18\x02 \x01(\fB\x04\xa8\xbb\x18\x01R\bfromRoot\x12\x1d\n" +

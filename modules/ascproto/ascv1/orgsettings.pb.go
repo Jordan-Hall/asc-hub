@@ -138,7 +138,7 @@ type MergeDefaults struct {
 	AuthorMayApprove bool                   `protobuf:"varint,6,opt,name=author_may_approve,json=authorMayApprove,proto3" json:"author_may_approve,omitempty"`
 	Queue            bool                   `protobuf:"varint,7,opt,name=queue,proto3" json:"queue,omitempty"` // land through the merge queue
 	Revalidate       bool                   `protobuf:"varint,8,opt,name=revalidate,proto3" json:"revalidate,omitempty"`
-	Strategy         string                 `protobuf:"bytes,9,opt,name=strategy,proto3" json:"strategy,omitempty"` // "", "rebase", "rebase-disjoint" or "fast-forward"; "" leaves it to the repository
+	Strategy         string                 `protobuf:"bytes,9,opt,name=strategy,proto3" json:"strategy,omitempty"` // "", "rebase", "rebase-disjoint", "fast-forward" or "squash"; "" leaves it to the repository
 	Set              bool                   `protobuf:"varint,10,opt,name=set,proto3" json:"set,omitempty"`         // output only: the organisation has set defaults
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache

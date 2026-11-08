@@ -287,6 +287,59 @@ func (DepDismissReason) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_deps_proto_rawDescGZIP(), []int{4}
 }
 
+// The stage a running scan is in, in order.
+type DepScanPhase int32
+
+const (
+	DepScanPhase_DEP_SCAN_PHASE_UNSPECIFIED DepScanPhase = 0 // no scan is running
+	DepScanPhase_DEP_SCAN_PHASE_READING     DepScanPhase = 1 // walking the revision and parsing the manifests
+	DepScanPhase_DEP_SCAN_PHASE_ADVISORIES  DepScanPhase = 2 // asking the advisory source; `done` of `total` steps
+	DepScanPhase_DEP_SCAN_PHASE_RECORDING   DepScanPhase = 3 // recording the findings
+)
+
+// Enum value maps for DepScanPhase.
+var (
+	DepScanPhase_name = map[int32]string{
+		0: "DEP_SCAN_PHASE_UNSPECIFIED",
+		1: "DEP_SCAN_PHASE_READING",
+		2: "DEP_SCAN_PHASE_ADVISORIES",
+		3: "DEP_SCAN_PHASE_RECORDING",
+	}
+	DepScanPhase_value = map[string]int32{
+		"DEP_SCAN_PHASE_UNSPECIFIED": 0,
+		"DEP_SCAN_PHASE_READING":     1,
+		"DEP_SCAN_PHASE_ADVISORIES":  2,
+		"DEP_SCAN_PHASE_RECORDING":   3,
+	}
+)
+
+func (x DepScanPhase) Enum() *DepScanPhase {
+	p := new(DepScanPhase)
+	*p = x
+	return p
+}
+
+func (x DepScanPhase) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DepScanPhase) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_deps_proto_enumTypes[5].Descriptor()
+}
+
+func (DepScanPhase) Type() protoreflect.EnumType {
+	return &file_asc_v1_deps_proto_enumTypes[5]
+}
+
+func (x DepScanPhase) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DepScanPhase.Descriptor instead.
+func (DepScanPhase) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{5}
+}
+
 // The result of reading one file.
 type DepFileResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -699,6 +752,152 @@ func (x *ScanDepsRequest) GetRefresh() bool {
 	return false
 }
 
+type DepScanStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DepScanStatusRequest) Reset() {
+	*x = DepScanStatusRequest{}
+	mi := &file_asc_v1_deps_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DepScanStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DepScanStatusRequest) ProtoMessage() {}
+
+func (x *DepScanStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_deps_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DepScanStatusRequest.ProtoReflect.Descriptor instead.
+func (*DepScanStatusRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *DepScanStatusRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+// What the newest running scan of the repository has done. The process that answers is the one that runs the scan;
+// behind a balancer that is not sticky a client may see `running` false while another process scans.
+type DepScanStatusResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Running         bool                   `protobuf:"varint,1,opt,name=running,proto3" json:"running,omitempty"`
+	Phase           DepScanPhase           `protobuf:"varint,2,opt,name=phase,proto3,enum=asc.v1.DepScanPhase" json:"phase,omitempty"`
+	Done            uint32                 `protobuf:"varint,3,opt,name=done,proto3" json:"done,omitempty"`                                                // advisory steps done: one per package version asked (cached or answered), one per record read
+	Total           uint32                 `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`                                              // advisory steps known so far; grows when the records to read are known
+	StartedAt       int64                  `protobuf:"varint,5,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`                     // unix seconds; 0 when nothing runs
+	EtaSeconds      uint32                 `protobuf:"varint,6,opt,name=eta_seconds,json=etaSeconds,proto3" json:"eta_seconds,omitempty"`                  // the estimate of the time left; 0 when there is none
+	Permille        uint32                 `protobuf:"varint,7,opt,name=permille,proto3" json:"permille,omitempty"`                                        // how far the scan is, 0 to 1000: reading 0 to 100, advisories 100 to 950, recording 950
+	LastTookSeconds uint32                 `protobuf:"varint,8,opt,name=last_took_seconds,json=lastTookSeconds,proto3" json:"last_took_seconds,omitempty"` // how long the last finished scan of the repository on this process took; 0 when unknown
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DepScanStatusResponse) Reset() {
+	*x = DepScanStatusResponse{}
+	mi := &file_asc_v1_deps_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DepScanStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DepScanStatusResponse) ProtoMessage() {}
+
+func (x *DepScanStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_deps_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DepScanStatusResponse.ProtoReflect.Descriptor instead.
+func (*DepScanStatusResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *DepScanStatusResponse) GetRunning() bool {
+	if x != nil {
+		return x.Running
+	}
+	return false
+}
+
+func (x *DepScanStatusResponse) GetPhase() DepScanPhase {
+	if x != nil {
+		return x.Phase
+	}
+	return DepScanPhase_DEP_SCAN_PHASE_UNSPECIFIED
+}
+
+func (x *DepScanStatusResponse) GetDone() uint32 {
+	if x != nil {
+		return x.Done
+	}
+	return 0
+}
+
+func (x *DepScanStatusResponse) GetTotal() uint32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *DepScanStatusResponse) GetStartedAt() int64 {
+	if x != nil {
+		return x.StartedAt
+	}
+	return 0
+}
+
+func (x *DepScanStatusResponse) GetEtaSeconds() uint32 {
+	if x != nil {
+		return x.EtaSeconds
+	}
+	return 0
+}
+
+func (x *DepScanStatusResponse) GetPermille() uint32 {
+	if x != nil {
+		return x.Permille
+	}
+	return 0
+}
+
+func (x *DepScanStatusResponse) GetLastTookSeconds() uint32 {
+	if x != nil {
+		return x.LastTookSeconds
+	}
+	return 0
+}
+
 type ScanDepsResponse struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Files               []*DepFileResult       `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty"`
@@ -717,7 +916,7 @@ type ScanDepsResponse struct {
 
 func (x *ScanDepsResponse) Reset() {
 	*x = ScanDepsResponse{}
-	mi := &file_asc_v1_deps_proto_msgTypes[4]
+	mi := &file_asc_v1_deps_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -729,7 +928,7 @@ func (x *ScanDepsResponse) String() string {
 func (*ScanDepsResponse) ProtoMessage() {}
 
 func (x *ScanDepsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[4]
+	mi := &file_asc_v1_deps_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -742,7 +941,7 @@ func (x *ScanDepsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScanDepsResponse.ProtoReflect.Descriptor instead.
 func (*ScanDepsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{4}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ScanDepsResponse) GetFiles() []*DepFileResult {
@@ -830,7 +1029,7 @@ type ListDepFindingsRequest struct {
 
 func (x *ListDepFindingsRequest) Reset() {
 	*x = ListDepFindingsRequest{}
-	mi := &file_asc_v1_deps_proto_msgTypes[5]
+	mi := &file_asc_v1_deps_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -842,7 +1041,7 @@ func (x *ListDepFindingsRequest) String() string {
 func (*ListDepFindingsRequest) ProtoMessage() {}
 
 func (x *ListDepFindingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[5]
+	mi := &file_asc_v1_deps_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -855,7 +1054,7 @@ func (x *ListDepFindingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDepFindingsRequest.ProtoReflect.Descriptor instead.
 func (*ListDepFindingsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{5}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListDepFindingsRequest) GetRepo() *RepoRef {
@@ -925,7 +1124,7 @@ type ListDepFindingsResponse struct {
 
 func (x *ListDepFindingsResponse) Reset() {
 	*x = ListDepFindingsResponse{}
-	mi := &file_asc_v1_deps_proto_msgTypes[6]
+	mi := &file_asc_v1_deps_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -937,7 +1136,7 @@ func (x *ListDepFindingsResponse) String() string {
 func (*ListDepFindingsResponse) ProtoMessage() {}
 
 func (x *ListDepFindingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[6]
+	mi := &file_asc_v1_deps_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -950,7 +1149,7 @@ func (x *ListDepFindingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDepFindingsResponse.ProtoReflect.Descriptor instead.
 func (*ListDepFindingsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{6}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListDepFindingsResponse) GetFindings() []*DepFinding {
@@ -1044,7 +1243,7 @@ type DepUpdate struct {
 
 func (x *DepUpdate) Reset() {
 	*x = DepUpdate{}
-	mi := &file_asc_v1_deps_proto_msgTypes[7]
+	mi := &file_asc_v1_deps_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1056,7 +1255,7 @@ func (x *DepUpdate) String() string {
 func (*DepUpdate) ProtoMessage() {}
 
 func (x *DepUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[7]
+	mi := &file_asc_v1_deps_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1069,7 +1268,7 @@ func (x *DepUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DepUpdate.ProtoReflect.Descriptor instead.
 func (*DepUpdate) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{7}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DepUpdate) GetEcosystem() string {
@@ -1176,7 +1375,7 @@ type ListDepUpdatesRequest struct {
 
 func (x *ListDepUpdatesRequest) Reset() {
 	*x = ListDepUpdatesRequest{}
-	mi := &file_asc_v1_deps_proto_msgTypes[8]
+	mi := &file_asc_v1_deps_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1188,7 +1387,7 @@ func (x *ListDepUpdatesRequest) String() string {
 func (*ListDepUpdatesRequest) ProtoMessage() {}
 
 func (x *ListDepUpdatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[8]
+	mi := &file_asc_v1_deps_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1201,7 +1400,7 @@ func (x *ListDepUpdatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDepUpdatesRequest.ProtoReflect.Descriptor instead.
 func (*ListDepUpdatesRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{8}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListDepUpdatesRequest) GetRepo() *RepoRef {
@@ -1252,7 +1451,7 @@ type ListDepUpdatesResponse struct {
 
 func (x *ListDepUpdatesResponse) Reset() {
 	*x = ListDepUpdatesResponse{}
-	mi := &file_asc_v1_deps_proto_msgTypes[9]
+	mi := &file_asc_v1_deps_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1264,7 +1463,7 @@ func (x *ListDepUpdatesResponse) String() string {
 func (*ListDepUpdatesResponse) ProtoMessage() {}
 
 func (x *ListDepUpdatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[9]
+	mi := &file_asc_v1_deps_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1277,7 +1476,7 @@ func (x *ListDepUpdatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDepUpdatesResponse.ProtoReflect.Descriptor instead.
 func (*ListDepUpdatesResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{9}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListDepUpdatesResponse) GetUpdates() []*DepUpdate {
@@ -1325,7 +1524,7 @@ type DepSelector struct {
 
 func (x *DepSelector) Reset() {
 	*x = DepSelector{}
-	mi := &file_asc_v1_deps_proto_msgTypes[10]
+	mi := &file_asc_v1_deps_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1337,7 +1536,7 @@ func (x *DepSelector) String() string {
 func (*DepSelector) ProtoMessage() {}
 
 func (x *DepSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[10]
+	mi := &file_asc_v1_deps_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1350,7 +1549,7 @@ func (x *DepSelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DepSelector.ProtoReflect.Descriptor instead.
 func (*DepSelector) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{10}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DepSelector) GetEcosystem() string {
@@ -1386,7 +1585,7 @@ type ProposeDepUpdateRequest struct {
 
 func (x *ProposeDepUpdateRequest) Reset() {
 	*x = ProposeDepUpdateRequest{}
-	mi := &file_asc_v1_deps_proto_msgTypes[11]
+	mi := &file_asc_v1_deps_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1398,7 +1597,7 @@ func (x *ProposeDepUpdateRequest) String() string {
 func (*ProposeDepUpdateRequest) ProtoMessage() {}
 
 func (x *ProposeDepUpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[11]
+	mi := &file_asc_v1_deps_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1411,7 +1610,7 @@ func (x *ProposeDepUpdateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeDepUpdateRequest.ProtoReflect.Descriptor instead.
 func (*ProposeDepUpdateRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{11}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ProposeDepUpdateRequest) GetRepo() *RepoRef {
@@ -1479,7 +1678,7 @@ type DepProposal struct {
 
 func (x *DepProposal) Reset() {
 	*x = DepProposal{}
-	mi := &file_asc_v1_deps_proto_msgTypes[12]
+	mi := &file_asc_v1_deps_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1491,7 +1690,7 @@ func (x *DepProposal) String() string {
 func (*DepProposal) ProtoMessage() {}
 
 func (x *DepProposal) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[12]
+	mi := &file_asc_v1_deps_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1504,7 +1703,7 @@ func (x *DepProposal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DepProposal.ProtoReflect.Descriptor instead.
 func (*DepProposal) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{12}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DepProposal) GetGroup() string {
@@ -1574,7 +1773,7 @@ type DepSkipped struct {
 
 func (x *DepSkipped) Reset() {
 	*x = DepSkipped{}
-	mi := &file_asc_v1_deps_proto_msgTypes[13]
+	mi := &file_asc_v1_deps_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1586,7 +1785,7 @@ func (x *DepSkipped) String() string {
 func (*DepSkipped) ProtoMessage() {}
 
 func (x *DepSkipped) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[13]
+	mi := &file_asc_v1_deps_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1599,7 +1798,7 @@ func (x *DepSkipped) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DepSkipped.ProtoReflect.Descriptor instead.
 func (*DepSkipped) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{13}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DepSkipped) GetEcosystem() string {
@@ -1634,7 +1833,7 @@ type ProposeDepUpdateResponse struct {
 
 func (x *ProposeDepUpdateResponse) Reset() {
 	*x = ProposeDepUpdateResponse{}
-	mi := &file_asc_v1_deps_proto_msgTypes[14]
+	mi := &file_asc_v1_deps_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1646,7 +1845,7 @@ func (x *ProposeDepUpdateResponse) String() string {
 func (*ProposeDepUpdateResponse) ProtoMessage() {}
 
 func (x *ProposeDepUpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[14]
+	mi := &file_asc_v1_deps_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1659,7 +1858,7 @@ func (x *ProposeDepUpdateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeDepUpdateResponse.ProtoReflect.Descriptor instead.
 func (*ProposeDepUpdateResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{14}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ProposeDepUpdateResponse) GetProposals() []*DepProposal {
@@ -1697,7 +1896,7 @@ type DepIgnore struct {
 
 func (x *DepIgnore) Reset() {
 	*x = DepIgnore{}
-	mi := &file_asc_v1_deps_proto_msgTypes[15]
+	mi := &file_asc_v1_deps_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1709,7 +1908,7 @@ func (x *DepIgnore) String() string {
 func (*DepIgnore) ProtoMessage() {}
 
 func (x *DepIgnore) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[15]
+	mi := &file_asc_v1_deps_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1722,7 +1921,7 @@ func (x *DepIgnore) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DepIgnore.ProtoReflect.Descriptor instead.
 func (*DepIgnore) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{15}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *DepIgnore) GetEcosystem() string {
@@ -1779,7 +1978,7 @@ type DepGroup struct {
 
 func (x *DepGroup) Reset() {
 	*x = DepGroup{}
-	mi := &file_asc_v1_deps_proto_msgTypes[16]
+	mi := &file_asc_v1_deps_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1791,7 +1990,7 @@ func (x *DepGroup) String() string {
 func (*DepGroup) ProtoMessage() {}
 
 func (x *DepGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[16]
+	mi := &file_asc_v1_deps_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1804,7 +2003,7 @@ func (x *DepGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DepGroup.ProtoReflect.Descriptor instead.
 func (*DepGroup) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{16}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *DepGroup) GetName() string {
@@ -1853,7 +2052,7 @@ type DepsConfig struct {
 
 func (x *DepsConfig) Reset() {
 	*x = DepsConfig{}
-	mi := &file_asc_v1_deps_proto_msgTypes[17]
+	mi := &file_asc_v1_deps_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1865,7 +2064,7 @@ func (x *DepsConfig) String() string {
 func (*DepsConfig) ProtoMessage() {}
 
 func (x *DepsConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[17]
+	mi := &file_asc_v1_deps_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1878,7 +2077,7 @@ func (x *DepsConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DepsConfig.ProtoReflect.Descriptor instead.
 func (*DepsConfig) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{17}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DepsConfig) GetVersion() uint32 {
@@ -1962,7 +2161,7 @@ type SetDepsConfigRequest struct {
 
 func (x *SetDepsConfigRequest) Reset() {
 	*x = SetDepsConfigRequest{}
-	mi := &file_asc_v1_deps_proto_msgTypes[18]
+	mi := &file_asc_v1_deps_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1974,7 +2173,7 @@ func (x *SetDepsConfigRequest) String() string {
 func (*SetDepsConfigRequest) ProtoMessage() {}
 
 func (x *SetDepsConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[18]
+	mi := &file_asc_v1_deps_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1987,7 +2186,7 @@ func (x *SetDepsConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDepsConfigRequest.ProtoReflect.Descriptor instead.
 func (*SetDepsConfigRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{18}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SetDepsConfigRequest) GetRepo() *RepoRef {
@@ -2024,7 +2223,7 @@ type SetDepsConfigResponse struct {
 
 func (x *SetDepsConfigResponse) Reset() {
 	*x = SetDepsConfigResponse{}
-	mi := &file_asc_v1_deps_proto_msgTypes[19]
+	mi := &file_asc_v1_deps_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2036,7 +2235,7 @@ func (x *SetDepsConfigResponse) String() string {
 func (*SetDepsConfigResponse) ProtoMessage() {}
 
 func (x *SetDepsConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[19]
+	mi := &file_asc_v1_deps_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2049,7 +2248,7 @@ func (x *SetDepsConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDepsConfigResponse.ProtoReflect.Descriptor instead.
 func (*SetDepsConfigResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{19}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *SetDepsConfigResponse) GetText() string {
@@ -2097,7 +2296,7 @@ type GetDepsConfigRequest struct {
 
 func (x *GetDepsConfigRequest) Reset() {
 	*x = GetDepsConfigRequest{}
-	mi := &file_asc_v1_deps_proto_msgTypes[20]
+	mi := &file_asc_v1_deps_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2109,7 +2308,7 @@ func (x *GetDepsConfigRequest) String() string {
 func (*GetDepsConfigRequest) ProtoMessage() {}
 
 func (x *GetDepsConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[20]
+	mi := &file_asc_v1_deps_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2122,7 +2321,7 @@ func (x *GetDepsConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDepsConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetDepsConfigRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{20}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetDepsConfigRequest) GetRepo() *RepoRef {
@@ -2153,7 +2352,7 @@ type GetDepsConfigResponse struct {
 
 func (x *GetDepsConfigResponse) Reset() {
 	*x = GetDepsConfigResponse{}
-	mi := &file_asc_v1_deps_proto_msgTypes[21]
+	mi := &file_asc_v1_deps_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2165,7 +2364,7 @@ func (x *GetDepsConfigResponse) String() string {
 func (*GetDepsConfigResponse) ProtoMessage() {}
 
 func (x *GetDepsConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[21]
+	mi := &file_asc_v1_deps_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2178,7 +2377,7 @@ func (x *GetDepsConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDepsConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetDepsConfigResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{21}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetDepsConfigResponse) GetConfig() *DepsConfig {
@@ -2235,7 +2434,7 @@ type DismissDepFindingRequest struct {
 
 func (x *DismissDepFindingRequest) Reset() {
 	*x = DismissDepFindingRequest{}
-	mi := &file_asc_v1_deps_proto_msgTypes[22]
+	mi := &file_asc_v1_deps_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2247,7 +2446,7 @@ func (x *DismissDepFindingRequest) String() string {
 func (*DismissDepFindingRequest) ProtoMessage() {}
 
 func (x *DismissDepFindingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[22]
+	mi := &file_asc_v1_deps_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2260,7 +2459,7 @@ func (x *DismissDepFindingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DismissDepFindingRequest.ProtoReflect.Descriptor instead.
 func (*DismissDepFindingRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{22}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *DismissDepFindingRequest) GetRepo() *RepoRef {
@@ -2300,7 +2499,7 @@ type DismissDepFindingResponse struct {
 
 func (x *DismissDepFindingResponse) Reset() {
 	*x = DismissDepFindingResponse{}
-	mi := &file_asc_v1_deps_proto_msgTypes[23]
+	mi := &file_asc_v1_deps_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2312,7 +2511,7 @@ func (x *DismissDepFindingResponse) String() string {
 func (*DismissDepFindingResponse) ProtoMessage() {}
 
 func (x *DismissDepFindingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_deps_proto_msgTypes[23]
+	mi := &file_asc_v1_deps_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2325,7 +2524,7 @@ func (x *DismissDepFindingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DismissDepFindingResponse.ProtoReflect.Descriptor instead.
 func (*DismissDepFindingResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_deps_proto_rawDescGZIP(), []int{23}
+	return file_asc_v1_deps_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DismissDepFindingResponse) GetFinding() *DepFinding {
@@ -2381,7 +2580,20 @@ const file_asc_v1_deps_proto_rawDesc = "" +
 	"\n" +
 	"ecosystems\x18\x03 \x03(\tR\n" +
 	"ecosystems\x12\x18\n" +
-	"\arefresh\x18\x04 \x01(\bR\arefresh\"\x91\x04\n" +
+	"\arefresh\x18\x04 \x01(\bR\arefresh\";\n" +
+	"\x14DepScanStatusRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\"\x8f\x02\n" +
+	"\x15DepScanStatusResponse\x12\x18\n" +
+	"\arunning\x18\x01 \x01(\bR\arunning\x12*\n" +
+	"\x05phase\x18\x02 \x01(\x0e2\x14.asc.v1.DepScanPhaseR\x05phase\x12\x12\n" +
+	"\x04done\x18\x03 \x01(\rR\x04done\x12\x14\n" +
+	"\x05total\x18\x04 \x01(\rR\x05total\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\x05 \x01(\x03R\tstartedAt\x12\x1f\n" +
+	"\veta_seconds\x18\x06 \x01(\rR\n" +
+	"etaSeconds\x12\x1a\n" +
+	"\bpermille\x18\a \x01(\rR\bpermille\x12*\n" +
+	"\x11last_took_seconds\x18\b \x01(\rR\x0flastTookSeconds\"\x91\x04\n" +
 	"\x10ScanDepsResponse\x12+\n" +
 	"\x05files\x18\x01 \x03(\v2\x15.asc.v1.DepFileResultR\x05files\x12\x1a\n" +
 	"\bpackages\x18\x02 \x01(\rR\bpackages\x12.\n" +
@@ -2571,7 +2783,12 @@ const file_asc_v1_deps_proto_rawDesc = "" +
 	"\x1bDEP_DISMISS_REASON_NOT_USED\x10\x01\x12 \n" +
 	"\x1cDEP_DISMISS_REASON_TOLERABLE\x10\x02\x12!\n" +
 	"\x1dDEP_DISMISS_REASON_INACCURATE\x10\x03\x12\"\n" +
-	"\x1eDEP_DISMISS_REASON_FIX_STARTED\x10\x042\x9f\x04\n" +
+	"\x1eDEP_DISMISS_REASON_FIX_STARTED\x10\x04*\x87\x01\n" +
+	"\fDepScanPhase\x12\x1e\n" +
+	"\x1aDEP_SCAN_PHASE_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16DEP_SCAN_PHASE_READING\x10\x01\x12\x1d\n" +
+	"\x19DEP_SCAN_PHASE_ADVISORIES\x10\x02\x12\x1c\n" +
+	"\x18DEP_SCAN_PHASE_RECORDING\x10\x032\xea\x04\n" +
 	"\vDepsService\x129\n" +
 	"\x04Scan\x12\x17.asc.v1.ScanDepsRequest\x1a\x18.asc.v1.ScanDepsResponse\x12O\n" +
 	"\fListFindings\x12\x1e.asc.v1.ListDepFindingsRequest\x1a\x1f.asc.v1.ListDepFindingsResponse\x12L\n" +
@@ -2579,7 +2796,9 @@ const file_asc_v1_deps_proto_rawDesc = "" +
 	"\rProposeUpdate\x12\x1f.asc.v1.ProposeDepUpdateRequest\x1a .asc.v1.ProposeDepUpdateResponse\x12H\n" +
 	"\tSetConfig\x12\x1c.asc.v1.SetDepsConfigRequest\x1a\x1d.asc.v1.SetDepsConfigResponse\x12H\n" +
 	"\tGetConfig\x12\x1c.asc.v1.GetDepsConfigRequest\x1a\x1d.asc.v1.GetDepsConfigResponse\x12N\n" +
-	"\aDismiss\x12 .asc.v1.DismissDepFindingRequest\x1a!.asc.v1.DismissDepFindingResponseBt\n" +
+	"\aDismiss\x12 .asc.v1.DismissDepFindingRequest\x1a!.asc.v1.DismissDepFindingResponse\x12I\n" +
+	"\n" +
+	"ScanStatus\x12\x1c.asc.v1.DepScanStatusRequest\x1a\x1d.asc.v1.DepScanStatusResponseBt\n" +
 	"\n" +
 	"com.asc.v1B\tDepsProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -2595,103 +2814,110 @@ func file_asc_v1_deps_proto_rawDescGZIP() []byte {
 	return file_asc_v1_deps_proto_rawDescData
 }
 
-var file_asc_v1_deps_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_asc_v1_deps_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_asc_v1_deps_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_asc_v1_deps_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_asc_v1_deps_proto_goTypes = []any{
 	(DepSeverity)(0),                  // 0: asc.v1.DepSeverity
 	(DepFindingState)(0),              // 1: asc.v1.DepFindingState
 	(DepUpdateKind)(0),                // 2: asc.v1.DepUpdateKind
 	(DepLookupStatus)(0),              // 3: asc.v1.DepLookupStatus
 	(DepDismissReason)(0),             // 4: asc.v1.DepDismissReason
-	(*DepFileResult)(nil),             // 5: asc.v1.DepFileResult
-	(*DepAdvisory)(nil),               // 6: asc.v1.DepAdvisory
-	(*DepFinding)(nil),                // 7: asc.v1.DepFinding
-	(*ScanDepsRequest)(nil),           // 8: asc.v1.ScanDepsRequest
-	(*ScanDepsResponse)(nil),          // 9: asc.v1.ScanDepsResponse
-	(*ListDepFindingsRequest)(nil),    // 10: asc.v1.ListDepFindingsRequest
-	(*ListDepFindingsResponse)(nil),   // 11: asc.v1.ListDepFindingsResponse
-	(*DepUpdate)(nil),                 // 12: asc.v1.DepUpdate
-	(*ListDepUpdatesRequest)(nil),     // 13: asc.v1.ListDepUpdatesRequest
-	(*ListDepUpdatesResponse)(nil),    // 14: asc.v1.ListDepUpdatesResponse
-	(*DepSelector)(nil),               // 15: asc.v1.DepSelector
-	(*ProposeDepUpdateRequest)(nil),   // 16: asc.v1.ProposeDepUpdateRequest
-	(*DepProposal)(nil),               // 17: asc.v1.DepProposal
-	(*DepSkipped)(nil),                // 18: asc.v1.DepSkipped
-	(*ProposeDepUpdateResponse)(nil),  // 19: asc.v1.ProposeDepUpdateResponse
-	(*DepIgnore)(nil),                 // 20: asc.v1.DepIgnore
-	(*DepGroup)(nil),                  // 21: asc.v1.DepGroup
-	(*DepsConfig)(nil),                // 22: asc.v1.DepsConfig
-	(*SetDepsConfigRequest)(nil),      // 23: asc.v1.SetDepsConfigRequest
-	(*SetDepsConfigResponse)(nil),     // 24: asc.v1.SetDepsConfigResponse
-	(*GetDepsConfigRequest)(nil),      // 25: asc.v1.GetDepsConfigRequest
-	(*GetDepsConfigResponse)(nil),     // 26: asc.v1.GetDepsConfigResponse
-	(*DismissDepFindingRequest)(nil),  // 27: asc.v1.DismissDepFindingRequest
-	(*DismissDepFindingResponse)(nil), // 28: asc.v1.DismissDepFindingResponse
-	nil,                               // 29: asc.v1.ScanDepsResponse.PackagesByEcosystemEntry
-	nil,                               // 30: asc.v1.ListDepFindingsResponse.CountsByStateEntry
-	nil,                               // 31: asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntry
-	nil,                               // 32: asc.v1.ListDepFindingsResponse.OpenBySeverityEntry
-	(*RepoRef)(nil),                   // 33: asc.v1.RepoRef
+	(DepScanPhase)(0),                 // 5: asc.v1.DepScanPhase
+	(*DepFileResult)(nil),             // 6: asc.v1.DepFileResult
+	(*DepAdvisory)(nil),               // 7: asc.v1.DepAdvisory
+	(*DepFinding)(nil),                // 8: asc.v1.DepFinding
+	(*ScanDepsRequest)(nil),           // 9: asc.v1.ScanDepsRequest
+	(*DepScanStatusRequest)(nil),      // 10: asc.v1.DepScanStatusRequest
+	(*DepScanStatusResponse)(nil),     // 11: asc.v1.DepScanStatusResponse
+	(*ScanDepsResponse)(nil),          // 12: asc.v1.ScanDepsResponse
+	(*ListDepFindingsRequest)(nil),    // 13: asc.v1.ListDepFindingsRequest
+	(*ListDepFindingsResponse)(nil),   // 14: asc.v1.ListDepFindingsResponse
+	(*DepUpdate)(nil),                 // 15: asc.v1.DepUpdate
+	(*ListDepUpdatesRequest)(nil),     // 16: asc.v1.ListDepUpdatesRequest
+	(*ListDepUpdatesResponse)(nil),    // 17: asc.v1.ListDepUpdatesResponse
+	(*DepSelector)(nil),               // 18: asc.v1.DepSelector
+	(*ProposeDepUpdateRequest)(nil),   // 19: asc.v1.ProposeDepUpdateRequest
+	(*DepProposal)(nil),               // 20: asc.v1.DepProposal
+	(*DepSkipped)(nil),                // 21: asc.v1.DepSkipped
+	(*ProposeDepUpdateResponse)(nil),  // 22: asc.v1.ProposeDepUpdateResponse
+	(*DepIgnore)(nil),                 // 23: asc.v1.DepIgnore
+	(*DepGroup)(nil),                  // 24: asc.v1.DepGroup
+	(*DepsConfig)(nil),                // 25: asc.v1.DepsConfig
+	(*SetDepsConfigRequest)(nil),      // 26: asc.v1.SetDepsConfigRequest
+	(*SetDepsConfigResponse)(nil),     // 27: asc.v1.SetDepsConfigResponse
+	(*GetDepsConfigRequest)(nil),      // 28: asc.v1.GetDepsConfigRequest
+	(*GetDepsConfigResponse)(nil),     // 29: asc.v1.GetDepsConfigResponse
+	(*DismissDepFindingRequest)(nil),  // 30: asc.v1.DismissDepFindingRequest
+	(*DismissDepFindingResponse)(nil), // 31: asc.v1.DismissDepFindingResponse
+	nil,                               // 32: asc.v1.ScanDepsResponse.PackagesByEcosystemEntry
+	nil,                               // 33: asc.v1.ListDepFindingsResponse.CountsByStateEntry
+	nil,                               // 34: asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntry
+	nil,                               // 35: asc.v1.ListDepFindingsResponse.OpenBySeverityEntry
+	(*RepoRef)(nil),                   // 36: asc.v1.RepoRef
 }
 var file_asc_v1_deps_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.DepAdvisory.severity:type_name -> asc.v1.DepSeverity
-	6,  // 1: asc.v1.DepFinding.advisory:type_name -> asc.v1.DepAdvisory
+	7,  // 1: asc.v1.DepFinding.advisory:type_name -> asc.v1.DepAdvisory
 	1,  // 2: asc.v1.DepFinding.state:type_name -> asc.v1.DepFindingState
 	4,  // 3: asc.v1.DepFinding.dismiss_reason:type_name -> asc.v1.DepDismissReason
-	33, // 4: asc.v1.ScanDepsRequest.repo:type_name -> asc.v1.RepoRef
-	5,  // 5: asc.v1.ScanDepsResponse.files:type_name -> asc.v1.DepFileResult
-	7,  // 6: asc.v1.ScanDepsResponse.findings:type_name -> asc.v1.DepFinding
-	3,  // 7: asc.v1.ScanDepsResponse.lookup:type_name -> asc.v1.DepLookupStatus
-	29, // 8: asc.v1.ScanDepsResponse.packages_by_ecosystem:type_name -> asc.v1.ScanDepsResponse.PackagesByEcosystemEntry
-	33, // 9: asc.v1.ListDepFindingsRequest.repo:type_name -> asc.v1.RepoRef
-	1,  // 10: asc.v1.ListDepFindingsRequest.states:type_name -> asc.v1.DepFindingState
-	0,  // 11: asc.v1.ListDepFindingsRequest.min_severity:type_name -> asc.v1.DepSeverity
-	7,  // 12: asc.v1.ListDepFindingsResponse.findings:type_name -> asc.v1.DepFinding
-	30, // 13: asc.v1.ListDepFindingsResponse.counts_by_state:type_name -> asc.v1.ListDepFindingsResponse.CountsByStateEntry
-	3,  // 14: asc.v1.ListDepFindingsResponse.last_lookup:type_name -> asc.v1.DepLookupStatus
-	31, // 15: asc.v1.ListDepFindingsResponse.packages_by_ecosystem:type_name -> asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntry
-	32, // 16: asc.v1.ListDepFindingsResponse.open_by_severity:type_name -> asc.v1.ListDepFindingsResponse.OpenBySeverityEntry
-	2,  // 17: asc.v1.DepUpdate.kind:type_name -> asc.v1.DepUpdateKind
-	33, // 18: asc.v1.ListDepUpdatesRequest.repo:type_name -> asc.v1.RepoRef
-	12, // 19: asc.v1.ListDepUpdatesResponse.updates:type_name -> asc.v1.DepUpdate
-	33, // 20: asc.v1.ProposeDepUpdateRequest.repo:type_name -> asc.v1.RepoRef
-	15, // 21: asc.v1.ProposeDepUpdateRequest.selectors:type_name -> asc.v1.DepSelector
-	2,  // 22: asc.v1.ProposeDepUpdateRequest.max_kind:type_name -> asc.v1.DepUpdateKind
-	12, // 23: asc.v1.DepProposal.updates:type_name -> asc.v1.DepUpdate
-	17, // 24: asc.v1.ProposeDepUpdateResponse.proposals:type_name -> asc.v1.DepProposal
-	18, // 25: asc.v1.ProposeDepUpdateResponse.skipped:type_name -> asc.v1.DepSkipped
-	2,  // 26: asc.v1.DepIgnore.kinds:type_name -> asc.v1.DepUpdateKind
-	2,  // 27: asc.v1.DepGroup.kinds:type_name -> asc.v1.DepUpdateKind
-	0,  // 28: asc.v1.DepsConfig.severity_threshold:type_name -> asc.v1.DepSeverity
-	2,  // 29: asc.v1.DepsConfig.max_kind:type_name -> asc.v1.DepUpdateKind
-	21, // 30: asc.v1.DepsConfig.groups:type_name -> asc.v1.DepGroup
-	20, // 31: asc.v1.DepsConfig.ignore:type_name -> asc.v1.DepIgnore
-	33, // 32: asc.v1.SetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
-	22, // 33: asc.v1.SetDepsConfigRequest.config:type_name -> asc.v1.DepsConfig
-	33, // 34: asc.v1.GetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
-	22, // 35: asc.v1.GetDepsConfigResponse.config:type_name -> asc.v1.DepsConfig
-	33, // 36: asc.v1.DismissDepFindingRequest.repo:type_name -> asc.v1.RepoRef
-	4,  // 37: asc.v1.DismissDepFindingRequest.reason:type_name -> asc.v1.DepDismissReason
-	7,  // 38: asc.v1.DismissDepFindingResponse.finding:type_name -> asc.v1.DepFinding
-	8,  // 39: asc.v1.DepsService.Scan:input_type -> asc.v1.ScanDepsRequest
-	10, // 40: asc.v1.DepsService.ListFindings:input_type -> asc.v1.ListDepFindingsRequest
-	13, // 41: asc.v1.DepsService.ListUpdates:input_type -> asc.v1.ListDepUpdatesRequest
-	16, // 42: asc.v1.DepsService.ProposeUpdate:input_type -> asc.v1.ProposeDepUpdateRequest
-	23, // 43: asc.v1.DepsService.SetConfig:input_type -> asc.v1.SetDepsConfigRequest
-	25, // 44: asc.v1.DepsService.GetConfig:input_type -> asc.v1.GetDepsConfigRequest
-	27, // 45: asc.v1.DepsService.Dismiss:input_type -> asc.v1.DismissDepFindingRequest
-	9,  // 46: asc.v1.DepsService.Scan:output_type -> asc.v1.ScanDepsResponse
-	11, // 47: asc.v1.DepsService.ListFindings:output_type -> asc.v1.ListDepFindingsResponse
-	14, // 48: asc.v1.DepsService.ListUpdates:output_type -> asc.v1.ListDepUpdatesResponse
-	19, // 49: asc.v1.DepsService.ProposeUpdate:output_type -> asc.v1.ProposeDepUpdateResponse
-	24, // 50: asc.v1.DepsService.SetConfig:output_type -> asc.v1.SetDepsConfigResponse
-	26, // 51: asc.v1.DepsService.GetConfig:output_type -> asc.v1.GetDepsConfigResponse
-	28, // 52: asc.v1.DepsService.Dismiss:output_type -> asc.v1.DismissDepFindingResponse
-	46, // [46:53] is the sub-list for method output_type
-	39, // [39:46] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	36, // 4: asc.v1.ScanDepsRequest.repo:type_name -> asc.v1.RepoRef
+	36, // 5: asc.v1.DepScanStatusRequest.repo:type_name -> asc.v1.RepoRef
+	5,  // 6: asc.v1.DepScanStatusResponse.phase:type_name -> asc.v1.DepScanPhase
+	6,  // 7: asc.v1.ScanDepsResponse.files:type_name -> asc.v1.DepFileResult
+	8,  // 8: asc.v1.ScanDepsResponse.findings:type_name -> asc.v1.DepFinding
+	3,  // 9: asc.v1.ScanDepsResponse.lookup:type_name -> asc.v1.DepLookupStatus
+	32, // 10: asc.v1.ScanDepsResponse.packages_by_ecosystem:type_name -> asc.v1.ScanDepsResponse.PackagesByEcosystemEntry
+	36, // 11: asc.v1.ListDepFindingsRequest.repo:type_name -> asc.v1.RepoRef
+	1,  // 12: asc.v1.ListDepFindingsRequest.states:type_name -> asc.v1.DepFindingState
+	0,  // 13: asc.v1.ListDepFindingsRequest.min_severity:type_name -> asc.v1.DepSeverity
+	8,  // 14: asc.v1.ListDepFindingsResponse.findings:type_name -> asc.v1.DepFinding
+	33, // 15: asc.v1.ListDepFindingsResponse.counts_by_state:type_name -> asc.v1.ListDepFindingsResponse.CountsByStateEntry
+	3,  // 16: asc.v1.ListDepFindingsResponse.last_lookup:type_name -> asc.v1.DepLookupStatus
+	34, // 17: asc.v1.ListDepFindingsResponse.packages_by_ecosystem:type_name -> asc.v1.ListDepFindingsResponse.PackagesByEcosystemEntry
+	35, // 18: asc.v1.ListDepFindingsResponse.open_by_severity:type_name -> asc.v1.ListDepFindingsResponse.OpenBySeverityEntry
+	2,  // 19: asc.v1.DepUpdate.kind:type_name -> asc.v1.DepUpdateKind
+	36, // 20: asc.v1.ListDepUpdatesRequest.repo:type_name -> asc.v1.RepoRef
+	15, // 21: asc.v1.ListDepUpdatesResponse.updates:type_name -> asc.v1.DepUpdate
+	36, // 22: asc.v1.ProposeDepUpdateRequest.repo:type_name -> asc.v1.RepoRef
+	18, // 23: asc.v1.ProposeDepUpdateRequest.selectors:type_name -> asc.v1.DepSelector
+	2,  // 24: asc.v1.ProposeDepUpdateRequest.max_kind:type_name -> asc.v1.DepUpdateKind
+	15, // 25: asc.v1.DepProposal.updates:type_name -> asc.v1.DepUpdate
+	20, // 26: asc.v1.ProposeDepUpdateResponse.proposals:type_name -> asc.v1.DepProposal
+	21, // 27: asc.v1.ProposeDepUpdateResponse.skipped:type_name -> asc.v1.DepSkipped
+	2,  // 28: asc.v1.DepIgnore.kinds:type_name -> asc.v1.DepUpdateKind
+	2,  // 29: asc.v1.DepGroup.kinds:type_name -> asc.v1.DepUpdateKind
+	0,  // 30: asc.v1.DepsConfig.severity_threshold:type_name -> asc.v1.DepSeverity
+	2,  // 31: asc.v1.DepsConfig.max_kind:type_name -> asc.v1.DepUpdateKind
+	24, // 32: asc.v1.DepsConfig.groups:type_name -> asc.v1.DepGroup
+	23, // 33: asc.v1.DepsConfig.ignore:type_name -> asc.v1.DepIgnore
+	36, // 34: asc.v1.SetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
+	25, // 35: asc.v1.SetDepsConfigRequest.config:type_name -> asc.v1.DepsConfig
+	36, // 36: asc.v1.GetDepsConfigRequest.repo:type_name -> asc.v1.RepoRef
+	25, // 37: asc.v1.GetDepsConfigResponse.config:type_name -> asc.v1.DepsConfig
+	36, // 38: asc.v1.DismissDepFindingRequest.repo:type_name -> asc.v1.RepoRef
+	4,  // 39: asc.v1.DismissDepFindingRequest.reason:type_name -> asc.v1.DepDismissReason
+	8,  // 40: asc.v1.DismissDepFindingResponse.finding:type_name -> asc.v1.DepFinding
+	9,  // 41: asc.v1.DepsService.Scan:input_type -> asc.v1.ScanDepsRequest
+	13, // 42: asc.v1.DepsService.ListFindings:input_type -> asc.v1.ListDepFindingsRequest
+	16, // 43: asc.v1.DepsService.ListUpdates:input_type -> asc.v1.ListDepUpdatesRequest
+	19, // 44: asc.v1.DepsService.ProposeUpdate:input_type -> asc.v1.ProposeDepUpdateRequest
+	26, // 45: asc.v1.DepsService.SetConfig:input_type -> asc.v1.SetDepsConfigRequest
+	28, // 46: asc.v1.DepsService.GetConfig:input_type -> asc.v1.GetDepsConfigRequest
+	30, // 47: asc.v1.DepsService.Dismiss:input_type -> asc.v1.DismissDepFindingRequest
+	10, // 48: asc.v1.DepsService.ScanStatus:input_type -> asc.v1.DepScanStatusRequest
+	12, // 49: asc.v1.DepsService.Scan:output_type -> asc.v1.ScanDepsResponse
+	14, // 50: asc.v1.DepsService.ListFindings:output_type -> asc.v1.ListDepFindingsResponse
+	17, // 51: asc.v1.DepsService.ListUpdates:output_type -> asc.v1.ListDepUpdatesResponse
+	22, // 52: asc.v1.DepsService.ProposeUpdate:output_type -> asc.v1.ProposeDepUpdateResponse
+	27, // 53: asc.v1.DepsService.SetConfig:output_type -> asc.v1.SetDepsConfigResponse
+	29, // 54: asc.v1.DepsService.GetConfig:output_type -> asc.v1.GetDepsConfigResponse
+	31, // 55: asc.v1.DepsService.Dismiss:output_type -> asc.v1.DismissDepFindingResponse
+	11, // 56: asc.v1.DepsService.ScanStatus:output_type -> asc.v1.DepScanStatusResponse
+	49, // [49:57] is the sub-list for method output_type
+	41, // [41:49] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_deps_proto_init() }
@@ -2706,8 +2932,8 @@ func file_asc_v1_deps_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_deps_proto_rawDesc), len(file_asc_v1_deps_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   28,
+			NumEnums:      6,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

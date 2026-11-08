@@ -26,6 +26,7 @@ const (
 	DepsService_SetConfig_FullMethodName     = "/asc.v1.DepsService/SetConfig"
 	DepsService_GetConfig_FullMethodName     = "/asc.v1.DepsService/GetConfig"
 	DepsService_Dismiss_FullMethodName       = "/asc.v1.DepsService/Dismiss"
+	DepsService_ScanStatus_FullMethodName    = "/asc.v1.DepsService/ScanStatus"
 )
 
 // DepsServiceClient is the client API for DepsService service.
@@ -51,6 +52,7 @@ type DepsServiceClient interface {
 	SetConfig(ctx context.Context, in *SetDepsConfigRequest, opts ...grpc.CallOption) (*SetDepsConfigResponse, error)
 	GetConfig(ctx context.Context, in *GetDepsConfigRequest, opts ...grpc.CallOption) (*GetDepsConfigResponse, error)
 	Dismiss(ctx context.Context, in *DismissDepFindingRequest, opts ...grpc.CallOption) (*DismissDepFindingResponse, error)
+	ScanStatus(ctx context.Context, in *DepScanStatusRequest, opts ...grpc.CallOption) (*DepScanStatusResponse, error)
 }
 
 type depsServiceClient struct {
@@ -131,6 +133,16 @@ func (c *depsServiceClient) Dismiss(ctx context.Context, in *DismissDepFindingRe
 	return out, nil
 }
 
+func (c *depsServiceClient) ScanStatus(ctx context.Context, in *DepScanStatusRequest, opts ...grpc.CallOption) (*DepScanStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DepScanStatusResponse)
+	err := c.cc.Invoke(ctx, DepsService_ScanStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DepsServiceServer is the server API for DepsService service.
 // All implementations should embed UnimplementedDepsServiceServer
 // for forward compatibility.
@@ -154,6 +166,7 @@ type DepsServiceServer interface {
 	SetConfig(context.Context, *SetDepsConfigRequest) (*SetDepsConfigResponse, error)
 	GetConfig(context.Context, *GetDepsConfigRequest) (*GetDepsConfigResponse, error)
 	Dismiss(context.Context, *DismissDepFindingRequest) (*DismissDepFindingResponse, error)
+	ScanStatus(context.Context, *DepScanStatusRequest) (*DepScanStatusResponse, error)
 }
 
 // UnimplementedDepsServiceServer should be embedded to have
@@ -183,6 +196,9 @@ func (UnimplementedDepsServiceServer) GetConfig(context.Context, *GetDepsConfigR
 }
 func (UnimplementedDepsServiceServer) Dismiss(context.Context, *DismissDepFindingRequest) (*DismissDepFindingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Dismiss not implemented")
+}
+func (UnimplementedDepsServiceServer) ScanStatus(context.Context, *DepScanStatusRequest) (*DepScanStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ScanStatus not implemented")
 }
 func (UnimplementedDepsServiceServer) testEmbeddedByValue() {}
 
@@ -330,6 +346,24 @@ func _DepsService_Dismiss_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DepsService_ScanStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DepScanStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DepsServiceServer).ScanStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DepsService_ScanStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DepsServiceServer).ScanStatus(ctx, req.(*DepScanStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DepsService_ServiceDesc is the grpc.ServiceDesc for DepsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -364,6 +398,10 @@ var DepsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Dismiss",
 			Handler:    _DepsService_Dismiss_Handler,
+		},
+		{
+			MethodName: "ScanStatus",
+			Handler:    _DepsService_ScanStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
