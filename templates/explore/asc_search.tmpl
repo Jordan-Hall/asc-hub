@@ -149,6 +149,7 @@
 											{{if $f.Definition}}<a class="asc-pill asc-pill-def" href="{{$f.SymbolLink}}" title="Show the definition and where it is used">Definition</a>{{end}}
 											{{if $f.Lang}}<span class="asc-pill asc-pill-lang">{{$f.Lang}}</span>{{end}}
 										</div>
+										{{template "repo/asc_search_why" $f.Why}}
 										{{if $f.Redacted}}
 											<p class="asc-redacted">The content of this file is hidden because it may hold secrets.</p>
 										{{else}}
@@ -193,6 +194,7 @@
 											<span class="asc-pill asc-pill-lang" title="Relevance">{{$c.Score}}</span>
 											{{range $s := $c.Sources}}<span class="asc-pill asc-pill-lang">{{$s}}</span>{{end}}
 										</div>
+										{{template "repo/asc_search_why" $c.Why}}
 										{{if $c.Redacted}}
 											<p class="asc-redacted">The content of this passage is hidden because it may hold secrets.</p>
 										{{else if $c.Text}}

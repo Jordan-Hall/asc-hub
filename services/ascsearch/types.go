@@ -50,6 +50,7 @@ func FileHitOf(h *ascv1.FileHit) (FileHit, bool) {
 		Lang:     Label(h.GetLang()),
 		Matches:  []LineMatch{},
 		Redacted: h.GetRedacted(),
+		Reason:   ReasonOf(h.GetReason(), h.GetRedacted()),
 	}
 	for _, a := range h.GetAlsoAt() {
 		if len(out.AlsoAt) >= maxAlsoAt {
@@ -139,6 +140,7 @@ func ChunkOf(repo string, c *ascv1.Chunk) (Chunk, bool) {
 	out := Chunk{
 		Repo: repo, Path: path, FileID: Hex(c.GetFileId()), StartLine: c.GetStartLine(), EndLine: c.GetEndLine(),
 		Symbol: Clean([]byte(c.GetSymbol()), MaxName), Score: score, Redacted: c.GetRedacted(),
+		Reason: ReasonOf(c.GetReason(), c.GetRedacted()),
 	}
 	for _, s := range c.GetSources() {
 		if len(out.Sources) >= maxSources {

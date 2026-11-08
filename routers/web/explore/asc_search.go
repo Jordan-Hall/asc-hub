@@ -109,6 +109,7 @@ type ascExploreFile struct {
 	SymbolLink string
 	Also       []ascExploreAlso
 	Lines      []ascExploreLine
+	Why        ascsearch.Why
 }
 
 // ascExploreAlso is another path of the same file.
@@ -140,6 +141,7 @@ type ascExploreChunk struct {
 	Sources   []string
 	Text      string
 	Redacted  bool
+	Why       ascsearch.Why
 }
 
 // ascExploreGroup is everything found in one repository.
@@ -550,7 +552,7 @@ func (v *ascExploreView) text(ctx gocontext.Context, svc *ascsearch.Service) err
 		g := ascExploreGroup{Name: r.FullName, Link: r.Link}
 		for _, f := range rr.Files {
 			file := ascExploreFile{
-				Path: f.Path, Link: fileLink(r, f.Path, 0, 0), Lang: f.Lang, Redacted: f.Redacted,
+				Path: f.Path, Link: fileLink(r, f.Path, 0, 0), Lang: f.Lang, Redacted: f.Redacted, Why: ascsearch.WhyOf(f.Reason),
 			}
 			if name, isDef := defs[rr.Repo+"\x00"+f.Path]; isDef {
 				file.Definition = true
@@ -724,6 +726,7 @@ func (v *ascExploreView) meaning(ctx gocontext.Context, svc *ascsearch.Service) 
 		g.Chunks = append(g.Chunks, ascExploreChunk{
 			Path: c.Path, Link: fileLink(r, c.Path, c.StartLine, c.EndLine), StartLine: c.StartLine, EndLine: c.EndLine,
 			Symbol: c.Symbol, Score: strconv.FormatFloat(c.Score, 'f', 3, 64), Sources: c.Sources, Text: c.Text, Redacted: c.Redacted,
+			Why: ascsearch.WhyOf(c.Reason),
 		})
 		v.count++
 	}

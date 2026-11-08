@@ -48,6 +48,34 @@ type AscFileHit struct {
 	Matches []AscLineMatch `json:"matches"`
 	// whether the lines are hidden because they may hold secrets
 	Redacted bool `json:"redacted"`
+	// why the file matched; left out when the server did not say
+	Reason *AscMatchReason `json:"reason,omitempty"`
+}
+
+// AscMatchReason says why a result matched. A redacted result has no spans.
+// swagger:model
+type AscMatchReason struct {
+	// what matched: text (the text of the file), symbol (a symbol name) or meaning (the code is close to the question)
+	Kind string `json:"kind"`
+	// the relevance, 0 to 1, comparable only within one answer
+	Score float64 `json:"score"`
+	// the distinct query terms that matched, at most 16
+	Terms []string `json:"terms,omitempty"`
+	// where the terms matched, at most 32
+	Spans []AscMatchSpan `json:"spans,omitempty"`
+}
+
+// AscMatchSpan is one matched term in a line.
+// swagger:model
+type AscMatchSpan struct {
+	// the 1-based line
+	Line uint32 `json:"line"`
+	// the 1-based byte column where the term starts
+	StartCol uint32 `json:"start_col"`
+	// the 1-based byte column after the term
+	EndCol uint32 `json:"end_col"`
+	// the query term that matched
+	Term string `json:"term,omitempty"`
 }
 
 // AscRepoHits is the hits of one repository.
@@ -122,6 +150,8 @@ type AscChunk struct {
 	Text string `json:"text"`
 	// whether the code is hidden because it may hold secrets
 	Redacted bool `json:"redacted"`
+	// why the chunk matched; left out when the server did not say
+	Reason *AscMatchReason `json:"reason,omitempty"`
 }
 
 // AscCoverage says how much of the searched scope the server has indexed.

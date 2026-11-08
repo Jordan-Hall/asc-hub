@@ -24736,6 +24736,9 @@
           "type": "string",
           "x-go-name": "Path"
         },
+        "reason": {
+          "$ref": "#/definitions/AscMatchReason"
+        },
         "redacted": {
           "description": "whether the code is hidden because it may hold secrets",
           "type": "boolean",
@@ -25056,6 +25059,9 @@
           "type": "string",
           "x-go-name": "Path"
         },
+        "reason": {
+          "$ref": "#/definitions/AscMatchReason"
+        },
         "redacted": {
           "description": "whether the lines are hidden because they may hold secrets",
           "type": "boolean",
@@ -25151,6 +25157,70 @@
           "description": "the line",
           "type": "string",
           "x-go-name": "Text"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscMatchReason": {
+      "type": "object",
+      "title": "AscMatchReason says why a result matched. A redacted result has no spans.",
+      "properties": {
+        "kind": {
+          "description": "what matched: text (the text of the file), symbol (a symbol name) or meaning (the code is close to the question)",
+          "type": "string",
+          "x-go-name": "Kind"
+        },
+        "score": {
+          "description": "the relevance, 0 to 1, comparable only within one answer",
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Score"
+        },
+        "spans": {
+          "description": "where the terms matched, at most 32",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscMatchSpan"
+          },
+          "x-go-name": "Spans"
+        },
+        "terms": {
+          "description": "the distinct query terms that matched, at most 16",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Terms"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscMatchSpan": {
+      "type": "object",
+      "title": "AscMatchSpan is one matched term in a line.",
+      "properties": {
+        "end_col": {
+          "description": "the 1-based byte column after the term",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "EndCol"
+        },
+        "line": {
+          "description": "the 1-based line",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "Line"
+        },
+        "start_col": {
+          "description": "the 1-based byte column where the term starts",
+          "type": "integer",
+          "format": "uint32",
+          "x-go-name": "StartCol"
+        },
+        "term": {
+          "description": "the query term that matched",
+          "type": "string",
+          "x-go-name": "Term"
         }
       },
       "x-go-package": "forgejo.org/modules/structs"
