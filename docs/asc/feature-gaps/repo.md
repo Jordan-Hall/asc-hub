@@ -330,7 +330,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | --- | --- | --- | --- | --- |
 | RepoSettingsRules | Protected refs table: pattern, kind (Trunk, Release lines, Tags), can land (Merge queue, Maintainers, Release key), force push Never, signed changes Required, edit and delete | done (seen on a live hub (ui16): the Rules page shows the asc policy of the default branch (approvals, checks, signing, force push, queue, maintainer-only paths); one rule only, no kind column; the branch protection API reads and proposes it, see docs/asc/BRANCH-PROTECTION.md) | `H:templates/repo/settings/branches.tmpl`, `protected_branch.tmpl`, `tags.tmpl` carry Forgejo rules (branch and tag rules on two pages); fold into one table and map to the columns | L |
 | RepoSettingsRules | Add / Edit rule side panel with Who can land checkboxes (Merge queue, Maintainers, Release key (CI), Agents), Require signed changes, Allow force push, Allow deleting | needs-both | Forgejo rule has push whitelists; asc policy has `allow_force`/`require_signed` only, no per-ref kinds or agents (`A:policy.rs` Trunk) | L |
-| RepoSettingsRules | Pattern overlap error ("Rules cannot overlap") and "2 open stacks target a ref this pattern matches" | needs-hub-backend | validate in `H:routers/web/repo/setting/protected_branch.go`; count pulls by base branch | M |
+| RepoSettingsRules | Pattern overlap error ("Rules cannot overlap") and "2 open stacks target a ref this pattern matches" | done (a git repository: saving a new or renamed pattern that protects a branch another rule protects is refused, on the web form and the API (422); two patterns overlap when either matches the other or a sample name of it, or a branch matches both; under the pattern the form shows the rule it overlaps and the open pull requests that target a branch it matches, checked as you type; an asc repository has one rule, its policy) | `H:models/git/asc_rule_overlap.go`, `H:models/issues/asc_open_pulls_base.go`, `H:routers/web/repo/setting/asc_rule_check.go` (`GET settings/branches/check`), `H:web_src/js/features/asc-rule-check.js`, `protected_branch.tmpl` | M |
 | RepoSettingsRules | Rule removed with Undo for 30 minutes from the operation log | needs-hub-backend | `asc_ops` entry for rule deletion; Forgejo rules are in the hub DB, not in asc ops | M |
 | RepoSettingsRules | Stack behaviour switches: restack when main moves, keep approvals when only the base changed, let collaborators push onto a stack | needs-both | no repo-level config in asc (`Stacks.Restack` is invoked on demand); store in policy or repo config and enforce in `asc-serve` | L |
 | RepoSettingsRules | Longest stack (8) and clean-up after landing (7 days) | needs-asc-backend | new policy/config keys and a janitor in `A:crates/asc-serve` | M |
@@ -409,10 +409,10 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 232 |
+| done | 233 |
 | partial | 0 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 4 |
+| needs-hub-backend | 3 |
 | needs-asc-backend | 10 |
 | needs-both | 17 |
 | total | 263 |
@@ -439,7 +439,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
 | RepoSettingsAccess | 5 | 0 | 2 | 0 | 1 |
 | RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
-| RepoSettingsRules | 2 | 0 | 2 | 2 | 2 |
+| RepoSettingsRules | 3 | 0 | 1 | 2 | 2 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
 | RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
