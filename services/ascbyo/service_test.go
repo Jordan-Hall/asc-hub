@@ -583,3 +583,53 @@ func TestUnavailableWhenNotConfigured(t *testing.T) {
 	require.True(t, ok, "%v", err)
 	assert.Equal(t, ascbyo.FailUnavailable, fail.Kind)
 }
+
+func TestRepoStorageUsage(t *testing.T) {
+	s, f := newService(t)
+	repo := scope(t, ascbyo.KindRepo, "alice/widgets")
+	K := func(k ascv1.StorageUsageKind, b, n uint64) *ascv1.StorageUsageRow {
+		return &ascv1.StorageUsageRow{Kind: k, Bytes: b, Objects: n}
+	}
+	f.RepoUsage = &ascv1.GetRepoStorageUsageResponse{
+		Rows: []*ascv1.StorageUsageRow{
+			K(ascv1.StorageUsageKind_STORAGE_USAGE_KIND_INDEXES, 300, 3),
+			K(ascv1.StorageUsageKind_STORAGE_USAGE_KIND_HISTORY, 1000, 10),
+			K(ascv1.StorageUsageKind_STORAGE_USAGE_KIND_HISTORY, 9999, 99), // a repeated kind is ignored
+			K(ascv1.StorageUsageKind_STORAGE_USAGE_KIND_CI, 0, 0),          // an empty kind is not shown
+			K(ascv1.StorageUsageKind(42), 5000, 5),                         // a kind the hub does not know is dropped
+			K(ascv1.StorageUsageKind_STORAGE_USAGE_KIND_LARGE_FILES, 700, 1),
+		},
+		TotalBytes: 123, ComputedAt: 1_700_000_000, Computing: true, ReadThisMonth: 4096, Month: "2026-11",
+	}
+	u, err := s.RepoUsage(t.Context(), repo, false)
+	require.NoError(t, err)
+	names := []string{}
+	for _, k := range u.Kinds {
+		names = append(names, k.Name)
+	}
+	assert.Equal(t, []string{"history", "large_files", "indexes"}, names, "fixed order, empty and unknown kinds left out")
+	assert.Equal(t, uint64(2000), u.Total, "the total is the sum of what is shown, not the answer's figure")
+	assert.Equal(t, uint64(14), u.Objects)
+	assert.Equal(t, "ascbyo.storage.usage.kind.history", u.Kinds[0].Key)
+	assert.True(t, u.Computing)
+	assert.Equal(t, uint64(4096), u.ReadBytes)
+	assert.Equal(t, "2026-11", u.Month)
+	assert.EqualValues(t, 1_700_000_000, u.ComputedAt)
+	assert.Zero(t, f.UsageRefreshes)
+
+	_, err = s.RepoUsage(t.Context(), repo, true)
+	require.NoError(t, err)
+	assert.Equal(t, 1, f.UsageRefreshes, "refresh reaches asc")
+
+	f.RepoUsage = &ascv1.GetRepoStorageUsageResponse{Month: "2026-13\x1b"}
+	u, err = s.RepoUsage(t.Context(), repo, false)
+	require.NoError(t, err)
+	assert.Empty(t, u.Month, "a month that is not YYYY-MM is dropped")
+	assert.Zero(t, u.ComputedAt)
+
+	_, err = s.RepoUsage(t.Context(), scope(t, ascbyo.KindUser, "alice"), false)
+	assert.True(t, ascbyo.IsKind(err, ascbyo.FailInvalid), "only a repository has usage")
+	f.SetFail("/asc.v1.Storage/GetRepoUsage", status.Error(codes.PermissionDenied, "no"))
+	_, err = s.RepoUsage(t.Context(), repo, false)
+	require.Error(t, err)
+}

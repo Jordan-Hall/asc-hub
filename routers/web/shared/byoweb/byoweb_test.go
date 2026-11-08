@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -951,4 +952,73 @@ func TestRepoAIKeysPage(t *testing.T) {
 	ownerKey := f.AddKey(mustScope(t, svc.KindUser, "alice").Owner(), "owner key 2", ascv1.AiProvider_AI_PROVIDER_OPENAI, ascv1.AiKeyState_AI_KEY_STATE_ACTIVE)
 	r = run(t, AIKey, repo, http.MethodGet, nil, ownerKey.GetId())
 	assert.Equal(t, http.StatusNotFound, r.resp.Code)
+}
+
+func TestRepoStorageUsage(t *testing.T) {
+	f := setup(t)
+	repo := repoLevel(t, true)
+
+	t.Run("never counted", func(t *testing.T) {
+		f.RepoUsage = &ascv1.GetRepoStorageUsageResponse{Computing: true, Month: "2026-11"}
+		r := run(t, StorageIndex, repo, http.MethodGet, nil, "")
+		require.Equal(t, http.StatusOK, r.resp.Code)
+		body := r.body()
+		assert.Contains(t, body, `data-testid="asc-storage-usage"`)
+		assert.Contains(t, body, tr(t, "ascbyo.storage.usage.first"))
+		assert.Contains(t, body, `data-testid="asc-usage-computing"`)
+		assert.NotContains(t, body, "/usage/refresh", "no second count while one runs")
+		assert.NotContains(t, body, `data-testid="asc-usage-kinds"`)
+	})
+
+	t.Run("split by kind with reads this month", func(t *testing.T) {
+		f.RepoUsage = &ascv1.GetRepoStorageUsageResponse{
+			Rows: []*ascv1.StorageUsageRow{
+				{Kind: ascv1.StorageUsageKind_STORAGE_USAGE_KIND_HISTORY, Bytes: 2 << 30, Objects: 1200},
+				{Kind: ascv1.StorageUsageKind_STORAGE_USAGE_KIND_LARGE_FILES, Bytes: 30 << 30, Objects: 40},
+				{Kind: ascv1.StorageUsageKind_STORAGE_USAGE_KIND_INDEXES, Bytes: 512 << 20, Objects: 9},
+			},
+			ComputedAt: time.Now().Add(-time.Hour).Unix(), ReadThisMonth: 3 << 30, Month: "2026-11",
+		}
+		r := run(t, StorageIndex, repo, http.MethodGet, nil, "")
+		require.Equal(t, http.StatusOK, r.resp.Code)
+		body := r.body()
+		assert.Contains(t, body, `data-testid="asc-usage-kinds"`)
+		for _, k := range []string{"history", "large_files", "indexes"} {
+			assert.Contains(t, body, `data-kind="`+k+`"`)
+			assert.Contains(t, body, tr(t, "ascbyo.storage.usage.kind."+k))
+		}
+		assert.NotContains(t, body, `data-kind="ci"`, "a kind with nothing stored is not listed")
+		assert.Contains(t, body, "<strong>32 GiB</strong>", "the total")
+		assert.Contains(t, body, tr(t, "ascbyo.storage.usage.objects", 1249))
+		assert.Contains(t, body, tr(t, "ascbyo.storage.usage.read", "3 GiB", "2026-11"))
+		assert.Contains(t, body, `<progress class="asc-usage-bar" max="`+strconv.FormatUint(uint64(32<<30)+512<<20, 10)+`" value="`+strconv.FormatUint(30<<30, 10)+`"`)
+		assert.Contains(t, body, "/alice/widgets/settings/asc/storage/usage/refresh")
+		assert.Equal(t, strings.Count(body, "<form"), strings.Count(body, `name="_csrf"`))
+	})
+
+	t.Run("nothing stored", func(t *testing.T) {
+		f.RepoUsage = &ascv1.GetRepoStorageUsageResponse{ComputedAt: time.Now().Unix(), Month: "2026-11"}
+		body := run(t, StorageIndex, repo, http.MethodGet, nil, "").body()
+		assert.Contains(t, body, tr(t, "ascbyo.storage.usage.empty"))
+	})
+
+	t.Run("a failed read leaves the rest of the page working", func(t *testing.T) {
+		f.SetFail("/asc.v1.Storage/GetRepoUsage", status.Error(codes.Unavailable, "down"))
+		defer f.SetFail("/asc.v1.Storage/GetRepoUsage", nil)
+		r := run(t, StorageIndex, repo, http.MethodGet, nil, "")
+		require.Equal(t, http.StatusOK, r.resp.Code)
+		body := r.body()
+		assert.Contains(t, body, tr(t, "ascbyo.storage.usage.failed"))
+		assert.Contains(t, body, tr(t, "ascbyo.storage.repo.history_none"), "the migrations are still listed")
+	})
+
+	t.Run("count again", func(t *testing.T) {
+		before := f.UsageRefreshes
+		r := run(t, UsageRefresh, repo, http.MethodPost, nil, "")
+		require.Equal(t, http.StatusSeeOther, r.resp.Code, r.body())
+		assert.Equal(t, "/alice/widgets/settings/asc/storage", r.loc())
+		assert.Equal(t, before+1, f.UsageRefreshes)
+		r = run(t, UsageRefresh, userLevel(t), http.MethodPost, nil, "")
+		assert.Equal(t, http.StatusNotFound, r.resp.Code, "only a repository has usage")
+	})
 }
