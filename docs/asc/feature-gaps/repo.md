@@ -363,7 +363,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsSecrets | Delete confirmation that lists which scopes lose it | done (the confirmation names the secret and says the runs that read it lose it; each scope is named once secrets have scopes, row "Scope chips") | `add_list.tmpl` confirm | S |
 | RepoSettingsSecrets | Name rule (capitals, digits, underscores) validation in dialog | done | Forgejo secret name validation | S |
 | RepoSettingsSecrets | Variables table with "Available to" scope and updated-by | needs-both | same scope work as secrets | M |
-| RepoSettingsSecrets | Secret-redaction in change logs ("the log redacts it") | needs-asc-backend | run log redaction in `A:crates/asc-ci` job log append | M |
+| RepoSettingsSecrets | Secret-redaction in change logs ("the log redacts it") | done | `A:crates/asc-serve/src/ci/rpc.rs` masks every value of the repository's secrets and recognised credentials with `***` on `AppendJobLog` and `JobLog`, with stored context around each window, and refuses both while the vault is locked; the secrets page says so (`templates/shared/secrets/add_list.tmpl`, `secrets.log_redacts`) | M |
 | RepoSettingsSecrets | Saved toast and empty state | done (the saved flash is the settings toast (layout_head data-ds-flash-toast); empty state with key icon, text and Add secret) | `add_list.tmpl` | S |
 
 ## RepoSettingsAI
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 243 |
+| done | 244 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
-| needs-asc-backend | 4 |
+| needs-asc-backend | 3 |
 | needs-both | 16 |
 | total | 263 |
 
