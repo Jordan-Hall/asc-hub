@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 158 |
+| done | 159 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 12 |
-| needs-asc-backend | 2 |
+| needs-asc-backend | 1 |
 | needs-both | 23 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 21, L 16.
+Open rows by size: S 0, M 21, L 15.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -41,7 +41,7 @@ Open rows by size: S 0, M 21, L 16.
 | Shell | Command palette opens from `/`, Ctrl K, header search, mobile search; Esc, arrows, Enter | done | `ds-shell.js`, `#ds-palette` | - |
 | Shell | Palette is a combobox: `role=combobox` input, listbox results, `aria-activedescendant` | done | Today `role=dialog` plus `role=search` form and an `.is-sel` class. Change markup in `head_navbar.tmpl` and `select()` in `ds-shell.js` | S |
 | Shell | Palette scope chips All, Changes, Code, People, Commands; Tab cycles the scope | done | `ds-palette-bar` has input and Cancel only. Chips in `head_navbar.tmpl`, Tab handling in `onPaletteKeydown` | S |
-| Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | needs-asc-backend | Today only static destinations plus "search for ..." links (`filterPalette`). Hub: JSON route (for example `GET /-/asc/palette?q=&scope=`) in `routers/web/explore/asc_search.go` merging pull requests (`issues_model`), users (`user_model.SearchUsers`) and symbols (asc `CrossSearch.Search`, `LookupSymbol`; `services/ascsearch`), read-checked per repo. JS: debounce, abort, render, live count;; Audit 2026-10-30 (part built): Server results exist for Changes, People and repositories; the Code group (path, symbol from asc CrossSearch) was not found. | L |
+| Shell | Palette results grouped Changes (title, repo and number), Code (path, symbol), People, fetched as you type | done | `routers/web/asc_palette.go` AscPalette (`GET /-/asc/palette?q=&at=`): Commands, Changes (pull requests the person may read), Code (ascPaletteCode: symbol definitions from asc `CrossSearch.LookupSymbol` over the repositories `ascsearch.Resolve` hands it, each with kind, repository, path and line, linked to the line; 1.5 s budget, at most 8 lookups at once, left out when asc is off, slow or failing), Repositories and People, with the explore rules for visitors; `web_src/js/features/ds-shell.js` waits 180 ms, aborts the previous call and draws each group in its scope chip; tests TestPaletteFindsCodeInReadableRepositories, TestPaletteShowsPeopleOnlyWhereTheExplorePageDoes, ds-shell.test.js | - |
 | Shell | Command verbs (undo, restack, merge) switch the list to actions; Commands group with Undo last operation (Cmd Z) and Ask an agent to change this... | done | `routers/web/asc_palette_commands.go` (commands of the page from `at`, writers of the code only; `"verb"` in the answer), `routers/web/repo/asc_ops_last.go` (`GET .../asc/ops/undo/last` to the undo dry run), `ds-shell.js` (`verbScope`, commands scope). Every command opens its confirmation page. No Cmd Z shortcut: documented in `STACK-OPERATIONS.md` | - |
 | Shell | Empty query shows Recent items and Shortcuts (Go to inbox: g i) | done | Recents in `localStorage` (visited repos and changes), static shortcuts; `ds-shell.js`, `head_navbar.tmpl` | M |
 | Shell | No-results text names the query and suggests a symbol, handle or title | done | `asc_shell.palette_empty` is a different sentence ("Press Enter to search this text") | S |
