@@ -103,7 +103,7 @@ func ascPaletteCommandsAt(ctx *context.Context, at string) []ascPaletteCommand {
 			}
 		}
 	}
-	if ascagentui.FeaturesEnabled(ctx, ctx.Doer) {
+	if agentsOn, _ := repo_model.AscFeatureEnabled(ctx, repo.ID, repo_model.AscFeatureAgents); agentsOn && ascagentui.FeaturesEnabled(ctx, ctx.Doer) {
 		href := link + "/asc/agents/new"
 		on := repo.DefaultBranch
 		if target != "" {

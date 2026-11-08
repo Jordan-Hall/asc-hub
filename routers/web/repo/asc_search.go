@@ -169,6 +169,7 @@ type ascSearchQuery struct {
 	rawPull       string
 	stackDiff     bool
 	sort          string // empty for best match, or ascSearchSortPath
+	noMeaning     bool   // meaning search is switched off for the repository (board RepoSettingsGeneral)
 
 	path  string
 	lang  string
@@ -329,6 +330,12 @@ func ascSearchRawQuery(ctx *context.Context) ascSearchQuery {
 	case ascSearchModeLexical, ascSearchModeSymbol, ascSearchModeSemantic:
 	default:
 		q.mode = ascSearchModeLexical
+	}
+	if off, _ := ctx.Data["AscMeaningOff"].(bool); off {
+		q.noMeaning = true
+		if q.mode == ascSearchModeSemantic {
+			q.mode = ascSearchModeLexical
+		}
 	}
 	switch q.match {
 	case ascSearchMatchLiteral, ascSearchMatchWord, ascSearchMatchRegex:

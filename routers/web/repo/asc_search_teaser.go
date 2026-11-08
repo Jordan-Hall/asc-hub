@@ -40,7 +40,7 @@ func ascSearchTeasers(ctx gocontext.Context, api ascv1.CodeIntelClient, scope *a
 		t := ascSearchTeaser{Mode: mode, Count: -1, Link: ascSearchURL(repoLink, o, map[string]string{"sort": ""})}
 		switch mode {
 		case ascSearchModeSemantic:
-			if len(q.text) > ascSearchMaxSemanticBytes {
+			if q.noMeaning || len(q.text) > ascSearchMaxSemanticBytes {
 				continue
 			}
 			out = append(out, t)

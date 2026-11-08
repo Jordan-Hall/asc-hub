@@ -12,7 +12,7 @@
 			<div class="asc-search-modes" role="radiogroup" aria-label="{{ctx.Locale.Tr "asc_rp.s_kind"}}">
 				<label class="asc-mode"><input type="radio" name="mode" value="lexical"{{if eq .AscSearchMode "lexical"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_text"}}</span></label>
 				<label class="asc-mode"><input type="radio" name="mode" value="symbol"{{if eq .AscSearchMode "symbol"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_symbol"}}</span></label>
-				<label class="asc-mode"><input type="radio" name="mode" value="semantic"{{if eq .AscSearchMode "semantic"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_meaning"}}</span></label>
+				{{if not .AscMeaningOff}}<label class="asc-mode"><input type="radio" name="mode" value="semantic"{{if eq .AscSearchMode "semantic"}} checked{{end}}><span>{{ctx.Locale.Tr "asc_rp.s_meaning"}}</span></label>{{end}}
 			</div>
 			<fieldset id="asc-search-scope" class="asc-scope">
 				<legend>{{ctx.Locale.Tr "asc_rp.s_scope"}}</legend>
@@ -73,7 +73,7 @@
 			{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "asc_rp.s_first_title") "Body" (ctx.Locale.Tr "asc_rp.s_first_body"))}}
 			<ul class="asc-first-examples" aria-label="{{ctx.Locale.Tr "asc_rp.s_first_examples"}}">
 				{{range $q := (StringUtils.Split (print (ctx.Locale.Tr "asc_rp.s_first_queries")) "|")}}
-				<li><a class="asc-chip" href="{{$.RepoLink}}/asc/search?mode=semantic&q={{QueryEscape $q}}">{{$q}}</a></li>
+				<li><a class="asc-chip" href="{{$.RepoLink}}/asc/search?mode={{if $.AscMeaningOff}}lexical{{else}}semantic{{end}}&q={{QueryEscape $q}}">{{$q}}</a></li>
 				{{end}}
 			</ul>
 		</section>

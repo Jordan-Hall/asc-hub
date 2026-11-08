@@ -613,3 +613,44 @@
   color: var(--text-2);
   font-size: 12px;
 }
+
+/* ---- Features card of the general settings (board RepoSettingsGeneral) ---- */
+.rp-feat-rows {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.rp-feat-row {
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-direction: row-reverse;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-3);
+}
+
+.rp-feat-row:last-child {
+  border-bottom: 0;
+}
+
+.rp-feat-row .ds-switch-track {
+  margin-top: 2px;
+}
+
+.rp-feat-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-feat-text b {
+  font-weight: 600;
+}
+
+.rp-feat-text .ds-chip {
+  margin-left: 8px;
+}
+
+.rp-feat-text .ds-hint {
+  display: block;
+  margin-top: 2px;
+}

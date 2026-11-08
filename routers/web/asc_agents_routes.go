@@ -4,6 +4,7 @@
 package web
 
 import (
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/web"
 	"forgejo.org/routers/web/repo"
 	"forgejo.org/routers/web/user"
@@ -52,7 +53,7 @@ func registerAscAgentsRepoRoutes(m *web.Route, reqSignIn, reqRepoCodeReader any)
 				m.Post("/{id}/revoke", repo.AscAgentsTokenRevoke)
 				m.Post("/{id}/budget", repo.AscAgentsTokenBudget)
 			})
-		})
+		}, context.AscRepoFeature(repo_model.AscFeatureAgents))
 		m.Group("/workflows", func() {
 			m.Get("", repo.AscWorkflows)
 			m.Get("/runs", repo.AscWorkflowRuns)

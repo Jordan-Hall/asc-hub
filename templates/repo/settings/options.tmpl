@@ -72,6 +72,32 @@
 			</form>
 		</div>
 
+		<h4 class="ds-card-top" id="features">{{ctx.Locale.Tr "asc_rp.feat_title"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach">
+			<form class="ds-form" action="{{.Link}}/asc/features" method="post" data-testid="repo-features">
+				{{.CsrfTokenHtml}}
+				<div class="rp-feat-rows">
+					{{if .AscFeatureStacks}}
+						<div class="ds-switch rp-feat-row" data-feature="stacks">
+							<input id="feat-stacks" type="checkbox" role="switch" checked disabled aria-describedby="feat-stacks-hint">
+							<span class="ds-switch-track"></span>
+							<span class="rp-feat-text"><label for="feat-stacks"><b>{{ctx.Locale.Tr "asc_rp.feat_stacks"}}</b></label><span class="ds-chip">{{ctx.Locale.Tr "asc_rp.feat_required"}}</span><span class="ds-hint" id="feat-stacks-hint">{{ctx.Locale.Tr "asc_rp.feat_stacks_hint"}}</span></span>
+						</div>
+					{{end}}
+					{{range .AscFeatureRows}}
+						<label class="ds-switch rp-feat-row" data-feature="{{.Name}}">
+							<input type="checkbox" role="switch" name="{{.Name}}"{{if .On}} checked{{end}}{{if .Disabled}} disabled{{end}} aria-describedby="feat-{{.Name}}-hint">
+							<span class="ds-switch-track"></span>
+							<span class="rp-feat-text"><b>{{ctx.Locale.Tr .Label}}</b><span class="ds-hint" id="feat-{{.Name}}-hint">{{if .Disabled}}{{ctx.Locale.Tr "repo.unit_disabled"}}{{else}}{{ctx.Locale.Tr .Hint}}{{end}}</span></span>
+						</label>
+					{{end}}
+				</div>
+				<div class="ds-field">
+					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_rp.feat_save"}}</button>
+				</div>
+			</form>
+		</div>
+
 		{{if FederationEnabled}}
 			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.settings.federation_settings"}}

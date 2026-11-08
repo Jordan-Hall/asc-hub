@@ -1169,6 +1169,9 @@ func ascAskLinks(ctx *context.Context, repo *repo_model.Repository, pull *issues
 		repo.GetStorageBackend() != "asc" || !ctx.Repo.CanWrite(unit.TypeCode) || !ascagentui.FeaturesEnabled(ctx, ctx.Doer) {
 		return nil
 	}
+	if on, err := repo_model.AscFeatureEnabled(ctx, repo.ID, repo_model.AscFeatureAgents); err != nil || !on {
+		return nil
+	}
 	out := map[uint64]string{}
 	for _, c := range checks.Causes {
 		if c.GroupID == 0 {

@@ -59,6 +59,10 @@ const (
 func SettingsCtxData(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("repo.settings.options")
 	ctx.Data["PageIsSettingsOptions"] = true
+	ascFeaturesData(ctx)
+	if ctx.Written() {
+		return
+	}
 	ctx.Data["ForcePrivate"] = setting.Repository.ForcePrivate
 	ctx.Data["MirrorsEnabled"] = setting.Mirror.Enabled
 	ctx.Data["RedirectKeepDays"] = repo_model.RedirectKeepDays

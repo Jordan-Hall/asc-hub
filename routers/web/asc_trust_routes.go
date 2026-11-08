@@ -4,6 +4,7 @@
 package web
 
 import (
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/web"
 	"forgejo.org/routers/web/admin"
 	org_setting "forgejo.org/routers/web/org/setting"
@@ -165,7 +166,7 @@ func registerAscTrustRepoRoutes(m *web.Route, reqSignIn any) {
 		m.Post("/scan", context.RepoMustNotBeArchived(), repo.AscDepsScan)
 		m.Post("/propose", context.RepoMustNotBeArchived(), repo.AscDepsPropose)
 		m.Post("/findings/{id}/dismiss", context.RepoMustNotBeArchived(), repo.AscDepsDismiss)
-	}, reqSignIn)
+	}, reqSignIn, context.AscRepoFeature(repo_model.AscFeatureDeps))
 	m.Group("/asc/gate", func() {
 		m.Get("", repo.AscGate)
 		m.Post("/overrides", context.RepoMustNotBeArchived(), repo.AscGateOverrideGrant)

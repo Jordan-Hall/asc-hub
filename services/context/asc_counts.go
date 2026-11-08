@@ -79,6 +79,9 @@ func ascCountConn() (*ascclient.Client, error) {
 func ascTabCounts(ctx *Context, repo *repo_model.Repository) (runs, findings uint32) {
 	agentFeatures, _ := ctx.Data["AscAgentFeatures"].(bool)
 	wantRuns, wantDeps := ascCountGates(ctx.IsSigned && ctx.Doer != nil, ctx.Repo.CanRead(unit.TypeCode), ctx.Repo.CanRead(unit.TypeActions), agentFeatures)
+	agentsOff, _ := ctx.Data["AscAgentsOff"].(bool)
+	depsOff, _ := ctx.Data["AscDepsOff"].(bool)
+	wantRuns, wantDeps = wantRuns && !agentsOff, wantDeps && !depsOff
 	if !wantRuns && !wantDeps {
 		return 0, 0
 	}
