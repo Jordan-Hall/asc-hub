@@ -75,6 +75,20 @@ test('live results: the commands of the page show in the Commands scope', async 
   expect(list.querySelector('.ds-palette-group').textContent).toBe('Commands');
 });
 
+test('live results: symbols show in the Code scope with their path', async () => {
+  const {renderLive, liveGroupScopes} = await import('./ds-shell.js');
+  expect(liveGroupScopes.code).toBe('code');
+  document.body.innerHTML = '<div id="ds-palette"><div data-ds-palette-list><div data-ds-palette-dynamic></div></div></div>';
+  const list = document.querySelector('[data-ds-palette-list]');
+  const p = {list, dynamic: list.querySelector('[data-ds-palette-dynamic]')};
+  renderLive(p, [{key: 'code', label: 'Code', items: [{title: 'RetryPolicy', sub: 'struct · acme/pay · src/retry.rs:4', href: '/acme/pay/src/branch/master/src/retry.rs#L4'}]}]);
+  const item = list.querySelector('.ds-palette-item');
+  expect(item.dataset.dsScope).toBe('code');
+  expect(item.getAttribute('href')).toBe('/acme/pay/src/branch/master/src/retry.rs#L4');
+  expect(item.querySelector('small').textContent).toBe('struct · acme/pay · src/retry.rs:4');
+  expect(list.querySelector('.ds-palette-group').textContent).toBe('Code');
+});
+
 test('live url: the query and the page the palette is open on', async () => {
   const {liveUrl} = await import('./ds-shell.js');
   expect(liveUrl('/-/asc/palette', 'undo x', '/acme/pay/pulls/3')).toBe('/-/asc/palette?q=undo+x&at=%2Facme%2Fpay%2Fpulls%2F3');
