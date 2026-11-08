@@ -1,6 +1,7 @@
 {{/*
 Your drafts (design boards "Drafts" and "Mobile-Drafts"). routers/web/user/asc_drafts.go builds .AscDraftsRepos; an unreachable
-asc serve sets .AscDraftsError, a repository that could not be read is a row with Failed.
+asc serve sets .AscDraftsError, a repository that could not be read is a row with Failed. The meta line says where each
+draft is: on the hub and which devices, or only on one device and why.
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-drafts">
@@ -58,7 +59,7 @@ asc serve sets .AscDraftsError, a repository that could not be read is a row wit
 														{{range $i, $l := .Labels}}{{if $i}}<span class="ds-chip ds-chip-outline">{{$l}}</span>{{end}}{{end}}
 													</div>
 													<div class="wk-draft-sub"><a class="ds-mono" href="{{$repo.Link}}">{{$repo.FullName}}</a>{{if .Change}} &middot; <span class="ds-mono" title="{{ctx.Locale.Tr "user.asc_drafts.change"}}">{{.Change}}</span>{{end}}</div>
-													{{if not .Added.IsZero}}<div class="wk-draft-meta">{{ctx.Locale.Tr "asc_work.drafts_saved" (DateUtils.TimeSince .Added)}}</div>{{end}}
+													<div class="wk-draft-meta">{{if not .Added.IsZero}}{{ctx.Locale.Tr "asc_work.drafts_saved" (DateUtils.TimeSince .Added)}} &middot; {{end}}<span class="wk-draft-where">{{if .OnHub}}{{if .Devices}}{{ctx.Locale.Tr "asc_work.drafts_on_devices_and_hub" (StringUtils.Join .Devices ", ")}}{{else}}{{ctx.Locale.Tr "asc_work.drafts_on_hub"}}{{end}}{{else}}{{ctx.Locale.Tr "asc_work.drafts_only_on" (index .Devices 0)}}{{if .Reason}} &middot; {{ctx.Locale.Tr .Reason}}{{end}}{{end}}</span></div>
 												</div>
 												<div class="wk-draft-acts">
 													<button type="button" class="ds-btn ds-btn-primary ds-btn-sm" data-clipboard-text="asc stack resume {{if .Change}}{{.Change}}{{else}}{{.Commit}}{{end}}" aria-label="{{ctx.Locale.Tr "asc_work.drafts_continue_label" $name}}">{{ctx.Locale.Tr "asc_work.drafts_continue"}}</button>

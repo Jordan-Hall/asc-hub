@@ -21,6 +21,67 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Where a draft is (SPEC §21.3.9). A client tells the server which visible drafts one device holds and why
+// each one that is not in the workspace stayed local, so the owner sees on the hub what is only on a laptop.
+// Only metadata is sent: the change id, when the draft was made and its upload state; never content.
+type LocalDraftState int32
+
+const (
+	LocalDraftState_LOCAL_DRAFT_STATE_UNSPECIFIED LocalDraftState = 0
+	LocalDraftState_LOCAL_DRAFT_STATE_UPLOADED    LocalDraftState = 1 // in the workspace
+	LocalDraftState_LOCAL_DRAFT_STATE_WAITING     LocalDraftState = 2 // queued for upload
+	LocalDraftState_LOCAL_DRAFT_STATE_FAILED      LocalDraftState = 3 // the upload failed and is parked
+	LocalDraftState_LOCAL_DRAFT_STATE_TOO_LARGE   LocalDraftState = 4 // over the upload size limit
+	LocalDraftState_LOCAL_DRAFT_STATE_NOT_QUEUED  LocalDraftState = 5 // not in the upload queue: it was full, or the draft predates the cloud
+)
+
+// Enum value maps for LocalDraftState.
+var (
+	LocalDraftState_name = map[int32]string{
+		0: "LOCAL_DRAFT_STATE_UNSPECIFIED",
+		1: "LOCAL_DRAFT_STATE_UPLOADED",
+		2: "LOCAL_DRAFT_STATE_WAITING",
+		3: "LOCAL_DRAFT_STATE_FAILED",
+		4: "LOCAL_DRAFT_STATE_TOO_LARGE",
+		5: "LOCAL_DRAFT_STATE_NOT_QUEUED",
+	}
+	LocalDraftState_value = map[string]int32{
+		"LOCAL_DRAFT_STATE_UNSPECIFIED": 0,
+		"LOCAL_DRAFT_STATE_UPLOADED":    1,
+		"LOCAL_DRAFT_STATE_WAITING":     2,
+		"LOCAL_DRAFT_STATE_FAILED":      3,
+		"LOCAL_DRAFT_STATE_TOO_LARGE":   4,
+		"LOCAL_DRAFT_STATE_NOT_QUEUED":  5,
+	}
+)
+
+func (x LocalDraftState) Enum() *LocalDraftState {
+	p := new(LocalDraftState)
+	*p = x
+	return p
+}
+
+func (x LocalDraftState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LocalDraftState) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_cloud_proto_enumTypes[0].Descriptor()
+}
+
+func (LocalDraftState) Type() protoreflect.EnumType {
+	return &file_asc_v1_cloud_proto_enumTypes[0]
+}
+
+func (x LocalDraftState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LocalDraftState.Descriptor instead.
+func (LocalDraftState) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_cloud_proto_rawDescGZIP(), []int{0}
+}
+
 // `change` is response only: the server derives it from the `m/` object of `cs` and ignores the client value.
 // `labels` are at most 8, each at most 64 bytes of [A-Za-z0-9._/-], else INVALID_ARGUMENT. Untrusted text.
 type CloudHead struct {
@@ -30,6 +91,7 @@ type CloudHead struct {
 	Labels        []string               `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty"`
 	Added         int64                  `protobuf:"varint,4,opt,name=added,proto3" json:"added,omitempty"`
 	HiddenAt      int64                  `protobuf:"varint,5,opt,name=hidden_at,json=hiddenAt,proto3" json:"hidden_at,omitempty"`
+	Devices       []string               `protobuf:"bytes,6,rep,name=devices,proto3" json:"devices,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -99,18 +161,26 @@ func (x *CloudHead) GetHiddenAt() int64 {
 	return 0
 }
 
+func (x *CloudHead) GetDevices() []string {
+	if x != nil {
+		return x.Devices
+	}
+	return nil
+}
+
 // `owner` empty means the caller; reading another user's workspace needs repo write (§21.2.5).
 type GetWorkspaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
-	Owner         string                 `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	SinceVersion  uint64                 `protobuf:"varint,4,opt,name=since_version,json=sinceVersion,proto3" json:"since_version,omitempty"`
-	MaxAgeS       int64                  `protobuf:"varint,5,opt,name=max_age_s,json=maxAgeS,proto3" json:"max_age_s,omitempty"`
-	IncludeHidden bool                   `protobuf:"varint,6,opt,name=include_hidden,json=includeHidden,proto3" json:"include_hidden,omitempty"`
-	PageToken     string                 `protobuf:"bytes,7,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Repo           *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Owner          string                 `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	Name           string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	SinceVersion   uint64                 `protobuf:"varint,4,opt,name=since_version,json=sinceVersion,proto3" json:"since_version,omitempty"`
+	MaxAgeS        int64                  `protobuf:"varint,5,opt,name=max_age_s,json=maxAgeS,proto3" json:"max_age_s,omitempty"`
+	IncludeHidden  bool                   `protobuf:"varint,6,opt,name=include_hidden,json=includeHidden,proto3" json:"include_hidden,omitempty"`
+	PageToken      string                 `protobuf:"bytes,7,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	IncludeDevices bool                   `protobuf:"varint,8,opt,name=include_devices,json=includeDevices,proto3" json:"include_devices,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetWorkspaceRequest) Reset() {
@@ -192,6 +262,13 @@ func (x *GetWorkspaceRequest) GetPageToken() string {
 	return ""
 }
 
+func (x *GetWorkspaceRequest) GetIncludeDevices() bool {
+	if x != nil {
+		return x.IncludeDevices
+	}
+	return false
+}
+
 type GetWorkspaceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Version       uint64                 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
@@ -199,6 +276,7 @@ type GetWorkspaceResponse struct {
 	Removed       [][]byte               `protobuf:"bytes,3,rep,name=removed,proto3" json:"removed,omitempty"`
 	Omitted       uint32                 `protobuf:"varint,4,opt,name=omitted,proto3" json:"omitted,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,5,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	Local         []*LocalDraft          `protobuf:"bytes,6,rep,name=local,proto3" json:"local,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -266,6 +344,13 @@ func (x *GetWorkspaceResponse) GetNextPageToken() string {
 		return x.NextPageToken
 	}
 	return ""
+}
+
+func (x *GetWorkspaceResponse) GetLocal() []*LocalDraft {
+	if x != nil {
+		return x.Local
+	}
+	return nil
 }
 
 type UpdateWorkspaceRequest struct {
@@ -715,17 +800,217 @@ func (x *PurgeResponse) GetUnackedTiers() []string {
 	return nil
 }
 
+// `cs` is the native changeset id (32 bytes) in a report; in GetWorkspace.local it is empty, as the server
+// holds no object for it. `device` is response only.
+type LocalDraft struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cs            []byte                 `protobuf:"bytes,1,opt,name=cs,proto3" json:"cs,omitempty"`
+	Change        []byte                 `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	Added         int64                  `protobuf:"varint,3,opt,name=added,proto3" json:"added,omitempty"`
+	State         LocalDraftState        `protobuf:"varint,4,opt,name=state,proto3,enum=asc.v1.LocalDraftState" json:"state,omitempty"`
+	Device        string                 `protobuf:"bytes,5,opt,name=device,proto3" json:"device,omitempty"`
+	ReportedAt    int64                  `protobuf:"varint,6,opt,name=reported_at,json=reportedAt,proto3" json:"reported_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LocalDraft) Reset() {
+	*x = LocalDraft{}
+	mi := &file_asc_v1_cloud_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LocalDraft) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LocalDraft) ProtoMessage() {}
+
+func (x *LocalDraft) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_cloud_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LocalDraft.ProtoReflect.Descriptor instead.
+func (*LocalDraft) Descriptor() ([]byte, []int) {
+	return file_asc_v1_cloud_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *LocalDraft) GetCs() []byte {
+	if x != nil {
+		return x.Cs
+	}
+	return nil
+}
+
+func (x *LocalDraft) GetChange() []byte {
+	if x != nil {
+		return x.Change
+	}
+	return nil
+}
+
+func (x *LocalDraft) GetAdded() int64 {
+	if x != nil {
+		return x.Added
+	}
+	return 0
+}
+
+func (x *LocalDraft) GetState() LocalDraftState {
+	if x != nil {
+		return x.State
+	}
+	return LocalDraftState_LOCAL_DRAFT_STATE_UNSPECIFIED
+}
+
+func (x *LocalDraft) GetDevice() string {
+	if x != nil {
+		return x.Device
+	}
+	return ""
+}
+
+func (x *LocalDraft) GetReportedAt() int64 {
+	if x != nil {
+		return x.ReportedAt
+	}
+	return 0
+}
+
+// `device` is [A-Za-z0-9._-]{1,64}; `drafts` at most 1,000 (the newest). Needs the cloud flag of the repository.
+type ReportDeviceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Device        string                 `protobuf:"bytes,3,opt,name=device,proto3" json:"device,omitempty"`
+	Drafts        []*LocalDraft          `protobuf:"bytes,4,rep,name=drafts,proto3" json:"drafts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportDeviceRequest) Reset() {
+	*x = ReportDeviceRequest{}
+	mi := &file_asc_v1_cloud_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportDeviceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportDeviceRequest) ProtoMessage() {}
+
+func (x *ReportDeviceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_cloud_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportDeviceRequest.ProtoReflect.Descriptor instead.
+func (*ReportDeviceRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_cloud_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ReportDeviceRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *ReportDeviceRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ReportDeviceRequest) GetDevice() string {
+	if x != nil {
+		return x.Device
+	}
+	return ""
+}
+
+func (x *ReportDeviceRequest) GetDrafts() []*LocalDraft {
+	if x != nil {
+		return x.Drafts
+	}
+	return nil
+}
+
+type ReportDeviceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kept          uint32                 `protobuf:"varint,1,opt,name=kept,proto3" json:"kept,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportDeviceResponse) Reset() {
+	*x = ReportDeviceResponse{}
+	mi := &file_asc_v1_cloud_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportDeviceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportDeviceResponse) ProtoMessage() {}
+
+func (x *ReportDeviceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_cloud_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportDeviceResponse.ProtoReflect.Descriptor instead.
+func (*ReportDeviceResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_cloud_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ReportDeviceResponse) GetKept() uint32 {
+	if x != nil {
+		return x.Kept
+	}
+	return 0
+}
+
 var File_asc_v1_cloud_proto protoreflect.FileDescriptor
 
 const file_asc_v1_cloud_proto_rawDesc = "" +
 	"\n" +
-	"\x12asc/v1/cloud.proto\x12\x06asc.v1\x1a\x11asc/v1/repo.proto\"~\n" +
+	"\x12asc/v1/cloud.proto\x12\x06asc.v1\x1a\x11asc/v1/repo.proto\"\x98\x01\n" +
 	"\tCloudHead\x12\x0e\n" +
 	"\x02cs\x18\x01 \x01(\fR\x02cs\x12\x16\n" +
 	"\x06change\x18\x02 \x01(\fR\x06change\x12\x16\n" +
 	"\x06labels\x18\x03 \x03(\tR\x06labels\x12\x14\n" +
 	"\x05added\x18\x04 \x01(\x03R\x05added\x12\x1b\n" +
-	"\thidden_at\x18\x05 \x01(\x03R\bhiddenAt\"\xeb\x01\n" +
+	"\thidden_at\x18\x05 \x01(\x03R\bhiddenAt\x12\x18\n" +
+	"\adevices\x18\x06 \x03(\tR\adevices\"\x94\x02\n" +
 	"\x13GetWorkspaceRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
 	"\x05owner\x18\x02 \x01(\tR\x05owner\x12\x12\n" +
@@ -734,13 +1019,15 @@ const file_asc_v1_cloud_proto_rawDesc = "" +
 	"\tmax_age_s\x18\x05 \x01(\x03R\amaxAgeS\x12%\n" +
 	"\x0einclude_hidden\x18\x06 \x01(\bR\rincludeHidden\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\a \x01(\tR\tpageToken\"\xb5\x01\n" +
+	"page_token\x18\a \x01(\tR\tpageToken\x12'\n" +
+	"\x0finclude_devices\x18\b \x01(\bR\x0eincludeDevices\"\xdf\x01\n" +
 	"\x14GetWorkspaceResponse\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\x04R\aversion\x12'\n" +
 	"\x05heads\x18\x02 \x03(\v2\x11.asc.v1.CloudHeadR\x05heads\x12\x18\n" +
 	"\aremoved\x18\x03 \x03(\fR\aremoved\x12\x18\n" +
 	"\aomitted\x18\x04 \x01(\rR\aomitted\x12&\n" +
-	"\x0fnext_page_token\x18\x05 \x01(\tR\rnextPageToken\"\xdd\x01\n" +
+	"\x0fnext_page_token\x18\x05 \x01(\tR\rnextPageToken\x12(\n" +
+	"\x05local\x18\x06 \x03(\v2\x12.asc.v1.LocalDraftR\x05local\"\xdd\x01\n" +
 	"\x16UpdateWorkspaceRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -774,12 +1061,36 @@ const file_asc_v1_cloud_proto_rawDesc = "" +
 	"\rPurgeResponse\x12\x16\n" +
 	"\x06purged\x18\x01 \x01(\rR\x06purged\x12\x18\n" +
 	"\arefused\x18\x02 \x03(\fR\arefused\x12#\n" +
-	"\runacked_tiers\x18\x03 \x03(\tR\funackedTiers2\xad\x02\n" +
+	"\runacked_tiers\x18\x03 \x03(\tR\funackedTiers\"\xb2\x01\n" +
+	"\n" +
+	"LocalDraft\x12\x0e\n" +
+	"\x02cs\x18\x01 \x01(\fR\x02cs\x12\x16\n" +
+	"\x06change\x18\x02 \x01(\fR\x06change\x12\x14\n" +
+	"\x05added\x18\x03 \x01(\x03R\x05added\x12-\n" +
+	"\x05state\x18\x04 \x01(\x0e2\x17.asc.v1.LocalDraftStateR\x05state\x12\x16\n" +
+	"\x06device\x18\x05 \x01(\tR\x06device\x12\x1f\n" +
+	"\vreported_at\x18\x06 \x01(\x03R\n" +
+	"reportedAt\"\x92\x01\n" +
+	"\x13ReportDeviceRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06device\x18\x03 \x01(\tR\x06device\x12*\n" +
+	"\x06drafts\x18\x04 \x03(\v2\x12.asc.v1.LocalDraftR\x06drafts\"*\n" +
+	"\x14ReportDeviceResponse\x12\x12\n" +
+	"\x04kept\x18\x01 \x01(\rR\x04kept*\xd4\x01\n" +
+	"\x0fLocalDraftState\x12!\n" +
+	"\x1dLOCAL_DRAFT_STATE_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aLOCAL_DRAFT_STATE_UPLOADED\x10\x01\x12\x1d\n" +
+	"\x19LOCAL_DRAFT_STATE_WAITING\x10\x02\x12\x1c\n" +
+	"\x18LOCAL_DRAFT_STATE_FAILED\x10\x03\x12\x1f\n" +
+	"\x1bLOCAL_DRAFT_STATE_TOO_LARGE\x10\x04\x12 \n" +
+	"\x1cLOCAL_DRAFT_STATE_NOT_QUEUED\x10\x052\xf8\x02\n" +
 	"\x05Cloud\x12I\n" +
 	"\fGetWorkspace\x12\x1b.asc.v1.GetWorkspaceRequest\x1a\x1c.asc.v1.GetWorkspaceResponse\x12R\n" +
 	"\x0fUpdateWorkspace\x12\x1e.asc.v1.UpdateWorkspaceRequest\x1a\x1f.asc.v1.UpdateWorkspaceResponse\x12O\n" +
 	"\x0eListWorkspaces\x12\x1d.asc.v1.ListWorkspacesRequest\x1a\x1e.asc.v1.ListWorkspacesResponse\x124\n" +
-	"\x05Purge\x12\x14.asc.v1.PurgeRequest\x1a\x15.asc.v1.PurgeResponseBu\n" +
+	"\x05Purge\x12\x14.asc.v1.PurgeRequest\x1a\x15.asc.v1.PurgeResponse\x12I\n" +
+	"\fReportDevice\x12\x1b.asc.v1.ReportDeviceRequest\x1a\x1c.asc.v1.ReportDeviceResponseBu\n" +
 	"\n" +
 	"com.asc.v1B\n" +
 	"CloudProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
@@ -796,41 +1107,52 @@ func file_asc_v1_cloud_proto_rawDescGZIP() []byte {
 	return file_asc_v1_cloud_proto_rawDescData
 }
 
-var file_asc_v1_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_asc_v1_cloud_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_asc_v1_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_asc_v1_cloud_proto_goTypes = []any{
-	(*CloudHead)(nil),               // 0: asc.v1.CloudHead
-	(*GetWorkspaceRequest)(nil),     // 1: asc.v1.GetWorkspaceRequest
-	(*GetWorkspaceResponse)(nil),    // 2: asc.v1.GetWorkspaceResponse
-	(*UpdateWorkspaceRequest)(nil),  // 3: asc.v1.UpdateWorkspaceRequest
-	(*UpdateWorkspaceResponse)(nil), // 4: asc.v1.UpdateWorkspaceResponse
-	(*WorkspaceInfo)(nil),           // 5: asc.v1.WorkspaceInfo
-	(*ListWorkspacesRequest)(nil),   // 6: asc.v1.ListWorkspacesRequest
-	(*ListWorkspacesResponse)(nil),  // 7: asc.v1.ListWorkspacesResponse
-	(*PurgeRequest)(nil),            // 8: asc.v1.PurgeRequest
-	(*PurgeResponse)(nil),           // 9: asc.v1.PurgeResponse
-	(*RepoRef)(nil),                 // 10: asc.v1.RepoRef
+	(LocalDraftState)(0),            // 0: asc.v1.LocalDraftState
+	(*CloudHead)(nil),               // 1: asc.v1.CloudHead
+	(*GetWorkspaceRequest)(nil),     // 2: asc.v1.GetWorkspaceRequest
+	(*GetWorkspaceResponse)(nil),    // 3: asc.v1.GetWorkspaceResponse
+	(*UpdateWorkspaceRequest)(nil),  // 4: asc.v1.UpdateWorkspaceRequest
+	(*UpdateWorkspaceResponse)(nil), // 5: asc.v1.UpdateWorkspaceResponse
+	(*WorkspaceInfo)(nil),           // 6: asc.v1.WorkspaceInfo
+	(*ListWorkspacesRequest)(nil),   // 7: asc.v1.ListWorkspacesRequest
+	(*ListWorkspacesResponse)(nil),  // 8: asc.v1.ListWorkspacesResponse
+	(*PurgeRequest)(nil),            // 9: asc.v1.PurgeRequest
+	(*PurgeResponse)(nil),           // 10: asc.v1.PurgeResponse
+	(*LocalDraft)(nil),              // 11: asc.v1.LocalDraft
+	(*ReportDeviceRequest)(nil),     // 12: asc.v1.ReportDeviceRequest
+	(*ReportDeviceResponse)(nil),    // 13: asc.v1.ReportDeviceResponse
+	(*RepoRef)(nil),                 // 14: asc.v1.RepoRef
 }
 var file_asc_v1_cloud_proto_depIdxs = []int32{
-	10, // 0: asc.v1.GetWorkspaceRequest.repo:type_name -> asc.v1.RepoRef
-	0,  // 1: asc.v1.GetWorkspaceResponse.heads:type_name -> asc.v1.CloudHead
-	10, // 2: asc.v1.UpdateWorkspaceRequest.repo:type_name -> asc.v1.RepoRef
-	0,  // 3: asc.v1.UpdateWorkspaceRequest.add:type_name -> asc.v1.CloudHead
-	10, // 4: asc.v1.ListWorkspacesRequest.repo:type_name -> asc.v1.RepoRef
-	5,  // 5: asc.v1.ListWorkspacesResponse.workspaces:type_name -> asc.v1.WorkspaceInfo
-	10, // 6: asc.v1.PurgeRequest.repo:type_name -> asc.v1.RepoRef
-	1,  // 7: asc.v1.Cloud.GetWorkspace:input_type -> asc.v1.GetWorkspaceRequest
-	3,  // 8: asc.v1.Cloud.UpdateWorkspace:input_type -> asc.v1.UpdateWorkspaceRequest
-	6,  // 9: asc.v1.Cloud.ListWorkspaces:input_type -> asc.v1.ListWorkspacesRequest
-	8,  // 10: asc.v1.Cloud.Purge:input_type -> asc.v1.PurgeRequest
-	2,  // 11: asc.v1.Cloud.GetWorkspace:output_type -> asc.v1.GetWorkspaceResponse
-	4,  // 12: asc.v1.Cloud.UpdateWorkspace:output_type -> asc.v1.UpdateWorkspaceResponse
-	7,  // 13: asc.v1.Cloud.ListWorkspaces:output_type -> asc.v1.ListWorkspacesResponse
-	9,  // 14: asc.v1.Cloud.Purge:output_type -> asc.v1.PurgeResponse
-	11, // [11:15] is the sub-list for method output_type
-	7,  // [7:11] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	14, // 0: asc.v1.GetWorkspaceRequest.repo:type_name -> asc.v1.RepoRef
+	1,  // 1: asc.v1.GetWorkspaceResponse.heads:type_name -> asc.v1.CloudHead
+	11, // 2: asc.v1.GetWorkspaceResponse.local:type_name -> asc.v1.LocalDraft
+	14, // 3: asc.v1.UpdateWorkspaceRequest.repo:type_name -> asc.v1.RepoRef
+	1,  // 4: asc.v1.UpdateWorkspaceRequest.add:type_name -> asc.v1.CloudHead
+	14, // 5: asc.v1.ListWorkspacesRequest.repo:type_name -> asc.v1.RepoRef
+	6,  // 6: asc.v1.ListWorkspacesResponse.workspaces:type_name -> asc.v1.WorkspaceInfo
+	14, // 7: asc.v1.PurgeRequest.repo:type_name -> asc.v1.RepoRef
+	0,  // 8: asc.v1.LocalDraft.state:type_name -> asc.v1.LocalDraftState
+	14, // 9: asc.v1.ReportDeviceRequest.repo:type_name -> asc.v1.RepoRef
+	11, // 10: asc.v1.ReportDeviceRequest.drafts:type_name -> asc.v1.LocalDraft
+	2,  // 11: asc.v1.Cloud.GetWorkspace:input_type -> asc.v1.GetWorkspaceRequest
+	4,  // 12: asc.v1.Cloud.UpdateWorkspace:input_type -> asc.v1.UpdateWorkspaceRequest
+	7,  // 13: asc.v1.Cloud.ListWorkspaces:input_type -> asc.v1.ListWorkspacesRequest
+	9,  // 14: asc.v1.Cloud.Purge:input_type -> asc.v1.PurgeRequest
+	12, // 15: asc.v1.Cloud.ReportDevice:input_type -> asc.v1.ReportDeviceRequest
+	3,  // 16: asc.v1.Cloud.GetWorkspace:output_type -> asc.v1.GetWorkspaceResponse
+	5,  // 17: asc.v1.Cloud.UpdateWorkspace:output_type -> asc.v1.UpdateWorkspaceResponse
+	8,  // 18: asc.v1.Cloud.ListWorkspaces:output_type -> asc.v1.ListWorkspacesResponse
+	10, // 19: asc.v1.Cloud.Purge:output_type -> asc.v1.PurgeResponse
+	13, // 20: asc.v1.Cloud.ReportDevice:output_type -> asc.v1.ReportDeviceResponse
+	16, // [16:21] is the sub-list for method output_type
+	11, // [11:16] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_cloud_proto_init() }
@@ -844,13 +1166,14 @@ func file_asc_v1_cloud_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_cloud_proto_rawDesc), len(file_asc_v1_cloud_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   10,
+			NumEnums:      1,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_asc_v1_cloud_proto_goTypes,
 		DependencyIndexes: file_asc_v1_cloud_proto_depIdxs,
+		EnumInfos:         file_asc_v1_cloud_proto_enumTypes,
 		MessageInfos:      file_asc_v1_cloud_proto_msgTypes,
 	}.Build()
 	File_asc_v1_cloud_proto = out.File

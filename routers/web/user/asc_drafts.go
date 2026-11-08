@@ -8,7 +8,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/http"
+	"slices"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,6 +40,11 @@ import (
 // user. Everything asc returns is untrusted text: labels are re-validated against the label
 // grammar of SPEC 21.3.5 (bad ones are dropped), ids are hex, and the template escapes every
 // value. Nothing from asc's status text reaches the browser or the log, only its code.
+//
+// Where a draft is (SPEC 21.3.9): the page asks with include_devices, so each hub draft names the
+// devices that also hold it and the drafts a device reported but never uploaded come back in
+// `local`, with the reason. Device names are re-validated ([A-Za-z0-9._-]{1,64}); a bad one is
+// dropped. A server that predates the report sends neither, and every draft reads "On the hub".
 const (
 	tplAscDrafts base.TplName = "user/asc_drafts"
 
@@ -50,6 +57,8 @@ const (
 	ascDraftsMaxLabelBytes = 64
 	// ascDraftsMaxIDBytes bounds a change or commit id shown (BLAKE3 ids are 32 bytes).
 	ascDraftsMaxIDBytes = 64
+	// ascDraftsMaxDevices bounds the devices named on one draft.
+	ascDraftsMaxDevices = 8
 	// ascDraftsTimeout bounds all calls of one page view.
 	ascDraftsTimeout = 20 * time.Second
 )
@@ -61,6 +70,40 @@ type AscDraft struct {
 	Labels []string
 	Added  time.Time
 	Hidden bool
+	// OnHub is false for a draft only a device holds; Devices then has that one device.
+	OnHub   bool
+	Devices []string
+	// Reason is the locale key of why a device-only draft was not uploaded, empty if unknown.
+	Reason string
+}
+
+// ascDraftsReasons maps a device-only draft's upload state to the text shown.
+var ascDraftsReasons = map[ascv1.LocalDraftState]string{
+	ascv1.LocalDraftState_LOCAL_DRAFT_STATE_UPLOADED:   "asc_work.drafts_why_removed",
+	ascv1.LocalDraftState_LOCAL_DRAFT_STATE_WAITING:    "asc_work.drafts_why_waiting",
+	ascv1.LocalDraftState_LOCAL_DRAFT_STATE_FAILED:     "asc_work.drafts_why_failed",
+	ascv1.LocalDraftState_LOCAL_DRAFT_STATE_TOO_LARGE:  "asc_work.drafts_why_too_large",
+	ascv1.LocalDraftState_LOCAL_DRAFT_STATE_NOT_QUEUED: "asc_work.drafts_why_not_queued",
+}
+
+// ascDraftsDeviceOK reports whether s matches [A-Za-z0-9._-]{1,64}.
+func ascDraftsDeviceOK(s string) bool {
+	return !strings.Contains(s, "/") && ascDraftsLabelOK(s)
+}
+
+// ascDraftsDevices keeps the valid, distinct device names, sorted, at most ascDraftsMaxDevices.
+func ascDraftsDevices(in []string) []string {
+	var out []string
+	for _, d := range in {
+		if ascDraftsDeviceOK(d) && !slices.Contains(out, d) {
+			out = append(out, d)
+		}
+	}
+	sort.Strings(out)
+	if len(out) > ascDraftsMaxDevices {
+		out = out[:ascDraftsMaxDevices]
+	}
+	return out
 }
 
 // AscDraftsRepo is the drafts of one repository, or the reason they are missing.
@@ -135,6 +178,20 @@ func ascDraftsBuild(resp *ascv1.GetWorkspaceResponse) ([]AscDraft, int) {
 		if h.GetAdded() > 0 {
 			d.Added = time.Unix(h.GetAdded(), 0).UTC()
 		}
+		d.OnHub = true
+		d.Devices = ascDraftsDevices(h.GetDevices())
+		out = append(out, d)
+	}
+	for _, l := range resp.GetLocal() {
+		c := l.GetChange()
+		if l == nil || len(c) == 0 || len(c) > ascDraftsMaxIDBytes || !ascDraftsDeviceOK(l.GetDevice()) {
+			omitted++
+			continue
+		}
+		d := AscDraft{Change: hex.EncodeToString(c), Devices: []string{l.GetDevice()}, Reason: ascDraftsReasons[l.GetState()]}
+		if l.GetAdded() > 0 {
+			d.Added = time.Unix(l.GetAdded(), 0).UTC()
+		}
 		out = append(out, d)
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Added.After(out[j].Added) })
@@ -192,8 +249,9 @@ func AscDrafts(ctx *context.Context) {
 		}
 		row := AscDraftsRepo{Repo: repo}
 		resp, err := client.GetWorkspace(callCtx, &ascv1.GetWorkspaceRequest{
-			Repo:  &ascv1.RepoRef{Name: name, IdMode: ascv1.IdMode_ID_MODE_GIT},
-			Owner: ctx.Doer.Name, // always the signed-in user
+			Repo:           &ascv1.RepoRef{Name: name, IdMode: ascv1.IdMode_ID_MODE_GIT},
+			Owner:          ctx.Doer.Name, // always the signed-in user
+			IncludeDevices: true,
 		})
 		if err != nil {
 			if ctx.Req.Context().Err() != nil {

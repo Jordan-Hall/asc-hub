@@ -23,6 +23,7 @@ const (
 	Cloud_UpdateWorkspace_FullMethodName = "/asc.v1.Cloud/UpdateWorkspace"
 	Cloud_ListWorkspaces_FullMethodName  = "/asc.v1.Cloud/ListWorkspaces"
 	Cloud_Purge_FullMethodName           = "/asc.v1.Cloud/Purge"
+	Cloud_ReportDevice_FullMethodName    = "/asc.v1.Cloud/ReportDevice"
 )
 
 // CloudClient is the client API for Cloud service.
@@ -35,6 +36,7 @@ type CloudClient interface {
 	UpdateWorkspace(ctx context.Context, in *UpdateWorkspaceRequest, opts ...grpc.CallOption) (*UpdateWorkspaceResponse, error)
 	ListWorkspaces(ctx context.Context, in *ListWorkspacesRequest, opts ...grpc.CallOption) (*ListWorkspacesResponse, error)
 	Purge(ctx context.Context, in *PurgeRequest, opts ...grpc.CallOption) (*PurgeResponse, error)
+	ReportDevice(ctx context.Context, in *ReportDeviceRequest, opts ...grpc.CallOption) (*ReportDeviceResponse, error)
 }
 
 type cloudClient struct {
@@ -85,6 +87,16 @@ func (c *cloudClient) Purge(ctx context.Context, in *PurgeRequest, opts ...grpc.
 	return out, nil
 }
 
+func (c *cloudClient) ReportDevice(ctx context.Context, in *ReportDeviceRequest, opts ...grpc.CallOption) (*ReportDeviceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportDeviceResponse)
+	err := c.cc.Invoke(ctx, Cloud_ReportDevice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudServer is the server API for Cloud service.
 // All implementations should embed UnimplementedCloudServer
 // for forward compatibility.
@@ -95,6 +107,7 @@ type CloudServer interface {
 	UpdateWorkspace(context.Context, *UpdateWorkspaceRequest) (*UpdateWorkspaceResponse, error)
 	ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error)
 	Purge(context.Context, *PurgeRequest) (*PurgeResponse, error)
+	ReportDevice(context.Context, *ReportDeviceRequest) (*ReportDeviceResponse, error)
 }
 
 // UnimplementedCloudServer should be embedded to have
@@ -115,6 +128,9 @@ func (UnimplementedCloudServer) ListWorkspaces(context.Context, *ListWorkspacesR
 }
 func (UnimplementedCloudServer) Purge(context.Context, *PurgeRequest) (*PurgeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Purge not implemented")
+}
+func (UnimplementedCloudServer) ReportDevice(context.Context, *ReportDeviceRequest) (*ReportDeviceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportDevice not implemented")
 }
 func (UnimplementedCloudServer) testEmbeddedByValue() {}
 
@@ -208,6 +224,24 @@ func _Cloud_Purge_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Cloud_ReportDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServer).ReportDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Cloud_ReportDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServer).ReportDevice(ctx, req.(*ReportDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Cloud_ServiceDesc is the grpc.ServiceDesc for Cloud service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -230,6 +264,10 @@ var Cloud_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Purge",
 			Handler:    _Cloud_Purge_Handler,
+		},
+		{
+			MethodName: "ReportDevice",
+			Handler:    _Cloud_ReportDevice_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
