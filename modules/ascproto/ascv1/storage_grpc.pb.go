@@ -31,6 +31,7 @@ const (
 	Storage_GetMigration_FullMethodName    = "/asc.v1.Storage/GetMigration"
 	Storage_ListMigrations_FullMethodName  = "/asc.v1.Storage/ListMigrations"
 	Storage_CancelMigration_FullMethodName = "/asc.v1.Storage/CancelMigration"
+	Storage_GetRepoUsage_FullMethodName    = "/asc.v1.Storage/GetRepoUsage"
 )
 
 // StorageClient is the client API for Storage service.
@@ -61,6 +62,7 @@ type StorageClient interface {
 	GetMigration(ctx context.Context, in *GetStorageMigrationRequest, opts ...grpc.CallOption) (*GetStorageMigrationResponse, error)
 	ListMigrations(ctx context.Context, in *ListStorageMigrationsRequest, opts ...grpc.CallOption) (*ListStorageMigrationsResponse, error)
 	CancelMigration(ctx context.Context, in *CancelStorageMigrationRequest, opts ...grpc.CallOption) (*CancelStorageMigrationResponse, error)
+	GetRepoUsage(ctx context.Context, in *GetRepoStorageUsageRequest, opts ...grpc.CallOption) (*GetRepoStorageUsageResponse, error)
 }
 
 type storageClient struct {
@@ -191,6 +193,16 @@ func (c *storageClient) CancelMigration(ctx context.Context, in *CancelStorageMi
 	return out, nil
 }
 
+func (c *storageClient) GetRepoUsage(ctx context.Context, in *GetRepoStorageUsageRequest, opts ...grpc.CallOption) (*GetRepoStorageUsageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRepoStorageUsageResponse)
+	err := c.cc.Invoke(ctx, Storage_GetRepoUsage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StorageServer is the server API for Storage service.
 // All implementations should embed UnimplementedStorageServer
 // for forward compatibility.
@@ -219,6 +231,7 @@ type StorageServer interface {
 	GetMigration(context.Context, *GetStorageMigrationRequest) (*GetStorageMigrationResponse, error)
 	ListMigrations(context.Context, *ListStorageMigrationsRequest) (*ListStorageMigrationsResponse, error)
 	CancelMigration(context.Context, *CancelStorageMigrationRequest) (*CancelStorageMigrationResponse, error)
+	GetRepoUsage(context.Context, *GetRepoStorageUsageRequest) (*GetRepoStorageUsageResponse, error)
 }
 
 // UnimplementedStorageServer should be embedded to have
@@ -263,6 +276,9 @@ func (UnimplementedStorageServer) ListMigrations(context.Context, *ListStorageMi
 }
 func (UnimplementedStorageServer) CancelMigration(context.Context, *CancelStorageMigrationRequest) (*CancelStorageMigrationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelMigration not implemented")
+}
+func (UnimplementedStorageServer) GetRepoUsage(context.Context, *GetRepoStorageUsageRequest) (*GetRepoStorageUsageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRepoUsage not implemented")
 }
 func (UnimplementedStorageServer) testEmbeddedByValue() {}
 
@@ -500,6 +516,24 @@ func _Storage_CancelMigration_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Storage_GetRepoUsage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRepoStorageUsageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServer).GetRepoUsage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Storage_GetRepoUsage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServer).GetRepoUsage(ctx, req.(*GetRepoStorageUsageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Storage_ServiceDesc is the grpc.ServiceDesc for Storage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -554,6 +588,10 @@ var Storage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelMigration",
 			Handler:    _Storage_CancelMigration_Handler,
+		},
+		{
+			MethodName: "GetRepoUsage",
+			Handler:    _Storage_GetRepoUsage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

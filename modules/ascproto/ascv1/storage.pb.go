@@ -255,6 +255,68 @@ func (StorageMigrationState) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_storage_proto_rawDescGZIP(), []int{3}
 }
 
+// What stored bytes are.
+type StorageUsageKind int32
+
+const (
+	StorageUsageKind_STORAGE_USAGE_KIND_UNSPECIFIED StorageUsageKind = 0
+	StorageUsageKind_STORAGE_USAGE_KIND_HISTORY     StorageUsageKind = 1 // changesets, trees, tags, change metadata
+	StorageUsageKind_STORAGE_USAGE_KIND_FILES       StorageUsageKind = 2 // whole files
+	StorageUsageKind_STORAGE_USAGE_KIND_LARGE_FILES StorageUsageKind = 3 // files stored in chunks
+	StorageUsageKind_STORAGE_USAGE_KIND_INDEXES     StorageUsageKind = 4 // search and code intelligence
+	StorageUsageKind_STORAGE_USAGE_KIND_CI          StorageUsageKind = 5 // CI artifacts and caches
+	StorageUsageKind_STORAGE_USAGE_KIND_OTHER       StorageUsageKind = 6 // pack bytes no live object uses, anything else
+)
+
+// Enum value maps for StorageUsageKind.
+var (
+	StorageUsageKind_name = map[int32]string{
+		0: "STORAGE_USAGE_KIND_UNSPECIFIED",
+		1: "STORAGE_USAGE_KIND_HISTORY",
+		2: "STORAGE_USAGE_KIND_FILES",
+		3: "STORAGE_USAGE_KIND_LARGE_FILES",
+		4: "STORAGE_USAGE_KIND_INDEXES",
+		5: "STORAGE_USAGE_KIND_CI",
+		6: "STORAGE_USAGE_KIND_OTHER",
+	}
+	StorageUsageKind_value = map[string]int32{
+		"STORAGE_USAGE_KIND_UNSPECIFIED": 0,
+		"STORAGE_USAGE_KIND_HISTORY":     1,
+		"STORAGE_USAGE_KIND_FILES":       2,
+		"STORAGE_USAGE_KIND_LARGE_FILES": 3,
+		"STORAGE_USAGE_KIND_INDEXES":     4,
+		"STORAGE_USAGE_KIND_CI":          5,
+		"STORAGE_USAGE_KIND_OTHER":       6,
+	}
+)
+
+func (x StorageUsageKind) Enum() *StorageUsageKind {
+	p := new(StorageUsageKind)
+	*p = x
+	return p
+}
+
+func (x StorageUsageKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StorageUsageKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_storage_proto_enumTypes[4].Descriptor()
+}
+
+func (StorageUsageKind) Type() protoreflect.EnumType {
+	return &file_asc_v1_storage_proto_enumTypes[4]
+}
+
+func (x StorageUsageKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StorageUsageKind.Descriptor instead.
+func (StorageUsageKind) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_storage_proto_rawDescGZIP(), []int{4}
+}
+
 type StorageTarget struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // "st_" + 20 characters
@@ -1936,6 +1998,202 @@ func (x *CancelStorageMigrationResponse) GetMigration() *StorageMigration {
 	return nil
 }
 
+type StorageUsageRow struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          StorageUsageKind       `protobuf:"varint,1,opt,name=kind,proto3,enum=asc.v1.StorageUsageKind" json:"kind,omitempty"`
+	Bytes         uint64                 `protobuf:"varint,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	Objects       uint64                 `protobuf:"varint,3,opt,name=objects,proto3" json:"objects,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StorageUsageRow) Reset() {
+	*x = StorageUsageRow{}
+	mi := &file_asc_v1_storage_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StorageUsageRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StorageUsageRow) ProtoMessage() {}
+
+func (x *StorageUsageRow) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_storage_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StorageUsageRow.ProtoReflect.Descriptor instead.
+func (*StorageUsageRow) Descriptor() ([]byte, []int) {
+	return file_asc_v1_storage_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *StorageUsageRow) GetKind() StorageUsageKind {
+	if x != nil {
+		return x.Kind
+	}
+	return StorageUsageKind_STORAGE_USAGE_KIND_UNSPECIFIED
+}
+
+func (x *StorageUsageRow) GetBytes() uint64 {
+	if x != nil {
+		return x.Bytes
+	}
+	return 0
+}
+
+func (x *StorageUsageRow) GetObjects() uint64 {
+	if x != nil {
+		return x.Objects
+	}
+	return 0
+}
+
+type GetRepoStorageUsageRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Refresh       bool                   `protobuf:"varint,2,opt,name=refresh,proto3" json:"refresh,omitempty"` // scan again now; at most every 5 minutes
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRepoStorageUsageRequest) Reset() {
+	*x = GetRepoStorageUsageRequest{}
+	mi := &file_asc_v1_storage_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRepoStorageUsageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRepoStorageUsageRequest) ProtoMessage() {}
+
+func (x *GetRepoStorageUsageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_storage_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRepoStorageUsageRequest.ProtoReflect.Descriptor instead.
+func (*GetRepoStorageUsageRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_storage_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetRepoStorageUsageRequest) GetRepo() *RepoRef {
+	if x != nil {
+		return x.Repo
+	}
+	return nil
+}
+
+func (x *GetRepoStorageUsageRequest) GetRefresh() bool {
+	if x != nil {
+		return x.Refresh
+	}
+	return false
+}
+
+type GetRepoStorageUsageResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rows          []*StorageUsageRow     `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"` // every kind, zero when none is stored
+	TotalBytes    uint64                 `protobuf:"varint,2,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	ComputedAt    int64                  `protobuf:"varint,3,opt,name=computed_at,json=computedAt,proto3" json:"computed_at,omitempty"`            // unix seconds of the scan; 0 when none finished yet
+	Computing     bool                   `protobuf:"varint,4,opt,name=computing,proto3" json:"computing,omitempty"`                                // a scan is running
+	ReadThisMonth uint64                 `protobuf:"varint,5,opt,name=read_this_month,json=readThisMonth,proto3" json:"read_this_month,omitempty"` // bytes read from storage in `month`
+	Month         string                 `protobuf:"bytes,6,opt,name=month,proto3" json:"month,omitempty"`                                         // YYYY-MM, UTC
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRepoStorageUsageResponse) Reset() {
+	*x = GetRepoStorageUsageResponse{}
+	mi := &file_asc_v1_storage_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRepoStorageUsageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRepoStorageUsageResponse) ProtoMessage() {}
+
+func (x *GetRepoStorageUsageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_storage_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRepoStorageUsageResponse.ProtoReflect.Descriptor instead.
+func (*GetRepoStorageUsageResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_storage_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetRepoStorageUsageResponse) GetRows() []*StorageUsageRow {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+func (x *GetRepoStorageUsageResponse) GetTotalBytes() uint64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *GetRepoStorageUsageResponse) GetComputedAt() int64 {
+	if x != nil {
+		return x.ComputedAt
+	}
+	return 0
+}
+
+func (x *GetRepoStorageUsageResponse) GetComputing() bool {
+	if x != nil {
+		return x.Computing
+	}
+	return false
+}
+
+func (x *GetRepoStorageUsageResponse) GetReadThisMonth() uint64 {
+	if x != nil {
+		return x.ReadThisMonth
+	}
+	return 0
+}
+
+func (x *GetRepoStorageUsageResponse) GetMonth() string {
+	if x != nil {
+		return x.Month
+	}
+	return ""
+}
+
 var File_asc_v1_storage_proto protoreflect.FileDescriptor
 
 const file_asc_v1_storage_proto_rawDesc = "" +
@@ -2075,7 +2333,23 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"\x1dCancelStorageMigrationRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"X\n" +
 	"\x1eCancelStorageMigrationResponse\x126\n" +
-	"\tmigration\x18\x01 \x01(\v2\x18.asc.v1.StorageMigrationR\tmigration*\xe5\x01\n" +
+	"\tmigration\x18\x01 \x01(\v2\x18.asc.v1.StorageMigrationR\tmigration\"o\n" +
+	"\x0fStorageUsageRow\x12,\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x18.asc.v1.StorageUsageKindR\x04kind\x12\x14\n" +
+	"\x05bytes\x18\x02 \x01(\x04R\x05bytes\x12\x18\n" +
+	"\aobjects\x18\x03 \x01(\x04R\aobjects\"[\n" +
+	"\x1aGetRepoStorageUsageRequest\x12#\n" +
+	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x18\n" +
+	"\arefresh\x18\x02 \x01(\bR\arefresh\"\xe8\x01\n" +
+	"\x1bGetRepoStorageUsageResponse\x12+\n" +
+	"\x04rows\x18\x01 \x03(\v2\x17.asc.v1.StorageUsageRowR\x04rows\x12\x1f\n" +
+	"\vtotal_bytes\x18\x02 \x01(\x04R\n" +
+	"totalBytes\x12\x1f\n" +
+	"\vcomputed_at\x18\x03 \x01(\x03R\n" +
+	"computedAt\x12\x1c\n" +
+	"\tcomputing\x18\x04 \x01(\bR\tcomputing\x12&\n" +
+	"\x0fread_this_month\x18\x05 \x01(\x04R\rreadThisMonth\x12\x14\n" +
+	"\x05month\x18\x06 \x01(\tR\x05month*\xe5\x01\n" +
 	"\x12StorageTargetState\x12$\n" +
 	" STORAGE_TARGET_STATE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cSTORAGE_TARGET_STATE_PENDING\x10\x01\x12!\n" +
@@ -2103,7 +2377,15 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"!STORAGE_MIGRATION_STATE_SWITCHING\x10\x04\x12 \n" +
 	"\x1cSTORAGE_MIGRATION_STATE_DONE\x10\x05\x12\"\n" +
 	"\x1eSTORAGE_MIGRATION_STATE_FAILED\x10\x06\x12%\n" +
-	"!STORAGE_MIGRATION_STATE_CANCELLED\x10\a2\xbe\b\n" +
+	"!STORAGE_MIGRATION_STATE_CANCELLED\x10\a*\xf1\x01\n" +
+	"\x10StorageUsageKind\x12\"\n" +
+	"\x1eSTORAGE_USAGE_KIND_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aSTORAGE_USAGE_KIND_HISTORY\x10\x01\x12\x1c\n" +
+	"\x18STORAGE_USAGE_KIND_FILES\x10\x02\x12\"\n" +
+	"\x1eSTORAGE_USAGE_KIND_LARGE_FILES\x10\x03\x12\x1e\n" +
+	"\x1aSTORAGE_USAGE_KIND_INDEXES\x10\x04\x12\x19\n" +
+	"\x15STORAGE_USAGE_KIND_CI\x10\x05\x12\x1c\n" +
+	"\x18STORAGE_USAGE_KIND_OTHER\x10\x062\x97\t\n" +
 	"\aStorage\x12W\n" +
 	"\fCreateTarget\x12\".asc.v1.CreateStorageTargetRequest\x1a#.asc.v1.CreateStorageTargetResponse\x12T\n" +
 	"\vListTargets\x12!.asc.v1.ListStorageTargetsRequest\x1a\".asc.v1.ListStorageTargetsResponse\x12N\n" +
@@ -2118,7 +2400,8 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"\x0eStartMigration\x12$.asc.v1.StartStorageMigrationRequest\x1a%.asc.v1.StartStorageMigrationResponse\x12W\n" +
 	"\fGetMigration\x12\".asc.v1.GetStorageMigrationRequest\x1a#.asc.v1.GetStorageMigrationResponse\x12]\n" +
 	"\x0eListMigrations\x12$.asc.v1.ListStorageMigrationsRequest\x1a%.asc.v1.ListStorageMigrationsResponse\x12`\n" +
-	"\x0fCancelMigration\x12%.asc.v1.CancelStorageMigrationRequest\x1a&.asc.v1.CancelStorageMigrationResponseBw\n" +
+	"\x0fCancelMigration\x12%.asc.v1.CancelStorageMigrationRequest\x1a&.asc.v1.CancelStorageMigrationResponse\x12W\n" +
+	"\fGetRepoUsage\x12\".asc.v1.GetRepoStorageUsageRequest\x1a#.asc.v1.GetRepoStorageUsageResponseBw\n" +
 	"\n" +
 	"com.asc.v1B\fStorageProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -2134,100 +2417,109 @@ func file_asc_v1_storage_proto_rawDescGZIP() []byte {
 	return file_asc_v1_storage_proto_rawDescData
 }
 
-var file_asc_v1_storage_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_asc_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_asc_v1_storage_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_asc_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_asc_v1_storage_proto_goTypes = []any{
 	(StorageTargetState)(0),                 // 0: asc.v1.StorageTargetState
 	(StorageAddressing)(0),                  // 1: asc.v1.StorageAddressing
 	(StorageVerifyStep)(0),                  // 2: asc.v1.StorageVerifyStep
 	(StorageMigrationState)(0),              // 3: asc.v1.StorageMigrationState
-	(*StorageTarget)(nil),                   // 4: asc.v1.StorageTarget
-	(*StorageCredentials)(nil),              // 5: asc.v1.StorageCredentials
-	(*CreateStorageTargetRequest)(nil),      // 6: asc.v1.CreateStorageTargetRequest
-	(*CreateStorageTargetResponse)(nil),     // 7: asc.v1.CreateStorageTargetResponse
-	(*ListStorageTargetsRequest)(nil),       // 8: asc.v1.ListStorageTargetsRequest
-	(*ListStorageTargetsResponse)(nil),      // 9: asc.v1.ListStorageTargetsResponse
-	(*GetStorageTargetRequest)(nil),         // 10: asc.v1.GetStorageTargetRequest
-	(*GetStorageTargetResponse)(nil),        // 11: asc.v1.GetStorageTargetResponse
-	(*UpdateStorageTargetRequest)(nil),      // 12: asc.v1.UpdateStorageTargetRequest
-	(*UpdateStorageTargetResponse)(nil),     // 13: asc.v1.UpdateStorageTargetResponse
-	(*DeleteStorageTargetRequest)(nil),      // 14: asc.v1.DeleteStorageTargetRequest
-	(*DeleteStorageTargetResponse)(nil),     // 15: asc.v1.DeleteStorageTargetResponse
-	(*StorageVerifyCheck)(nil),              // 16: asc.v1.StorageVerifyCheck
-	(*VerifyStorageTargetRequest)(nil),      // 17: asc.v1.VerifyStorageTargetRequest
-	(*VerifyStorageTargetResponse)(nil),     // 18: asc.v1.VerifyStorageTargetResponse
-	(*SetStorageTargetEnabledRequest)(nil),  // 19: asc.v1.SetStorageTargetEnabledRequest
-	(*SetStorageTargetEnabledResponse)(nil), // 20: asc.v1.SetStorageTargetEnabledResponse
-	(*AssignRepoStorageRequest)(nil),        // 21: asc.v1.AssignRepoStorageRequest
-	(*AssignRepoStorageResponse)(nil),       // 22: asc.v1.AssignRepoStorageResponse
-	(*StorageMigration)(nil),                // 23: asc.v1.StorageMigration
-	(*StartStorageMigrationRequest)(nil),    // 24: asc.v1.StartStorageMigrationRequest
-	(*StartStorageMigrationResponse)(nil),   // 25: asc.v1.StartStorageMigrationResponse
-	(*GetStorageMigrationRequest)(nil),      // 26: asc.v1.GetStorageMigrationRequest
-	(*GetStorageMigrationResponse)(nil),     // 27: asc.v1.GetStorageMigrationResponse
-	(*ListStorageMigrationsRequest)(nil),    // 28: asc.v1.ListStorageMigrationsRequest
-	(*ListStorageMigrationsResponse)(nil),   // 29: asc.v1.ListStorageMigrationsResponse
-	(*CancelStorageMigrationRequest)(nil),   // 30: asc.v1.CancelStorageMigrationRequest
-	(*CancelStorageMigrationResponse)(nil),  // 31: asc.v1.CancelStorageMigrationResponse
-	(*OwnerRef)(nil),                        // 32: asc.v1.OwnerRef
-	(*RepoRef)(nil),                         // 33: asc.v1.RepoRef
+	(StorageUsageKind)(0),                   // 4: asc.v1.StorageUsageKind
+	(*StorageTarget)(nil),                   // 5: asc.v1.StorageTarget
+	(*StorageCredentials)(nil),              // 6: asc.v1.StorageCredentials
+	(*CreateStorageTargetRequest)(nil),      // 7: asc.v1.CreateStorageTargetRequest
+	(*CreateStorageTargetResponse)(nil),     // 8: asc.v1.CreateStorageTargetResponse
+	(*ListStorageTargetsRequest)(nil),       // 9: asc.v1.ListStorageTargetsRequest
+	(*ListStorageTargetsResponse)(nil),      // 10: asc.v1.ListStorageTargetsResponse
+	(*GetStorageTargetRequest)(nil),         // 11: asc.v1.GetStorageTargetRequest
+	(*GetStorageTargetResponse)(nil),        // 12: asc.v1.GetStorageTargetResponse
+	(*UpdateStorageTargetRequest)(nil),      // 13: asc.v1.UpdateStorageTargetRequest
+	(*UpdateStorageTargetResponse)(nil),     // 14: asc.v1.UpdateStorageTargetResponse
+	(*DeleteStorageTargetRequest)(nil),      // 15: asc.v1.DeleteStorageTargetRequest
+	(*DeleteStorageTargetResponse)(nil),     // 16: asc.v1.DeleteStorageTargetResponse
+	(*StorageVerifyCheck)(nil),              // 17: asc.v1.StorageVerifyCheck
+	(*VerifyStorageTargetRequest)(nil),      // 18: asc.v1.VerifyStorageTargetRequest
+	(*VerifyStorageTargetResponse)(nil),     // 19: asc.v1.VerifyStorageTargetResponse
+	(*SetStorageTargetEnabledRequest)(nil),  // 20: asc.v1.SetStorageTargetEnabledRequest
+	(*SetStorageTargetEnabledResponse)(nil), // 21: asc.v1.SetStorageTargetEnabledResponse
+	(*AssignRepoStorageRequest)(nil),        // 22: asc.v1.AssignRepoStorageRequest
+	(*AssignRepoStorageResponse)(nil),       // 23: asc.v1.AssignRepoStorageResponse
+	(*StorageMigration)(nil),                // 24: asc.v1.StorageMigration
+	(*StartStorageMigrationRequest)(nil),    // 25: asc.v1.StartStorageMigrationRequest
+	(*StartStorageMigrationResponse)(nil),   // 26: asc.v1.StartStorageMigrationResponse
+	(*GetStorageMigrationRequest)(nil),      // 27: asc.v1.GetStorageMigrationRequest
+	(*GetStorageMigrationResponse)(nil),     // 28: asc.v1.GetStorageMigrationResponse
+	(*ListStorageMigrationsRequest)(nil),    // 29: asc.v1.ListStorageMigrationsRequest
+	(*ListStorageMigrationsResponse)(nil),   // 30: asc.v1.ListStorageMigrationsResponse
+	(*CancelStorageMigrationRequest)(nil),   // 31: asc.v1.CancelStorageMigrationRequest
+	(*CancelStorageMigrationResponse)(nil),  // 32: asc.v1.CancelStorageMigrationResponse
+	(*StorageUsageRow)(nil),                 // 33: asc.v1.StorageUsageRow
+	(*GetRepoStorageUsageRequest)(nil),      // 34: asc.v1.GetRepoStorageUsageRequest
+	(*GetRepoStorageUsageResponse)(nil),     // 35: asc.v1.GetRepoStorageUsageResponse
+	(*OwnerRef)(nil),                        // 36: asc.v1.OwnerRef
+	(*RepoRef)(nil),                         // 37: asc.v1.RepoRef
 }
 var file_asc_v1_storage_proto_depIdxs = []int32{
-	32, // 0: asc.v1.StorageTarget.owner:type_name -> asc.v1.OwnerRef
+	36, // 0: asc.v1.StorageTarget.owner:type_name -> asc.v1.OwnerRef
 	1,  // 1: asc.v1.StorageTarget.addressing:type_name -> asc.v1.StorageAddressing
 	0,  // 2: asc.v1.StorageTarget.state:type_name -> asc.v1.StorageTargetState
-	32, // 3: asc.v1.CreateStorageTargetRequest.owner:type_name -> asc.v1.OwnerRef
+	36, // 3: asc.v1.CreateStorageTargetRequest.owner:type_name -> asc.v1.OwnerRef
 	1,  // 4: asc.v1.CreateStorageTargetRequest.addressing:type_name -> asc.v1.StorageAddressing
-	5,  // 5: asc.v1.CreateStorageTargetRequest.credentials:type_name -> asc.v1.StorageCredentials
-	4,  // 6: asc.v1.CreateStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
-	32, // 7: asc.v1.ListStorageTargetsRequest.owner:type_name -> asc.v1.OwnerRef
-	4,  // 8: asc.v1.ListStorageTargetsResponse.targets:type_name -> asc.v1.StorageTarget
-	4,  // 9: asc.v1.GetStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
+	6,  // 5: asc.v1.CreateStorageTargetRequest.credentials:type_name -> asc.v1.StorageCredentials
+	5,  // 6: asc.v1.CreateStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
+	36, // 7: asc.v1.ListStorageTargetsRequest.owner:type_name -> asc.v1.OwnerRef
+	5,  // 8: asc.v1.ListStorageTargetsResponse.targets:type_name -> asc.v1.StorageTarget
+	5,  // 9: asc.v1.GetStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
 	1,  // 10: asc.v1.UpdateStorageTargetRequest.addressing:type_name -> asc.v1.StorageAddressing
-	5,  // 11: asc.v1.UpdateStorageTargetRequest.credentials:type_name -> asc.v1.StorageCredentials
-	4,  // 12: asc.v1.UpdateStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
+	6,  // 11: asc.v1.UpdateStorageTargetRequest.credentials:type_name -> asc.v1.StorageCredentials
+	5,  // 12: asc.v1.UpdateStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
 	2,  // 13: asc.v1.StorageVerifyCheck.step:type_name -> asc.v1.StorageVerifyStep
-	16, // 14: asc.v1.VerifyStorageTargetResponse.checks:type_name -> asc.v1.StorageVerifyCheck
-	4,  // 15: asc.v1.VerifyStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
-	4,  // 16: asc.v1.SetStorageTargetEnabledResponse.target:type_name -> asc.v1.StorageTarget
-	33, // 17: asc.v1.AssignRepoStorageRequest.repo:type_name -> asc.v1.RepoRef
-	33, // 18: asc.v1.StorageMigration.repo:type_name -> asc.v1.RepoRef
+	17, // 14: asc.v1.VerifyStorageTargetResponse.checks:type_name -> asc.v1.StorageVerifyCheck
+	5,  // 15: asc.v1.VerifyStorageTargetResponse.target:type_name -> asc.v1.StorageTarget
+	5,  // 16: asc.v1.SetStorageTargetEnabledResponse.target:type_name -> asc.v1.StorageTarget
+	37, // 17: asc.v1.AssignRepoStorageRequest.repo:type_name -> asc.v1.RepoRef
+	37, // 18: asc.v1.StorageMigration.repo:type_name -> asc.v1.RepoRef
 	3,  // 19: asc.v1.StorageMigration.state:type_name -> asc.v1.StorageMigrationState
-	33, // 20: asc.v1.StartStorageMigrationRequest.repo:type_name -> asc.v1.RepoRef
-	23, // 21: asc.v1.StartStorageMigrationResponse.migration:type_name -> asc.v1.StorageMigration
-	23, // 22: asc.v1.GetStorageMigrationResponse.migration:type_name -> asc.v1.StorageMigration
-	33, // 23: asc.v1.ListStorageMigrationsRequest.repo:type_name -> asc.v1.RepoRef
-	23, // 24: asc.v1.ListStorageMigrationsResponse.migrations:type_name -> asc.v1.StorageMigration
-	23, // 25: asc.v1.CancelStorageMigrationResponse.migration:type_name -> asc.v1.StorageMigration
-	6,  // 26: asc.v1.Storage.CreateTarget:input_type -> asc.v1.CreateStorageTargetRequest
-	8,  // 27: asc.v1.Storage.ListTargets:input_type -> asc.v1.ListStorageTargetsRequest
-	10, // 28: asc.v1.Storage.GetTarget:input_type -> asc.v1.GetStorageTargetRequest
-	12, // 29: asc.v1.Storage.UpdateTarget:input_type -> asc.v1.UpdateStorageTargetRequest
-	14, // 30: asc.v1.Storage.DeleteTarget:input_type -> asc.v1.DeleteStorageTargetRequest
-	17, // 31: asc.v1.Storage.VerifyTarget:input_type -> asc.v1.VerifyStorageTargetRequest
-	19, // 32: asc.v1.Storage.SetEnabled:input_type -> asc.v1.SetStorageTargetEnabledRequest
-	21, // 33: asc.v1.Storage.AssignRepo:input_type -> asc.v1.AssignRepoStorageRequest
-	24, // 34: asc.v1.Storage.StartMigration:input_type -> asc.v1.StartStorageMigrationRequest
-	26, // 35: asc.v1.Storage.GetMigration:input_type -> asc.v1.GetStorageMigrationRequest
-	28, // 36: asc.v1.Storage.ListMigrations:input_type -> asc.v1.ListStorageMigrationsRequest
-	30, // 37: asc.v1.Storage.CancelMigration:input_type -> asc.v1.CancelStorageMigrationRequest
-	7,  // 38: asc.v1.Storage.CreateTarget:output_type -> asc.v1.CreateStorageTargetResponse
-	9,  // 39: asc.v1.Storage.ListTargets:output_type -> asc.v1.ListStorageTargetsResponse
-	11, // 40: asc.v1.Storage.GetTarget:output_type -> asc.v1.GetStorageTargetResponse
-	13, // 41: asc.v1.Storage.UpdateTarget:output_type -> asc.v1.UpdateStorageTargetResponse
-	15, // 42: asc.v1.Storage.DeleteTarget:output_type -> asc.v1.DeleteStorageTargetResponse
-	18, // 43: asc.v1.Storage.VerifyTarget:output_type -> asc.v1.VerifyStorageTargetResponse
-	20, // 44: asc.v1.Storage.SetEnabled:output_type -> asc.v1.SetStorageTargetEnabledResponse
-	22, // 45: asc.v1.Storage.AssignRepo:output_type -> asc.v1.AssignRepoStorageResponse
-	25, // 46: asc.v1.Storage.StartMigration:output_type -> asc.v1.StartStorageMigrationResponse
-	27, // 47: asc.v1.Storage.GetMigration:output_type -> asc.v1.GetStorageMigrationResponse
-	29, // 48: asc.v1.Storage.ListMigrations:output_type -> asc.v1.ListStorageMigrationsResponse
-	31, // 49: asc.v1.Storage.CancelMigration:output_type -> asc.v1.CancelStorageMigrationResponse
-	38, // [38:50] is the sub-list for method output_type
-	26, // [26:38] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	37, // 20: asc.v1.StartStorageMigrationRequest.repo:type_name -> asc.v1.RepoRef
+	24, // 21: asc.v1.StartStorageMigrationResponse.migration:type_name -> asc.v1.StorageMigration
+	24, // 22: asc.v1.GetStorageMigrationResponse.migration:type_name -> asc.v1.StorageMigration
+	37, // 23: asc.v1.ListStorageMigrationsRequest.repo:type_name -> asc.v1.RepoRef
+	24, // 24: asc.v1.ListStorageMigrationsResponse.migrations:type_name -> asc.v1.StorageMigration
+	24, // 25: asc.v1.CancelStorageMigrationResponse.migration:type_name -> asc.v1.StorageMigration
+	4,  // 26: asc.v1.StorageUsageRow.kind:type_name -> asc.v1.StorageUsageKind
+	37, // 27: asc.v1.GetRepoStorageUsageRequest.repo:type_name -> asc.v1.RepoRef
+	33, // 28: asc.v1.GetRepoStorageUsageResponse.rows:type_name -> asc.v1.StorageUsageRow
+	7,  // 29: asc.v1.Storage.CreateTarget:input_type -> asc.v1.CreateStorageTargetRequest
+	9,  // 30: asc.v1.Storage.ListTargets:input_type -> asc.v1.ListStorageTargetsRequest
+	11, // 31: asc.v1.Storage.GetTarget:input_type -> asc.v1.GetStorageTargetRequest
+	13, // 32: asc.v1.Storage.UpdateTarget:input_type -> asc.v1.UpdateStorageTargetRequest
+	15, // 33: asc.v1.Storage.DeleteTarget:input_type -> asc.v1.DeleteStorageTargetRequest
+	18, // 34: asc.v1.Storage.VerifyTarget:input_type -> asc.v1.VerifyStorageTargetRequest
+	20, // 35: asc.v1.Storage.SetEnabled:input_type -> asc.v1.SetStorageTargetEnabledRequest
+	22, // 36: asc.v1.Storage.AssignRepo:input_type -> asc.v1.AssignRepoStorageRequest
+	25, // 37: asc.v1.Storage.StartMigration:input_type -> asc.v1.StartStorageMigrationRequest
+	27, // 38: asc.v1.Storage.GetMigration:input_type -> asc.v1.GetStorageMigrationRequest
+	29, // 39: asc.v1.Storage.ListMigrations:input_type -> asc.v1.ListStorageMigrationsRequest
+	31, // 40: asc.v1.Storage.CancelMigration:input_type -> asc.v1.CancelStorageMigrationRequest
+	34, // 41: asc.v1.Storage.GetRepoUsage:input_type -> asc.v1.GetRepoStorageUsageRequest
+	8,  // 42: asc.v1.Storage.CreateTarget:output_type -> asc.v1.CreateStorageTargetResponse
+	10, // 43: asc.v1.Storage.ListTargets:output_type -> asc.v1.ListStorageTargetsResponse
+	12, // 44: asc.v1.Storage.GetTarget:output_type -> asc.v1.GetStorageTargetResponse
+	14, // 45: asc.v1.Storage.UpdateTarget:output_type -> asc.v1.UpdateStorageTargetResponse
+	16, // 46: asc.v1.Storage.DeleteTarget:output_type -> asc.v1.DeleteStorageTargetResponse
+	19, // 47: asc.v1.Storage.VerifyTarget:output_type -> asc.v1.VerifyStorageTargetResponse
+	21, // 48: asc.v1.Storage.SetEnabled:output_type -> asc.v1.SetStorageTargetEnabledResponse
+	23, // 49: asc.v1.Storage.AssignRepo:output_type -> asc.v1.AssignRepoStorageResponse
+	26, // 50: asc.v1.Storage.StartMigration:output_type -> asc.v1.StartStorageMigrationResponse
+	28, // 51: asc.v1.Storage.GetMigration:output_type -> asc.v1.GetStorageMigrationResponse
+	30, // 52: asc.v1.Storage.ListMigrations:output_type -> asc.v1.ListStorageMigrationsResponse
+	32, // 53: asc.v1.Storage.CancelMigration:output_type -> asc.v1.CancelStorageMigrationResponse
+	35, // 54: asc.v1.Storage.GetRepoUsage:output_type -> asc.v1.GetRepoStorageUsageResponse
+	42, // [42:55] is the sub-list for method output_type
+	29, // [29:42] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_storage_proto_init() }
@@ -2243,8 +2535,8 @@ func file_asc_v1_storage_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_storage_proto_rawDesc), len(file_asc_v1_storage_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   28,
+			NumEnums:      5,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
