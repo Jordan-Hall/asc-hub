@@ -101,7 +101,7 @@ Nothing in the hub writes a ref into a bridge directory.
 
 ### Inbox, search, graph, compare
 
-`services/ascinbox` computes whose turn each review is, with per-user pin and snooze (`models/issues/asc_inbox_state.go`, migration `v17g_asc_inbox_state.go`); the page is `/-/asc/inbox` and the API is `/api/v1/user/asc/inbox`. Repository pages `asc/search`, `asc/graph` and `asc/compare` read asc through `modules/ascclient`. A read-only RPC proxy for the web UI is `POST /-/asc/rpc/{service}/{method}`.
+`services/ascinbox` computes whose turn each review is, with per-user pin and snooze (`models/issues/asc_inbox_state.go`, migration `v17g_asc_inbox_state.go`); the page is `/-/asc/inbox` and the API is `/api/v1/user/asc/inbox`. Repository pages `asc/search`, `asc/graph` and `asc/compare` read asc through `modules/ascclient`. `services/ascsearch` checks every search answer before it is drawn or returned, including the reason a result matched (`reason.go`: kind, score, terms and spans, with no spans for a hidden file), which the pages turn into one line under each result. A read-only RPC proxy for the web UI is `POST /-/asc/rpc/{service}/{method}`.
 
 ### Actions
 

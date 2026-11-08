@@ -176,7 +176,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Search | Facets: Repository (21 / 9 / 5, "11 more"), Language, Path, Branch or commit, "Only files the stack changes" | done | Repository facet on the all-repositories search (`H:routers/web/explore/asc_search_repos.go`, three shown and "N more"), Branch facet on an all-branches search (`ascSearchBranchFacets`); tests `TestAscExploreRepoFacets`, `TestAscSearchAllBranches` | M |
 | Search | Result card: path, language, branch list, snippet with highlights | done | `asc_search.tmpl` | S |
 | Search | Relevance percentage with a bar (grows over 300 ms) | done | `Chunk` score is shown as a raw number pill (`$c.Score`); convert to percent bar in `asc_search.tmpl` | S |
-| Search | "Why it matched" reason sentence per result | needs-asc-backend | `A:proto/asc/v1/codeintel.proto` `Chunk` has no reason; add a reason from the retrieval source or a short model-written line; show in `asc_search.tmpl` | L |
+| Search | "Why it matched" reason sentence per result | done (each file hit and chunk has a line under its path: "Matched the text `retry`, `backoff` on 3 lines", "Matched the symbol name `RetryPolicy`" or "Close in meaning to your question and mentions `refund`", from the `MatchReason` asc sends on `FileHit` and `Chunk`; a hidden file keeps its terms and loses its spans; a result without a reason draws no line. The repository search, the all-repositories search and the REST answers (`reason` on `AscFileHit` and `AscChunk`) carry it) | `H:services/ascsearch/reason.go`, `H:templates/repo/asc_search_why.tmpl`, `H:routers/web/repo/asc_search.go`, `H:routers/web/explore/asc_search.go`, `H:modules/structs/asc_search.go`; `A:crates/asc-serve/src/codeintel/reason.rs`; `reason_test.go`, `asc_search_why_test.go`, `asc_search_test.go` (API and explore) | L |
 | Search | Symbol chips under a result ("RetryPolicy::delay", "14 references elsewhere", "changed 3 h ago") | done | `H:routers/web/repo/asc_search_defs.go`: DEF and REFS per word of a text search of one version, last change from `Repo.LastCommits`; test `TestAscSearchSymbolsMatched` | M |
 | Search | "Symbols matched: RetryPolicy, retry" line | done | repository search (`ascSearchDefinitions`) and the all-repositories search (`definitions`) | S |
 | Search | Code intelligence side panel (definition, signature, Go to definition, references, Called from, cross-repo callers) | done | `H:routers/web/repo/asc_search_panel.go`: `GET /{repo}/asc/search/panel` fragment from `ascsearch.Panel` (CodeIntel fallback), cross-repo rows only for readable repositories; `asc-search-panel.js` loads it into the right column at 1200 px and wider | L |
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 241 |
+| done | 242 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
-| needs-asc-backend | 6 |
+| needs-asc-backend | 5 |
 | needs-both | 16 |
 | total | 263 |
 
@@ -428,7 +428,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | History | 14 | 0 | 0 | 0 | 1 |
 | Refs | 9 | 0 | 0 | 0 | 0 |
 | Compare | 6 | 0 | 0 | 0 | 0 |
-| Search | 19 | 0 | 0 | 1 | 0 |
+| Search | 20 | 0 | 0 | 0 | 0 |
 | Releases | 14 | 0 | 0 | 0 | 0 |
 | Dependencies | 13 | 0 | 0 | 1 | 0 |
 | Insights | 7 | 0 | 0 | 0 | 0 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 73, M 85, L 31.
+Open-size totals of the rows that are not done: S 73, M 85, L 30.
