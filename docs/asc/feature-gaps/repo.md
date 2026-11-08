@@ -394,12 +394,12 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| Mobile-Repo | Stack cards replacing the table; filter chips that snap; pull to refresh; sticky Clone and New stack | needs-hub-backend | as the desktop rows; chips and pull to refresh in `home_cards.tmpl` and a script | M |
+| Mobile-Repo | Stack cards replacing the table; filter chips that snap; pull to refresh; sticky Clone and New stack | done | below 640 px `stack_row.tmpl` rows wrap into cards with the rail under the title; the `rp-stack-filter` chips scroll and snap (`repo-home.css`); pull to refresh by `data-asc-pull-refresh` and `asc-pull-refresh.js`; the `rp-sticky-m` bar holds Clone and New stack (New pull request in a git repository), which opens the compare page; tested by `TestAscRepoStickyNewStack` | - |
 | Mobile-Code | Avatar column for blame, tap opens the change sheet (swipe down closes), Files sheet, long-press range select with Share | done | `blame.tmpl` + `asc-blame-sheet.js` (row 103); drag-down close in `asc-sheet.js`; the Files sheet is the `rp-tree` panel | M |
 | Mobile-History | Rail-and-node list, chips open a bottom sheet, 44 px older-changes button | done | rows 130, 140 and 142 | M |
 | Mobile-Search | Sticky search, Filters bottom sheet, cards with reason first | done | as the Search mobile row; the reason line on each card comes with the Search "Why it matched" row (needs-asc-backend) | M |
 | Mobile-Releases | New release as a bottom sheet; channel chips | done (2026-11-05: the New release dialog is a bottom sheet below 1024 px; the channel chips scroll in one row, `rp-pills`) | see Releases rows | M |
-| Mobile-NewRepo | Name check after 300 ms, Start from keeps typed values, sticky primary | needs-hub-backend | see NewRepo rows | M |
+| Mobile-NewRepo | Name check after 300 ms, Start from keeps typed values, sticky primary | done (the phone form is the desktop form: `repo-new.js` checks the name 300 ms after the last key and keeps the typed values in the Start from links at every width; below 1024 px `.ds-sticky-actions` keeps Create above the bottom navigation and the primary button fills the row below 768 px; tests as the NewRepo rows) | `H:templates/repo/create.tmpl`, `web_src/js/features/repo-new.js`, `web_src/css/asc-ds/layout.css`, `asc-pages/repo-new.css` | M |
 | Mobile-RepoSettings* | Detail pages with back arrow and same title, one save bar | done | `ds-settings-nav` shell with `snav_bar` | S |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | Same behaviour as the desktop boards | done | covered by the rows of those boards; the twin adds no behaviour beyond 44 px targets | S |
 
@@ -444,12 +444,12 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |
 | RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
 | RepoSettingsStorage | 3 | 0 | 0 | 2 | 3 |
-| Mobile-Repo | 0 | 0 | 1 | 0 | 0 |
+| Mobile-Repo | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Code | 0 | 1 | 0 | 0 | 0 |
 | Mobile-History | 0 | 1 | 0 | 0 | 0 |
 | Mobile-Search | 0 | 1 | 0 | 0 | 0 |
 | Mobile-Releases | 0 | 1 | 0 | 0 | 0 |
-| Mobile-NewRepo | 0 | 0 | 1 | 0 | 0 |
+| Mobile-NewRepo | 1 | 0 | 0 | 0 | 0 |
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
