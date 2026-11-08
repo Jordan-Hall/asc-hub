@@ -243,9 +243,14 @@ func TestAscCrossSearchAPI(t *testing.T) {
 	f := &ascAPIFake{onCross: func(req *ascv1.CrossSearchRequest) ([]*ascv1.CrossSearchResponse, error) {
 		var hits []*ascv1.RepoHits
 		for _, n := range req.GetTarget().GetRepos() {
+			seen := ascHit("src/a.go", "token \x1b[31m := 1")
+			seen.Reason = &ascv1.MatchReason{Kind: ascv1.MatchKind_MATCH_KIND_TEXT, Score: 0.7, Terms: []string{"token"}, Spans: []*ascv1.MatchSpan{{Line: 1, StartCol: 1, EndCol: 6, Term: "token"}}}
 			hits = append(hits, &ascv1.RepoHits{Repo: ascRef(n), Rev: "master", Files: []*ascv1.FileHit{
-				ascHit("src/a.go", "token \x1b[31m := 1"),
-				{Path: []byte("conf.env"), Redacted: true, Matches: []*ascv1.LineMatch{{Line: 1, Text: []byte("K=" + key)}}},
+				seen,
+				{
+					Path: []byte("conf.env"), Redacted: true, Matches: []*ascv1.LineMatch{{Line: 1, Text: []byte("K=" + key)}},
+					Reason: &ascv1.MatchReason{Kind: ascv1.MatchKind_MATCH_KIND_TEXT, Score: 0.4, Terms: []string{"token"}, Spans: []*ascv1.MatchSpan{{Line: 1, StartCol: 3, EndCol: 8}}},
+				},
 			}})
 		}
 		hits = append(hits, &ascv1.RepoHits{Repo: ascRef("secret/private"), Files: []*ascv1.FileHit{ascHit("leak.go", "leaked")}})
@@ -290,6 +295,9 @@ func TestAscCrossSearchAPI(t *testing.T) {
 		assert.NotContains(t, body, "secret/private")
 		assert.NotContains(t, body, key)
 		assert.True(t, res.Repos[0].Files[1].Redacted)
+		// Why each file matched; a redacted file says which term, never where.
+		assert.Equal(t, &api.AscMatchReason{Kind: "text", Score: 0.7, Terms: []string{"token"}, Spans: []api.AscMatchSpan{{Line: 1, StartCol: 1, EndCol: 6, Term: "token"}}}, res.Repos[0].Files[0].Reason)
+		assert.Equal(t, &api.AscMatchReason{Kind: "text", Score: 0.4, Terms: []string{"token"}}, res.Repos[0].Files[1].Reason)
 	})
 
 	t.Run("a repository the caller cannot read leaves no trace", func(t *testing.T) {

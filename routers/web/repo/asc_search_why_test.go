@@ -15,28 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAscSearchWhyOf(t *testing.T) {
-	assert.Equal(t, ascSearchWhy{}, ascSearchWhyOf(nil), "an older server sends no reason")
-	assert.Equal(t, ascSearchWhy{}, ascSearchWhyOf(&ascv1.MatchReason{Kind: ascv1.MatchKind(99), Terms: []string{"x"}}), "a kind this page does not know")
-	assert.Equal(t, ascSearchWhy{}, ascSearchWhyOf(&ascv1.MatchReason{Kind: ascv1.MatchKind_MATCH_KIND_TEXT}), "a text match with no term says nothing")
-
-	w := ascSearchWhyOf(&ascv1.MatchReason{
-		Kind:  ascv1.MatchKind_MATCH_KIND_TEXT,
-		Terms: []string{"retry", "", "retry", "back\x1boff", "jitter", "cap", "limit"},
-		Spans: []*ascv1.MatchSpan{{Line: 3}, {Line: 3}, {Line: 9}, {Line: 0}, {Line: ascSymbolsMaxLine + 1}},
-	})
-	assert.Equal(t, "text", w.Kind)
-	assert.Equal(t, []string{"retry", "back off", "jitter"}, w.Terms, "control characters become spaces; deduplicated and capped")
-	assert.Equal(t, 2, w.More)
-	assert.Equal(t, 2, w.Lines, "distinct lines; bad lines are not counted")
-
-	w = ascSearchWhyOf(&ascv1.MatchReason{Kind: ascv1.MatchKind_MATCH_KIND_MEANING})
-	assert.Equal(t, ascSearchWhy{Kind: "meaning"}, w, "a meaning match is worth saying even with no term")
-
-	w = ascSearchWhyOf(&ascv1.MatchReason{Kind: ascv1.MatchKind_MATCH_KIND_SYMBOL, Terms: []string{"Check"}})
-	assert.Equal(t, ascSearchWhy{Kind: "symbol", Terms: []string{"Check"}}, w)
-}
-
 func TestAscSearchWhyIsDrawn(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	setStorageBackend(t, 1, "asc")

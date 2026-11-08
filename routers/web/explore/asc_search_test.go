@@ -324,7 +324,10 @@ func TestAscExploreSymbolAndMeaning(t *testing.T) {
 				return nil, status.Error(codes.PermissionDenied, "no")
 			}
 			return &ascv1.SemanticResponse{Model: "embed-1", Chunks: []*ascv1.Chunk{
-				{Path: []byte("src/refund.rs"), StartLine: 18, EndLine: 24, Symbol: "stop_retry", Score: 0.91, Sources: []string{"vector"}, Text: []byte("fn stop_retry() {\n    <b>x</b>\n}")},
+				{
+					Path: []byte("src/refund.rs"), StartLine: 18, EndLine: 24, Symbol: "stop_retry", Score: 0.91, Sources: []string{"vector"}, Text: []byte("fn stop_retry() {\n    <b>x</b>\n}"),
+					Reason: &ascv1.MatchReason{Kind: ascv1.MatchKind_MATCH_KIND_MEANING, Terms: []string{"refund"}},
+				},
 				{Path: []byte("s.env"), Redacted: true, Text: []byte("AKIAIOSFODNN7EXAMPLE")},
 			}}, nil
 		},
@@ -355,6 +358,10 @@ func TestAscExploreSymbolAndMeaning(t *testing.T) {
 	assert.Contains(t, page.body, "hidden because it may hold secrets")
 	assert.NotContains(t, page.body, "AKIA")
 	assert.Contains(t, page.body, `href="/user2/repo1/src/branch/master/src/refund.rs#L18-L24"`)
+	// Why the chunk matched; the hidden one carries no reason and says nothing.
+	assert.Contains(t, page.body, `data-testid="search-why" data-kind="meaning"`)
+	assert.Contains(t, page.body, "<code>refund</code>")
+	assert.Equal(t, 1, strings.Count(page.body, `data-testid="search-why"`))
 }
 
 func TestAscExploreFallbackWithoutCrossSearch(t *testing.T) {
