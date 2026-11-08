@@ -24,16 +24,16 @@ func TestRepoCollaborators(t *testing.T) {
 	page := NewHTMLParser(t, response.Body).Find(".repo-setting-content")
 
 	// Verify header
-	assert.Equal(t, "Collaborators", strings.TrimSpace(page.Find("h4").Text()))
+	assert.Equal(t, "People, teams and agents", strings.TrimSpace(page.Find("h4").First().Text()))
 
 	// Verify button text
 	page = page.Find("#repo-collab-form")
-	assert.Equal(t, "Add collaborator", strings.TrimSpace(page.Find("button.ds-btn-primary").Text()))
+	assert.Equal(t, "Add to repository", strings.TrimSpace(page.Find("button.ds-btn-primary").Text()))
 
 	// Verify placeholder
-	placeholder, exists := page.Find("#search-user-box input").Attr("placeholder")
+	placeholder, exists := page.Find("#search-access-box input").Attr("placeholder")
 	assert.True(t, exists)
-	assert.Equal(t, "Search users…", placeholder)
+	assert.Equal(t, "Search people, teams or agents", placeholder)
 }
 
 func TestRepoCollaboratorAcessMode(t *testing.T) {
