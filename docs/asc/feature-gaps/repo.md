@@ -298,12 +298,12 @@ Size: S = under a day, M = one to three days, L = more than three days.
 
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
-| RepoSettingsAccess | One list of people, teams and agents with role select, last active, Show All / People / Agents | needs-hub-backend | `H:templates/repo/settings/collaboration.tmpl` has separate collaborator and team sections with Forgejo roles read / write / admin; add a Maintain level and an agent flag and merge | L |
-| RepoSettingsAccess | Combined search (people, teams, agents) with role chosen before adding | needs-hub-backend | `collaboration.tmpl` searches users and teams separately | M |
+| RepoSettingsAccess | One list of people, teams and agents with role select, last active, Show All / People / Agents | done | `H:templates/repo/settings/collaboration.tmpl` renders one list (`asc_access_list.go`: rows, last active from sign-in and token use, Show filter with counts); Maintain role is `collaboration.asc_maintain` (migration v18t) with write mode, which opens General, Rules and Tags but not rename, visibility or other settings (`services/context/permission.go` `RequireRepoSettings`); tests `TestAscAccessMaintain`, `TestAscAccessList`, `TestAscMaintain` | L |
+| RepoSettingsAccess | Combined search (people, teams, agents) with role chosen before adding | done | `/settings/collaboration/search` answers people, agents and teams with their kind; one add form takes a name and a role (read, write, maintain, admin) and adds a team when the name is a team; test `TestAscAccessList` | M |
 | RepoSettingsAccess | Role select changes access at once with an Undo toast | done (seen on a live hub (ui34): the role applies when picked, a toast reports it and Undo puts the old role back (checked: it persisted)) | JS handler on `collaboration.go` POST | M |
 | RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | done | policy lookup per agent identity;; Audit 2026-10-30 (was marked done, part missing): Marked done; the text Limited by policy to ... was not found. | M |
 | RepoSettingsAccess | Remove agent confirm that says the running run stops and open changes stay with the owner | needs-both | `Agents.CancelRun` on removal in `collaboration.go`; confirm dialog text | M |
-| RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | done (seen on a live hub (ui26): the invite answers "rev already has Write access to this repository.") | `collaboration.go` error text | S |
+| RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | done (seen on a live hub (ui26): the invite answers "rev already has Write access to this repository."; a maintainer is named with Maintain, test `TestAscAccessMaintain`) | `collaboration.go` error text | S |
 | RepoSettingsAccess | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used, Add dialog | done | `/settings/collaboration` and `/settings/keys` both render the access page; `H:templates/repo/settings/deploy_keys_section.tmpl` with the Add dialog (`asc-deploy-key-add.js`); `deploy_key.added_by_id` (migration v18k) set on web and API add | M |
 | RepoSettingsAccess | No deploy keys empty state | done | `settings.no_deploy_keys` | S |
 
@@ -409,10 +409,10 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 234 |
+| done | 236 |
 | partial | 0 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 2 |
+| needs-hub-backend | 0 |
 | needs-asc-backend | 10 |
 | needs-both | 17 |
 | total | 263 |
@@ -437,7 +437,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Stacks | 13 | 0 | 0 | 0 | 0 |
 | RepoSettingsMenu | 2 | 0 | 0 | 0 | 0 |
 | RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
-| RepoSettingsAccess | 5 | 0 | 2 | 0 | 1 |
+| RepoSettingsAccess | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
 | RepoSettingsRules | 4 | 0 | 0 | 2 | 2 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 74, M 89, L 33.
+Open-size totals of the rows that are not done: S 74, M 88, L 32.

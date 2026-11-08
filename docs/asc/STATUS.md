@@ -1205,14 +1205,14 @@ Board copy not found word for word in locale, templates or scripts: Your keys, y
 
 #### RepoSettingsAccess (ASC Hub repository settings: Access)
 
-Area repo. Rows 8: done 3, partial 1, missing 4. Copy found in the hub: 65% of 110 copy strings (mobile twin 54%). Template(s): collaboration.tmpl, deploy_keys.tmpl. Mobile twin: yes.
+Area repo. Rows 8: done 5, partial 1, missing 2. Copy found in the hub: 65% of 110 copy strings (mobile twin 54%). Template(s): collaboration.tmpl, deploy_keys.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Who and what can work in this repository: people, teams, agents and deploy keys.; People, teams and agents; Who can open stacks here. What an agent may change is limited again by the repo...; Search people, teams or agents; Add to repository; All repository settings.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
-| One list of people, teams and agents with role select, last active, Show All / People / Agents | missing (hub) | logged as not built (not re-probed) | H:templates/repo/settings/collaboration.tmpl has separate collaborator and team sections with Forgejo roles read / write / admin;... |
-| Combined search (people, teams, agents) with role chosen before adding | missing (hub) | logged as not built (not re-probed) | collaboration.tmpl searches users and teams separately |
+| One list of people, teams and agents with role select, last active, Show All / People / Agents | done | routers/web/repo/setting/asc_access_list.go; Maintain role in services/context/permission.go (RequireRepoSettings); tests TestAscAccessMaintain, TestAscAccessList | - |
+| Combined search (people, teams, agents) with role chosen before adding | done | routers/web/repo/setting/asc_access_list.go (AscAccessSearch); collaboration.go CollaborationPost (role, kind) | - |
 | Role select changes access at once with an Undo toast | done | routers/web/repo/setting/collaboration.go:134 | - |
 | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | partial | templates/repo/settings/collaboration.tmpl | Marked done; the text Limited by policy to ... was not found. |
 | Remove agent confirm that says the running run stops and open changes stay with the owner | missing (hub+asc) | logged as not built (not re-probed) | Agents.CancelRun on removal in collaboration.go; confirm dialog text |
