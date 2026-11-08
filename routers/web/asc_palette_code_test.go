@@ -137,6 +137,13 @@ func TestPaletteFindsCodeInReadableRepositories(t *testing.T) {
 		assert.False(t, ok)
 		assert.Len(t, p.calls(), before)
 	})
+	t.Run("the explore code page disabled asks nothing", func(t *testing.T) {
+		defer test.MockVariableValue(&setting.Service.Explore.DisableCodePage, true)()
+		before := len(p.calls())
+		_, _, ok := paletteCode(t, "retry", user2)
+		assert.False(t, ok)
+		assert.Len(t, p.calls(), before)
+	})
 	t.Run("a failing asc leaves the group out", func(t *testing.T) {
 		p.mu.Lock()
 		p.err = status.Error(codes.Unavailable, "down")
