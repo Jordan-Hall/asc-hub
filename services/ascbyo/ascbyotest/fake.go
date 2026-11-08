@@ -78,6 +78,10 @@ type Fake struct {
 	// VersioningOff makes the advisory versioning step of VerifyTarget report a bucket without versioning, with a
 	// needs value the hub must drop.
 	VersioningOff bool
+	// RepoUsage is what GetRepoUsage answers; nil answers a repository counted with nothing stored.
+	RepoUsage *ascv1.GetRepoStorageUsageResponse
+	// UsageRefreshes counts the GetRepoUsage calls that asked for a new count.
+	UsageRefreshes int
 	// InUse makes DeleteTarget answer STORAGE_IN_USE.
 	InUse bool
 	// TestStatus is the provider status TestKey answers with ("ok" by default).
@@ -530,6 +534,21 @@ func (f *Fake) ListMigrations(_ context.Context, r *ascv1.ListStorageMigrationsR
 		}
 	}
 	return out, nil
+}
+
+func (f *Fake) GetRepoUsage(_ context.Context, r *ascv1.GetRepoStorageUsageRequest) (*ascv1.GetRepoStorageUsageResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if r.GetRepo().GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "repository is required")
+	}
+	if r.GetRefresh() {
+		f.UsageRefreshes++
+	}
+	if f.RepoUsage != nil {
+		return f.RepoUsage, nil
+	}
+	return &ascv1.GetRepoStorageUsageResponse{ComputedAt: 1_700_000_000, Month: "2026-11"}, nil
 }
 
 func (f *Fake) CancelMigration(_ context.Context, r *ascv1.CancelStorageMigrationRequest) (*ascv1.CancelStorageMigrationResponse, error) {

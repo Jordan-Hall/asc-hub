@@ -55,6 +55,14 @@ func loadStorage(ctx *context.Context, lvl *Level, s *svc.Service, p *Page) erro
 			break
 		}
 	}
+	// The usage is one card of the page: when it cannot be read the rest still works.
+	u, err := s.RepoUsage(ctx, lvl.Scope, false)
+	if err != nil {
+		log.Warn("asc byo: storage usage of %s: %v", lvl.Scope.Name, err)
+		p.UsageFailed = true
+	} else {
+		p.Usage = u
+	}
 	return nil
 }
 
@@ -436,6 +444,28 @@ func MigrationStart(ctx *context.Context, lvl *Level) {
 	}
 	record(ctx, lvl, "started storage migration", m.ID)
 	ctx.Flash.Success(ctx.Locale.TrString("ascbyo.flash.migration_started"))
+	ctx.Redirect(lvl.Base + "/storage")
+}
+
+// UsageRefresh is POST .../asc/storage/usage/refresh: asks asc to count the repository's storage again.
+func UsageRefresh(ctx *context.Context, lvl *Level) {
+	if !repoOnly(ctx, lvl) {
+		return
+	}
+	s, p, ok := begin(ctx, lvl, dataStorage)
+	if !ok {
+		return
+	}
+	if s == nil {
+		renderStorageIndex(ctx, lvl, nil, p, http.StatusServiceUnavailable)
+		return
+	}
+	if _, err := s.RepoUsage(ctx, lvl.Scope, true); err != nil {
+		p.Problem = problemOf(ctx, err)
+		refuse(ctx, err, func(status int) { renderStorageIndex(ctx, lvl, s, p, status) })
+		return
+	}
+	ctx.Flash.Success(ctx.Locale.TrString("ascbyo.flash.usage_refresh"))
 	ctx.Redirect(lvl.Base + "/storage")
 }
 

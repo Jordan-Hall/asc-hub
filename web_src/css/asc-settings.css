@@ -539,6 +539,24 @@
   accent-color: var(--color-primary);
 }
 
+/* repository storage usage */
+.asc-usage-total {
+  margin: 0 0 8px;
+}
+
+.asc-usage-total strong {
+  font-size: 1.5em;
+}
+
+.asc-usage-bar {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: 8px;
+  margin-bottom: 2px;
+  accent-color: var(--color-primary);
+}
+
 .asc-meter-warn {
   accent-color: var(--color-warning-text);
 }

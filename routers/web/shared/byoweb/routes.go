@@ -76,6 +76,7 @@ func Routes(m *web.Route, resolve Resolver) {
 			m.Post("/migrations", h(MigrationStart))
 			m.Post("/migrations/{id}/cancel", h(MigrationCancel))
 			m.Get("/migrations/{id}/status", h(MigrationStatus))
+			m.Post("/usage/refresh", h(UsageRefresh))
 		})
 		m.Group("/ai", func() {
 			m.Get("", h(AIIndex))

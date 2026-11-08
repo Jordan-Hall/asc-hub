@@ -1,5 +1,54 @@
-{{/* Repository only: where new objects go, migration, progress and history. */}}
+{{/* Repository only: usage, where new objects go, migration, progress and history. */}}
 {{$a := .Asc}}
+<section class="asc-byo-card" aria-labelledby="asc-usage-h" data-testid="asc-storage-usage">
+	<h3 id="asc-usage-h">{{ctx.Locale.Tr "ascbyo.storage.usage.title"}}</h3>
+	{{if $a.UsageFailed}}
+		<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.usage.failed"}}</p>
+	{{else}}{{with $a.Usage}}
+		{{if .ComputedAt}}
+			<p class="asc-usage-total"><strong>{{ctx.Locale.TrSize .TotalSize}}</strong> {{ctx.Locale.Tr "ascbyo.storage.usage.objects" .Objects}}</p>
+			{{if .Kinds}}
+				<table class="ds-table asc-stack asc-usage-kinds" data-testid="asc-usage-kinds">
+					<thead>
+						<tr>
+							<th>{{ctx.Locale.Tr "ascbyo.storage.usage.kind"}}</th>
+							<th>{{ctx.Locale.Tr "ascbyo.storage.usage.size"}}</th>
+							<th>{{ctx.Locale.Tr "ascbyo.storage.usage.count"}}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{{$total := .Total}}
+						{{range .Kinds}}
+							<tr data-kind="{{.Name}}">
+								<td data-label="{{ctx.Locale.Tr "ascbyo.storage.usage.kind"}}">{{ctx.Locale.Tr .Key}}</td>
+								<td data-label="{{ctx.Locale.Tr "ascbyo.storage.usage.size"}}">
+									<progress class="asc-usage-bar" max="{{$total}}" value="{{.Bytes}}" aria-label="{{ctx.Locale.Tr .Key}}"></progress>
+									{{ctx.Locale.TrSize .Size}}
+								</td>
+								<td data-label="{{ctx.Locale.Tr "ascbyo.storage.usage.count"}}">{{.Objects}}</td>
+							</tr>
+						{{end}}
+					</tbody>
+				</table>
+			{{else}}
+				<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.usage.empty"}}</p>
+			{{end}}
+			<p class="asc-byo-hint">{{ctx.Locale.Tr "ascbyo.storage.usage.counted" (DateUtils.TimeSince .ComputedAt)}}</p>
+		{{else}}
+			<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.usage.first"}}</p>
+		{{end}}
+		{{if .Month}}<p data-testid="asc-usage-read">{{ctx.Locale.Tr "ascbyo.storage.usage.read" (ctx.Locale.TrSize .ReadSize) .Month}}</p>{{end}}
+		{{if .Computing}}
+			<p class="asc-byo-hint" role="status" data-testid="asc-usage-computing">{{ctx.Locale.Tr "ascbyo.storage.usage.computing"}}</p>
+		{{else}}
+			<form method="post" action="{{$a.StorageURL}}/usage/refresh">
+				{{$.CsrfTokenHtml}}
+				<button class="ds-btn" type="submit">{{ctx.Locale.Tr "ascbyo.storage.usage.refresh"}}</button>
+			</form>
+		{{end}}
+	{{end}}{{end}}
+</section>
+
 <section class="asc-byo-card" aria-labelledby="asc-assign-h">
 	<h3 id="asc-assign-h">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_title"}}</h3>
 	<p>{{ctx.Locale.Tr "ascbyo.storage.repo.assign_help"}}</p>

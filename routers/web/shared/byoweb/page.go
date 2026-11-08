@@ -80,6 +80,9 @@ type Page struct {
 	Usable          []UsableTarget
 	Migrations      []*svc.Migration
 	ActiveMigration *svc.Migration
+	// Usage is the repository's storage usage; UsageFailed is set when asc could not answer it.
+	Usage           *svc.StorageUsage
+	UsageFailed     bool
 	StorageForm     StorageForm
 	Verify          *VerifyView
 	OwnerStorageURL string
