@@ -1383,6 +1383,7 @@ func registerRoutes(m *web.Route) {
 				m.Get("/", repo_setting.ProtectedBranchRules)
 				m.Combo("/edit").Get(repo_setting.SettingsProtectedBranch).
 					Post(web.Bind(forms.ProtectBranchForm{}), context.RepoMustNotBeArchived(), repo_setting.SettingsProtectedBranchPost)
+				m.Get("/check", repo_setting.AscRuleCheck)
 				m.Post("/{id}/delete", repo_setting.DeleteProtectedBranchRulePost)
 			}, repo.MustBeNotEmpty)
 

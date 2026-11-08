@@ -101,6 +101,7 @@ import {initAscDialog} from './features/asc-dialog.js';
 import {initAscWebhookSettings} from './features/asc-webhook-settings.js';
 import {initAscWebhookAdd} from './features/asc-webhook-add.js';
 import {initAscDeployKeyAdd} from './features/asc-deploy-key-add.js';
+import {initAscRuleCheck} from './features/asc-rule-check.js';
 import {initAscBulk} from './features/asc-bulk.js';
 import {initLocalTime} from './features/local-time.js';
 import {initAscSecurity} from './features/asc-security.js';
@@ -304,6 +305,7 @@ onDomReady(() => {
   initAscWebhookSettings();
   initAscWebhookAdd();
   initAscDeployKeyAdd();
+  initAscRuleCheck();
   initAscBulk();
   initLocalTime();
   initAscSecurity();

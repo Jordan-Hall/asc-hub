@@ -6,6 +6,7 @@ package repo
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"forgejo.org/models"
@@ -620,6 +621,14 @@ func CreateBranchProtection(ctx *context.APIContext) {
 		return
 	} else if protectBranch != nil {
 		ctx.Error(http.StatusForbidden, "Create branch protection", "Branch protection already exist")
+		return
+	}
+	if other, err := git_model.AscOverlappingRule(ctx, repo.ID, 0, ruleName); err != nil {
+		ctx.Error(http.StatusInternalServerError, "AscOverlappingRule", err)
+		return
+	} else if other != nil {
+		// a branch answers to one rule only (board RepoSettingsRules)
+		ctx.Error(http.StatusUnprocessableEntity, "Create branch protection", fmt.Sprintf("rules cannot overlap: %q and the rule %q both match a branch", ruleName, other.RuleName))
 		return
 	}
 

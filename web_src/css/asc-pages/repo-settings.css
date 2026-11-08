@@ -654,3 +654,13 @@
   display: block;
   margin-top: 2px;
 }
+
+/* Under the pattern of a branch rule: the overlap error and the open pull requests it covers (board RepoSettingsRules). */
+.rp-rule-check p {
+  margin: 6px 0 0;
+}
+
+.rp-rule-overlap {
+  color: var(--err);
+  font-size: 13px;
+}

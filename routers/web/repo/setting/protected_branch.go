@@ -102,6 +102,13 @@ func SettingsProtectedBranch(c *context.Context) {
 	}
 
 	prepareAscRelaxation(c)
+	c.Data["AscRuleCheck"] = ascRuleCheck{}
+	if rule.ID > 0 {
+		prepareAscRuleCheck(c, rule)
+		if c.Written() {
+			return
+		}
+	}
 	c.Data["Rule"] = rule
 	c.HTML(http.StatusOK, tplProtectedBranch)
 }
@@ -155,6 +162,9 @@ func SettingsProtectedBranchPost(ctx *context.Context) {
 			ctx.Redirect(fmt.Sprintf("%s/settings/branches/edit?rule_name=%s", ctx.Repo.RepoLink, protectBranch.RuleName))
 			return
 		}
+	}
+	if ascRuleOverlapRefused(ctx, protectBranch, f.RuleName) {
+		return
 	}
 	if protectBranch == nil {
 		// No options found, create defaults.

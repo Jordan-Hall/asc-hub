@@ -7,14 +7,19 @@
 				{{ctx.Locale.Tr "repo.settings.protect_new_rule"}}
 			{{end}}
 		</h4>
-		<form class="ds-card ds-card-b ds-card-attach form" action="{{.Link}}" method="post">
+		<form class="ds-card ds-card-b ds-card-attach form" action="{{.Link}}" method="post" data-rule-check="{{.RepoLink}}/settings/branches/check">
 			<input name="rule_id" type="hidden" value="{{.Rule.ID}}">
 			<fieldset class="branch-protection">
 				<legend>{{ctx.Locale.Tr "repo.settings.protect_patterns"}}</legend>
 				<label>{{ctx.Locale.Tr "repo.settings.protect_branch_name_pattern"}}
-					<input class="ds-input" name="rule_name" type="text" value="{{.Rule.RuleName}}">
+					<input class="ds-input" name="rule_name" type="text" value="{{.Rule.RuleName}}" aria-describedby="rule-check">
 					<span class="help">{{ctx.Locale.Tr "repo.settings.protect_branch_name_pattern_desc" "https://github.com/gobwas/glob"}}</span>
 				</label>
+				<div id="rule-check" class="rp-rule-check" aria-live="polite">
+					<p class="rp-rule-overlap" data-rule-overlap{{if not .AscRuleCheck.Overlap}} hidden{{end}}>{{ctx.Locale.Tr "repo.settings.asc_rules.overlap_with" .AscRuleCheck.Overlap}}</p>
+					<p class="help" data-rule-open-one{{if ne .AscRuleCheck.Open 1}} hidden{{end}}>{{ctx.Locale.Tr "repo.settings.asc_rules.open_one"}}</p>
+					<p class="help" data-rule-open-many{{if lt .AscRuleCheck.Open 2}} hidden{{end}}>{{ctx.Locale.Tr "repo.settings.asc_rules.open_many" .AscRuleCheck.Open}}</p>
+				</div>
 				<label>{{ctx.Locale.Tr "repo.settings.protect_protected_file_patterns"}}
 					<input class="ds-input" name="protected_file_patterns" type="text" value="{{.Rule.ProtectedFilePatterns}}">
 					<span class="help">{{ctx.Locale.Tr "repo.settings.protect_protected_file_patterns_desc" "https://pkg.go.dev/github.com/gobwas/glob#Compile" "github.com/gobwas/glob"}}</span>
