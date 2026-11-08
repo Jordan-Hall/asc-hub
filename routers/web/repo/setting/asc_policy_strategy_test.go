@@ -56,6 +56,41 @@ func TestAscRulesStackLimits(t *testing.T) {
 	assert.Contains(t, html, `<div data-testid="asc-rules-cleanup"><dt>Clean-up after landing</dt><dd>The server's setting</dd></div>`)
 }
 
+// Board RepoSettingsRules: the stack switches read On or Off.
+func TestAscRulesStackSwitches(t *testing.T) {
+	render := func(rules *ascRulesPage) string {
+		rules.Protection, rules.PolicyURL = &asctrust.BranchRule{Branch: "main"}, "/user2/repo1/settings/asc/policy"
+		return renderSettingsPage(t, t.TempDir(), "rules-switches", tplBranches, map[string]any{"AscRules": rules})
+	}
+	html := render(&ascRulesPage{RestackOnMove: true, WritersMayPush: true, KeepApprovals: true})
+	assert.Contains(t, html, `<div data-testid="asc-rules-restack"><dt>Restack when the default branch moves</dt><dd>On</dd></div>`)
+	assert.Contains(t, html, `<div data-testid="asc-rules-writers"><dt>Writers may update any stack</dt><dd>On</dd></div>`)
+	assert.Contains(t, html, `<div data-testid="asc-rules-keep"><dt>Keep approvals when only the base changed</dt><dd>On</dd></div>`)
+	html = render(&ascRulesPage{})
+	assert.Contains(t, html, `<div data-testid="asc-rules-restack"><dt>Restack when the default branch moves</dt><dd>Off</dd></div>`)
+	assert.Contains(t, html, `<div data-testid="asc-rules-writers"><dt>Writers may update any stack</dt><dd>Off</dd></div>`)
+	assert.Contains(t, html, `<div data-testid="asc-rules-keep"><dt>Keep approvals when only the base changed</dt><dd>Off</dd></div>`)
+}
+
+// Board RepoSettingsPolicy, Stacks: the two switches show the policy's values.
+func TestAscPolicyStackSwitches(t *testing.T) {
+	render := func(f asctrust.PolicyForm) string {
+		p := &ascPolicyPage{
+			View:      &asctrust.PolicyView{Present: true, Usable: true, Maintainer: true},
+			PolicyURL: "/user2/repo1/settings/asc/policy", ToggleOps: map[string]string{},
+			Form: f, Strategies: asctrust.MergeStrategies,
+		}
+		return renderSettingsPage(t, t.TempDir(), "policy-switches", tplAscPolicy, map[string]any{"AscPolicy": p})
+	}
+	html := render(asctrust.PolicyForm{RestackOnMove: true, WritersMayPush: true})
+	assert.Contains(t, html, `name="restack_on_main_move" aria-describedby="pf-restack-help" checked>`)
+	assert.Contains(t, html, `name="collaborators_may_push" aria-describedby="pf-writers-help" checked>`)
+	assert.Contains(t, html, `Each stack is restacked as the person who opened it.`)
+	html = render(asctrust.PolicyForm{})
+	assert.Contains(t, html, `name="restack_on_main_move" aria-describedby="pf-restack-help">`)
+	assert.Contains(t, html, `name="collaborators_may_push" aria-describedby="pf-writers-help">`)
+}
+
 // Board RepoSettingsPolicy, Stacks: the two fields show the policy's values and stay empty when it sets none.
 func TestAscPolicyStackFields(t *testing.T) {
 	render := func(f asctrust.PolicyForm) string {

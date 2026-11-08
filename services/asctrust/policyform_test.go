@@ -83,6 +83,26 @@ func TestApplyFormStacks(t *testing.T) {
 	assert.NotContains(t, out, "[stacks]")
 }
 
+func TestApplyFormStackSwitches(t *testing.T) {
+	f := FormOfText(formSample)
+	assert.False(t, f.RestackOnMove)
+	assert.False(t, f.WritersMayPush)
+	f.RestackOnMove, f.WritersMayPush = true, true
+	out, err := ApplyForm(formSample, f)
+	require.NoError(t, err)
+	assert.Contains(t, out, "[stacks]\nrestack_on_main_move = true\ncollaborators_may_push = true\n")
+	back := FormOfText(out)
+	assert.True(t, back.RestackOnMove)
+	assert.True(t, back.WritersMayPush)
+
+	// Turning a switch off keeps the key, now false, so the review shows the change.
+	back.RestackOnMove = false
+	out, err = ApplyForm(out, back)
+	require.NoError(t, err)
+	assert.Contains(t, out, "restack_on_main_move = false\n")
+	assert.Contains(t, out, "collaborators_may_push = true\n")
+}
+
 func TestRemoveKeyKeepsTheRest(t *testing.T) {
 	text := "[stacks]\n# kept\nmax_depth = 8 # old\ncleanup_days = 7\n"
 	assert.Equal(t, "[stacks]\n# kept\ncleanup_days = 7\n", removeKey(text, "stacks", "max_depth"))
