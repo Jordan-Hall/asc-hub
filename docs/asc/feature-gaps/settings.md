@@ -18,11 +18,11 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 148 |
+| done | 149 |
 | partial | 1 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 5 |
-| needs-asc-backend | 2 |
+| needs-asc-backend | 1 |
 | needs-both | 18 |
 | total | 174 |
 
@@ -94,7 +94,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsSecurity | Re-authentication prompt before password change or removing 2FA | done | password change asks the current password; removing or replacing 2FA, a passkey, recovery codes and signing other browsers out pass security.RequireReauth (password within 10 minutes, sign-in counts), reauth.tmpl; tests/integration/asc_reauth_test.go | M |
 | UserSettingsTokens | Token list (name, scopes, created, last used) with revoke and regenerate | done | templates/user/settings/applications.tmpl, routers/web/user/setting/access_token.go | - |
 | UserSettingsTokens | Expiry per token (30 days etc.), Expires column, Expired chip | done | models/auth/access_token.go has no expiry; migration + access_token_edit.tmpl + check in services/auth; Audit 2026-10-30 (built): models/auth/access_token.go ExpiresUnix, GetAccessTokenBySHA refuses an expired token, access_token_edit.tmpl lifetime select, applications.tmpl Expires and Expired chip, migration v17z_asc_token_expiry | M |
-| UserSettingsTokens | ASC scope set (Repositories, Changesets and stacks, Agent runs, Organizations, Profile) as None/Read/Write segmented group; hub shows Forgejo categories in selects | needs-asc-backend | hub: models/auth/access_token_scope.go + access_token_edit.tmpl; asc: crates/asc-serve/src/authn.rs must accept and enforce them; Audit 2026-10-30 (hub built): scopes read/write changes and runs in models/auth/access_token_scope.go, the form lists Changesets and stacks and Agent runs, services/ascforward/scope.go holds a token to them for every forwarded call, routers/private/asc.go takes an area. Open: asc should send area on its own authz calls (crates/asc-serve/src/forgejo.rs) so a direct asc connection is held to them too | L |
+| UserSettingsTokens | ASC scope set (Repositories, Changesets and stacks, Agent runs, Organizations, Profile) as None/Read/Write segmented group; hub shows Forgejo categories in selects | done | hub: models/auth/access_token_scope.go + access_token_edit.tmpl; asc: crates/asc-serve/src/authn.rs must accept and enforce them; Audit 2026-10-30 (hub built): scopes read/write changes and runs in models/auth/access_token_scope.go, the form lists Changesets and stacks and Agent runs, services/ascforward/scope.go holds a token to them for every forwarded call, routers/private/asc.go takes an area. asc sends the area of each call on its own authz questions (`A:crates/asc-serve/src/authz/area.rs`, set by the admission layer; `A:crates/asc-serve/src/forgejo.rs` sends `area` and keys its cache by it; `A:crates/asc-serve/tests/fake_forgejo.rs`), so a direct asc connection is held to them too | L |
 | UserSettingsTokens | Token created: copy-once card with Copy and "shown once" text (today a flash message) | done | routers/web/user/setting/access_token.go lines 313 and 341, applications.tmpl | S |
 | UserSettingsTokens | Workload identity (issuer, subject, last used, remove, add) | done | templates/user/settings/authorized_integrations.tmpl | - |
 | UserSettingsTokens | "Prefer no tokens" card with asc auth login commands | done | applications.tmpl "Prefer no tokens": asc auth login --host (browser sign in), --token-stdin for CI, asc auth status; the board's asc auth token --scope line names no asc command; tests/integration/user_test.go TestAccessTokensPreferNoTokens | - |
