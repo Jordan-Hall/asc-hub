@@ -6,12 +6,15 @@ package integration
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
+	auth_model "forgejo.org/models/auth"
 	repo_model "forgejo.org/models/repo"
 	secret_model "forgejo.org/models/secret"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
+	api "forgejo.org/modules/structs"
 	app_context "forgejo.org/services/context"
 	"forgejo.org/tests"
 
@@ -435,4 +438,60 @@ func TestActionsSecretsPage(t *testing.T) {
 	assert.Contains(t, confirm, "DEPLOY_TOKEN")
 	doc.AssertElement(t, `#dialog-secret-name[readonly]`, true)
 	doc.AssertElement(t, `#dialog-secret-data[required]`, true)
+}
+
+// Board RepoSettingsSecrets: each row says who last set the value and when.
+func TestActionsSecretsPageShowsWhoUpdated(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	repo1 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1, OwnerID: user2.ID})
+	sess := loginUser(t, user2.Name)
+	url := "/" + repo1.FullName() + "/settings/actions/secrets"
+
+	sess.MakeRequest(t, NewRequestWithValues(t, "POST", url, map[string]string{"name": "DEPLOY_TOKEN", "data": "v"}), http.StatusOK)
+	secret := unittest.AssertExistsAndLoadBean(t, &secret_model.Secret{RepoID: repo1.ID, Name: "DEPLOY_TOKEN"})
+	assert.Equal(t, user2.ID, secret.UpdaterID)
+	assert.NotZero(t, secret.UpdatedUnix)
+
+	// A secret set before updaters were recorded shows the time alone.
+	_, err := secret_model.InsertEncryptedSecret(t.Context(), 0, repo1.ID, "OLD_TOKEN", "v")
+	require.NoError(t, err)
+
+	doc := NewHTMLParser(t, sess.MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
+	rows := doc.Find(`[data-testid="secret-updated"]`)
+	require.Equal(t, 2, rows.Length())
+	texts := []string{rows.Eq(0).Text(), rows.Eq(1).Text()}
+	var by, alone string
+	for _, s := range texts {
+		if strings.Contains(s, "Updated by") {
+			by = s
+		} else {
+			alone = s
+		}
+	}
+	assert.Contains(t, by, "Updated by "+user2.GetDisplayName()+",")
+	assert.Contains(t, alone, "Updated")
+	assert.NotContains(t, alone, "by")
+	assert.Equal(t, 2, rows.Find("relative-time").Length())
+}
+
+func TestActionsSecretsAPIRecordsWhoUpdated(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	repo1 := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1, OwnerID: user2.ID})
+	token := getUserToken(t, user2.Name, auth_model.AccessTokenScopeWriteRepository)
+
+	url := fmt.Sprintf("/api/v1/repos/%s/actions/secrets/API_TOKEN", repo1.FullName())
+	MakeRequest(t, NewRequestWithJSON(t, "PUT", url, api.CreateOrUpdateSecretOption{Data: "one"}).AddTokenAuth(token), http.StatusCreated)
+	secret := unittest.AssertExistsAndLoadBean(t, &secret_model.Secret{RepoID: repo1.ID, Name: "API_TOKEN"})
+	assert.Equal(t, user2.ID, secret.UpdaterID)
+	first := secret.UpdatedUnix
+	assert.NotZero(t, first)
+
+	MakeRequest(t, NewRequestWithJSON(t, "PUT", url, api.CreateOrUpdateSecretOption{Data: "two"}).AddTokenAuth(token), http.StatusNoContent)
+	secret = unittest.AssertExistsAndLoadBean(t, &secret_model.Secret{RepoID: repo1.ID, Name: "API_TOKEN"})
+	assert.Equal(t, user2.ID, secret.UpdaterID)
+	assert.GreaterOrEqual(t, secret.UpdatedUnix, first)
 }

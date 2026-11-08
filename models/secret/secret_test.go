@@ -301,3 +301,18 @@ func TestSecretValidateName(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkUpdatedAndLastSet(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	secret, err := InsertEncryptedSecret(t.Context(), 0, 1, "MARKED", "v")
+	require.NoError(t, err)
+	assert.Zero(t, secret.UpdaterID)
+	assert.Equal(t, secret.CreatedUnix, secret.LastSet())
+
+	require.NoError(t, MarkUpdated(t.Context(), secret.ID, 2))
+	got := unittest.AssertExistsAndLoadBean(t, &Secret{ID: secret.ID})
+	assert.EqualValues(t, 2, got.UpdaterID)
+	assert.NotZero(t, got.UpdatedUnix)
+	assert.Equal(t, got.UpdatedUnix, got.LastSet())
+}
