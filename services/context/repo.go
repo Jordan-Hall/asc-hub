@@ -21,6 +21,7 @@ import (
 	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
 	packages_model "forgejo.org/models/packages"
+	perm_model "forgejo.org/models/perm"
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
 	unit_model "forgejo.org/models/unit"
@@ -53,6 +54,9 @@ type PullRequest struct {
 // Repository contains information to operate a repository
 type Repository struct {
 	access_model.Permission
+	// IsAscMaintainer is the Maintain role of the signed-in user (models/repo/asc_maintain.go); never set for an
+	// admin, who has every setting already
+	IsAscMaintainer bool
 	IsWatching   bool
 	IsViewBranch bool
 	IsViewTag    bool
@@ -401,6 +405,17 @@ func repoAssignment(ctx *Context, repo *repo_model.Repository) {
 	}
 	ctx.Data["HasAccess"] = true
 	ctx.Data["Permission"] = &ctx.Repo.Permission
+
+	// the Maintain role holds only for a signed-in collaborator with write access whose session is not narrowed
+	// by a token scope (models/repo/asc_maintain.go)
+	if ctx.Doer != nil && authorizationReducer == nil && ctx.Repo.Permission.AccessMode == perm_model.AccessModeWrite {
+		ctx.Repo.IsAscMaintainer, err = repo_model.IsAscMaintainer(ctx, repo.ID, ctx.Doer.ID)
+		if err != nil {
+			ctx.ServerError("IsAscMaintainer", err)
+			return
+		}
+	}
+	ctx.Data["IsRepositoryMaintainer"] = ctx.Repo.IsAscMaintainer
 
 	followingRepoList, err := repo_model.FindFollowingReposByRepoID(ctx, repo.ID)
 	if err == nil {

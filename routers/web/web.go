@@ -1367,6 +1367,7 @@ func registerRoutes(m *web.Route) {
 
 			m.Group("/collaboration", func() {
 				m.Combo("").Get(repo_setting.Collaboration).Post(repo_setting.CollaborationPost)
+				m.Get("/search", repo_setting.AscAccessSearch)
 				m.Post("/access_mode", repo_setting.ChangeCollaborationAccessMode)
 				m.Post("/delete", repo_setting.DeleteCollaboration)
 				m.Group("/team", func() {
@@ -1454,7 +1455,7 @@ func registerRoutes(m *web.Route) {
 			repo_setting.AscRoutes(m)
 			registerAscTrustRepoSettingsRoutes(m)
 		}, ctxDataSet("PageIsRepoSettings", true, "LFSStartServer", setting.LFS.StartServer, "AscEnabled", setting.Asc.Enabled), repo_setting.MenuStatus)
-	}, reqSignIn, context.RepoAssignment, context.UnitTypes(), reqRepoAdmin, context.RepoRef())
+	}, reqSignIn, context.RepoAssignment, context.UnitTypes(), context.RequireRepoSettings(), context.RepoRef())
 
 	m.Group("/{username}/{reponame}/action", func() {
 		m.Post("/watch/select", repo.ActionWatch)
@@ -1662,7 +1663,7 @@ func registerRoutes(m *web.Route) {
 
 	m.Group("/{username}/{reponame}", func() {
 		m.Post("/topics", repo.TopicsPost)
-	}, context.RepoAssignment, context.RepoMustNotBeArchived(), reqRepoAdmin)
+	}, context.RepoAssignment, context.RepoMustNotBeArchived(), context.RequireRepoSettings())
 
 	m.Group("/{username}/{reponame}", func() {
 		m.Group("", func() {

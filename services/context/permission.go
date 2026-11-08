@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/perm"
@@ -22,6 +23,51 @@ func RequireRepoAdmin() func(ctx *Context) {
 			ctx.NotFound(ctx.Req.URL.RequestURI(), nil)
 			return
 		}
+	}
+}
+
+// ascMaintainPages are the repository pages, below /{owner}/{repo}/, that the Maintain role opens besides those
+// of write access (models/repo/asc_maintain.go): the General settings and the branch and tag rules. A page is
+// opened by its exact path or, for an entry ending in "/", by every path below it.
+var ascMaintainPages = []string{
+	"settings", "settings/", // the General page; SettingsPost takes only its "update" action from a maintainer
+	"settings/avatar", "settings/avatar/delete",
+	"settings/branches", "settings/branches/",
+	"settings/rename_branch",
+	"settings/tags", "settings/tags/",
+	"topics",
+}
+
+// ascMaintainOpens reports whether the Maintain role opens the request path.
+func ascMaintainOpens(path string) bool {
+	parts := strings.SplitN(strings.TrimPrefix(path, "/"), "/", 3)
+	if len(parts) < 3 {
+		return false
+	}
+	page := parts[2]
+	for _, p := range ascMaintainPages {
+		if page == p || (strings.HasSuffix(p, "/") && len(p) > len("settings/") && strings.HasPrefix(page, p)) {
+			return true
+		}
+	}
+	return false
+}
+
+// RequireRepoSettings returns a middleware for the repository settings: an admin passes, a maintainer passes for
+// the pages of ascMaintainPages only, and everyone else gets the not-found page.
+func RequireRepoSettings() func(ctx *Context) {
+	return func(ctx *Context) {
+		if !ctx.IsSigned {
+			ctx.NotFound(ctx.Req.URL.RequestURI(), nil)
+			return
+		}
+		if ctx.Repo.IsAdmin() {
+			return
+		}
+		if ctx.Repo.IsAscMaintainer && ascMaintainOpens(ctx.Req.URL.Path) {
+			return
+		}
+		ctx.NotFound(ctx.Req.URL.RequestURI(), nil)
 	}
 }
 

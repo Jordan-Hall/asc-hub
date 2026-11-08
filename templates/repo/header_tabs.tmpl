@@ -40,6 +40,8 @@
 			{{if .Permission.IsAdmin}}
 				{{$unitHint := and .SignedUser.EnableRepoUnitHints (not (.Repository.AllUnitsEnabled ctx))}}{{if $unitHint}}<a class="rp-tab" href="{{.RepoLink}}/settings/units"{{if .PageIsRepoSettingsUnits}} aria-current="page"{{end}}>{{svg "octicon-plus" 14}}{{ctx.Locale.Tr "repo.settings.units.add_more"}}</a>{{end}}
 				<a id="settings-btn" class="rp-tab" href="{{.RepoLink}}/settings"{{if and .PageIsRepoSettings (or (not $unitHint) (not .PageIsRepoSettingsUnits))}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.settings"}}</a>
+			{{else if .IsRepositoryMaintainer}}
+				<a id="settings-btn" class="rp-tab" href="{{.RepoLink}}/settings"{{if .PageIsRepoSettings}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.settings"}}</a>
 			{{end}}
 			<details class="dropdown rp-dd rp-more">
 				<summary class="rp-tab{{if $moreActive}} is-on{{end}}"{{if $moreActive}} aria-current="true"{{end}}>{{ctx.Locale.Tr "asc_rp.tab_more"}}{{svg "dsi-chevron-down" 14}}</summary>
@@ -77,6 +79,8 @@
 		{{else if .Permission.IsAdmin}}
 			{{$unitHint := and .SignedUser.EnableRepoUnitHints (not (.Repository.AllUnitsEnabled ctx))}}{{if $unitHint}}<a class="rp-tab" href="{{.RepoLink}}/settings/units"{{if .PageIsRepoSettingsUnits}} aria-current="page"{{end}}>{{svg "octicon-plus" 14}}{{ctx.Locale.Tr "repo.settings.units.add_more"}}</a>{{end}}
 			<a id="settings-btn" class="rp-tab" href="{{.RepoLink}}/settings"{{if and .PageIsRepoSettings (or (not $unitHint) (not .PageIsRepoSettingsUnits))}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.settings"}}</a>
+		{{else if .IsRepositoryMaintainer}}
+			<a id="settings-btn" class="rp-tab" href="{{.RepoLink}}/settings"{{if .PageIsRepoSettings}} aria-current="page"{{end}}>{{ctx.Locale.Tr "repo.settings"}}</a>
 		{{end}}
 	</div>
 </nav>

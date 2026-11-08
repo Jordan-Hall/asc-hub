@@ -328,10 +328,21 @@ func SettingsPost(ctx *context.Context) {
 
 	repo := ctx.Repo.Repository
 
+	// a maintainer (models/repo/asc_maintain.go) has the "update" action only
+	if !ctx.Repo.IsAdmin() && ctx.FormString("action") != "update" {
+		ctx.NotFound("SettingsPost", nil)
+		return
+	}
+
 	switch ctx.FormString("action") {
 	case "update":
 		if ctx.HasError() {
 			ctx.HTML(http.StatusOK, tplSettingsOptions)
+			return
+		}
+		if !ctx.Repo.IsAdmin() && !ascMaintainerKeepsAdminFields(repo, form) {
+			ctx.Flash.Error(ctx.Tr("asc_rp.maintain_admin_only"))
+			ctx.Redirect(repo.Link() + "/settings")
 			return
 		}
 

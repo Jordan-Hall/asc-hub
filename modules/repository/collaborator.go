@@ -67,20 +67,50 @@ func ChangeCollaborationAccessMode(ctx context.Context, repo *repo_model.Reposit
 			return nil
 		}
 
-		if collaboration.Mode == mode {
+		// a change of the mode always ends the Maintain role; setting write again on a Maintain collaborator
+		// makes them a plain writer
+		if collaboration.Mode == mode && !collaboration.AscMaintain {
 			return nil
 		}
 		collaboration.Mode = mode
+		collaboration.AscMaintain = false
 
 		if _, err = e.
 			ID(collaboration.ID).
-			Cols("mode").
+			Cols("mode", "asc_maintain").
 			Update(collaboration); err != nil {
 			return fmt.Errorf("update collaboration: %w", err)
 		} else if err = access_model.RecalculateUserAccess(ctx, repo, uid); err != nil {
 			return fmt.Errorf("update access table: %w", err)
 		}
 
+		return nil
+	})
+}
+
+// SetAscMaintain gives a collaborator the Maintain role: write access and the AscMaintain mark
+// (models/repo/asc_maintain.go). It does nothing for a user who is not a collaborator of the repository.
+func SetAscMaintain(ctx context.Context, repo *repo_model.Repository, uid int64) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		e := db.GetEngine(ctx)
+		collaboration := &repo_model.Collaboration{RepoID: repo.ID, UserID: uid}
+		has, err := e.Get(collaboration)
+		if err != nil {
+			return fmt.Errorf("get collaboration: %w", err)
+		} else if !has {
+			return nil
+		}
+		if collaboration.Mode == perm.AccessModeWrite && collaboration.AscMaintain {
+			return nil
+		}
+		collaboration.Mode = perm.AccessModeWrite
+		collaboration.AscMaintain = true
+		if _, err = e.ID(collaboration.ID).Cols("mode", "asc_maintain").Update(collaboration); err != nil {
+			return fmt.Errorf("update collaboration: %w", err)
+		}
+		if err = access_model.RecalculateUserAccess(ctx, repo, uid); err != nil {
+			return fmt.Errorf("update access table: %w", err)
+		}
 		return nil
 	})
 }

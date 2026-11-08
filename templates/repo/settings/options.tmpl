@@ -9,9 +9,14 @@
 				<input type="hidden" name="action" value="update">
 				<div class="ds-required ds-field {{if .Err_RepoName}}is-err{{end}}">
 					<label class="ds-label" for="repo_name">{{ctx.Locale.Tr "repo.repo_name"}}</label>
+					{{if .Permission.IsAdmin}}
 					<input class="ds-input" id="repo_name" name="repo_name" value="{{if .RepoNameTaken}}{{.repo_name}}{{else}}{{.Repository.Name}}{{end}}" data-repo-name="{{.Repository.Name}}" aria-describedby="repo-name-hint{{if .RepoNameTaken}} repo-name-err{{end}}"{{if .RepoNameTaken}} aria-invalid="true"{{end}} autofocus required autocorrect="off" autocapitalize="none" spellcheck="false">
 					{{if .RepoNameTaken}}<p class="ds-err-msg" id="repo-name-err" role="alert">{{ctx.Locale.Tr "asc_rp.rename_taken" .RepoNameTaken}}</p>{{end}}
 					<p class="ds-hint" id="repo-name-hint">{{ctx.Locale.Tr "asc_rp.rename_redirect_note" .RedirectKeepDays}}</p>
+					{{else}}
+					<input class="ds-input" id="repo_name" name="repo_name" value="{{.Repository.Name}}" readonly aria-describedby="repo-name-hint" autocorrect="off" autocapitalize="none" spellcheck="false">
+					<p class="ds-hint" id="repo-name-hint">{{ctx.Locale.Tr "asc_rp.maintain_name_note"}}</p>
+					{{end}}
 				</div>
 				<div class="ds-field">
 					<label class="ds-label">{{ctx.Locale.Tr "repo.repo_size"}}</label>
@@ -24,7 +29,7 @@
 						<label for="opt-chk-1">{{ctx.Locale.Tr "repo.template_helper"}}</label>
 					</div>
 				</div>
-				{{if not .Repository.IsFork}}
+				{{if and (not .Repository.IsFork) .Permission.IsAdmin}}
 					{{$vis := "public"}}{{if .Repository.IsPrivate}}{{$vis = "private"}}{{if .Repository.IsInternal}}{{$vis = "internal"}}{{end}}{{end}}
 					{{template "repo/visibility_cards" (dict "Current" $vis "Forced" (and $.ForcePrivate (not .IsAdmin) .Repository.IsPrivate))}}
 				{{end}}
@@ -72,6 +77,7 @@
 			</form>
 		</div>
 
+		{{if .Permission.IsAdmin}}
 		<h4 class="ds-card-top" id="features">{{ctx.Locale.Tr "asc_rp.feat_title"}}</h4>
 		<div class="ds-card ds-card-b ds-card-attach">
 			<form class="ds-form" action="{{.Link}}/asc/features" method="post" data-testid="repo-features">
@@ -412,6 +418,8 @@
 				</div>
 			</form>
 		</div>
+
+		{{end}}{{/* .Permission.IsAdmin: the sections a maintainer does not have */}}
 
 		{{if .IsAdmin}}
 		<h4 class="ds-card-top">

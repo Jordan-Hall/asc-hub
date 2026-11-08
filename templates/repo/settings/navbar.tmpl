@@ -6,7 +6,18 @@
 		<label class="ds-snav-find"><span class="ds-sr">{{ctx.Locale.Tr "asc_shell.sn_find"}}</span>{{svg "dsi-search" 17}}<input type="search" placeholder="{{ctx.Locale.Tr "asc_shell.sn_find"}}" data-asc-snav-find autocomplete="off"></label>
 		{{template "shared/ds/snav_who" (dict "Icon" "book" "Name" .Repository.Name "Sub" .Repository.OwnerName "Href" .RepoLink "Label" (ctx.Locale.Tr "asc_shell.sn_view_repo"))}}
 
-		{{if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
+		{{if not .Permission.IsAdmin}}
+		{{/* the Maintain role (models/repo/asc_maintain.go): the pages it opens, nothing else */}}
+		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_repository"}}</h2>
+		<ul class="ds-settings-list">
+			{{template "shared/ds/snav_item" (dict "Href" $base "Label" (ctx.Locale.Tr "asc_shell.sn_general") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_general") "Icon" "sliders" "Active" .PageIsSettingsOptions)}}
+			{{if not .Repository.IsEmpty}}
+				{{template "shared/ds/snav_item" (dict "Href" (print $base "/branches") "Label" (ctx.Locale.Tr "asc_shell.sn_rules") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_rules") "Icon" "shield-check" "Active" .PageIsSettingsBranches)}}
+			{{end}}
+			{{template "shared/ds/snav_item" (dict "Href" (print $base "/tags") "Label" (ctx.Locale.Tr "repo.settings.tags") "Desc" (ctx.Locale.Tr "asc_shell.sn_desc_tags") "Icon" "tag" "Active" .PageIsSettingsTags)}}
+		</ul>
+		<p class="ds-hint ds-snav-role" data-testid="maintain-note">{{ctx.Locale.Tr "asc_rp.maintain_menu_note"}}</p>
+		{{else if and .AscEnabled (eq .Repository.StorageBackend "asc")}}
 		{{/* The groups and entries of board RepoSettingsMenu, in its order; the pages the board does not name follow the board's entries of their group. */}}
 		<h2 class="ds-settings-group">{{ctx.Locale.Tr "asc_shell.sn_repository"}}</h2>
 		<ul class="ds-settings-list">

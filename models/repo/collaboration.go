@@ -22,6 +22,7 @@ type Collaboration struct {
 	RepoID      int64              `xorm:"UNIQUE(s) INDEX NOT NULL REFERENCES(repository, id)"`
 	UserID      int64              `xorm:"UNIQUE(s) INDEX NOT NULL REFERENCES(user, id)"`
 	Mode        perm.AccessMode    `xorm:"DEFAULT 2 NOT NULL"`
+	AscMaintain bool               `xorm:"NOT NULL DEFAULT false"` // with Mode write: the Maintain role (asc_maintain.go)
 	CreatedUnix timeutil.TimeStamp `xorm:"INDEX created"`
 	UpdatedUnix timeutil.TimeStamp `xorm:"INDEX updated"`
 }
