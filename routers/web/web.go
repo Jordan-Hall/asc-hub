@@ -1385,6 +1385,7 @@ func registerRoutes(m *web.Route) {
 					Post(web.Bind(forms.ProtectBranchForm{}), context.RepoMustNotBeArchived(), repo_setting.SettingsProtectedBranchPost)
 				m.Get("/check", repo_setting.AscRuleCheck)
 				m.Post("/{id}/delete", repo_setting.DeleteProtectedBranchRulePost)
+				m.Post("/removed/{id}/restore", context.RepoMustNotBeArchived(), repo_setting.AscRestoreRulePost)
 			}, repo.MustBeNotEmpty)
 
 			m.Post("/rename_branch", web.Bind(forms.RenameBranchForm{}), context.RepoMustNotBeArchived(), repo_setting.RenameBranchPost)

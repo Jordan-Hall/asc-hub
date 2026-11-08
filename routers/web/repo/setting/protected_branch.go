@@ -42,6 +42,10 @@ func ProtectedBranchRules(ctx *context.Context) {
 	}
 	ctx.Data["ProtectedBranches"] = rules
 	prepareAscRules(ctx)
+	prepareAscRemovedRules(ctx)
+	if ctx.Written() {
+		return
+	}
 
 	repo.PrepareBranchList(ctx)
 	if ctx.Written() {
@@ -320,13 +324,13 @@ func DeleteProtectedBranchRulePost(ctx *context.Context) {
 		return
 	}
 
-	if err := git_model.DeleteProtectedBranch(ctx, ctx.Repo.Repository, ruleID); err != nil {
+	if err := git_model.AscRemoveRule(ctx, ctx.Repo.Repository, rule, ctx.Doer.ID); err != nil {
 		ctx.Flash.Error(ctx.Tr("repo.settings.remove_protected_branch_failed", rule.RuleName))
 		ctx.JSONRedirect(fmt.Sprintf("%s/settings/branches", ctx.Repo.RepoLink))
 		return
 	}
 
-	ctx.Flash.Success(ctx.Tr("repo.settings.remove_protected_branch_success", rule.RuleName))
+	ctx.Flash.Success(ctx.Tr("repo.settings.asc_rules.removed", rule.RuleName))
 	ctx.JSONRedirect(fmt.Sprintf("%s/settings/branches", ctx.Repo.RepoLink))
 }
 

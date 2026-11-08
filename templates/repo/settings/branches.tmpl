@@ -56,6 +56,25 @@
 				</div>
 			</h4>
 
+			{{if .AscRemovedRules}}
+			<div class="ds-card ds-card-b ds-card-attach rp-rule-removed" data-testid="removed-rules" role="region" aria-label="{{ctx.Locale.Tr "repo.settings.asc_rules.removed_title"}}">
+				<div class="flex-list">
+					{{range .AscRemovedRules}}
+						<form class="flex-item tw-items-center" method="post" action="{{$.Repository.Link}}/settings/branches/removed/{{.ID}}/restore" data-removed-rule="{{.RuleName}}">
+							{{$.CsrfTokenHtml}}
+							<div class="flex-item-main">
+								<div class="flex-item-title">{{ctx.Locale.Tr "repo.settings.asc_rules.removed_row" .RuleName}}</div>
+								<div class="flex-item-body">{{ctx.Locale.Tr "repo.settings.asc_rules.undo_until" (DateUtils.AbsoluteShort .Until)}}</div>
+							</div>
+							<div class="flex-item-trailing">
+								<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "repo.settings.asc_rules.undo_for" .RuleName}}">{{ctx.Locale.Tr "repo.settings.asc_rules.undo"}}</button>
+							</div>
+						</form>
+					{{end}}
+				</div>
+			</div>
+			{{end}}
+
 			{{if .ProtectedBranches}}
 			<div class="ds-card ds-card-b ds-card-attach">
 				<div class="flex-list">

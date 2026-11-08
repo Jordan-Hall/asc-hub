@@ -1121,7 +1121,7 @@ func DeleteBranchProtection(ctx *context.APIContext) {
 		return
 	}
 
-	if err := git_model.DeleteProtectedBranch(ctx, ctx.Repo().Repository, bp.ID); err != nil {
+	if err := git_model.AscRemoveRule(ctx, ctx.Repo().Repository, bp, ctx.Doer().ID); err != nil {
 		ctx.Error(http.StatusInternalServerError, "DeleteProtectedBranch", err)
 		return
 	}
