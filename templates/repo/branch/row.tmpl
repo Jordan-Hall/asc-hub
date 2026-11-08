@@ -62,7 +62,7 @@
 						<li><a class="archive-link" href="{{$root.RepoLink}}/archive/{{PathEscapeSegments $b.DBBranch.Name}}.zip" rel="nofollow">{{svg "dsi-download" 18}}ZIP</a></li>
 						<li><a class="archive-link" href="{{$root.RepoLink}}/archive/{{PathEscapeSegments $b.DBBranch.Name}}.tar.gz" rel="nofollow">{{svg "dsi-download" 18}}TAR.GZ</a></li>
 					{{end}}
-					{{if $canWrite}}<li><button type="button" class="show-rename-branch-modal" data-is-default-branch="{{if $isDefault}}true{{else}}false{{end}}" data-old-branch-name="{{$b.DBBranch.Name}}">{{svg "dsi-pencil" 18}}{{ctx.Locale.Tr "repo.branch.rename" $b.DBBranch.Name}}</button></li>{{end}}
+					{{if and $canWrite (or $canAdmin (and $root.IsRepositoryMaintainer (not $isDefault)))}}<li><button type="button" class="show-rename-branch-modal" data-is-default-branch="{{if $isDefault}}true{{else}}false{{end}}" data-old-branch-name="{{$b.DBBranch.Name}}">{{svg "dsi-pencil" 18}}{{ctx.Locale.Tr "repo.branch.rename" $b.DBBranch.Name}}</button></li>{{end}}
 					{{if and $isDefault $canAdmin}}<li><a href="{{$root.RepoLink}}/settings/branches">{{svg "dsi-sliders" 18}}{{ctx.Locale.Tr "repo.settings.branches.switch_default_branch"}}</a></li>{{end}}
 					{{if and (not $isDefault) $canDelete}}
 						{{if $b.DBBranch.IsDeleted}}

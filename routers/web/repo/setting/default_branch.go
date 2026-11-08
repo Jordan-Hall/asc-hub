@@ -16,6 +16,11 @@ import (
 
 // SetDefaultBranchPost set default branch
 func SetDefaultBranchPost(ctx *context.Context) {
+	// A maintainer opens the branch rules but does not change the default branch.
+	if !ctx.Repo.IsAdmin() {
+		ctx.NotFound("SetDefaultBranchPost", nil)
+		return
+	}
 	ctx.Data["Title"] = ctx.Tr("repo.settings.branches.update_default_branch")
 	ctx.Data["PageIsSettingsBranches"] = true
 

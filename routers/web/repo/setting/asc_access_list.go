@@ -208,7 +208,7 @@ func AscAccessSearch(ctx *context.Context) {
 			results = append(results, ascAccessResult{Kind: kind, Name: u.Name, FullName: u.FullName, AvatarURL: u.AvatarLink(ctx)})
 		}
 	}
-	if ctx.Repo.Owner.IsOrganization() {
+	if ascSearchesTeams(ctx) {
 		teams, _, err := organization.SearchTeam(ctx, &organization.SearchTeamOptions{
 			Keyword:     q,
 			OrgID:       ctx.Repo.Owner.ID,
@@ -236,4 +236,21 @@ func AscAccessSearch(ctx *context.Context) {
 		}
 	})
 	ctx.JSON(http.StatusOK, map[string]any{"data": results})
+}
+
+// ascSearchesTeams reports whether the search may list the teams of the owner: the owner is an
+// organization, the doer may add a team (as in ascAddTeam) and is a member of the organization,
+// whose teams a member can see anyway.
+func ascSearchesTeams(ctx *context.Context) bool {
+	if !ctx.Repo.Owner.IsOrganization() {
+		return false
+	}
+	if !ctx.Repo.Owner.RepoAdminChangeTeamAccess && !ctx.Repo.IsOwner() {
+		return false
+	}
+	if ctx.Doer.IsAdmin {
+		return true
+	}
+	member, err := organization.IsOrganizationMember(ctx, ctx.Repo.Owner.ID, ctx.Doer.ID)
+	return err == nil && member
 }

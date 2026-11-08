@@ -12,6 +12,10 @@
 				<p>
 					{{ctx.Locale.Tr "repo.settings.default_branch_desc"}}
 				</p>
+				{{if not .Permission.IsAdmin}}
+				<p class="ds-mono" data-testid="default-branch">{{.Repository.DefaultBranch}}</p>
+				<p class="ds-hint" data-testid="maintain-default-note">{{ctx.Locale.Tr "asc_rp.maintain_default_branch_note"}}</p>
+				{{else}}
 				<form class="tw-flex" action="{{.Link}}" method="post">
 					<input type="hidden" name="action" value="default_branch">
 					{{if not .Repository.IsEmpty}}
@@ -28,6 +32,7 @@
 						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.branches.update_default_branch"}}</button>
 					{{end}}
 				</form>
+				{{end}}
 			</div>
 
 			{{if .AscRules}}

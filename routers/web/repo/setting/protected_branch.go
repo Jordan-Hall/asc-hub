@@ -342,6 +342,11 @@ func RenameBranchPost(ctx *context.Context) {
 		ctx.NotFound("RenameBranch", nil)
 		return
 	}
+	// Renaming the default branch changes the default branch, which only an admin does.
+	if !ctx.Repo.IsAdmin() && form.From == ctx.Repo.Repository.DefaultBranch {
+		ctx.NotFound("RenameBranch", nil)
+		return
+	}
 
 	if ctx.HasError() {
 		ctx.Flash.Error(ctx.GetErrMsg())
