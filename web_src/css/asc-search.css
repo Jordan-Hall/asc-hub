@@ -444,6 +444,18 @@
   font-size: 13px;
 }
 
+.asc-search-why {
+  margin: 0;
+  padding: 6px 16px 0;
+  font-size: 13px;
+  color: var(--color-text-light);
+}
+
+.asc-search-why code {
+  font-size: 12px;
+  color: var(--color-text);
+}
+
 .asc-symbol-body {
   display: flex;
   flex-wrap: wrap;

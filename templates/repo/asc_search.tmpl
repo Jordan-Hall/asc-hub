@@ -159,6 +159,7 @@
 										<a class="asc-path" href="{{$f.Link}}">{{$f.Path}}</a>
 										{{if $f.Lang}}<span class="asc-pill asc-pill-lang">{{$f.Lang}}</span>{{end}}
 									</div>
+									{{template "repo/asc_search_why" $f.Why}}
 									{{if or $f.Defs $f.ChangedLink}}
 										<ul class="asc-sym-chips" aria-label="{{ctx.Locale.Tr "asc_rp.s_symbols_here"}}">
 											{{range $d := $f.Defs}}
@@ -220,6 +221,7 @@
 										<span class="rp-relevance" title="{{ctx.Locale.Tr "asc_rp.s_score"}}: {{$c.Score}}"><span class="rp-relevance-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{$c.ScorePct}}" aria-label="{{ctx.Locale.Tr "asc_rp.s_relevance"}}"><span class="rp-relevance-fill" data-pct="{{$c.ScorePct}}"></span></span><span class="rp-relevance-pct">{{$c.ScorePct}}%</span></span>
 										{{range $s := $c.Sources}}<span class="asc-pill asc-pill-lang">{{$s}}</span>{{end}}
 									</div>
+									{{template "repo/asc_search_why" $c.Why}}
 									{{if $c.Redacted}}
 										<p class="asc-redacted">{{ctx.Locale.Tr "asc_rp.s_hidden_chunk"}}</p>
 									{{else if $c.Text}}

@@ -125,6 +125,8 @@ type ascSearchFile struct {
 	Defs        []ascSearchDef
 	Changed     time.Time
 	ChangedLink string
+	// Why is why the file matched.
+	Why ascSearchWhy
 }
 
 // ascSearchAlso is another path of the same file.
@@ -147,6 +149,8 @@ type ascSearchChunk struct {
 	Text     string
 	Redacted bool
 	Branches []ascSearchBranch
+	// Why is why the chunk matched.
+	Why ascSearchWhy
 }
 
 // ascSearchCoverage is the state of one index.
@@ -568,6 +572,7 @@ func ascSearchFileOf(h *ascv1.FileHit, q ascSearchQuery) (ascSearchFile, error) 
 		Lang:     ascSymbolsText([]byte(h.GetLang()), ascSymbolsMaxShortTxt),
 		FileID:   ascsearch.Hex(h.GetFileId()),
 		Redacted: h.GetRedacted(),
+		Why:      ascSearchWhyOf(h.GetReason()),
 	}
 	for _, a := range h.GetAlsoAt() {
 		if len(f.Also) >= ascSearchMaxAlso {
@@ -733,6 +738,7 @@ func ascSearchSemantic(ctx gocontext.Context, api ascv1.CodeIntelClient, scope *
 			Symbol:    ascSymbolsText([]byte(c.GetSymbol()), ascSymbolsMaxNameBytes),
 			Score:     strconv.FormatFloat(c.GetScore(), 'f', 3, 64),
 			Redacted:  c.GetRedacted(),
+			Why:       ascSearchWhyOf(c.GetReason()),
 		}
 		for i, s := range c.GetSources() {
 			if i >= ascSearchMaxSources {

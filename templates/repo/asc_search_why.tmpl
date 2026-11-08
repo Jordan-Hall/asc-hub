@@ -1,0 +1,9 @@
+{{/* Why one search result matched: a sentence from the server's reason, nothing when it sent none. */}}
+{{if .Kind}}
+<p class="asc-search-why" data-testid="search-why" data-kind="{{.Kind}}">
+	{{- if eq .Kind "meaning"}}{{if .Terms}}{{ctx.Locale.Tr "asc_rp.s_why_meaning_terms"}}{{else}}{{ctx.Locale.Tr "asc_rp.s_why_meaning"}}{{end}}{{else if eq .Kind "symbol"}}{{ctx.Locale.Tr "asc_rp.s_why_symbol"}}{{else}}{{ctx.Locale.Tr "asc_rp.s_why_text"}}{{end}}
+	{{- range $i, $t := .Terms}}{{if $i}},{{end}} <code>{{$t}}</code>{{end}}
+	{{- if .More}} {{ctx.Locale.Tr "asc_rp.s_why_more" .More}}{{end}}
+	{{- if and .Lines (ne .Kind "meaning")}} {{ctx.Locale.TrN .Lines "asc_rp.s_why_lines_1" "asc_rp.s_why_lines_n" .Lines}}{{end -}}
+</p>
+{{end}}
