@@ -148,7 +148,8 @@ func ascPaletteChanges(ctx *context.Context, q string) AscPaletteGroup {
 // failure (no asc, busy, slow, a refused name) leaves the group empty: the "Search code" link still finds it.
 func ascPaletteCode(ctx *context.Context, q string) AscPaletteGroup {
 	g := AscPaletteGroup{Key: "code", Label: ctx.Locale.TrString("asc_shell.palette_scope_code")}
-	if !setting.Asc.Enabled || unit.TypeCode.UnitGlobalDisabled() || !ascsearch.Plain(q, ascsearch.MaxName) {
+	// The same switches as the code search page: asc on, code not off for the site, the explore code page not disabled.
+	if !setting.Asc.Enabled || unit.TypeCode.UnitGlobalDisabled() || setting.Service.Explore.DisableCodePage || !ascsearch.Plain(q, ascsearch.MaxName) {
 		return g
 	}
 	select {
