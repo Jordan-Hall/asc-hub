@@ -369,9 +369,23 @@ func TestStorageLifecycleActions(t *testing.T) {
 		body := r.body()
 		assert.Contains(t, body, `data-testid="asc-verify-result"`)
 		assert.Contains(t, body, tr(t, "ascbyo.storage.detail.verify_ok"))
-		for _, step := range []string{"resolve", "connect", "put", "get", "delete"} {
+		for _, step := range []string{"resolve", "connect", "put", "get", "delete", "versioning"} {
 			assert.Contains(t, body, tr(t, "ascbyo.storage.step."+step))
 		}
+		assert.NotContains(t, body, tr(t, "ascbyo.storage.detail.step_advisory"))
+	})
+	t.Run("a bucket without versioning verifies with a warning", func(t *testing.T) {
+		f.VersioningOff = true
+		defer func() { f.VersioningOff = false }()
+		r := run(t, StorageVerify, userLevel(t), http.MethodPost, nil, id)
+		require.Equal(t, http.StatusOK, r.resp.Code)
+		body := r.body()
+		assert.Contains(t, body, tr(t, "ascbyo.storage.detail.verify_ok"))
+		assert.Contains(t, body, `class="warn" data-testid="asc-verify-step"`)
+		assert.Contains(t, body, tr(t, "ascbyo.storage.detail.step_advisory"))
+		assert.Contains(t, body, "versioning is off")
+		assert.NotContains(t, body, `data-testid="asc-verify-needs"`)
+		assert.NotContains(t, body, "s3:Anything")
 	})
 	t.Run("a failed verification shows the failing step", func(t *testing.T) {
 		f.VerifyBad = true
@@ -380,6 +394,7 @@ func TestStorageLifecycleActions(t *testing.T) {
 		require.Equal(t, http.StatusOK, r.resp.Code)
 		assert.Contains(t, r.body(), tr(t, "ascbyo.storage.detail.verify_failed"))
 		assert.Contains(t, r.body(), tr(t, "ascbyo.storage.detail.step_failed"))
+		assert.Contains(t, r.body(), tr(t, "ascbyo.storage.detail.needs", "s3:PutObject"))
 		assert.NotContains(t, r.body(), "\x1b")
 		// verification passes again afterwards
 		f.VerifyBad = false

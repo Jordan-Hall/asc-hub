@@ -239,6 +239,8 @@ func TestStorageVerifyEnableDelete(t *testing.T) {
 		last := res.Checks[2]
 		assert.False(t, last.OK)
 		assert.Equal(t, "ascbyo.storage.step.put", last.StepKey)
+		assert.Equal(t, "s3:PutObject", last.Needs, "the permission the key lacks is named")
+		assert.False(t, last.Advisory)
 		assert.Equal(t, "access denied [31m", last.Message, "control characters are stripped")
 		assert.NotContains(t, last.Message, "\x1b")
 		v := ascbyo.TargetViewOf(res.Target)
@@ -251,7 +253,18 @@ func TestStorageVerifyEnableDelete(t *testing.T) {
 		res, err := s.VerifyTarget(t.Context(), alice, id, "")
 		require.NoError(t, err)
 		assert.True(t, res.OK)
-		assert.Len(t, res.Checks, 5)
+		require.Len(t, res.Checks, 6)
+		assert.Equal(t, "ascbyo.storage.step.versioning", res.Checks[5].StepKey)
+		assert.True(t, res.Checks[5].Advisory)
+		f.VersioningOff = true
+		nover, err := s.VerifyTarget(t.Context(), alice, id, "")
+		f.VersioningOff = false
+		require.NoError(t, err)
+		assert.True(t, nover.OK, "a bucket without versioning still verifies")
+		require.Len(t, nover.Checks, 6)
+		assert.False(t, nover.Checks[5].OK)
+		assert.True(t, nover.Checks[5].Advisory)
+		assert.Empty(t, nover.Checks[5].Needs, "a permission asc does not name is dropped")
 		v := ascbyo.TargetViewOf(res.Target)
 		assert.True(t, v.CanEnable)
 		on, err := s.SetEnabled(t.Context(), alice, id, true, "")

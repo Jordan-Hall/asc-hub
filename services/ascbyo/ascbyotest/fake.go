@@ -75,6 +75,9 @@ type Fake struct {
 	Fail map[string]error
 	// VerifyOK says whether VerifyTarget passes (default true).
 	VerifyBad bool
+	// VersioningOff makes the advisory versioning step of VerifyTarget report a bucket without versioning, with a
+	// needs value the hub must drop.
+	VersioningOff bool
 	// InUse makes DeleteTarget answer STORAGE_IN_USE.
 	InUse bool
 	// TestStatus is the provider status TestKey answers with ("ok" by default).
@@ -440,13 +443,19 @@ func (f *Fake) VerifyTarget(_ context.Context, r *ascv1.VerifyStorageTargetReque
 	steps := []ascv1.StorageVerifyStep{
 		ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_RESOLVE, ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_CONNECT,
 		ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_PUT, ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_GET,
-		ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_DELETE,
+		ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_DELETE, ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_VERSIONING,
 	}
 	resp := &ascv1.VerifyStorageTargetResponse{Ok: !f.VerifyBad}
 	for _, s := range steps {
 		c := &ascv1.StorageVerifyCheck{Step: s, Ok: true, LatencyMs: 12}
 		if f.VerifyBad && s == ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_PUT {
-			c.Ok, c.Message = false, "access denied\x1b[31m"
+			c.Ok, c.Message, c.Needs = false, "access denied\x1b[31m", "s3:PutObject"
+		}
+		if f.VersioningOff && s == ascv1.StorageVerifyStep_STORAGE_VERIFY_STEP_VERSIONING {
+			// Advisory: reported, never a failure, so the walk goes on.
+			c.Ok, c.Message, c.Needs = false, "versioning is off: an overwritten or deleted object cannot be recovered", "s3:Anything"
+			resp.Checks = append(resp.Checks, c)
+			continue
 		}
 		resp.Checks = append(resp.Checks, c)
 		if !c.Ok {
