@@ -93,6 +93,10 @@
 					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_stacks"}}</legend>
 						<div class="ds-field"><label for="pf-depth">{{ctx.Locale.Tr "asc_rp.pf_max_depth"}}</label><input id="pf-depth" class="ds-input" name="max_depth" type="number" min="1" max="100" inputmode="numeric" value="{{if .Form.MaxStackDepth}}{{.Form.MaxStackDepth}}{{end}}" aria-describedby="pf-depth-help"><p id="pf-depth-help" class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_max_depth_help"}}</p></div>
 						<div class="ds-field"><label for="pf-cleanup">{{ctx.Locale.Tr "asc_rp.pf_cleanup_days"}}</label><input id="pf-cleanup" class="ds-input" name="cleanup_days" type="number" min="1" max="3650" inputmode="numeric" value="{{if .Form.CleanupDays}}{{.Form.CleanupDays}}{{end}}" aria-describedby="pf-cleanup-help"><p id="pf-cleanup-help" class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_cleanup_days_help"}}</p></div>
+						<label class="ds-check"><input type="checkbox" name="restack_on_main_move" aria-describedby="pf-restack-help"{{if .Form.RestackOnMove}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_restack_on_move"}}</label>
+						<p id="pf-restack-help" class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_restack_on_move_help"}}</p>
+						<label class="ds-check"><input type="checkbox" name="collaborators_may_push" aria-describedby="pf-writers-help"{{if .Form.WritersMayPush}} checked{{end}}> {{ctx.Locale.Tr "asc_rp.pf_writers_may_push"}}</label>
+						<p id="pf-writers-help" class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_writers_may_push_help"}}</p>
 					</fieldset>
 					<div class="asc-trust-actions"><button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-policy-review">{{ctx.Locale.Tr "asc_rp.pf_review"}}</button></div>
 					</fieldset>

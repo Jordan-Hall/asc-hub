@@ -29,8 +29,14 @@ type ascRulesPage struct {
 	MaxDepth int64
 	// CleanupDays is `[stacks] cleanup_days`; 0 when the server's setting applies.
 	CleanupDays int64
-	PolicyURL   string
-	Problem     string
+	// RestackOnMove is `[stacks] restack_on_main_move`: the hub restacks open stacks when the default branch moves.
+	RestackOnMove bool
+	// WritersMayPush is `[stacks] collaborators_may_push`: writers may update a stack they did not start.
+	WritersMayPush bool
+	// KeepApprovals is `[review] keep_approvals_on_restack`: approvals stay when only the base changed.
+	KeepApprovals bool
+	PolicyURL     string
+	Problem       string
 }
 
 // prepareAscRules sets AscRules for an asc repository: the protection read from the policy in force.
@@ -68,4 +74,5 @@ func prepareAscRules(ctx *context.Context) {
 	page.Squash = pp.View.Strategy == "squash"
 	f := asctrust.FormOfText(pp.View.Text)
 	page.MaxDepth, page.CleanupDays = f.MaxStackDepth, f.CleanupDays
+	page.RestackOnMove, page.WritersMayPush, page.KeepApprovals = f.RestackOnMove, f.WritersMayPush, f.KeepApprovals
 }

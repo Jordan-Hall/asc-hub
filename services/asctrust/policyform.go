@@ -34,6 +34,8 @@ type PolicyForm struct {
 	MaxTokens        int64
 	MaxStackDepth    int64 // [stacks] max_depth, 1 to MaxStackDepth; 0 for no limit
 	CleanupDays      int64 // [stacks] cleanup_days, 1 to MaxCleanupDays; 0 for the server's setting
+	RestackOnMove    bool  // [stacks] restack_on_main_move, off by default; the hub restacks open stacks
+	WritersMayPush   bool  // [stacks] collaborators_may_push, off by default; writers may update any stack
 }
 
 // MaxMergeBatch is the largest `[merge] batch` of asc-core (MAX_BATCH).
@@ -83,6 +85,8 @@ func FormOfText(text string) PolicyForm {
 	f.MaxTokens = n("agents.budgets", "max_tokens")
 	f.MaxStackDepth = n("stacks", "max_depth")
 	f.CleanupDays = n("stacks", "cleanup_days")
+	f.RestackOnMove, _ = TomlBool(text, "stacks", "restack_on_main_move")
+	f.WritersMayPush, _ = TomlBool(text, "stacks", "collaborators_may_push")
 	f.MergeStrategy, _ = tomlString(text, "merge", "strategy")
 	return f
 }
@@ -213,6 +217,12 @@ func ApplyForm(text string, f PolicyForm) (string, error) {
 		} else {
 			text = removeKey(text, "stacks", s.key)
 		}
+	}
+	if f.RestackOnMove || hasKey(text, "stacks", "restack_on_main_move") {
+		text = TomlSetBool(text, "stacks", "restack_on_main_move", f.RestackOnMove)
+	}
+	if f.WritersMayPush || hasKey(text, "stacks", "collaborators_may_push") {
+		text = TomlSetBool(text, "stacks", "collaborators_may_push", f.WritersMayPush)
 	}
 	return text, nil
 }

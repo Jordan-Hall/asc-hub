@@ -364,6 +364,9 @@ func Init() error {
 	if err := InitAscStack(); err != nil {
 		return err
 	}
+	if err := initAscAutoRestack(); err != nil {
+		return err
+	}
 
 	prPatchCheckerQueue = queue.CreateUniqueQueue(graceful.GetManager().ShutdownContext(), "pr_patch_checker", handler)
 

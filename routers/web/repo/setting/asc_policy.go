@@ -273,6 +273,7 @@ func AscPolicyForm(ctx *context.Context) {
 		AgentDenied: asctrust.SplitLines(ctx.Req.PostFormValue("agent_denied")), MaxRuntimeSecs: num("max_runtime"),
 		MaxChangesPerRun: num("max_changes"), MaxTokens: num("max_tokens"),
 		MaxStackDepth: num("max_depth"), CleanupDays: num("cleanup_days"),
+		RestackOnMove: flag("restack_on_main_move"), WritersMayPush: flag("collaborators_may_push"),
 	}
 	draft, err := asctrust.ApplyForm(text, f)
 	if err != nil {

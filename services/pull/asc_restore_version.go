@@ -15,6 +15,7 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
+	"forgejo.org/services/ascbridge"
 	notify_service "forgejo.org/services/notify"
 )
 
@@ -27,7 +28,8 @@ import (
 // Rules:
 //   - Who may restore is the update authorisation of C34 (the same as for a push to the change): the pull
 //     request's poster, an owner or admin of the repository, or a writer when the pull request allows
-//     maintainer edits. The poster must still be able to read the pull requests of the repository.
+//     maintainer edits or the policy sets `[stacks] collaborators_may_push`. The poster must still be able to
+//     read the pull requests of the repository.
 //   - The pull request must be open and its repository not archived.
 //   - The change comes from the pull request's own asc link, and the version number must be one of the
 //     versions asc returned for it (verified as in C37). The commit comes from that list, never from the request.
@@ -137,18 +139,38 @@ func AscMayRestoreVersion(ctx context.Context, pr *issues_model.PullRequest, doe
 	if err := pr.LoadIssue(ctx); err != nil {
 		return false, err
 	}
-	return ascRestoreAllowed(
-		pr.Issue.PosterID == doer.ID && perm.CanReadIssuesOrPulls(true),
-		doer.IsAdmin || perm.IsOwner() || perm.IsAdmin(),
-		perm.CanWrite(unit.TypeCode),
-		pr.AllowMaintainerEdit,
-	), nil
+	isPoster := pr.Issue.PosterID == doer.ID && perm.CanReadIssuesOrPulls(true)
+	isAdminOrOwner := doer.IsAdmin || perm.IsOwner() || perm.IsAdmin()
+	canWrite := perm.CanWrite(unit.TypeCode)
+	if ascRestoreAllowed(isPoster, isAdminOrOwner, canWrite, pr.AllowMaintainerEdit) {
+		return true, nil
+	}
+	// Only a writer who is refused so far needs the policy; the read is skipped for everyone else.
+	if !canWrite {
+		return false, nil
+	}
+	return ascRestoreAllowed(false, false, canWrite, ascCollaboratorsMayPush(ctx, pr)), nil
 }
 
 // ascRestoreAllowed is the update authorisation of C34: the poster (who can still read the pull requests), an
-// owner or admin, or a writer when the pull request allows maintainer edits.
-func ascRestoreAllowed(isPoster, isAdminOrOwner, canWrite, allowMaintainerEdit bool) bool {
-	return isPoster || isAdminOrOwner || (canWrite && allowMaintainerEdit)
+// owner or admin, or a writer when the stack is open to writers (the pull request allows maintainer edits, or
+// the policy sets `[stacks] collaborators_may_push`).
+func ascRestoreAllowed(isPoster, isAdminOrOwner, canWrite, openToWriters bool) bool {
+	return isPoster || isAdminOrOwner || (canWrite && openToWriters)
+}
+
+// ascCollaboratorsMayPush reports the `[stacks] collaborators_may_push` of the policy in force of the base
+// repository of pr. A failed read answers false, so an unreadable policy never opens a stack to more people.
+func ascCollaboratorsMayPush(ctx context.Context, pr *issues_model.PullRequest) bool {
+	if backed, err := ascStackBacked(pr.BaseRepo); err != nil || !backed {
+		return false
+	}
+	rules, err := ascbridge.ReadStackRules(ctx, pr.BaseRepo.FullName())
+	if err != nil {
+		log.Warn("asc stack rules of %s: %v", pr.BaseRepo.FullName(), err)
+		return false
+	}
+	return rules.CollaboratorsMayPush
 }
 
 // AscPullIsOpen reports whether pr may still change: open, not merged and its repository not archived.
