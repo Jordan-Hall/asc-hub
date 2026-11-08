@@ -22,8 +22,11 @@ func ascRulesRepo(ctx *context.Context) bool {
 // ascRulesPage is the template data under .AscRules.
 type ascRulesPage struct {
 	Protection *asctrust.BranchRule
-	PolicyURL  string
-	Problem    string
+	// Squash is true when a stack lands on trunk as one change (`[merge] strategy = "squash"`); otherwise every
+	// change of the stack lands.
+	Squash    bool
+	PolicyURL string
+	Problem   string
 }
 
 // prepareAscRules sets AscRules for an asc repository: the protection read from the policy in force.
@@ -58,4 +61,5 @@ func prepareAscRules(ctx *context.Context) {
 	}
 	p := asctrust.ProtectionOfText(pp.View.Text, repo.DefaultBranch)
 	page.Protection = &p
+	page.Squash = pp.View.Strategy == "squash"
 }

@@ -34,11 +34,12 @@ type PolicyForm struct {
 	MaxTokens        int64
 }
 
-// MergeStrategies are the values of `[merge] strategy`.
 // MaxMergeBatch is the largest `[merge] batch` of asc-core (MAX_BATCH).
 const MaxMergeBatch = 20
 
-var MergeStrategies = []string{"rebase", "rebase-disjoint", "fast-forward"}
+// MergeStrategies are the values of `[merge] strategy`. The first three keep every change of a stack;
+// "squash" lands the stack as one change.
+var MergeStrategies = []string{"rebase", "rebase-disjoint", "fast-forward", "squash"}
 
 // FormOfText reads the fields of the form from a policy text.
 func FormOfText(text string) PolicyForm {

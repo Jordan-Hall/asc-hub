@@ -38,7 +38,7 @@ var (
 	repoNameShape  = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}/[A-Za-z0-9._-]{1,100}$`)
 
 	// OrgMergeStrategies are the values an organisation strategy takes; "" leaves the choice to the repository.
-	OrgMergeStrategies = []string{"", "rebase", "rebase-disjoint", "fast-forward"}
+	OrgMergeStrategies = []string{"", "rebase", "rebase-disjoint", "fast-forward", "squash"}
 )
 
 // ------------------------------------------------------------------------------------------------ settings

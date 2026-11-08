@@ -66,6 +66,8 @@ type PolicyView struct {
 	Table       WhoTable
 	Protections []Protection
 	MergeNote   string
+	// Strategy is the `[merge] strategy` in force: what asc answered, else the file's. Empty when unknown.
+	Strategy string
 }
 
 const (
@@ -100,7 +102,8 @@ func BuildPolicyView(in PolicyInput) *PolicyView {
 	}
 	if v.Usable {
 		v.Table = whoTable(parsed, in)
-		v.MergeNote = mergeSentence(strategyOf(parsed, in.Land))
+		v.Strategy = strategyOf(parsed, in.Land)
+		v.MergeNote = mergeSentence(v.Strategy)
 	}
 	return v
 }
@@ -132,6 +135,8 @@ func mergeSentence(strategy string) string {
 		return "Changes land by being rebased onto trunk, and only when they touch different files from the changes that landed meanwhile."
 	case "fast-forward":
 		return "Changes land only when they already sit on top of trunk."
+	case "squash":
+		return "Changes land by being rebased onto trunk, and each stack lands as one change."
 	}
 	return ""
 }

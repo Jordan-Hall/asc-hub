@@ -24,7 +24,7 @@
 						<label class="ds-label" for="om-strategy">{{ctx.Locale.Tr "asc_shell.om_strategy"}}</label>
 						<select id="om-strategy" class="ds-select" name="strategy">
 							{{$current := .Strategy}}
-							{{range $.AscOrgMerge.Strategies}}<option value="{{.}}"{{if eq . $current}} selected{{end}}>{{if eq . ""}}{{ctx.Locale.Tr "asc_shell.om_strategy_repo"}}{{else if eq . "rebase"}}{{ctx.Locale.Tr "asc_shell.om_strategy_rebase"}}{{else if eq . "rebase-disjoint"}}{{ctx.Locale.Tr "asc_shell.om_strategy_disjoint"}}{{else}}{{ctx.Locale.Tr "asc_shell.om_strategy_ff"}}{{end}}</option>{{end}}
+							{{range $.AscOrgMerge.Strategies}}<option value="{{.}}"{{if eq . $current}} selected{{end}}>{{if eq . ""}}{{ctx.Locale.Tr "asc_shell.om_strategy_repo"}}{{else if eq . "rebase"}}{{ctx.Locale.Tr "asc_shell.om_strategy_rebase"}}{{else if eq . "rebase-disjoint"}}{{ctx.Locale.Tr "asc_shell.om_strategy_disjoint"}}{{else if eq . "fast-forward"}}{{ctx.Locale.Tr "asc_shell.om_strategy_ff"}}{{else}}{{ctx.Locale.Tr "asc_shell.om_strategy_squash"}}{{end}}</option>{{end}}
 						</select>
 						<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.om_strategy_hint"}}</p>
 					</div>
