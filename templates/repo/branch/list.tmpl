@@ -103,6 +103,7 @@
 					<div>
 						<h3 class="rp-sec-title" id="rp-ref-stacks">{{ctx.Locale.Tr "asc_rp.ref_stacks_title"}}</h3>
 						<p class="rp-sec-sub">{{ctx.Locale.Tr "asc_rp.ref_stacks_sub"}}</p>
+						{{if .RefStackCleanupDays}}<p class="rp-sec-sub" data-testid="ref-stacks-cleanup">{{ctx.Locale.TrN .RefStackCleanupDays "asc_rp.ref_stacks_cleanup_1" "asc_rp.ref_stacks_cleanup_n" .RefStackCleanupDays}}</p>{{end}}
 					</div>
 					<a class="rp-sec-act" href="{{.RepoLink}}/pulls">{{ctx.Locale.Tr "asc_rp.rail_all"}}</a>
 				</div>

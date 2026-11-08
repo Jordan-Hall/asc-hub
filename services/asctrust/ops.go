@@ -78,6 +78,9 @@ type PolicySummary struct {
 	Budget string
 	// Queue is true when changes land on trunk only through the merge queue (`[merge] queue = true`).
 	Queue bool
+	// CleanupDays is the `[stacks] cleanup_days` asc reads: the days a stack's refs stay after its last change
+	// lands. 0 when the policy leaves it to the server.
+	CleanupDays int64
 }
 
 // maxSummaryLines is how many sentences of the meaning the home card shows.
@@ -105,6 +108,7 @@ func LoadPolicySummary(ctx context.Context, conn grpc.ClientConnInterface, repoN
 		text := string(src.GetText())
 		sum.Budget = RunBudgetWords(text)
 		sum.Queue, _ = TomlBool(text, "merge", "queue")
+		sum.CleanupDays = int64(parsed.GetStacks().GetCleanupDays())
 	}
 	return sum, nil
 }

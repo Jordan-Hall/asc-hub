@@ -32,10 +32,18 @@ type PolicyForm struct {
 	MaxRuntimeSecs   int64
 	MaxChangesPerRun int64
 	MaxTokens        int64
+	MaxStackDepth    int64 // [stacks] max_depth, 1 to MaxStackDepth; 0 for no limit
+	CleanupDays      int64 // [stacks] cleanup_days, 1 to MaxCleanupDays; 0 for the server's setting
 }
 
 // MaxMergeBatch is the largest `[merge] batch` of asc-core (MAX_BATCH).
 const MaxMergeBatch = 20
+
+// MaxStackDepth and MaxCleanupDays are the largest `[stacks] max_depth` and `cleanup_days` of asc-core.
+const (
+	MaxStackDepth  = 100
+	MaxCleanupDays = 3650
+)
 
 // MergeStrategies are the values of `[merge] strategy`. The first three keep every change of a stack;
 // "squash" lands the stack as one change.
@@ -73,6 +81,8 @@ func FormOfText(text string) PolicyForm {
 	f.MaxRuntimeSecs = n("agents", "max_runtime_seconds")
 	f.MaxChangesPerRun = n("agents.budgets", "max_changes_per_run")
 	f.MaxTokens = n("agents.budgets", "max_tokens")
+	f.MaxStackDepth = n("stacks", "max_depth")
+	f.CleanupDays = n("stacks", "cleanup_days")
 	f.MergeStrategy, _ = tomlString(text, "merge", "strategy")
 	return f
 }
@@ -121,6 +131,12 @@ func ApplyForm(text string, f PolicyForm) (string, error) {
 	}
 	if len(f.AgentScope) > MaxGlobs || len(f.AgentDenied) > MaxGlobs {
 		return "", fmt.Errorf("%w: at most %d path patterns per list", ErrBadInput, MaxGlobs)
+	}
+	if f.MaxStackDepth < 0 || f.MaxStackDepth > MaxStackDepth {
+		return "", fmt.Errorf("%w: longest stack is 1 to %d changes, or empty for no limit", ErrBadInput, MaxStackDepth)
+	}
+	if f.CleanupDays < 0 || f.CleanupDays > MaxCleanupDays {
+		return "", fmt.Errorf("%w: clean-up is 1 to %d days, or empty for the server's setting", ErrBadInput, MaxCleanupDays)
 	}
 	for _, c := range f.RequireChecks {
 		if c == "" || len(c) > 128 || strings.ContainsAny(c, "\n\r\x00\"") {
@@ -186,6 +202,17 @@ func ApplyForm(text string, f PolicyForm) (string, error) {
 	}
 	if f.MaxTokens > 0 || hasKey(text, "agents.budgets", "max_tokens") {
 		text = setLine(text, "agents.budgets", "max_tokens", fmt.Sprint(f.MaxTokens))
+	}
+	// Both keys mean "not set" when left out, so an empty field takes the key out rather than writing 0, which asc refuses.
+	for _, s := range []struct {
+		key string
+		v   int64
+	}{{"max_depth", f.MaxStackDepth}, {"cleanup_days", f.CleanupDays}} {
+		if s.v > 0 {
+			text = setLine(text, "stacks", s.key, fmt.Sprint(s.v))
+		} else {
+			text = removeKey(text, "stacks", s.key)
+		}
 	}
 	return text, nil
 }

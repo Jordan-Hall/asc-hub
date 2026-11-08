@@ -272,28 +272,37 @@ func prepareHomeCards(ctx *context.Context) {
 // prepareHomePolicy adds the Policy card: one read of the policy source with the credential of the viewer. The card
 // stays out when asc is off, the repository is not stored in asc, the server lacks the policy service or the read fails.
 func prepareHomePolicy(ctx *context.Context, repo *repo_model.Repository) {
+	if sum := viewerPolicySummary(ctx, repo, "home"); sum != nil {
+		ctx.Data["HomePolicy"] = sum
+	}
+}
+
+// viewerPolicySummary reads the policy summary of repo with the credential of the viewer. It is nil when asc is
+// off, the viewer is not signed in, the repository is not stored in asc, the server lacks the policy service or the
+// read fails; page names the page in the log line of a failed read.
+func viewerPolicySummary(ctx *context.Context, repo *repo_model.Repository, page string) *asctrust.PolicySummary {
 	if !setting.Asc.Enabled || !ctx.IsSigned || ctx.Doer == nil || !asctrust.HasFeature(ctx, asctrust.FeaturePolicy) {
-		return
+		return nil
 	}
 	name, err := asctrust.RepoName(repo)
 	if err != nil {
-		return
+		return nil
 	}
 	conn, err := asctrust.Conn()
 	if err != nil {
-		return
+		return nil
 	}
 	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
 	if err != nil {
-		return
+		return nil
 	}
 	defer release()
 	sum, err := asctrust.LoadPolicySummary(callCtx, conn, name)
 	if err != nil {
-		log.Error("home: policy summary of %s: %v", repo.FullName(), err)
-		return
+		log.Error("%s: policy summary of %s: %v", page, repo.FullName(), err)
+		return nil
 	}
-	ctx.Data["HomePolicy"] = sum
+	return sum
 }
 
 // homeStackRows is how many stacks the repository home lists; the filter counts are taken over these rows.

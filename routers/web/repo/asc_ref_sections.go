@@ -76,6 +76,11 @@ func prepareRefSections(ctx *context.Context) {
 				rows = rows[:refStackRows]
 			}
 			ctx.Data["RefStacks"] = rows
+			if len(rows) > 0 {
+				if sum := viewerPolicySummary(ctx, repo, "refs"); sum != nil && sum.CleanupDays > 0 {
+					ctx.Data["RefStackCleanupDays"] = sum.CleanupDays
+				}
+			}
 		}
 	}
 	if !ctx.Repo.CanRead(unit.TypeCode) {

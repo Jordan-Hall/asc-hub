@@ -90,6 +90,10 @@
 						<div class="ds-field"><label for="pf-tokens">{{ctx.Locale.Tr "asc_rp.pf_tokens"}}</label><input id="pf-tokens" class="ds-input" name="max_tokens" type="number" min="0" inputmode="numeric" value="{{.Form.MaxTokens}}"></div>
 						<p class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_human_approves"}}</p>
 					</fieldset>
+					<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "asc_rp.pf_stacks"}}</legend>
+						<div class="ds-field"><label for="pf-depth">{{ctx.Locale.Tr "asc_rp.pf_max_depth"}}</label><input id="pf-depth" class="ds-input" name="max_depth" type="number" min="1" max="100" inputmode="numeric" value="{{if .Form.MaxStackDepth}}{{.Form.MaxStackDepth}}{{end}}" aria-describedby="pf-depth-help"><p id="pf-depth-help" class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_max_depth_help"}}</p></div>
+						<div class="ds-field"><label for="pf-cleanup">{{ctx.Locale.Tr "asc_rp.pf_cleanup_days"}}</label><input id="pf-cleanup" class="ds-input" name="cleanup_days" type="number" min="1" max="3650" inputmode="numeric" value="{{if .Form.CleanupDays}}{{.Form.CleanupDays}}{{end}}" aria-describedby="pf-cleanup-help"><p id="pf-cleanup-help" class="asc-trust-sub">{{ctx.Locale.Tr "asc_rp.pf_cleanup_days_help"}}</p></div>
+					</fieldset>
 					<div class="asc-trust-actions"><button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-policy-review">{{ctx.Locale.Tr "asc_rp.pf_review"}}</button></div>
 					</fieldset>
 				</form>

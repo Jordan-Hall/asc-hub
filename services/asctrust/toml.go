@@ -355,6 +355,17 @@ func setLine(text, section, key, rendered string) string {
 	return out + "[" + section + "]\n" + entry + "\n"
 }
 
+// removeKey drops the lines of key from its section. The section header stays, so a comment under it is kept.
+func removeKey(text, section, key string) string {
+	d := parseToml(text)
+	k, ok := d.find(section, key)
+	if !ok {
+		return text
+	}
+	lines := append(append([]string{}, d.lines[:k.start]...), d.lines[k.end+1:]...)
+	return strings.Join(lines, "\n")
+}
+
 // TomlSetBool sets a boolean key of a section.
 func TomlSetBool(text, section, key string, v bool) string {
 	return setLine(text, section, key, strconv.FormatBool(v))
