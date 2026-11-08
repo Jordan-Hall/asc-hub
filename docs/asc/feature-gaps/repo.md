@@ -45,7 +45,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | About card: license line and "1,204 changes on main" wording | done | `H:templates/repo/asc_about.tmpl` (`rp-numbers`) | S |
 | Repo | "Who writes the code" card: 46% people / 54% agents, "100% reviewed by a human", median review time | needs-both | asc: a landed-change statistics RPC (author kind, review latency); hub: card on `asc_about.tmpl` | L |
 | Repo | Policy card: Valid / invalid chip, rule summary, link to `.asc/policy.toml` | done | `Policy.GetSource` / `Repo.GetPolicy` already called by `H:routers/web/repo/setting/asc_policy.go`; add the call to the home handler and a card in `asc_about.tmpl` | M |
-| Repo | Policy card lines that need new policy keys (budget "20 min and 200k tokens", merge queue on) | needs-asc-backend | `A:crates/asc-core/src/policy.rs` (see Policy rows) | M |
+| Repo | Policy card lines that need new policy keys (budget "20 min and 200k tokens", merge queue on) | done (the card adds "Agent runs stop at 20 min and 200k tokens." from `[agents] max_runtime_seconds` and `[agents.budgets] max_tokens, max_cost_micro_usd`, and "Changes land on trunk through the merge queue." when `[merge] queue = true`; each line is left out when the key is not set) | `H:services/asctrust/ops.go` (`LoadPolicySummary`, `RunBudgetWords`), `H:templates/repo/asc_about.tmpl`; `asc_home_policy_test.go`, `ops_test.go` | M |
 | Repo | Activity card: landed per week over 12 weeks, Contributors list with agent marks | needs-both | same statistics RPC as Insights; hub `asc_about.tmpl` | L |
 | Repo | Languages bar with legend and aria-label | done | `H:templates/repo/asc_about.tmpl` | S |
 | Repo | Latest release card ("9 changes, 3 by agents. Published 6 days ago") | done (seen on a live hub (ui10): name, chip, change count, age) | `H:templates/repo/asc_about.tmpl` shows name and age only; counts need the release-changes data (see Releases) | S |
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 236 |
+| done | 238 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
-| needs-asc-backend | 10 |
+| needs-asc-backend | 8 |
 | needs-both | 17 |
 | total | 263 |
 
@@ -421,7 +421,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 | --- | --- | --- | --- | --- | --- |
-| Repo | 25 | 0 | 0 | 1 | 2 |
+| Repo | 26 | 0 | 0 | 0 | 2 |
 | NewRepo | 13 | 0 | 0 | 0 | 1 |
 | Code | 20 | 0 | 0 | 0 | 0 |
 | Changeset | 13 | 0 | 0 | 0 | 1 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 74, M 87, L 32.
+Open-size totals of the rows that are not done: S 74, M 86, L 32.
