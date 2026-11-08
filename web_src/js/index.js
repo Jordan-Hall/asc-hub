@@ -134,6 +134,7 @@ import {
   initRepoSettingsTopics,
   initVisibilityConfirm,
   initRepoSettingSearchTeamBox,
+  initRepoSettingSearchAccessBox,
 } from './features/repo-settings.js';
 import {initRepoDiffView} from './features/repo-diff.js';
 import {initOrgTeamSearchRepoBox, initOrgTeamPicker} from './features/org-team.js';
@@ -340,6 +341,7 @@ onDomReady(() => {
   initRepoReleaseNew();
   initRepoSettingGitHook();
   initRepoSettingSearchTeamBox();
+  initRepoSettingSearchAccessBox();
   initRepoSettingsCollaboration();
   initRepoSettingsSaveBar();
   initRepoSettingsTopics();

@@ -4,6 +4,7 @@ import {onInputDebounce, toggleElem} from '../utils/dom.js';
 import {POST} from '../modules/fetch.js';
 import {createCodemirror} from './codemirror.ts';
 import {showDsToast} from './ds-toast.js';
+import {htmlEscape} from 'escape-goat';
 
 const {appSubUrl} = window.config;
 
@@ -256,6 +257,42 @@ export function initRepoSettingSearchTeamBox() {
       },
     },
     searchFields: ['name', 'description'],
+    showNoResults: false,
+  });
+}
+
+// The combined search of the access page (board RepoSettingsAccess): people, agents and teams in one list. A
+// picked team is sent as a team; a typed name is resolved by the server, a person or agent first.
+export function initRepoSettingSearchAccessBox() {
+  const box = document.getElementById('search-access-box');
+  if (!box) return;
+  const kindField = box.closest('form').querySelector('[data-access-kind]');
+  const input = box.querySelector('input');
+  input.addEventListener('input', () => {
+    kindField.value = '';
+  });
+  $(box).search({
+    minCharacters: 2,
+    apiSettings: {
+      url: `${box.getAttribute('data-url')}?q={query}`,
+      onResponse(response) {
+        const results = [];
+        for (const item of response.data) {
+          const kind = box.getAttribute(`data-kind-${item.kind}`) || '';
+          results.push({
+            title: item.name,
+            image: item.avatar_url || undefined,
+            description: htmlEscape([kind, item.full_name || item.description].filter(Boolean).join(' \u00b7 ')),
+            kind: item.kind,
+          });
+        }
+        return {results};
+      },
+    },
+    onSelect(result) {
+      kindField.value = result.kind === 'team' ? 'team' : '';
+    },
+    searchFields: ['title', 'description'],
     showNoResults: false,
   });
 }

@@ -559,6 +559,11 @@
   color: var(--text-2);
 }
 
+/* the note under the menu of a maintainer: which settings stay with the admins */
+.ds-snav-role {
+  padding: 12px 4px 0;
+}
+
 @media (max-width: 1023.98px) {
   .asc-settings-page .rp-top {
     display: none;
@@ -663,4 +668,46 @@
 .rp-rule-overlap {
   color: var(--err);
   font-size: 13px;
+}
+
+/* the access page (board RepoSettingsAccess): one list of people, teams and agents, and one add form */
+.rp-access-lede {
+  margin: 0 0 12px;
+}
+
+.rp-access-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.rp-access-find {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.rp-access-find > .prompt {
+  width: 100%;
+}
+
+.rp-access-role-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.rp-access-team {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-btn);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.rp-access-role {
+  color: var(--text-2);
 }

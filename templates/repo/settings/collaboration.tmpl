@@ -1,108 +1,91 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings collaboration")}}
 	<div class="repo-setting-content">
-		<h4 class="ds-card-top">
-			{{ctx.Locale.Tr "repo.settings.collaboration"}}
-		</h4>
-		{{if .Collaborators}}
-		<div class="ds-card ds-card-b ds-card-attach">
-			<div class="flex-list">
-				{{range .Collaborators}}
-					<div class="flex-item tw-items-center">
-						<div class="flex-item-leading">
-							<a href="{{.HomeLink}}" aria-label="{{.GetDisplayName}}"{{if .IsBot}} class="rp-agent-mark"{{end}}>{{ctx.AvatarUtils.Avatar . 32}}</a>
-						</div>
-						<div class="flex-item-main">
-							<div class="flex-item-title">
-								{{template "shared/user/name" .}}
-								{{if .IsBot}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
-							</div>
-							{{if and .IsBot $.AgentScope}}
-							<div class="flex-item-body rp-agent-scope">{{if $.AgentScope.Off}}{{ctx.Locale.Tr "asc_rp.agent_scope_off"}}{{else}}{{ctx.Locale.Tr "asc_rp.agent_scope" $.AgentScope.Paths}}{{end}}</div>
-							{{end}}
-						</div>
-						<div class="flex-item-trailing">
-							<div class="flex-text-block">
-								{{svg "octicon-shield-lock"}}
-								<div class="ui inline dropdown access-mode" data-url="{{$.RepoLink}}/settings/collaboration/access_mode" data-uid="{{.ID}}" data-last-value="{{printf "%d" .Collaboration.Mode}}" data-changed="{{ctx.Locale.Tr "asc_rp.access_changed" .GetDisplayName}}" data-undo="{{ctx.Locale.Tr "asc_rp.access_undo"}}" data-close="{{ctx.Locale.Tr "asc_rp.access_close"}}">
-									<div class="text">{{if eq .Collaboration.Mode 1}}{{ctx.Locale.Tr "repo.settings.collaboration.read"}}{{else if eq .Collaboration.Mode 2}}{{ctx.Locale.Tr "repo.settings.collaboration.write"}}{{else if eq .Collaboration.Mode 3}}{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}{{else}}{{ctx.Locale.Tr "repo.settings.collaboration.undefined"}}{{end}}</div>
-									{{svg "octicon-triangle-down" 14 "dropdown icon"}}
-									<div class="menu">
-										<div class="item" data-text="{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}" data-value="3">{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}</div>
-										<div class="item" data-text="{{ctx.Locale.Tr "repo.settings.collaboration.write"}}" data-value="2">{{ctx.Locale.Tr "repo.settings.collaboration.write"}}</div>
-										<div class="item" data-text="{{ctx.Locale.Tr "repo.settings.collaboration.read"}}" data-value="1">{{ctx.Locale.Tr "repo.settings.collaboration.read"}}</div>
-									</div>
-								</div>
-							</div>
-							<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button" data-url="{{$.RepoLink}}/settings/collaboration/delete" data-id="{{.ID}}" data-modal-id="delete-collaborator">
-								{{ctx.Locale.Tr "repo.settings.delete_collaborator"}}
-							</button>
-						</div>
-					</div>
-				{{end}}
-			</div>
-		</div>
-		{{end}}
-		<div class="ds-card ds-card-b ds-card-attach">
-			<form class="ui form ds-form" id="repo-collab-form" action="{{.RepoLink}}/settings/collaboration" method="post">
-				<div id="search-user-box" class="ui search input tw-align-middle">
-					<input class="prompt" name="collaborator" placeholder="{{ctx.Locale.Tr "search.user_kind"}}" autocomplete="off" autofocus required>
+		<p class="ds-hint rp-access-lede">{{ctx.Locale.Tr "asc_rp.access_lede"}}</p>
+		<h4 class="ds-card-top">{{ctx.Locale.Tr "asc_rp.access_title"}}</h4>
+		<div class="ds-card ds-card-b ds-card-attach" data-testid="access-list">
+			<p class="ds-hint">{{ctx.Locale.Tr "asc_rp.access_desc"}}</p>
+			{{$allowedToChangeTeams := or (not .RepoOwnerIsOrganization) .Org.RepoAdminChangeTeamAccess .Permission.IsOwner}}
+			<form class="ui form ds-form rp-access-add" id="repo-collab-form" action="{{.RepoLink}}/settings/collaboration" method="post" data-testid="access-add">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="kind" value="" data-access-kind>
+				<div id="search-access-box" class="ui search input rp-access-find" data-url="{{.RepoLink}}/settings/collaboration/search" data-kind-person="{{ctx.Locale.Tr "asc_rp.access_kind_person"}}" data-kind-agent="{{ctx.Locale.Tr "asc_rp.agent"}}" data-kind-team="{{ctx.Locale.Tr "asc_rp.access_kind_team"}}">
+					<label class="ds-sr" for="access-name">{{ctx.Locale.Tr "asc_rp.access_search"}}</label>
+					<input class="prompt ds-input" id="access-name" name="collaborator" placeholder="{{ctx.Locale.Tr "asc_rp.access_search"}}" autocomplete="off" required>
 				</div>
-				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.add_collaborator"}}</button>
+				<label class="ds-sr" for="access-role">{{ctx.Locale.Tr "asc_rp.access_role"}}</label>
+				<select class="ds-select" id="access-role" name="role" aria-describedby="access-role-hint">
+					{{range .AccessRoles}}<option value="{{.}}"{{if eq . "write"}} selected{{end}}>{{if eq . "maintain"}}{{ctx.Locale.Tr "asc_rp.access_maintain"}}{{else}}{{ctx.Locale.Tr (print "repo.settings.collaboration." .)}}{{end}}</option>{{end}}
+				</select>
+				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_rp.access_add"}}</button>
+				<p class="ds-hint rp-access-role-hint" id="access-role-hint">{{if .RepoOwnerIsOrganization}}{{ctx.Locale.Tr "asc_rp.access_role_hint_org"}}{{else}}{{ctx.Locale.Tr "asc_rp.access_role_hint"}}{{end}}</p>
 			</form>
-		</div>
 
-		{{if .RepoOwnerIsOrganization}}
-		<h4 class="ds-card-top">
-			{{ctx.Locale.Tr "repo.settings.teams"}}
-		</h4>
-		{{$allowedToChangeTeams := (or (.Org.RepoAdminChangeTeamAccess) (.Permission.IsOwner))}}
-		{{if .Teams}}
-		<div class="ds-card ds-card-b ds-card-attach">
-			<div class="flex-list">
-				{{range $t, $team := .Teams}}
-					<div class="flex-item">
-						<div class="flex-item-main">
-							<a class="flex-item-title text primary" href="{{AppSubUrl}}/org/{{$.OrgName|PathEscape}}/teams/{{.LowerName|PathEscape}}">
-								{{.Name}}
-							</a>
-							<div class="flex-item-body flex-text-block">
-								{{svg "octicon-shield-lock"}}
-								{{if eq .AccessMode 1}}{{ctx.Locale.Tr "repo.settings.collaboration.read"}}{{else if eq .AccessMode 2}}{{ctx.Locale.Tr "repo.settings.collaboration.write"}}{{else if eq .AccessMode 3}}{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}{{else if eq .AccessMode 4}}{{ctx.Locale.Tr "repo.settings.collaboration.owner"}}{{else}}{{ctx.Locale.Tr "repo.settings.collaboration.undefined"}}{{end}}
-							</div>
-							{{if or (eq .AccessMode 1) (eq .AccessMode 2)}}
-								{{$first := true}}
-								<div class="flex-item-body" data-tooltip-content="{{ctx.Locale.Tr "repo.settings.change_team_permission_tip"}}">
-									Sections: {{range $u, $unit := $.Units}}{{if and ($.Repo.UnitEnabled $.Context $unit.Type) ($team.UnitEnabled $.Context $unit.Type)}}{{if $first}}{{$first = false}}{{else}}, {{end}}{{ctx.Locale.Tr $unit.NameKey}}{{end}}{{end}} {{if $first}}None{{end}}
-								</div>
-							{{end}}
+			<nav class="ds-tabs" aria-label="{{ctx.Locale.Tr "asc_rp.access_show"}}" data-testid="access-show">
+				{{range $show := .AccessShows}}
+				<a class="ds-tab" href="{{$.RepoLink}}/settings/collaboration{{if ne $show "all"}}?show={{$show}}{{end}}"{{if eq $.AccessShow $show}} aria-current="page"{{end}} data-show="{{$show}}">{{ctx.Locale.Tr (print "asc_rp.access_show_" $show)}}<span class="ds-count">{{index $.AccessCount $show}}</span></a>
+				{{end}}
+			</nav>
+
+			{{if .AccessRows}}
+			<div class="flex-list" role="list">
+				{{range .AccessRows}}
+				{{if eq .Kind "team"}}
+				{{$team := .Team}}
+				<div class="flex-item tw-items-center" role="listitem" data-access-row="team" data-name="{{$team.Name}}">
+					<div class="flex-item-leading"><span class="rp-access-team" aria-hidden="true">{{svg "dsi-users" 20}}</span></div>
+					<div class="flex-item-main">
+						<div class="flex-item-title">
+							<a class="text primary" href="{{AppSubUrl}}/org/{{$.OrgName|PathEscape}}/teams/{{$team.LowerName|PathEscape}}">{{$team.Name}}</a>
+							<span class="ds-chip">{{ctx.Locale.Tr "asc_rp.access_kind_team"}}</span>
 						</div>
+						<div class="flex-item-body">{{ctx.Locale.TrN $team.NumMembers "asc_rp.access_members_one" "asc_rp.access_members_other" $team.NumMembers}}</div>
+					</div>
+					<div class="flex-item-trailing">
+						<span class="rp-access-role" data-role="{{.Role}}">{{if eq .Role "owner"}}{{ctx.Locale.Tr "repo.settings.collaboration.owner"}}{{else if .Role}}{{ctx.Locale.Tr (print "repo.settings.collaboration." .Role)}}{{else}}{{ctx.Locale.Tr "repo.settings.collaboration.undefined"}}{{end}}</span>
 						{{if $allowedToChangeTeams}}
-							<div class="flex-item-trailing" {{if .IncludesAllRepositories}} data-tooltip-content="{{ctx.Locale.Tr "repo.settings.delete_team_tip"}}"{{end}}>
-								<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button {{if .IncludesAllRepositories}}disabled {{end}}" data-url="{{$.RepoLink}}/settings/collaboration/team/delete" data-id="{{.ID}}" data-modal-id="delete-collaborator">
-										{{ctx.Locale.Tr "repo.settings.delete_collaborator"}}
-								</button>
-							</div>
+						<span{{if $team.IncludesAllRepositories}} data-tooltip-content="{{ctx.Locale.Tr "repo.settings.delete_team_tip"}}"{{end}}>
+							<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button{{if $team.IncludesAllRepositories}} disabled{{end}}" data-url="{{$.RepoLink}}/settings/collaboration/team/delete" data-id="{{$team.ID}}" data-modal-id="delete-collaborator" aria-label="{{ctx.Locale.Tr "asc_rp.access_remove_for" $team.Name}}">{{ctx.Locale.Tr "repo.settings.delete_collaborator"}}</button>
+						</span>
 						{{end}}
 					</div>
+				</div>
+				{{else}}
+				{{$u := .Collaborator}}
+				<div class="flex-item tw-items-center" role="listitem" data-access-row="{{.Kind}}" data-name="{{$u.Name}}">
+					<div class="flex-item-leading">
+						<a href="{{$u.HomeLink}}" aria-label="{{$u.GetDisplayName}}"{{if $u.IsBot}} class="rp-agent-mark"{{end}}>{{ctx.AvatarUtils.Avatar $u.User 32}}</a>
+					</div>
+					<div class="flex-item-main">
+						<div class="flex-item-title">
+							{{template "shared/user/name" $u.User}}
+							{{if $u.IsBot}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_rp.agent"}}</span>{{end}}
+						</div>
+						{{if and $u.IsBot $.AgentScope}}
+						<div class="flex-item-body rp-agent-scope">{{if $.AgentScope.Off}}{{ctx.Locale.Tr "asc_rp.agent_scope_off"}}{{else}}{{ctx.Locale.Tr "asc_rp.agent_scope" $.AgentScope.Paths}}{{end}}</div>
+						{{end}}
+						<div class="flex-item-body" data-last-active>{{if .LastActive}}{{ctx.Locale.Tr "asc_rp.access_last_active" (DateUtils.TimeSince .LastActive)}}{{else}}{{ctx.Locale.Tr "asc_rp.access_never_active"}}{{end}}</div>
+					</div>
+					<div class="flex-item-trailing">
+						<div class="ui inline dropdown access-mode" tabindex="0" aria-label="{{ctx.Locale.Tr "asc_rp.access_role_for" $u.GetDisplayName}}" data-url="{{$.RepoLink}}/settings/collaboration/access_mode" data-uid="{{$u.ID}}" data-last-value="{{if eq .Role "maintain"}}maintain{{else}}{{printf "%d" $u.Collaboration.Mode}}{{end}}" data-changed="{{ctx.Locale.Tr "asc_rp.access_changed" $u.GetDisplayName}}" data-undo="{{ctx.Locale.Tr "asc_rp.access_undo"}}" data-close="{{ctx.Locale.Tr "asc_rp.access_close"}}">
+							<div class="text">{{if eq .Role "maintain"}}{{ctx.Locale.Tr "asc_rp.access_maintain"}}{{else if .Role}}{{ctx.Locale.Tr (print "repo.settings.collaboration." .Role)}}{{else}}{{ctx.Locale.Tr "repo.settings.collaboration.undefined"}}{{end}}</div>
+							{{svg "octicon-triangle-down" 14 "dropdown icon"}}
+							<div class="menu">
+								<div class="item" data-text="{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}" data-value="3">{{ctx.Locale.Tr "repo.settings.collaboration.admin"}}</div>
+								<div class="item" data-text="{{ctx.Locale.Tr "asc_rp.access_maintain"}}" data-value="maintain">{{ctx.Locale.Tr "asc_rp.access_maintain"}}</div>
+								<div class="item" data-text="{{ctx.Locale.Tr "repo.settings.collaboration.write"}}" data-value="2">{{ctx.Locale.Tr "repo.settings.collaboration.write"}}</div>
+								<div class="item" data-text="{{ctx.Locale.Tr "repo.settings.collaboration.read"}}" data-value="1">{{ctx.Locale.Tr "repo.settings.collaboration.read"}}</div>
+							</div>
+						</div>
+						<button class="ds-btn ds-btn-danger ds-btn-sm inline delete-button" data-url="{{$.RepoLink}}/settings/collaboration/delete" data-id="{{$u.ID}}" data-modal-id="delete-collaborator" aria-label="{{ctx.Locale.Tr "asc_rp.access_remove_for" $u.GetDisplayName}}">{{ctx.Locale.Tr "repo.settings.delete_collaborator"}}</button>
+					</div>
+				</div>
+				{{end}}
 				{{end}}
 			</div>
-		</div>
-		{{end}}
-		<div class="ds-card ds-card-b ds-card-attach">
-			{{if $allowedToChangeTeams}}
-				<form class="ui form ds-form" id="repo-collab-team-form" action="{{.RepoLink}}/settings/collaboration/team" method="post">
-					<div id="search-team-box" class="ui search input tw-align-middle" data-org-name="{{.OrgName}}">
-						<input class="prompt" name="team" placeholder="{{ctx.Locale.Tr "search.team_kind"}}" autocomplete="off" autofocus required>
-					</div>
-					<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.add_team"}}</button>
-				</form>
 			{{else}}
-				<div class="item">
-					{{ctx.Locale.Tr "repo.settings.change_team_access_not_allowed"}}
-				</div>
+			<p class="ds-empty" data-testid="access-empty">{{ctx.Locale.Tr (print "asc_rp.access_none_" .AccessShow)}}</p>
 			{{end}}
 		</div>
-		{{end}}
 		{{template "repo/settings/deploy_keys_section" .}}
 	</div>
 

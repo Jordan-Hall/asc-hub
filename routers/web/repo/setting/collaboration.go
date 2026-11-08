@@ -6,6 +6,7 @@ package setting
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"strings"
 
 	"forgejo.org/models/db"
@@ -56,6 +57,9 @@ func loadAccess(ctx *context.Context) bool {
 	ctx.Data["OrgName"] = ctx.Repo.Repository.OwnerName
 	ctx.Data["Org"] = ctx.Repo.Repository.Owner
 	ctx.Data["Units"] = unit_model.Units
+	if !prepareAscAccessRows(ctx, users, teams) {
+		return false
+	}
 	return loadDeployKeys(ctx)
 }
 
@@ -66,15 +70,37 @@ func CollaborationPost(ctx *context.Context) {
 		ctx.Redirect(setting.AppSubURL + ctx.Req.URL.EscapedPath())
 		return
 	}
+	// the role picked before adding (board RepoSettingsAccess); a form without one adds with write access
+	role := ctx.FormString("role")
+	if role == "" {
+		role = ascRoleWrite
+	}
+	if !slices.Contains(ascAccessRoles, role) {
+		ctx.Flash.Error(ctx.Tr("asc_rp.access_role_unknown"))
+		ctx.Redirect(ctx.Repo.RepoLink + "/settings/collaboration")
+		return
+	}
+	// a name picked as a team from the search is a team; a typed name is a person or an agent first, then a
+	// team of the owning organization
+	if ctx.FormString("kind") == ascAccessTeam {
+		ascAddTeam(ctx, name)
+		return
+	}
 
 	u, err := user_model.GetUserByName(ctx, name)
 	if err != nil {
-		if user_model.IsErrUserNotExist(err) {
-			ctx.Flash.Error(ctx.Tr("form.user_not_exist"))
-			ctx.Redirect(setting.AppSubURL + ctx.Req.URL.EscapedPath())
-		} else {
+		if !user_model.IsErrUserNotExist(err) {
 			ctx.ServerError("GetUserByName", err)
+			return
 		}
+		if ctx.Repo.Owner.IsOrganization() {
+			if _, terr := organization.OrgFromUser(ctx.Repo.Owner).GetTeam(ctx, name); terr == nil {
+				ascAddTeam(ctx, name)
+				return
+			}
+		}
+		ctx.Flash.Error(ctx.Tr("form.user_not_exist"))
+		ctx.Redirect(setting.AppSubURL + ctx.Req.URL.EscapedPath())
 		return
 	}
 
@@ -95,7 +121,7 @@ func CollaborationPost(ctx *context.Context) {
 		// say what access the person already has, so the invite does not look lost
 		collab := &repo_model.Collaboration{}
 		if has, merr := db.GetEngine(ctx).Where("repo_id = ? AND user_id = ?", ctx.Repo.Repository.ID, u.ID).Get(collab); merr == nil && has {
-			ctx.Flash.Error(ctx.Tr("repo.settings.add_collaborator_already", u.GetDisplayName(), ctx.Tr("repo.settings.collaboration."+collab.Mode.String())))
+			ctx.Flash.Error(ctx.Tr("repo.settings.add_collaborator_already", u.GetDisplayName(), ascRoleName(ctx, ascCollaboratorRole(collab))))
 		} else {
 			ctx.Flash.Error(ctx.Tr("repo.settings.add_collaborator_duplicate"))
 		}
@@ -132,6 +158,11 @@ func CollaborationPost(ctx *context.Context) {
 		return
 	}
 
+	if err := ascApplyRole(ctx, u.ID, role); err != nil {
+		ctx.ServerError("ascApplyRole", err)
+		return
+	}
+
 	if setting.Service.EnableNotifyMail {
 		mailer.SendCollaboratorMail(u, ctx.Doer, ctx.Repo.Repository)
 	}
@@ -142,6 +173,12 @@ func CollaborationPost(ctx *context.Context) {
 
 // ChangeCollaborationAccessMode response for changing access of a collaboration
 func ChangeCollaborationAccessMode(ctx *context.Context) {
+	if ctx.FormString("mode") == ascMaintainMode {
+		if err := repo_module.SetAscMaintain(ctx, ctx.Repo.Repository, ctx.FormInt64("uid")); err != nil {
+			log.Error("SetAscMaintain: %v", err)
+		}
+		return
+	}
 	if err := repo_module.ChangeCollaborationAccessMode(
 		ctx,
 		ctx.Repo.Repository,
@@ -149,6 +186,31 @@ func ChangeCollaborationAccessMode(ctx *context.Context) {
 		perm.AccessMode(ctx.FormInt("mode"))); err != nil {
 		log.Error("ChangeCollaborationAccessMode: %v", err)
 	}
+}
+
+// ascApplyRole gives a collaborator one of ascAccessRoles; a new collaborator has write access already.
+func ascApplyRole(ctx *context.Context, uid int64, role string) error {
+	switch role {
+	case ascRoleMaintain:
+		return repo_module.SetAscMaintain(ctx, ctx.Repo.Repository, uid)
+	case ascRoleAdmin:
+		return repo_module.ChangeCollaborationAccessMode(ctx, ctx.Repo.Repository, uid, perm.AccessModeAdmin)
+	case ascRoleRead:
+		return repo_module.ChangeCollaborationAccessMode(ctx, ctx.Repo.Repository, uid, perm.AccessModeRead)
+	default:
+		return nil
+	}
+}
+
+// ascRoleName is the label of a role of the access page.
+func ascRoleName(ctx *context.Context, role string) string {
+	if role == ascRoleMaintain {
+		return ctx.Locale.TrString("asc_rp.access_maintain")
+	}
+	if role == "" {
+		return ctx.Locale.TrString("repo.settings.collaboration.undefined")
+	}
+	return ctx.Locale.TrString("repo.settings.collaboration." + role)
 }
 
 // DeleteCollaboration delete a collaboration for a repository
@@ -172,6 +234,21 @@ func AddTeamPost(ctx *context.Context) {
 
 	name := strings.ToLower(ctx.FormString("team"))
 	if len(name) == 0 {
+		ctx.Redirect(ctx.Repo.RepoLink + "/settings/collaboration")
+		return
+	}
+	ascAddTeam(ctx, name)
+}
+
+// ascAddTeam gives a team of the owning organization access to the repository, with the access mode of the team.
+func ascAddTeam(ctx *context.Context, name string) {
+	if !ctx.Repo.Owner.IsOrganization() {
+		ctx.Flash.Error(ctx.Tr("form.team_not_exist"))
+		ctx.Redirect(ctx.Repo.RepoLink + "/settings/collaboration")
+		return
+	}
+	if !ctx.Repo.Owner.RepoAdminChangeTeamAccess && !ctx.Repo.IsOwner() {
+		ctx.Flash.Error(ctx.Tr("repo.settings.change_team_access_not_allowed"))
 		ctx.Redirect(ctx.Repo.RepoLink + "/settings/collaboration")
 		return
 	}
