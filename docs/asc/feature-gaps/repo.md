@@ -288,7 +288,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsGeneral | Name rename note "redirects the old address for 90 days" and taken-name error | done | `H:models/repo/redirect.go` (`ExpiresUnix`, `RedirectKeepDays`, migration v18p), `H:templates/repo/settings/options.tmpl` hint and inline taken-name error, saved flash | M |
 | RepoSettingsGeneral | Topics field in General (chips, up to 20, Add) | done (seen on a live hub (ui38): chips, up to 20, added with comma or Enter, removed with their button, saved in place) | topics are edited in the About card only; add to `options.tmpl` | S |
 | RepoSettingsGeneral | Visibility as radio cards (Private / Internal / Public) with confirmation when changing | done (seen on a live hub (ui38): three cards; changing the level opens a dialog that names the new level and what it means, Cancel sends nothing; Internal is open to every signed-in, non-restricted person) | `options.tmpl` uses a Private checkbox; Internal does not exist in the model (see NewRepo) | L |
-| RepoSettingsGeneral | Features switches: Stacks and change review (locked, Required), Agent runs, Dependencies, Releases, Meaning search, Wiki | needs-hub-backend | Forgejo units (`H:models/unit/unit.go`, `settings/units/*`) cover releases and wiki; add unit types or repo flags for agent runs, dependencies and meaning search, and the locked row | M |
+| RepoSettingsGeneral | Features switches: Stacks and change review (locked, Required), Agent runs, Dependencies, Releases, Meaning search, Wiki | done (a Features card on General: Stacks locked on as Required, the other switches saved in one form; agent runs, dependencies and meaning search are per-repository switches (`asc_repo_feature_off`, migration v18r) that hide their tab and answer 404, meaning search falls back to text search; releases and wiki add or remove the units) | `H:models/repo/asc_feature.go`, `H:services/context/asc_features.go`, `H:routers/web/repo/setting/asc_features.go`, `H:templates/repo/settings/options.tmpl` | M |
 | RepoSettingsGeneral | Working mode radio cards and shared refs (`main`, `release/*`), Cloud sync switch | done | `H:templates/repo/settings/asc_branchless.tmpl` (separate page, not inside General) | S |
 | RepoSettingsGeneral | Danger zone: Transfer, Archive, Delete with typed full name `acme/payments` and counts ("Removes 1,204 changes, 14 releases and 23 issues") | done (seen on a live hub (ui28): the delete dialog names the changes on the default branch, stacks and pull requests, releases and issues; the 30-day undo is not possible, Forgejo deletes at once) | `options.tmpl` has transfer, archive, delete; typed string is the repo name and the counts are missing | M |
 | RepoSettingsGeneral | "An owner can undo the delete from the operation log for 30 days" | done (seen on a live hub (ui30): Delete moves the repository to a 30 day trash (nobody can read it, it is in no list, its name stays taken); the owner, an organisation owner or a site administrator restores it from Recently deleted; a nightly cron task purges it) | soft delete in hub plus restore; asc keeps repo data for the window (`Repo.RepoAdmin`) | L |
@@ -409,10 +409,10 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 215 |
+| done | 232 |
 | partial | 0 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 21 |
+| needs-hub-backend | 4 |
 | needs-asc-backend | 10 |
 | needs-both | 17 |
 | total | 263 |
@@ -421,34 +421,34 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 | --- | --- | --- | --- | --- | --- |
-| Repo | 8 | 11 | 6 | 1 | 2 |
-| NewRepo | 3 | 3 | 7 | 0 | 1 |
-| Code | 6 | 8 | 6 | 0 | 0 |
-| Changeset | 2 | 4 | 7 | 0 | 1 |
-| History | 4 | 6 | 4 | 0 | 1 |
-| Refs | 2 | 4 | 2 | 1 | 0 |
-| Compare | 2 | 2 | 2 | 0 | 0 |
-| Search | 6 | 12 | 1 | 1 | 0 |
-| Releases | 3 | 4 | 6 | 1 | 0 |
-| Dependencies | 10 | 3 | 0 | 1 | 0 |
-| Insights | 1 | 1 | 3 | 0 | 2 |
-| InsightsPeople | 0 | 2 | 1 | 0 | 2 |
-| GitNote | 1 | 3 | 0 | 0 | 0 |
-| Stacks | 1 | 6 | 6 | 0 | 0 |
-| RepoSettingsMenu | 0 | 2 | 0 | 0 | 0 |
-| RepoSettingsGeneral | 2 | 3 | 3 | 0 | 1 |
-| RepoSettingsAccess | 2 | 2 | 3 | 0 | 1 |
-| RepoSettingsPolicy | 6 | 3 | 0 | 1 | 2 |
-| RepoSettingsRules | 0 | 2 | 2 | 2 | 2 |
-| RepoSettingsWebhooks | 7 | 1 | 2 | 0 | 0 |
-| RepoSettingsSecrets | 5 | 0 | 1 | 1 | 2 |
+| Repo | 25 | 0 | 0 | 1 | 2 |
+| NewRepo | 13 | 0 | 0 | 0 | 1 |
+| Code | 20 | 0 | 0 | 0 | 0 |
+| Changeset | 13 | 0 | 0 | 0 | 1 |
+| History | 14 | 0 | 0 | 0 | 1 |
+| Refs | 8 | 0 | 0 | 1 | 0 |
+| Compare | 6 | 0 | 0 | 0 | 0 |
+| Search | 19 | 0 | 0 | 1 | 0 |
+| Releases | 14 | 0 | 0 | 0 | 0 |
+| Dependencies | 13 | 0 | 0 | 1 | 0 |
+| Insights | 7 | 0 | 0 | 0 | 0 |
+| InsightsPeople | 5 | 0 | 0 | 0 | 0 |
+| GitNote | 4 | 0 | 0 | 0 | 0 |
+| Stacks | 13 | 0 | 0 | 0 | 0 |
+| RepoSettingsMenu | 2 | 0 | 0 | 0 | 0 |
+| RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
+| RepoSettingsAccess | 5 | 0 | 2 | 0 | 1 |
+| RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
+| RepoSettingsRules | 2 | 0 | 2 | 2 | 2 |
+| RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
+| RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
 | RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
 | RepoSettingsStorage | 3 | 0 | 0 | 2 | 3 |
 | Mobile-Repo | 1 | 0 | 0 | 0 | 0 |
-| Mobile-Code | 0 | 1 | 0 | 0 | 0 |
-| Mobile-History | 0 | 1 | 0 | 0 | 0 |
-| Mobile-Search | 0 | 1 | 0 | 0 | 0 |
-| Mobile-Releases | 0 | 1 | 0 | 0 | 0 |
+| Mobile-Code | 1 | 0 | 0 | 0 | 0 |
+| Mobile-History | 1 | 0 | 0 | 0 | 0 |
+| Mobile-Search | 1 | 0 | 0 | 0 | 0 |
+| Mobile-Releases | 1 | 0 | 0 | 0 | 0 |
 | Mobile-NewRepo | 1 | 0 | 0 | 0 | 0 |
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
