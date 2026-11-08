@@ -6,6 +6,7 @@ package asctrust
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"forgejo.org/modules/ascclient"
@@ -73,6 +74,10 @@ type PolicySummary struct {
 	Present bool
 	Usable  bool
 	Lines   []string
+	// Budget is the limit of one agent run in short words ("20 min and 200k tokens"); empty when the policy sets none.
+	Budget string
+	// Queue is true when changes land on trunk only through the merge queue (`[merge] queue = true`).
+	Queue bool
 }
 
 // maxSummaryLines is how many sentences of the meaning the home card shows.
@@ -97,8 +102,62 @@ func LoadPolicySummary(ctx context.Context, conn grpc.ClientConnInterface, repoN
 		if len(sum.Lines) > maxSummaryLines {
 			sum.Lines = sum.Lines[:maxSummaryLines]
 		}
+		text := string(src.GetText())
+		sum.Budget = RunBudgetWords(text)
+		sum.Queue, _ = TomlBool(text, "merge", "queue")
 	}
 	return sum, nil
+}
+
+// RunBudgetWords says the limits of one agent run in short words: time from `[agents] max_runtime_seconds`, tokens
+// and cost from `[agents.budgets]`, as in "20 min and 200k tokens". It is empty when the policy sets none of them.
+func RunBudgetWords(text string) string {
+	var parts []string
+	if secs, ok := TomlInt(text, "agents", "max_runtime_seconds"); ok && secs > 0 {
+		parts = append(parts, durationWords(secs))
+	}
+	if tokens, ok := TomlInt(text, "agents.budgets", "max_tokens"); ok && tokens > 0 {
+		parts = append(parts, compactCount(tokens)+" tokens")
+	}
+	if cost, ok := TomlInt(text, "agents.budgets", "max_cost_micro_usd"); ok && cost > 0 {
+		parts = append(parts, dollars(cost))
+	}
+	return joinWords(parts)
+}
+
+// durationWords writes seconds as hours, minutes or seconds, whichever is whole: 3600 is "1 h", 1200 "20 min",
+// 90 "90 s".
+func durationWords(secs uint64) string {
+	switch {
+	case secs%3600 == 0:
+		return strconv.FormatUint(secs/3600, 10) + " h"
+	case secs%60 == 0:
+		return strconv.FormatUint(secs/60, 10) + " min"
+	}
+	return strconv.FormatUint(secs, 10) + " s"
+}
+
+// compactCount writes a count with k or M when that loses nothing: 200000 is "200k", 1500 "1.5k", 2000000 "2M",
+// 1234000 "1234k", 1234 "1234".
+func compactCount(n uint64) string {
+	for _, u := range []struct {
+		size uint64
+		unit string
+	}{{1_000_000, "M"}, {1_000, "k"}} {
+		if n < u.size {
+			continue
+		}
+		tenth := u.size / 10
+		if n%tenth != 0 {
+			continue
+		}
+		whole, frac := n/u.size, (n%u.size)/tenth
+		if frac == 0 {
+			return strconv.FormatUint(whole, 10) + u.unit
+		}
+		return strconv.FormatUint(whole, 10) + "." + strconv.FormatUint(frac, 10) + u.unit
+	}
+	return strconv.FormatUint(n, 10)
 }
 
 // AgentScope is what the policy of a repository lets its agents do, for the agent rows of the access page: the

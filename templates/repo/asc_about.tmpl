@@ -95,7 +95,7 @@
 			{{else if .HomePolicy.Usable}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_rp.policy_valid"}}</span>
 			{{else}}<span class="ds-chip ds-chip-err">{{ctx.Locale.Tr "asc_rp.policy_invalid"}}</span>{{end}}
 		</div>
-		{{if .HomePolicy.Lines}}<ul class="rp-policy-lines">{{range .HomePolicy.Lines}}<li>{{.}}</li>{{end}}</ul>{{end}}
+		{{if or .HomePolicy.Lines .HomePolicy.Budget .HomePolicy.Queue}}<ul class="rp-policy-lines">{{range .HomePolicy.Lines}}<li>{{.}}</li>{{end}}{{if .HomePolicy.Budget}}<li data-testid="rp-policy-budget">{{ctx.Locale.Tr "asc_rp.policy_budget" .HomePolicy.Budget}}</li>{{end}}{{if .HomePolicy.Queue}}<li data-testid="rp-policy-queue">{{ctx.Locale.Tr "asc_rp.policy_queue"}}</li>{{end}}</ul>{{end}}
 		{{if .HomePolicy.Present}}<a class="rp-sec-act" href="{{.RepoLink}}/src/{{.BranchNameSubURL}}/.asc/policy.toml">{{ctx.Locale.Tr "asc_rp.policy_open"}}</a>{{end}}
 	</section>
 	{{end}}
