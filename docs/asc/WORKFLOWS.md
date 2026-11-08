@@ -59,6 +59,10 @@ A workflow has 1 to 32 `[[step]]` tables. Each has an `id`, a `kind` and optiona
 
 `timeout_seconds` sets the time limit of a step, up to 30 days. If a step fails, the run stops, unless that step sets `continue_on_failure = true`.
 
+## Secrets
+
+Add repository secrets under **Settings > Actions > Secrets**. A value is encrypted when you save it and is never shown again. To change a value, select the pencil and enter the new value; the name cannot change. Each secret shows who last set its value and when, for example "Updated by Maya Okafor, 12 days ago". A value set through the API records the token's user. A secret set before the hub recorded this shows only the time.
+
 ## Limits
 
 `[budget]` limits the whole run: `max_changes`, `max_tokens`, `max_cost_micro_usd` (1,000,000 is one dollar) and `max_runtime_seconds`. The policy of the repository can set lower limits, and a lower limit always applies. `max_parallel_runs` (1 to 64) sets how many runs of this workflow can be active at the same time.
