@@ -121,6 +121,50 @@ func TestLoadPolicySummaryReadsOnlyTheSource(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Board Repo, Policy card: the run budget in short words and whether trunk lands through the merge queue.
+func TestLoadPolicySummaryBudgetAndQueue(t *testing.T) {
+	f, c := startFake(t)
+	src := policySource()
+	src.Text = []byte(`[agents]
+max_runtime_seconds = 1200
+
+[agents.budgets]
+max_tokens = 200000
+
+[merge]
+queue = true
+`)
+	f.getSource = func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error) { return src, nil }
+	sum, err := LoadPolicySummary(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.Equal(t, "20 min and 200k tokens", sum.Budget)
+	assert.True(t, sum.Queue)
+
+	src.Text = []byte(`[merge]
+queue = false
+`)
+	sum, err = LoadPolicySummary(userCtx(t, "t"), c, "acme/payments")
+	require.NoError(t, err)
+	assert.Empty(t, sum.Budget, "no limits, no line")
+	assert.False(t, sum.Queue)
+}
+
+func TestRunBudgetWords(t *testing.T) {
+	assert.Equal(t, "1 h, 1.5k tokens and $2.50", RunBudgetWords(`[agents]
+max_runtime_seconds = 3600
+[agents.budgets]
+max_tokens = 1500
+max_cost_micro_usd = 2500000
+`))
+	assert.Equal(t, "90 s", RunBudgetWords(`[agents]
+max_runtime_seconds = 90
+`))
+	assert.Empty(t, RunBudgetWords(""))
+	for n, want := range map[uint64]string{999: "999", 1234: "1234", 200_000: "200k", 2_000_000: "2M", 1_234_000: "1234k", 2_500_000: "2.5M"} {
+		assert.Equal(t, want, compactCount(n), n)
+	}
+}
+
 func TestLoadAgentScope(t *testing.T) {
 	f, c := startFake(t)
 	source := func(text string, agents *ascv1.PolicyAgents, parseErr string) {
