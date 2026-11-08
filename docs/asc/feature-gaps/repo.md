@@ -334,7 +334,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsRules | Rule removed with Undo for 30 minutes from the operation log | done | `H:models/git/asc_removed_rule.go`: removing a rule (page or `DELETE /branch_protections/{name}`) keeps a copy in `asc_removed_rule` (migration v18s) for 30 minutes; the rules page lists each removal with Undo until its time, `POST settings/branches/removed/{id}/restore` (`asc_rule_undo.go`) puts it back with every setting and refuses a late undo, a name in use again or an overlap with a rule added since; Forgejo rules live in the hub DB, so the copy is kept there, not in asc ops; `asc_removed_rule_test.go`, `asc_rule_undo_test.go` | M |
 | RepoSettingsRules | Stack behaviour switches: restack when main moves, keep approvals when only the base changed, let collaborators push onto a stack | needs-both | no repo-level config in asc (`Stacks.Restack` is invoked on demand); store in policy or repo config and enforce in `asc-serve` | L |
 | RepoSettingsRules | Longest stack (8) and clean-up after landing (7 days) | needs-asc-backend | new policy/config keys and a janitor in `A:crates/asc-serve` | M |
-| RepoSettingsRules | How stacks land: keep every change / squash into one change | needs-asc-backend | `[merge] strategy` values are rebase, rebase-disjoint, fast-forward; no squash (`A:policy.rs`) | M |
+| RepoSettingsRules | How stacks land: keep every change / squash into one change | done (the Rules card shows "How stacks land": Keep every change, or Squash into one change when the strategy in force is `squash`; the policy form and the organisation merge defaults offer "Squash into one change" next to the three strategies that keep every change; asc lands a squash of trunk as one changeset with the tree of the last change, the author of the first and every message, and needs every pushed change approved) | `H:routers/web/repo/setting/asc_rules.go`, `H:templates/repo/settings/branches.tmpl`, `H:services/asctrust/policyform.go`, `H:services/asctrust/orgsettings.go`, `A:crates/asc-serve/src/land.rs`; `asc_policy_strategy_test.go` | M |
 | RepoSettingsRules | Empty state "Nothing is protected" with Protect main | done | `H:templates/repo/settings/rules_empty.tmpl` on `branches.tmpl` when there is no rule: the sentence and "Protect <default branch>", which opens a new rule for it (not on an empty repository); `asc_rule_link_test.go` | S |
 
 ## RepoSettingsWebhooks
@@ -439,7 +439,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
 | RepoSettingsAccess | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
-| RepoSettingsRules | 4 | 0 | 0 | 2 | 2 |
+| RepoSettingsRules | 5 | 0 | 0 | 1 | 2 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
 | RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 74, M 88, L 32.
+Open-size totals of the rows that are not done: S 74, M 87, L 32.
