@@ -149,7 +149,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Refs | One page with Shared refs, Stacks in progress and Tags sections | done (seen on a live hub (ui10)) | `list.tmpl` lists Forgejo branches and links to `/tags`; add stacks (open pulls with ahead count) and release-linked tags, `routers/web/repo/branch.go` | M |
 | Refs | Filter pills All / Shared 3 / Stacks 3 / Tags 14 | done | `H:templates/repo/branch/list.tmpl` pills All / Shared / Stacks / Tags with counts show one kind at a time (`asc-ui.js` `data-ref-filter`, `asc-ui.test.js`); found done in the tree | S |
 | Refs | Branchless wording ("only three shared refs"), `RepoConfig.shared_refs` | done | a branchless asc repository (asc `RepoConfig`) titles the page "Shared refs and tags", says how many shared refs there are, and lists only the shared refs in one "Shared refs" section (`H:services/repository/branch.go` `LoadSharedBranches`, `routers/web/repo/branch.go`, `templates/repo/branch/list.tmpl`); when asc cannot answer the page lists every branch | M |
-| Refs | Stack cleanup note ("clean themselves up 7 days after the last change lands") | needs-asc-backend | the setting does not exist (see Rules) | S |
+| Refs | Stack cleanup note ("clean themselves up 7 days after the last change lands") | done (the Stacks section says "Stacks clean themselves up N days after the last change lands." from the `[stacks] cleanup_days` asc parsed; the line is left out when the policy leaves the days to the server, whose `landed_ref_days` the hub does not know) | `H:routers/web/repo/asc_ref_sections.go`, `H:templates/repo/branch/list.tmpl`, `H:services/asctrust/ops.go` (`PolicySummary.CleanupDays`); `A:crates/asc-serve/src/reftl.rs` (`LandedReaper`); `asc_ref_cleanup_test.go`, `ops_test.go` | S |
 | Refs | Tags section with release title, change count, author, date | done | `H:templates/repo/branch/ref_tags.tmpl`: the newest tags with release title, how many changes each adds to the tag before it (from the stored commit counts, `refTagsOf`), author and age; `asc_ref_tags_test.go` | M |
 | Refs | Row More menu names its target; no delete on protected refs | done | `branch/row.tmpl` | S |
 | Refs | State: nothing matches with "Search stacks" link | done | `list.tmpl` empty state has no stack search action | S |
@@ -333,7 +333,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsRules | Pattern overlap error ("Rules cannot overlap") and "2 open stacks target a ref this pattern matches" | done (a git repository: saving a new or renamed pattern that protects a branch another rule protects is refused, on the web form and the API (422); two patterns overlap when either matches the other or a sample name of it, or a branch matches both; under the pattern the form shows the rule it overlaps and the open pull requests that target a branch it matches, checked as you type; an asc repository has one rule, its policy) | `H:models/git/asc_rule_overlap.go`, `H:models/issues/asc_open_pulls_base.go`, `H:routers/web/repo/setting/asc_rule_check.go` (`GET settings/branches/check`), `H:web_src/js/features/asc-rule-check.js`, `protected_branch.tmpl` | M |
 | RepoSettingsRules | Rule removed with Undo for 30 minutes from the operation log | done | `H:models/git/asc_removed_rule.go`: removing a rule (page or `DELETE /branch_protections/{name}`) keeps a copy in `asc_removed_rule` (migration v18s) for 30 minutes; the rules page lists each removal with Undo until its time, `POST settings/branches/removed/{id}/restore` (`asc_rule_undo.go`) puts it back with every setting and refuses a late undo, a name in use again or an overlap with a rule added since; Forgejo rules live in the hub DB, so the copy is kept there, not in asc ops; `asc_removed_rule_test.go`, `asc_rule_undo_test.go` | M |
 | RepoSettingsRules | Stack behaviour switches: restack when main moves, keep approvals when only the base changed, let collaborators push onto a stack | needs-both | no repo-level config in asc (`Stacks.Restack` is invoked on demand); store in policy or repo config and enforce in `asc-serve` | L |
-| RepoSettingsRules | Longest stack (8) and clean-up after landing (7 days) | needs-asc-backend | new policy/config keys and a janitor in `A:crates/asc-serve` | M |
+| RepoSettingsRules | Longest stack (8) and clean-up after landing (7 days) | done (the Rules card shows "Longest stack" and "Clean-up after landing", or "No limit" and "The server's setting"; the policy Form view has a Stacks fieldset that writes `[stacks] max_depth` (1 to 100) and `cleanup_days` (1 to 3650) and takes a key out when its field is emptied; asc refuses a longer stack at the merge queue and deletes landed refs after the days) | `H:services/asctrust/policyform.go`, `H:services/asctrust/toml.go` (`removeKey`), `H:routers/web/repo/setting/asc_rules.go`, `H:templates/repo/settings/branches.tmpl`, `H:templates/repo/settings/asc_policy.tmpl`; `A:crates/asc-core/src/policy.rs`, `A:crates/asc-serve/src/queue/mod.rs`; `policyform_test.go`, `asc_policy_strategy_test.go` | M |
 | RepoSettingsRules | How stacks land: keep every change / squash into one change | done (the Rules card shows "How stacks land": Keep every change, or Squash into one change when the strategy in force is `squash`; the policy form and the organisation merge defaults offer "Squash into one change" next to the three strategies that keep every change; asc lands a squash of trunk as one changeset with the tree of the last change, the author of the first and every message, and needs every pushed change approved) | `H:routers/web/repo/setting/asc_rules.go`, `H:templates/repo/settings/branches.tmpl`, `H:services/asctrust/policyform.go`, `H:services/asctrust/orgsettings.go`, `A:crates/asc-serve/src/land.rs`; `asc_policy_strategy_test.go` | M |
 | RepoSettingsRules | Empty state "Nothing is protected" with Protect main | done | `H:templates/repo/settings/rules_empty.tmpl` on `branches.tmpl` when there is no rule: the sentence and "Protect <default branch>", which opens a new rule for it (not on an empty repository); `asc_rule_link_test.go` | S |
 
@@ -409,11 +409,11 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 238 |
+| done | 240 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
-| needs-asc-backend | 8 |
+| needs-asc-backend | 6 |
 | needs-both | 17 |
 | total | 263 |
 
@@ -426,7 +426,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Code | 20 | 0 | 0 | 0 | 0 |
 | Changeset | 13 | 0 | 0 | 0 | 1 |
 | History | 14 | 0 | 0 | 0 | 1 |
-| Refs | 8 | 0 | 0 | 1 | 0 |
+| Refs | 9 | 0 | 0 | 0 | 0 |
 | Compare | 6 | 0 | 0 | 0 | 0 |
 | Search | 19 | 0 | 0 | 1 | 0 |
 | Releases | 14 | 0 | 0 | 0 | 0 |
@@ -439,7 +439,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
 | RepoSettingsAccess | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
-| RepoSettingsRules | 5 | 0 | 0 | 1 | 2 |
+| RepoSettingsRules | 6 | 0 | 0 | 0 | 2 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
 | RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 74, M 86, L 32.
+Open-size totals of the rows that are not done: S 73, M 85, L 32.
