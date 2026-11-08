@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"forgejo.org/tests"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestAscRepoPullRefresh checks the phone repository home (board Mobile-Repo): pull to refresh over the body, which
@@ -22,4 +24,22 @@ func TestAscRepoPullRefresh(t *testing.T) {
 	}
 	page := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"), http.StatusOK).Body)
 	page.AssertElement(t, ".rp-sticky-m", true)
+}
+
+// TestAscRepoStickyNewStack checks the second sticky button of the phone repository home: a signed-in user who can
+// open a stack gets New pull request (a git repository) to the compare page; a visitor gets the file history instead.
+func TestAscRepoStickyNewStack(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+
+	session := loginUser(t, "user2")
+	page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"), http.StatusOK).Body)
+	link := page.Find(".rp-sticky-m [data-testid=sticky-new-stack]")
+	assert.Equal(t, 1, link.Length())
+	href, _ := link.Attr("href")
+	assert.Equal(t, "/user2/repo1/compare/master...master", href)
+	assert.Contains(t, link.Text(), "New pull request")
+
+	anon := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/user2/repo1"), http.StatusOK).Body)
+	anon.AssertElement(t, ".rp-sticky-m [data-testid=sticky-new-stack]", false)
+	anon.AssertElement(t, ".rp-sticky-m a[href='/user2/repo1/commits/branch/master']", true)
 }
