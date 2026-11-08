@@ -129,7 +129,9 @@
 		{{if $isHomepage}}
 			<div class="rp-sticky rp-sticky-m">
 				<button type="button" class="ds-btn ds-btn-primary show-modal" data-modal="#rp-clone-dialog" aria-haspopup="dialog">{{ctx.Locale.Tr "repo.asc_home.clone"}}</button>
-				{{if and .CanWriteCode .IsViewBranch (not .Repository.IsMirror) (not .Repository.IsArchived) .Repository.CanEnableEditor}}
+				{{if and .CanCompareOrPull .PullRequestCtx.Allowed .IsViewBranch (not .Repository.IsArchived)}}
+					<a class="ds-btn ds-btn-secondary" data-testid="sticky-new-stack" href="{{.BaseRepo.Link}}/compare/{{.BaseRepo.DefaultBranch|PathEscapeSegments}}...{{if ne .Repository.ID .BaseRepo.ID}}{{.Repository.OwnerName|PathEscape}}/{{.Repository.Name|PathEscape}}:{{end}}{{.BranchName|PathEscapeSegments}}">{{if eq .Repository.GetStorageBackend "asc"}}{{ctx.Locale.Tr "asc_rp.new_stack"}}{{else}}{{ctx.Locale.Tr "repo.pulls.new"}}{{end}}</a>
+				{{else if and .CanWriteCode .IsViewBranch (not .Repository.IsMirror) (not .Repository.IsArchived) .Repository.CanEnableEditor}}
 					<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/_new/{{.BranchName | PathEscapeSegments}}/">{{ctx.Locale.Tr "repo.editor.new_file"}}</a>
 				{{else}}
 					<a class="ds-btn ds-btn-secondary" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}">{{ctx.Locale.Tr "repo.file_history"}}</a>

@@ -1786,6 +1786,7 @@
   .rp-stack-filter .ds-seg {
     flex-wrap: nowrap;
     overflow-x: auto;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
   }
 
@@ -1793,6 +1794,7 @@
   .rp-stack-filter > .ds-btn {
     flex: none;
     white-space: nowrap;
+    scroll-snap-align: start;
   }
 }
 
