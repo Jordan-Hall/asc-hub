@@ -75,6 +75,7 @@ type fakeTrust struct {
 	depConfig   func(*ascv1.GetDepsConfigRequest) (*ascv1.GetDepsConfigResponse, error)
 	depScan     func(*ascv1.ScanDepsRequest) (*ascv1.ScanDepsResponse, error)
 	depPropose  func(*ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error)
+	depStatus   func(*ascv1.DepScanStatusRequest) (*ascv1.DepScanStatusResponse, error)
 	depDismiss  func(*ascv1.DismissDepFindingRequest) (*ascv1.DismissDepFindingResponse, error)
 
 	policySource func(*ascv1.GetPolicySourceRequest) (*ascv1.GetPolicySourceResponse, error)
@@ -264,6 +265,14 @@ func (f *fakeTrust) Scan(ctx gocontext.Context, r *ascv1.ScanDepsRequest) (*ascv
 		return f.UnimplementedDepsServiceServer.Scan(ctx, r)
 	}
 	return f.depScan(r)
+}
+
+func (f *fakeTrust) ScanStatus(ctx gocontext.Context, r *ascv1.DepScanStatusRequest) (*ascv1.DepScanStatusResponse, error) {
+	f.note(ctx, "DepScanStatus", r)
+	if f.depStatus == nil {
+		return f.UnimplementedDepsServiceServer.ScanStatus(ctx, r)
+	}
+	return f.depStatus(r)
 }
 
 func (f *fakeTrust) ProposeUpdate(ctx gocontext.Context, r *ascv1.ProposeDepUpdateRequest) (*ascv1.ProposeDepUpdateResponse, error) {

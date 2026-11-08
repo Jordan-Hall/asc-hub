@@ -1,5 +1,5 @@
 import {GET} from '../modules/fetch.js';
-import {initAscDeps, outdatedText} from './asc-deps.js';
+import {initAscDeps, outdatedText, scanEtaText, scanPhaseText} from './asc-deps.js';
 
 vi.mock('../modules/fetch.js', () => ({GET: vi.fn()}));
 
@@ -62,4 +62,56 @@ test('a failed check is said as such and never drawn as zero', async () => {
   initAscDeps();
   await flush();
   expect(document.querySelector('[data-deps-outdated-sub]').textContent).toBe('could not check');
+});
+
+function scanForm() {
+  document.body.innerHTML = `<form data-deps-scan-form data-status-url="/o/r/asc/deps/scan/status">
+    <button type="submit">Scan now</button>
+    <div role="status" hidden data-deps-progress>
+      <progress max="1000" data-deps-progress-bar></progress>
+      <span data-deps-progress-phase data-reading="Reading" data-advisories="Checking advisories, %d of %d" data-recording="Recording">Scanning…</span>
+      <span data-deps-progress-eta data-one="About 1 second left" data-many="About %d seconds left"></span>
+    </div>
+  </form>`;
+}
+
+test('the phase line counts the advisory steps and the time left reads in seconds', () => {
+  scanForm();
+  const phase = document.querySelector('[data-deps-progress-phase]');
+  const eta = document.querySelector('[data-deps-progress-eta]');
+  expect(scanPhaseText(phase, {phase: 'advisories', done: 40, total: 120})).toBe('Checking advisories, 40 of 120');
+  expect(scanPhaseText(phase, {phase: 'reading'})).toBe('Reading');
+  expect(scanPhaseText(phase, {phase: 'unknown'})).toBe('Scanning…');
+  expect(scanEtaText(eta, 0)).toBe('');
+  expect(scanEtaText(eta, 1)).toBe('About 1 second left');
+  expect(scanEtaText(eta, 20)).toBe('About 20 seconds left');
+});
+
+test('a scan shows its progress while the form waits and a failed poll keeps what is drawn', async () => {
+  vi.useFakeTimers();
+  try {
+    scanForm();
+    initAscDeps();
+    const form = document.querySelector('form');
+    const panel = document.querySelector('[data-deps-progress]');
+    expect(panel.hidden).toBe(true);
+    expect(GET).not.toHaveBeenCalledWith('/o/r/asc/deps/scan/status');
+    GET.mockResolvedValue({ok: true, json: () => Promise.resolve({running: true, phase: 'advisories', done: 2, total: 4, permille: 525, eta: 20})});
+    form.dispatchEvent(new Event('submit', {cancelable: true}));
+    expect(panel.hidden).toBe(false);
+    expect(form.querySelector('button').disabled).toBe(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(GET).toHaveBeenCalledWith('/o/r/asc/deps/scan/status');
+    expect(panel.querySelector('progress').value).toBe(525);
+    expect(panel.querySelector('[data-deps-progress-phase]').textContent).toBe('Checking advisories, 2 of 4');
+    expect(panel.querySelector('[data-deps-progress-eta]').textContent).toBe('About 20 seconds left');
+    GET.mockResolvedValue({ok: false, status: 502});
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(panel.querySelector('[data-deps-progress-eta]').textContent).toBe('About 20 seconds left');
+    GET.mockResolvedValue({ok: true, json: () => Promise.resolve({running: false})});
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(panel.querySelector('progress').value).toBe(525);
+  } finally {
+    vi.useRealTimers();
+  }
 });

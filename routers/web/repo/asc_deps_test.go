@@ -67,6 +67,8 @@ func TestAscDepsFindingsView(t *testing.T) {
 	assert.Contains(t, page.body, `rel="next"`)
 	assert.Contains(t, page.body, `for="asc-deps-severity"`, "fields have labels")
 	assert.Contains(t, page.body, `data-testid="asc-deps-scan"`, "an administrator can scan")
+	assert.Contains(t, page.body, `data-status-url="/user2/repo1/asc/deps/scan/status"`, "the scan form asks how a scan is going")
+	assert.Contains(t, page.body, `role="status" hidden data-deps-progress data-testid="asc-deps-progress"`, "the progress stays hidden until a scan starts")
 	assert.Contains(t, page.body, `name="_csrf" value="csrf-token-for-tests"`)
 	assert.NotContains(t, page.body, "Vulnerable dependencies", "no English literal")
 
@@ -343,6 +345,54 @@ func TestAscDepsOutdated(t *testing.T) {
 
 	startFakeTrust(t)
 	assert.Equal(t, http.StatusNotFound, outdated(4, perm_model.AccessModeRead).status)
+}
+
+func TestAscDepsScanStatus(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := startFakeTrust(t, asctrust.FeatureDeps)
+	f.depStatus = func(*ascv1.DepScanStatusRequest) (*ascv1.DepScanStatusResponse, error) {
+		return &ascv1.DepScanStatusResponse{
+			Running: true, Phase: ascv1.DepScanPhase_DEP_SCAN_PHASE_ADVISORIES, Done: 2, Total: 4, Permille: 525, EtaSeconds: 20, StartedAt: 100,
+		}, nil
+	}
+	scanStatus := func(user int64, access perm_model.AccessMode) trustPage {
+		return runTrust(t, trustReq{path: "/user2/repo1/asc/deps/scan/status", user: user, access: access}, AscDepsScanStatus)
+	}
+	page := scanStatus(4, perm_model.AccessModeRead)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.JSONEq(t, `{"running":true,"phase":"advisories","done":2,"total":4,"permille":525,"eta":20}`, page.body)
+	calls := f.callsOf("DepScanStatus")
+	require.Len(t, calls, 1)
+	assert.Equal(t, "user2/repo1", calls[0].Req.(*ascv1.DepScanStatusRequest).GetRepo().GetName())
+
+	f.depStatus = func(*ascv1.DepScanStatusRequest) (*ascv1.DepScanStatusResponse, error) {
+		return &ascv1.DepScanStatusResponse{Running: true, Phase: ascv1.DepScanPhase(9), Done: 7, Total: 3, Permille: 5000, EtaSeconds: 1 << 30}, nil
+	}
+	page = scanStatus(4, perm_model.AccessModeRead)
+	require.Equal(t, http.StatusOK, page.status, page.body)
+	assert.JSONEq(t, `{"running":true,"phase":"","done":3,"total":3,"permille":1000,"eta":0}`, page.body, "an unknown phase, a count past the total, a bar past full and an absurd estimate are not drawn")
+
+	f.depStatus = func(*ascv1.DepScanStatusRequest) (*ascv1.DepScanStatusResponse, error) {
+		return &ascv1.DepScanStatusResponse{LastTookSeconds: 12}, nil
+	}
+	page = scanStatus(4, perm_model.AccessModeRead)
+	assert.JSONEq(t, `{"running":false,"phase":"","done":0,"total":0,"permille":0,"eta":0}`, page.body, "an idle repository")
+
+	f.depStatus = func(*ascv1.DepScanStatusRequest) (*ascv1.DepScanStatusResponse, error) {
+		return nil, status.Error(codes.Unavailable, "down at /srv/asc/x")
+	}
+	page = scanStatus(4, perm_model.AccessModeRead)
+	assert.NotEqual(t, http.StatusOK, page.status)
+	assert.Contains(t, page.body, `"error"`)
+	assert.NotContains(t, page.body, "/srv/asc")
+
+	n := len(f.callsOf("DepScanStatus"))
+	assert.Equal(t, http.StatusForbidden, scanStatus(0, perm_model.AccessModeRead).status)
+	assert.Equal(t, http.StatusNotFound, scanStatus(4, perm_model.AccessModeNone).status)
+	assert.Len(t, f.callsOf("DepScanStatus"), n, "a refused request makes no call")
+
+	startFakeTrust(t)
+	assert.Equal(t, http.StatusNotFound, scanStatus(4, perm_model.AccessModeRead).status)
 }
 
 func TestAscDepsProposeOnePackage(t *testing.T) {
