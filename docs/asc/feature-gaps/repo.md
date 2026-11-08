@@ -332,7 +332,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsRules | Add / Edit rule side panel with Who can land checkboxes (Merge queue, Maintainers, Release key (CI), Agents), Require signed changes, Allow force push, Allow deleting | needs-both | Forgejo rule has push whitelists; asc policy has `allow_force`/`require_signed` only, no per-ref kinds or agents (`A:policy.rs` Trunk) | L |
 | RepoSettingsRules | Pattern overlap error ("Rules cannot overlap") and "2 open stacks target a ref this pattern matches" | done (a git repository: saving a new or renamed pattern that protects a branch another rule protects is refused, on the web form and the API (422); two patterns overlap when either matches the other or a sample name of it, or a branch matches both; under the pattern the form shows the rule it overlaps and the open pull requests that target a branch it matches, checked as you type; an asc repository has one rule, its policy) | `H:models/git/asc_rule_overlap.go`, `H:models/issues/asc_open_pulls_base.go`, `H:routers/web/repo/setting/asc_rule_check.go` (`GET settings/branches/check`), `H:web_src/js/features/asc-rule-check.js`, `protected_branch.tmpl` | M |
 | RepoSettingsRules | Rule removed with Undo for 30 minutes from the operation log | done | `H:models/git/asc_removed_rule.go`: removing a rule (page or `DELETE /branch_protections/{name}`) keeps a copy in `asc_removed_rule` (migration v18s) for 30 minutes; the rules page lists each removal with Undo until its time, `POST settings/branches/removed/{id}/restore` (`asc_rule_undo.go`) puts it back with every setting and refuses a late undo, a name in use again or an overlap with a rule added since; Forgejo rules live in the hub DB, so the copy is kept there, not in asc ops; `asc_removed_rule_test.go`, `asc_rule_undo_test.go` | M |
-| RepoSettingsRules | Stack behaviour switches: restack when main moves, keep approvals when only the base changed, let collaborators push onto a stack | needs-both | no repo-level config in asc (`Stacks.Restack` is invoked on demand); store in policy or repo config and enforce in `asc-serve` | L |
+| RepoSettingsRules | Stack behaviour switches: restack when main moves, keep approvals when only the base changed, let collaborators push onto a stack | done (the Rules card shows the three switches On or Off, and the policy Form view has "Restack open stacks when the default branch moves" and "People with write access may update any stack" next to "Keep approvals when a change is restacked"; they write `[stacks] restack_on_main_move`, `[stacks] collaborators_may_push` and `[review] keep_approvals_on_restack`. asc parses and returns the stack switches and the hub acts on them: a push that moves the default branch queues the repository once, and the job restacks each open stack on that branch as the person who opened it, leaving a stack that conflicts or that they may not rewrite for a person; with `collaborators_may_push` a writer may restack, restore a version of or resolve a conflict on a stack they did not start. A policy that cannot be read opens nothing) | `H:services/pull/asc_auto_restack.go`, `H:services/pull/asc_restore_version.go` (`ascCollaboratorsMayPush`), `H:services/ascbridge/stackrules.go`, `H:services/asctrust/policyform.go`, `H:routers/web/repo/setting/asc_rules.go`, `H:templates/repo/settings/branches.tmpl`, `H:templates/repo/settings/asc_policy.tmpl`; `A:crates/asc-core/src/policy.rs`; `asc_auto_restack_test.go`, `asc_collaborators_push_test.go`, `stackrules_test.go`, `policyform_test.go`, `asc_policy_strategy_test.go` | L |
 | RepoSettingsRules | Longest stack (8) and clean-up after landing (7 days) | done (the Rules card shows "Longest stack" and "Clean-up after landing", or "No limit" and "The server's setting"; the policy Form view has a Stacks fieldset that writes `[stacks] max_depth` (1 to 100) and `cleanup_days` (1 to 3650) and takes a key out when its field is emptied; asc refuses a longer stack at the merge queue and deletes landed refs after the days) | `H:services/asctrust/policyform.go`, `H:services/asctrust/toml.go` (`removeKey`), `H:routers/web/repo/setting/asc_rules.go`, `H:templates/repo/settings/branches.tmpl`, `H:templates/repo/settings/asc_policy.tmpl`; `A:crates/asc-core/src/policy.rs`, `A:crates/asc-serve/src/queue/mod.rs`; `policyform_test.go`, `asc_policy_strategy_test.go` | M |
 | RepoSettingsRules | How stacks land: keep every change / squash into one change | done (the Rules card shows "How stacks land": Keep every change, or Squash into one change when the strategy in force is `squash`; the policy form and the organisation merge defaults offer "Squash into one change" next to the three strategies that keep every change; asc lands a squash of trunk as one changeset with the tree of the last change, the author of the first and every message, and needs every pushed change approved) | `H:routers/web/repo/setting/asc_rules.go`, `H:templates/repo/settings/branches.tmpl`, `H:services/asctrust/policyform.go`, `H:services/asctrust/orgsettings.go`, `A:crates/asc-serve/src/land.rs`; `asc_policy_strategy_test.go` | M |
 | RepoSettingsRules | Empty state "Nothing is protected" with Protect main | done | `H:templates/repo/settings/rules_empty.tmpl` on `branches.tmpl` when there is no rule: the sentence and "Protect <default branch>", which opens a new rule for it (not on an empty repository); `asc_rule_link_test.go` | S |
@@ -409,12 +409,12 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 240 |
+| done | 241 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 6 |
-| needs-both | 17 |
+| needs-both | 16 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -439,7 +439,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
 | RepoSettingsAccess | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
-| RepoSettingsRules | 6 | 0 | 0 | 0 | 2 |
+| RepoSettingsRules | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
 | RepoSettingsAI | 3 | 0 | 0 | 1 | 2 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 73, M 85, L 32.
+Open-size totals of the rows that are not done: S 73, M 85, L 31.
