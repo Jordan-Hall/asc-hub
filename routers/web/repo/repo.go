@@ -430,11 +430,25 @@ func ActionWatch(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, tplWatchUnwatch)
 }
 
+// ascPlainFormBack answers a Star or Watch form of a repository list, which is posted without htmx and names the page
+// to go back to (redirect_to), with a redirect there. It reports false for the htmx control of the repository header,
+// which swaps the control in place.
+func ascPlainFormBack(ctx *context.Context) bool {
+	if ctx.Req.Header.Get("HX-Request") == "true" || ctx.FormString("redirect_to") == "" {
+		return false
+	}
+	ctx.RedirectToFirst(ctx.FormString("redirect_to"), ctx.Repo.RepoLink)
+	return true
+}
+
 func ActionWatchConst(watchSelection repo_model.WatchSelection) func(ctx *context.Context) {
 	return func(ctx *context.Context) {
 		err := repo_model.WatchRepoExplicitly(ctx, ctx.Doer.ID, ctx.Repo.Repository.ID, watchSelection)
 		if err != nil {
 			ctx.ServerError(fmt.Sprintf("Action (watch, %t)", watchSelection), err)
+			return
+		}
+		if ascPlainFormBack(ctx) {
 			return
 		}
 
@@ -456,6 +470,9 @@ func ActionStar(star bool) func(ctx *context.Context) {
 		err := repo_service.StarRepoAndSendLikeActivities(ctx, *ctx.Doer, ctx.Repo.Repository.ID, star)
 		if err != nil {
 			ctx.ServerError(fmt.Sprintf("Action (star, %t)", star), err)
+			return
+		}
+		if ascPlainFormBack(ctx) {
 			return
 		}
 

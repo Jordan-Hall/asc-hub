@@ -788,6 +788,10 @@ img.ds-av {
 .ds-av-stack > .ds-av + .ds-av { margin-left: -6px; }
 .ds-av-stack > .ds-av-agent { box-shadow: 0 0 0 2px var(--agent); }
 .ds-repo-contrib { align-items: center; }
+.ds-repo-check[data-check="passing"] { color: var(--ok); }
+.ds-repo-check[data-check="failing"] { color: var(--err); }
+.ds-repo-check[data-check="running"] { color: var(--warn); }
+.ds-row-act-count { font-variant-numeric: tabular-nums; color: var(--text-2); }
 
 .ds-roles { display: grid; gap: 12px; margin: 12px 0 0; }
 .ds-roles dt { font-weight: 600; }
