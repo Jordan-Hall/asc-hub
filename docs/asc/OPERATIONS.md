@@ -786,6 +786,17 @@ repository admins, **Open storage**. Code: `services/ascbyo/searchindex.go`, `ro
 `templates/shared/asc/byo_storage_repo.tmpl`, `templates/repo/asc_search.tmpl`. Tests: TestSearchIndexOf,
 TestRepoStorageSearchIndexes, TestAscSearchMeaningIndexOff.
 
+## Following a storage migration
+
+Under the progress bar the storage page shows the objects copied, the bytes moved once asc has counted them (for example
+"1.2 GiB of 4 GiB"), and while the copy runs, roughly how long it has left. The hub estimates the time from the pace so far: the share
+moved since the migration started, by bytes when they are counted and by objects before that. There is no estimate while the
+migration waits, is paused, or checks the copies, and time spent paused makes the estimate cautious until the pace catches up. The
+check compares every copy with its source and copies again any that is missing or different; the page then says how many it
+copied again, and the migration history keeps that count after the migration is done. A few redone copies are normal when the
+destination already held objects from an earlier attempt. The status endpoint the page polls
+(`GET .../asc/storage/migrations/{id}/status`) also returns `bytes_copied`, `bytes_total`, `eta_seconds` and `mismatched` for scripts.
+
 ## Pausing a storage migration
 
 While a repository's objects move to another place, the storage page shows the progress with **Pause** and **Cancel and keep

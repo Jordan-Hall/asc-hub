@@ -18,7 +18,7 @@ After this audit:
 
 | Area | Boards | Rows | Done | Partial | Missing | Done % |
 |---|---|---|---|---|---|---|
-| shell/settings | 47 | 317 | 155 | 34 | 128 | 49% |
+| shell/settings | 47 | 317 | 156 | 33 | 128 | 49% |
 | repo | 24 | 274 | 154 | 23 | 97 | 56% |
 | review | 5 | 88 | 35 | 15 | 38 | 40% |
 | agents-ops | 12 | 126 | 96 | 7 | 23 | 76% |
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 244, partial 15, missing 58. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 245, partial 14, missing 58. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -850,7 +850,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsStorage (ASC Hub settings: storage)
 
-Area shell/settings. Rows 6: done 5, partial 1, missing 0. Copy found in the hub: 71% of 108 copy strings (mobile twin 68%). Template(s): asc_storage.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 6: done 6, partial 0, missing 0. Copy found in the hub: 71% of 108 copy strings (mobile twin 68%). Template(s): asc_storage.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Keep your repository objects in an S3-compatible bucket that you own.; Keep your repository objects in a bucket you own. ASC writes a probe object, re...; S3-compatible buckets you own: Garage, MinIO, Backblaze B2, Cloudflare R2 or Am...; garage-eu.
 
@@ -860,7 +860,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Verify handshake: five steps with latency, failure message in words | done | see where-cell | - |
 | Per repository assignment ("where new objects go") | done | see where-cell | - |
 | Migration progress (copied/total) and cancel | done | web_src/js/features/asc-byo.js:5 | - |
-| Migration Pause/resume, bytes and ETA, mismatch count, paused state | partial (hub+asc) | Pause, Resume and the paused state: Storage.PauseMigration/ResumeMigration, StorageMigration.paused, byo_storage_repo.tmpl | asc: no bytes_total and no mismatch counter in proto/asc/v1/storage.proto; hub: bytes and ETA in byo_storage_repo.tmpl + asc-byo.js |
+| Migration Pause/resume, bytes and ETA, mismatch count, paused state | done | asc: Storage.PauseMigration/ResumeMigration, StorageMigration.paused, bytes_total and mismatched (the check counts the copies it redid); hub: bytes moved, the time left (estimated in the hub from the pace so far) and the redone copies in byo_storage_repo.tmpl, kept current by asc-byo.js; TestMigrationETA, TestRepoStorageMigrationBytesAndETA | - |
 | Card text "Used by N repositories - verified 2 days ago" | done | templates/shared/asc/byo_storage_cards.tmpl | - |
 
 #### UserSettingsUsage (ASC Hub settings: usage and quota)
