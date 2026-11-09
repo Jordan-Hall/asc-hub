@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	actions_model "forgejo.org/models/actions"
@@ -17,6 +18,7 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/models/moderation"
 	system_model "forgejo.org/models/system"
+	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/cache"
@@ -60,6 +62,14 @@ func dashboardFacts(ctx *context.Context) {
 	ctx.Data["StatRepos"] = counter.Repo
 	ctx.Data["StatIssuesOpen"] = counter.IssueOpen
 	ctx.Data["StatIssuesClosed"] = counter.IssueClosed
+	if n, err := newPeopleSince(ctx, time.Now().Add(-7*24*time.Hour)); err == nil {
+		ctx.Data["StatPeopleWeek"] = n
+	} else {
+		log.Error("dashboard: new people this week: %v", err)
+	}
+	if a, ok := todaysActivity(ctx, time.Now()); ok {
+		ctx.Data["Activity"] = a
+	}
 	ctx.Data["AuditRecent"] = ascRecentAudit(ctx)
 
 	var attention []attentionItem
@@ -153,6 +163,49 @@ func dashboardAscCall(ctx *context.Context, feature string) (grpc.ClientConnInte
 	}
 	callCtx, cancel := gocontext.WithTimeout(callCtx, 3*time.Second)
 	return conn, callCtx, func() { cancel(); release() }, true
+}
+
+// newPeopleSince counts the accounts of people (not organizations or bots) created since t.
+func newPeopleSince(ctx gocontext.Context, t time.Time) (int64, error) {
+	return db.GetEngine(ctx).Where("type = ? AND created_unix >= ?", user_model.UserTypeIndividual, t.Unix()).Count(new(user_model.User))
+}
+
+// activityTTL is how long the activity figures asc serve gave are shown before asc is asked again. The dashboard
+// refreshes every 30 seconds in every open tab; the figures are of the whole server, the same for every administrator.
+var activityTTL = time.Minute
+
+var activityCache struct {
+	sync.Mutex
+	at  time.Time
+	day int64
+	v   asctrust.Activity
+}
+
+// todaysActivity is the activity of the whole server today (UTC) for the Changesets today and Agent runs today tiles,
+// from asc serve (Usage.GetActivity). It is false when asc is off, does not have the figures or does not answer.
+func todaysActivity(ctx *context.Context, now time.Time) (*asctrust.Activity, bool) {
+	day := now.UTC().Unix() / 86400
+	activityCache.Lock()
+	if !activityCache.at.IsZero() && activityCache.day == day && now.Sub(activityCache.at) < activityTTL {
+		a := activityCache.v
+		activityCache.Unlock()
+		return &a, true
+	}
+	activityCache.Unlock()
+	conn, callCtx, done, ok := dashboardAscCall(ctx, asctrust.FeatureUsageActivity)
+	if !ok {
+		return nil, false
+	}
+	defer done()
+	a, err := asctrust.LoadActivity(callCtx, conn)
+	if err != nil {
+		log.Debug("dashboard: activity: %v", err)
+		return nil, false
+	}
+	activityCache.Lock()
+	activityCache.at, activityCache.day, activityCache.v = now, day, a
+	activityCache.Unlock()
+	return &a, true
 }
 
 // storageRow is the "Object storage" row of the System card: what asc serve stores for the whole server this month

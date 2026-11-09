@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Usage_GetUsage_FullMethodName  = "/asc.v1.Usage/GetUsage"
-	Usage_ListSpend_FullMethodName = "/asc.v1.Usage/ListSpend"
-	Usage_GetQuota_FullMethodName  = "/asc.v1.Usage/GetQuota"
-	Usage_SetQuota_FullMethodName  = "/asc.v1.Usage/SetQuota"
-	Usage_Report_FullMethodName    = "/asc.v1.Usage/Report"
+	Usage_GetUsage_FullMethodName    = "/asc.v1.Usage/GetUsage"
+	Usage_ListSpend_FullMethodName   = "/asc.v1.Usage/ListSpend"
+	Usage_GetQuota_FullMethodName    = "/asc.v1.Usage/GetQuota"
+	Usage_SetQuota_FullMethodName    = "/asc.v1.Usage/SetQuota"
+	Usage_Report_FullMethodName      = "/asc.v1.Usage/Report"
+	Usage_GetActivity_FullMethodName = "/asc.v1.Usage/GetActivity"
 )
 
 // UsageClient is the client API for Usage service.
@@ -50,6 +51,9 @@ type UsageClient interface {
 	GetQuota(ctx context.Context, in *GetQuotaRequest, opts ...grpc.CallOption) (*GetQuotaResponse, error)
 	SetQuota(ctx context.Context, in *SetQuotaRequest, opts ...grpc.CallOption) (*SetQuotaResponse, error)
 	Report(ctx context.Context, in *ReportUsageRequest, opts ...grpc.CallOption) (*ReportUsageResponse, error)
+	// Site admin: the changes published and the agent runs started on the whole server in a window. Advertised as
+	// Version.features "usage-activity.v1".
+	GetActivity(ctx context.Context, in *GetActivityRequest, opts ...grpc.CallOption) (*GetActivityResponse, error)
 }
 
 type usageClient struct {
@@ -110,6 +114,16 @@ func (c *usageClient) Report(ctx context.Context, in *ReportUsageRequest, opts .
 	return out, nil
 }
 
+func (c *usageClient) GetActivity(ctx context.Context, in *GetActivityRequest, opts ...grpc.CallOption) (*GetActivityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetActivityResponse)
+	err := c.cc.Invoke(ctx, Usage_GetActivity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsageServer is the server API for Usage service.
 // All implementations should embed UnimplementedUsageServer
 // for forward compatibility.
@@ -134,6 +148,9 @@ type UsageServer interface {
 	GetQuota(context.Context, *GetQuotaRequest) (*GetQuotaResponse, error)
 	SetQuota(context.Context, *SetQuotaRequest) (*SetQuotaResponse, error)
 	Report(context.Context, *ReportUsageRequest) (*ReportUsageResponse, error)
+	// Site admin: the changes published and the agent runs started on the whole server in a window. Advertised as
+	// Version.features "usage-activity.v1".
+	GetActivity(context.Context, *GetActivityRequest) (*GetActivityResponse, error)
 }
 
 // UnimplementedUsageServer should be embedded to have
@@ -157,6 +174,9 @@ func (UnimplementedUsageServer) SetQuota(context.Context, *SetQuotaRequest) (*Se
 }
 func (UnimplementedUsageServer) Report(context.Context, *ReportUsageRequest) (*ReportUsageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Report not implemented")
+}
+func (UnimplementedUsageServer) GetActivity(context.Context, *GetActivityRequest) (*GetActivityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetActivity not implemented")
 }
 func (UnimplementedUsageServer) testEmbeddedByValue() {}
 
@@ -268,6 +288,24 @@ func _Usage_Report_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Usage_GetActivity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetActivityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsageServer).GetActivity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Usage_GetActivity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsageServer).GetActivity(ctx, req.(*GetActivityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Usage_ServiceDesc is the grpc.ServiceDesc for Usage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -294,6 +332,10 @@ var Usage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Report",
 			Handler:    _Usage_Report_Handler,
+		},
+		{
+			MethodName: "GetActivity",
+			Handler:    _Usage_GetActivity_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

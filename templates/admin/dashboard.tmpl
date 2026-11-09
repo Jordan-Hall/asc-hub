@@ -13,13 +13,25 @@
 		<a class="ds-stat" href="{{AppSubUrl}}/admin/users">
 			<div class="ds-stat-label">{{svg "dsi-users" 16}}{{ctx.Locale.Tr "asc_admin.stat_people"}}</div>
 			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatUsers}}</div>
-			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.stat_people_sub" .StatOrgs}}</div>
+			<div class="ds-stat-sub">{{if .StatPeopleWeek}}{{ctx.Locale.Tr "asc_admin.stat_people_week" (ctx.Locale.PrettyNumber .StatPeopleWeek)}}{{else}}{{ctx.Locale.Tr "asc_admin.stat_people_week_none"}}{{end}}</div>
 		</a>
 		<a class="ds-stat" href="{{AppSubUrl}}/admin/repos">
 			<div class="ds-stat-label">{{svg "dsi-file" 16}}{{ctx.Locale.Tr "asc_admin.stat_repos"}}</div>
 			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatRepos}}</div>
 			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.stat_repos_sub" .StatIssuesOpen}}</div>
 		</a>
+		{{with .Activity}}
+			<div class="ds-stat" data-testid="adm-stat-changes">
+				<div class="ds-stat-label">{{svg "dsi-changes" 16}}{{ctx.Locale.Tr "asc_admin.stat_changes"}}</div>
+				<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .Changes}}{{if .Truncated}}+{{end}}</div>
+				<div class="ds-stat-sub">{{with .AgentShare}}{{ctx.Locale.Tr "asc_admin.stat_changes_agents" .}}{{else}}{{ctx.Locale.Tr "asc_admin.stat_changes_none"}}{{end}}</div>
+			</div>
+			<a class="ds-stat" href="{{AppSubUrl}}/admin/asc/agents" data-testid="adm-stat-runs">
+				<div class="ds-stat-label">{{svg "dsi-agent" 16}}{{ctx.Locale.Tr "asc_admin.stat_runs"}}</div>
+				<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .Runs}}</div>
+				<div class="ds-stat-sub">{{with .FinishedShare}}{{ctx.Locale.Tr "asc_admin.stat_runs_finished" .}}{{else if .RunsActive}}{{ctx.Locale.Tr "asc_admin.stat_runs_running" .RunsActive}}{{else}}{{ctx.Locale.Tr "asc_admin.stat_runs_none"}}{{end}}</div>
+			</a>
+		{{else}}
 		<a class="ds-stat" href="{{AppSubUrl}}/admin/orgs">
 			<div class="ds-stat-label">{{svg "dsi-building" 16}}{{ctx.Locale.Tr "asc_admin.stat_orgs"}}</div>
 			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatOrgs}}</div>
@@ -30,6 +42,7 @@
 			<div class="ds-stat-value">{{ctx.Locale.PrettyNumber .StatIssuesOpen}}</div>
 			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.stat_issues_sub" .StatIssuesClosed}}</div>
 		</a>
+		{{end}}
 	</div>
 
 	<div class="adm-two">

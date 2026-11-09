@@ -993,6 +993,178 @@ func (*ReportUsageResponse) Descriptor() ([]byte, []int) {
 	return file_asc_v1_usage_proto_rawDescGZIP(), []int{13}
 }
 
+// `since` and `until` are unix seconds. since 0 = the start of the UTC day of `until`; until 0 = now. At most 31 days.
+type GetActivityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Since         int64                  `protobuf:"varint,1,opt,name=since,proto3" json:"since,omitempty"`
+	Until         int64                  `protobuf:"varint,2,opt,name=until,proto3" json:"until,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetActivityRequest) Reset() {
+	*x = GetActivityRequest{}
+	mi := &file_asc_v1_usage_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetActivityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetActivityRequest) ProtoMessage() {}
+
+func (x *GetActivityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_usage_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetActivityRequest.ProtoReflect.Descriptor instead.
+func (*GetActivityRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_usage_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetActivityRequest) GetSince() int64 {
+	if x != nil {
+		return x.Since
+	}
+	return 0
+}
+
+func (x *GetActivityRequest) GetUntil() int64 {
+	if x != nil {
+		return x.Until
+	}
+	return 0
+}
+
+// A change counts once, in the window its first version was published in. It is by an agent when an agent run holds
+// it or it was published under an `agent:` principal. A run counts in the window it was created in; `runs_active` are
+// queued, running or waiting for input now, the other three are how the ended runs ended.
+type GetActivityResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Since           int64                  `protobuf:"varint,1,opt,name=since,proto3" json:"since,omitempty"`
+	Until           int64                  `protobuf:"varint,2,opt,name=until,proto3" json:"until,omitempty"`
+	Changes         uint32                 `protobuf:"varint,3,opt,name=changes,proto3" json:"changes,omitempty"`
+	ChangesByAgents uint32                 `protobuf:"varint,4,opt,name=changes_by_agents,json=changesByAgents,proto3" json:"changes_by_agents,omitempty"`
+	Runs            uint32                 `protobuf:"varint,5,opt,name=runs,proto3" json:"runs,omitempty"`
+	RunsActive      uint32                 `protobuf:"varint,6,opt,name=runs_active,json=runsActive,proto3" json:"runs_active,omitempty"`
+	RunsSucceeded   uint32                 `protobuf:"varint,7,opt,name=runs_succeeded,json=runsSucceeded,proto3" json:"runs_succeeded,omitempty"`
+	RunsFailed      uint32                 `protobuf:"varint,8,opt,name=runs_failed,json=runsFailed,proto3" json:"runs_failed,omitempty"` // failed, over budget or expired
+	RunsCancelled   uint32                 `protobuf:"varint,9,opt,name=runs_cancelled,json=runsCancelled,proto3" json:"runs_cancelled,omitempty"`
+	Truncated       bool                   `protobuf:"varint,10,opt,name=truncated,proto3" json:"truncated,omitempty"` // more than 100000 changes: the change counts are lower bounds
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GetActivityResponse) Reset() {
+	*x = GetActivityResponse{}
+	mi := &file_asc_v1_usage_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetActivityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetActivityResponse) ProtoMessage() {}
+
+func (x *GetActivityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_usage_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetActivityResponse.ProtoReflect.Descriptor instead.
+func (*GetActivityResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_usage_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetActivityResponse) GetSince() int64 {
+	if x != nil {
+		return x.Since
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetUntil() int64 {
+	if x != nil {
+		return x.Until
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetChanges() uint32 {
+	if x != nil {
+		return x.Changes
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetChangesByAgents() uint32 {
+	if x != nil {
+		return x.ChangesByAgents
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetRuns() uint32 {
+	if x != nil {
+		return x.Runs
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetRunsActive() uint32 {
+	if x != nil {
+		return x.RunsActive
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetRunsSucceeded() uint32 {
+	if x != nil {
+		return x.RunsSucceeded
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetRunsFailed() uint32 {
+	if x != nil {
+		return x.RunsFailed
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetRunsCancelled() uint32 {
+	if x != nil {
+		return x.RunsCancelled
+	}
+	return 0
+}
+
+func (x *GetActivityResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
 var File_asc_v1_usage_proto protoreflect.FileDescriptor
 
 const file_asc_v1_usage_proto_rawDesc = "" +
@@ -1069,20 +1241,38 @@ const file_asc_v1_usage_proto_rawDesc = "" +
 	"byoStorage\x12\x0e\n" +
 	"\x02at\x18\x05 \x01(\x03R\x02atB\x10\n" +
 	"\x0e_storage_bytes\"\x15\n" +
-	"\x13ReportUsageResponse*y\n" +
+	"\x13ReportUsageResponse\"@\n" +
+	"\x12GetActivityRequest\x12\x14\n" +
+	"\x05since\x18\x01 \x01(\x03R\x05since\x12\x14\n" +
+	"\x05until\x18\x02 \x01(\x03R\x05until\"\xc9\x02\n" +
+	"\x13GetActivityResponse\x12\x14\n" +
+	"\x05since\x18\x01 \x01(\x03R\x05since\x12\x14\n" +
+	"\x05until\x18\x02 \x01(\x03R\x05until\x12\x18\n" +
+	"\achanges\x18\x03 \x01(\rR\achanges\x12*\n" +
+	"\x11changes_by_agents\x18\x04 \x01(\rR\x0fchangesByAgents\x12\x12\n" +
+	"\x04runs\x18\x05 \x01(\rR\x04runs\x12\x1f\n" +
+	"\vruns_active\x18\x06 \x01(\rR\n" +
+	"runsActive\x12%\n" +
+	"\x0eruns_succeeded\x18\a \x01(\rR\rrunsSucceeded\x12\x1f\n" +
+	"\vruns_failed\x18\b \x01(\rR\n" +
+	"runsFailed\x12%\n" +
+	"\x0eruns_cancelled\x18\t \x01(\rR\rrunsCancelled\x12\x1c\n" +
+	"\ttruncated\x18\n" +
+	" \x01(\bR\ttruncated*y\n" +
 	"\n" +
 	"SpendGroup\x12\x13\n" +
 	"\x0fSPEND_GROUP_KEY\x10\x00\x12\x14\n" +
 	"\x10SPEND_GROUP_USER\x10\x01\x12\x14\n" +
 	"\x10SPEND_GROUP_REPO\x10\x02\x12\x13\n" +
 	"\x0fSPEND_GROUP_DAY\x10\x03\x12\x15\n" +
-	"\x11SPEND_GROUP_MONTH\x10\x042\xc9\x02\n" +
+	"\x11SPEND_GROUP_MONTH\x10\x042\x91\x03\n" +
 	"\x05Usage\x12=\n" +
 	"\bGetUsage\x12\x17.asc.v1.GetUsageRequest\x1a\x18.asc.v1.GetUsageResponse\x12@\n" +
 	"\tListSpend\x12\x18.asc.v1.ListSpendRequest\x1a\x19.asc.v1.ListSpendResponse\x12=\n" +
 	"\bGetQuota\x12\x17.asc.v1.GetQuotaRequest\x1a\x18.asc.v1.GetQuotaResponse\x12=\n" +
 	"\bSetQuota\x12\x17.asc.v1.SetQuotaRequest\x1a\x18.asc.v1.SetQuotaResponse\x12A\n" +
-	"\x06Report\x12\x1a.asc.v1.ReportUsageRequest\x1a\x1b.asc.v1.ReportUsageResponseBu\n" +
+	"\x06Report\x12\x1a.asc.v1.ReportUsageRequest\x1a\x1b.asc.v1.ReportUsageResponse\x12F\n" +
+	"\vGetActivity\x12\x1a.asc.v1.GetActivityRequest\x1a\x1b.asc.v1.GetActivityResponseBu\n" +
 	"\n" +
 	"com.asc.v1B\n" +
 	"UsageProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
@@ -1100,7 +1290,7 @@ func file_asc_v1_usage_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_usage_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_asc_v1_usage_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_asc_v1_usage_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_asc_v1_usage_proto_goTypes = []any{
 	(SpendGroup)(0),             // 0: asc.v1.SpendGroup
 	(*UsageQuota)(nil),          // 1: asc.v1.UsageQuota
@@ -1117,24 +1307,26 @@ var file_asc_v1_usage_proto_goTypes = []any{
 	(*SetQuotaResponse)(nil),    // 12: asc.v1.SetQuotaResponse
 	(*ReportUsageRequest)(nil),  // 13: asc.v1.ReportUsageRequest
 	(*ReportUsageResponse)(nil), // 14: asc.v1.ReportUsageResponse
-	(*OwnerRef)(nil),            // 15: asc.v1.OwnerRef
+	(*GetActivityRequest)(nil),  // 15: asc.v1.GetActivityRequest
+	(*GetActivityResponse)(nil), // 16: asc.v1.GetActivityResponse
+	(*OwnerRef)(nil),            // 17: asc.v1.OwnerRef
 }
 var file_asc_v1_usage_proto_depIdxs = []int32{
-	15, // 0: asc.v1.GetUsageRequest.owner:type_name -> asc.v1.OwnerRef
+	17, // 0: asc.v1.GetUsageRequest.owner:type_name -> asc.v1.OwnerRef
 	2,  // 1: asc.v1.GetUsageResponse.storage:type_name -> asc.v1.UsageMeter
 	2,  // 2: asc.v1.GetUsageResponse.agent_minutes:type_name -> asc.v1.UsageMeter
 	2,  // 3: asc.v1.GetUsageResponse.ai_spend:type_name -> asc.v1.UsageMeter
 	2,  // 4: asc.v1.GetUsageResponse.bandwidth:type_name -> asc.v1.UsageMeter
 	3,  // 5: asc.v1.GetUsageResponse.repos:type_name -> asc.v1.UsageRepo
-	15, // 6: asc.v1.ListSpendRequest.owner:type_name -> asc.v1.OwnerRef
+	17, // 6: asc.v1.ListSpendRequest.owner:type_name -> asc.v1.OwnerRef
 	0,  // 7: asc.v1.ListSpendRequest.group_by:type_name -> asc.v1.SpendGroup
 	7,  // 8: asc.v1.ListSpendResponse.rows:type_name -> asc.v1.SpendRow
 	7,  // 9: asc.v1.ListSpendResponse.total:type_name -> asc.v1.SpendRow
-	15, // 10: asc.v1.GetQuotaRequest.owner:type_name -> asc.v1.OwnerRef
+	17, // 10: asc.v1.GetQuotaRequest.owner:type_name -> asc.v1.OwnerRef
 	1,  // 11: asc.v1.GetQuotaResponse.effective:type_name -> asc.v1.UsageQuota
 	1,  // 12: asc.v1.GetQuotaResponse.override:type_name -> asc.v1.UsageQuota
 	1,  // 13: asc.v1.GetQuotaResponse.instance_default:type_name -> asc.v1.UsageQuota
-	15, // 14: asc.v1.SetQuotaRequest.owner:type_name -> asc.v1.OwnerRef
+	17, // 14: asc.v1.SetQuotaRequest.owner:type_name -> asc.v1.OwnerRef
 	1,  // 15: asc.v1.SetQuotaRequest.quota:type_name -> asc.v1.UsageQuota
 	10, // 16: asc.v1.SetQuotaResponse.quota:type_name -> asc.v1.GetQuotaResponse
 	4,  // 17: asc.v1.Usage.GetUsage:input_type -> asc.v1.GetUsageRequest
@@ -1142,13 +1334,15 @@ var file_asc_v1_usage_proto_depIdxs = []int32{
 	9,  // 19: asc.v1.Usage.GetQuota:input_type -> asc.v1.GetQuotaRequest
 	11, // 20: asc.v1.Usage.SetQuota:input_type -> asc.v1.SetQuotaRequest
 	13, // 21: asc.v1.Usage.Report:input_type -> asc.v1.ReportUsageRequest
-	5,  // 22: asc.v1.Usage.GetUsage:output_type -> asc.v1.GetUsageResponse
-	8,  // 23: asc.v1.Usage.ListSpend:output_type -> asc.v1.ListSpendResponse
-	10, // 24: asc.v1.Usage.GetQuota:output_type -> asc.v1.GetQuotaResponse
-	12, // 25: asc.v1.Usage.SetQuota:output_type -> asc.v1.SetQuotaResponse
-	14, // 26: asc.v1.Usage.Report:output_type -> asc.v1.ReportUsageResponse
-	22, // [22:27] is the sub-list for method output_type
-	17, // [17:22] is the sub-list for method input_type
+	15, // 22: asc.v1.Usage.GetActivity:input_type -> asc.v1.GetActivityRequest
+	5,  // 23: asc.v1.Usage.GetUsage:output_type -> asc.v1.GetUsageResponse
+	8,  // 24: asc.v1.Usage.ListSpend:output_type -> asc.v1.ListSpendResponse
+	10, // 25: asc.v1.Usage.GetQuota:output_type -> asc.v1.GetQuotaResponse
+	12, // 26: asc.v1.Usage.SetQuota:output_type -> asc.v1.SetQuotaResponse
+	14, // 27: asc.v1.Usage.Report:output_type -> asc.v1.ReportUsageResponse
+	16, // 28: asc.v1.Usage.GetActivity:output_type -> asc.v1.GetActivityResponse
+	23, // [23:29] is the sub-list for method output_type
+	17, // [17:23] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
 	17, // [17:17] is the sub-list for extension extendee
 	0,  // [0:17] is the sub-list for field type_name
@@ -1167,7 +1361,7 @@ func file_asc_v1_usage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_usage_proto_rawDesc), len(file_asc_v1_usage_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   14,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
