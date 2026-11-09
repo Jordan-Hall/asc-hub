@@ -429,6 +429,23 @@ Code: `routers/web/admin/asc_health.go`, `asc_health_more.go`, `services/asctrus
 TestTheDiskCheckSaysHowSoonTheVolumeFills, TestTheTLSCheckReadsTheCertificateTheHubServes, TestTheClockCheck,
 TestTheAscChecksAskAscServeToProbeItself, TestLoadHealthMeasuresTheClocks, TestAscHealthSteps.
 
+## Webhooks on the hooks page
+
+Site administration, Hooks and applications (`/admin/hooks`), lists the system webhooks (they fire for every repository) and
+the default webhooks (they are copied into each new repository) in one table, system hooks first, with a Scope column. When
+no hook is set, the table is replaced by "No webhooks" and the two Add buttons stay below it.
+
+- **Last delivery.** Each row says how the last delivery went, with the status and how long ago. When the latest deliveries
+  failed in a row, it says "Failing: the last N deliveries ..." in red.
+- **Replay.** A row whose last delivery failed offers Replay instead of Edit. Replay sends that same delivery again and comes
+  back to the list with a message. A paused hook cannot replay; switch it on first.
+- **Secrets are shown once.** Regenerate secret, on the hook's page, makes a new random secret, saves it at once and shows it
+  in the message on the next page only. The hook's page never shows a saved secret: the field is masked, with Replace beside
+  it. Copy the secret into the receiving service before you leave the page.
+
+Code: `routers/web/admin/hooks.go`, `routers/web/repo/setting/webhook.go`, `templates/shared/webhook/rows.tmpl`. Tests:
+TestAdminHooksOneList, TestAscAdminHooksBoardNotes.
+
 ## Agent runners on the runners page
 
 Site administration > Runners lists the hub's Actions runners and, under them, the agent runners: the asc serve
