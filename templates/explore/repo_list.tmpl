@@ -44,6 +44,12 @@
 					{{$open := .NumOpenPulls $.Context}}
 					{{if $open}}<span class="ds-only-mobile">{{ctx.Locale.TrPluralString $open "explore.open_stacks_n" (ctx.Locale.PrettyNumber $open)}}</span>{{end}}
 					<span>{{ctx.Locale.Tr "org.repo_updated" (DateUtils.TimeSince .UpdatedUnix)}}</span>
+					{{if $.AscContributors}}{{with index $.AscContributors .ID}}
+						{{$label := ctx.Locale.TrPluralString .Total "explore.contributors_n" (ctx.Locale.PrettyNumber .Total) $.AscContributorDays}}
+						<span class="ds-av-stack ds-repo-contrib" role="group" aria-label="{{$label}}" title="{{$label}}" data-testid="repo-contributors">
+							{{range .Users}}<a class="ds-av ds-av-24{{if .IsBot}} ds-av-agent{{end}}" href="{{.HomeLink}}" title="{{if .IsBot}}{{ctx.Locale.Tr "explore.contributor_agent" .GetDisplayName}}{{else}}{{.GetDisplayName}}{{end}}" aria-label="{{if .IsBot}}{{ctx.Locale.Tr "explore.contributor_agent" .GetDisplayName}}{{else}}{{.GetDisplayName}}{{end}}">{{ctx.AvatarUtils.Avatar . 24}}</a>{{end}}
+						</span>
+					{{end}}{{end}}
 				</div>
 			</div>
 			{{if $open}}

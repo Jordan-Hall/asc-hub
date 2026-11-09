@@ -391,6 +391,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 		total = int(count)
 	}
 	ctx.Data["Repos"] = repos
+	repoquick.LoadContributors(ctx, repos)
 	ctx.Data["Total"] = total
 
 	err = shared_user.LoadHeaderCount(ctx)

@@ -438,6 +438,7 @@ func NotificationWatching(ctx *context.Context) {
 	total := int(count)
 	ctx.Data["Total"] = total
 	ctx.Data["Repos"] = repos
+	repoquick.LoadContributors(ctx, repos)
 
 	// redirect to last page if request page is more than total pages
 	pager := context.NewPagination(total, setting.UI.User.RepoPagingNum, page, 5)

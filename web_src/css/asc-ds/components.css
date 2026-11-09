@@ -786,6 +786,8 @@ img.ds-av {
 .ds-av-stack { display: flex; }
 .ds-av-stack > .ds-av { box-shadow: 0 0 0 2px var(--surface); }
 .ds-av-stack > .ds-av + .ds-av { margin-left: -6px; }
+.ds-av-stack > .ds-av-agent { box-shadow: 0 0 0 2px var(--agent); }
+.ds-repo-contrib { align-items: center; }
 
 /* the hub's own avatars (images from ctx.AvatarUtils) */
 img.ds-avatar {

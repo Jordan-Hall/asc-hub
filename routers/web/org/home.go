@@ -136,6 +136,7 @@ func Home(ctx *context.Context) {
 	}
 
 	ctx.Data["Repos"] = repos
+	repoquick.LoadContributors(ctx, repos)
 	ctx.Data["Total"] = count
 	ctx.Data["Members"] = members
 	ctx.Data["Teams"] = ctx.Org.Teams

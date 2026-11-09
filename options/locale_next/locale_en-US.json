@@ -1017,6 +1017,10 @@
 		"one": "%s open stack",
 		"other": "%s open stacks"
 	},
+	"explore.contributors_n": {
+		"one": "%s contributor in the last %d days",
+		"other": "%s contributors in the last %d days"
+	},
 	"explore.count_repos": {
 		"one": "%s repository",
 		"other": "%s repositories"

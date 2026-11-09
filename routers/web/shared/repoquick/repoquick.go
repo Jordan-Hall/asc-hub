@@ -8,8 +8,12 @@ package repoquick
 import (
 	"time"
 
+	activities_model "forgejo.org/models/activities"
 	repo_model "forgejo.org/models/repo"
+	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/timeutil"
 	"forgejo.org/services/context"
 )
 
@@ -57,4 +61,52 @@ func KeepOnPages(pager *context.Pagination, q repo_model.AscQuickFilter) {
 	if q.StarredBy > 0 {
 		pager.AddParamString("starred", "1")
 	}
+}
+
+// AscContributorMax is how many avatars the contributor stack of a row shows.
+const AscContributorMax = 4
+
+// Contributors is the contributor stack of one row: the most active people and agents of the window the viewer can
+// see, and how many of them acted there in all.
+type Contributors struct {
+	Users []*user_model.User
+	Total int
+}
+
+// LoadContributors gives the rows of the list their contributor stack (ctx.Data["AscContributors"], keyed by
+// repository id): who acted in the repository in the last activities.AscContributorDays days, most active first,
+// agents (bot accounts) with people. A user whose profile the viewer may not see is left out. A failure is logged and
+// the rows show no stack.
+func LoadContributors(ctx *context.Context, repos repo_model.RepositoryList) {
+	if len(repos) == 0 {
+		return
+	}
+	ids := make([]int64, 0, len(repos))
+	for _, r := range repos {
+		ids = append(ids, r.ID)
+	}
+	since := timeutil.TimeStamp(Now().AddDate(0, 0, -activities_model.AscContributorDays).Unix())
+	top, err := activities_model.AscTopContributors(ctx, ids, since)
+	if err != nil {
+		log.Error("repository list: loading the contributors (request %s): %v", ctx.RequestIDForLog(), err)
+		return
+	}
+	stacks := make(map[int64]*Contributors, len(top))
+	for repoID, users := range top {
+		c := &Contributors{}
+		for _, u := range users {
+			if !user_model.IsUserVisibleToViewer(ctx, u, ctx.Doer) {
+				continue
+			}
+			c.Total++
+			if len(c.Users) < AscContributorMax {
+				c.Users = append(c.Users, u)
+			}
+		}
+		if c.Total > 0 {
+			stacks[repoID] = c
+		}
+	}
+	ctx.Data["AscContributors"] = stacks
+	ctx.Data["AscContributorDays"] = activities_model.AscContributorDays
 }
