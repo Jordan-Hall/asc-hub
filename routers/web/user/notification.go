@@ -440,6 +440,7 @@ func NotificationWatching(ctx *context.Context) {
 	ctx.Data["Repos"] = repos
 	repoquick.LoadContributors(ctx, repos)
 	repoquick.LoadAgentRuns(ctx, repos)
+	repoquick.LoadChangesets(ctx, repos)
 
 	// redirect to last page if request page is more than total pages
 	pager := context.NewPagination(total, setting.UI.User.RepoPagingNum, page, 5)

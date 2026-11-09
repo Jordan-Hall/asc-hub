@@ -174,6 +174,7 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 	ctx.Data["Repos"] = repos
 	repoquick.LoadContributors(ctx, repos)
 	repoquick.LoadAgentRuns(ctx, repos)
+	repoquick.LoadChangesets(ctx, repos)
 	if ctx.Doer != nil && !setting.Repository.DisableStars {
 		starred := make(map[int64]bool, len(repos))
 		for _, r := range repos {

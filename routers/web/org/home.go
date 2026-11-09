@@ -138,6 +138,7 @@ func Home(ctx *context.Context) {
 	ctx.Data["Repos"] = repos
 	repoquick.LoadContributors(ctx, repos)
 	repoquick.LoadAgentRuns(ctx, repos)
+	repoquick.LoadChangesets(ctx, repos)
 	repoquick.LoadChecks(ctx, repos)
 	repoquick.LoadWatching(ctx, repos)
 	ctx.Data["Total"] = count

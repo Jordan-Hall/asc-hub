@@ -792,6 +792,7 @@ img.ds-av {
 .ds-repo-check[data-check="failing"] { color: var(--err); }
 .ds-repo-check[data-check="running"] { color: var(--warn); }
 .ds-repo-agents { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.ds-repo-changesets { font-variant-numeric: tabular-nums; }
 .ds-row-act-count { font-variant-numeric: tabular-nums; color: var(--text-2); }
 
 .ds-roles { display: grid; gap: 12px; margin: 12px 0 0; }

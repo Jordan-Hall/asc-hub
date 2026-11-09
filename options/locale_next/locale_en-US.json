@@ -1029,6 +1029,10 @@
 		"one": "%s agent run",
 		"other": "%s agent runs"
 	},
+	"explore.changesets_n": {
+		"one": "%s changeset",
+		"other": "%s changesets"
+	},
 	"explore.contributors_n": {
 		"one": "%s contributor in the last %d days",
 		"other": "%s contributors in the last %d days"
