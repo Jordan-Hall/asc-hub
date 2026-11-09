@@ -41,6 +41,8 @@ type API struct {
 	AI      ascv1.AiProvidersClient
 	// Audit reads the events of a key for its Activity section.
 	Audit ascv1.AuditClient
+	// Intel reads the state of a repository's search indexes for its storage page.
+	Intel ascv1.CodeIntelClient
 }
 
 var (
@@ -68,7 +70,7 @@ func getAPI() (*API, error) {
 	if err != nil {
 		return nil, err
 	}
-	apiVal = &API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c), Audit: ascv1.NewAuditClient(c)}
+	apiVal = &API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c), Audit: ascv1.NewAuditClient(c), Intel: ascv1.NewCodeIntelClient(c)}
 	return apiVal, nil
 }
 

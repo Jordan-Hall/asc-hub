@@ -64,6 +64,7 @@ type Fake struct {
 	ascv1.UnimplementedStorageServer
 	ascv1.UnimplementedAiProvidersServer
 	ascv1.UnimplementedAuditServer
+	ascv1.UnimplementedCodeIntelServer
 
 	mu         sync.Mutex
 	targets    map[string]*target
@@ -97,7 +98,9 @@ type Fake struct {
 	ExtraFeatures []*ascv1.AiFeatureSetting
 	// ReplaceStatus is the provider status ReplaceKey answers with ("ok" by default); any other keeps the old key.
 	ReplaceStatus string
-	clock         int64
+	// Indexes is what IndexStatus answers; nil answers a text index that covers everything and no meaning index.
+	Indexes []*ascv1.IndexStatus
+	clock   int64
 	// events is the audit log of every scope, oldest first (AddEvent).
 	events []auditEvent
 }
@@ -118,6 +121,7 @@ func Start(t *testing.T) *Fake {
 	ascv1.RegisterStorageServer(srv, f)
 	ascv1.RegisterAiProvidersServer(srv, f)
 	ascv1.RegisterAuditServer(srv, f)
+	ascv1.RegisterCodeIntelServer(srv, f)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
@@ -125,7 +129,7 @@ func Start(t *testing.T) *Fake {
 	c, err := ascclient.New(ascclient.Config{Target: l.Addr().String(), InternalToken: InternalToken, Retry: ascclient.RetryConfig{MaxAttempts: 1}})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = c.Close() })
-	t.Cleanup(ascbyo.UseAPI(ascbyo.API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c), Audit: ascv1.NewAuditClient(c)}))
+	t.Cleanup(ascbyo.UseAPI(ascbyo.API{Storage: ascv1.NewStorageClient(c), AI: ascv1.NewAiProvidersClient(c), Audit: ascv1.NewAuditClient(c), Intel: ascv1.NewCodeIntelClient(c)}))
 	return f
 }
 
@@ -855,4 +859,22 @@ func (f *Fake) List(_ context.Context, r *ascv1.ListAuditRequest) (*ascv1.ListAu
 		out.Events = append(out.Events, proto.Clone(e.ev).(*ascv1.AuditEvent))
 	}
 	return out, nil
+}
+
+// IndexStatus answers Indexes.
+func (f *Fake) IndexStatus(_ context.Context, r *ascv1.IndexStatusRequest) (*ascv1.IndexStatusResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if r.GetScope().GetRepo().GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "scope.repo is required")
+	}
+	idx := f.Indexes
+	if idx == nil {
+		idx = []*ascv1.IndexStatus{{Index: "files", Coverage: 1}, {Index: "chunks", Coverage: 1}, {Index: "vectors"}}
+	}
+	out := make([]*ascv1.IndexStatus, len(idx))
+	for i, x := range idx {
+		out[i] = proto.Clone(x).(*ascv1.IndexStatus)
+	}
+	return &ascv1.IndexStatusResponse{Indexes: out}, nil
 }

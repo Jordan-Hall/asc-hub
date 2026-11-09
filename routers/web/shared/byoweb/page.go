@@ -81,11 +81,15 @@ type Page struct {
 	Migrations      []*svc.Migration
 	ActiveMigration *svc.Migration
 	// Usage is the repository's storage usage; UsageFailed is set when asc could not answer it.
-	Usage           *svc.StorageUsage
-	UsageFailed     bool
-	StorageForm     StorageForm
-	Verify          *VerifyView
-	OwnerStorageURL string
+	Usage       *svc.StorageUsage
+	UsageFailed bool
+	// SearchIndex is the state of the repository's search indexes; SearchIndexFailed is set when asc could not
+	// answer it.
+	SearchIndex       *svc.SearchIndex
+	SearchIndexFailed bool
+	StorageForm       StorageForm
+	Verify            *VerifyView
+	OwnerStorageURL   string
 
 	// AI keys
 	Keys         []svc.KeyView

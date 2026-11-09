@@ -63,6 +63,14 @@ func loadStorage(ctx *context.Context, lvl *Level, s *svc.Service, p *Page) erro
 	} else {
 		p.Usage = u
 	}
+	// So are the search indexes.
+	si, err := s.RepoSearchIndex(ctx, lvl.Scope)
+	if err != nil {
+		log.Warn("asc byo: search indexes of %s: %v", lvl.Scope.Name, err)
+		p.SearchIndexFailed = true
+	} else {
+		p.SearchIndex = si
+	}
 	return nil
 }
 

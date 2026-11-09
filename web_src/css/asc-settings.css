@@ -557,6 +557,33 @@
   accent-color: var(--color-primary);
 }
 
+.asc-index-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.asc-index-list > div {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) 1fr;
+  gap: 12px;
+}
+
+.asc-index-list dt {
+  font-weight: var(--font-weight-medium);
+}
+
+.asc-index-list dd {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .asc-index-list > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
 .asc-meter-warn {
   accent-color: var(--color-warning-text);
 }

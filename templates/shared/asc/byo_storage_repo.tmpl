@@ -49,6 +49,42 @@
 	{{end}}{{end}}
 </section>
 
+<section class="asc-byo-card" aria-labelledby="asc-index-h" data-testid="asc-storage-index">
+	<h3 id="asc-index-h">{{ctx.Locale.Tr "ascbyo.storage.index.title"}}</h3>
+	{{if $a.SearchIndexFailed}}
+		<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.index.failed"}}</p>
+	{{else}}{{with $a.SearchIndex}}
+		<dl class="asc-index-list">
+			<div data-index="text">
+				<dt>{{ctx.Locale.Tr "ascbyo.storage.index.text"}}</dt>
+				<dd>
+					{{if .TextKnown}}
+						<progress class="asc-usage-bar" max="100" value="{{.TextPercent}}" aria-label="{{ctx.Locale.Tr "ascbyo.storage.index.text"}}">{{.TextPercent}}%</progress>
+						{{ctx.Locale.Tr "ascbyo.storage.index.covered" .TextPercent}}
+					{{else}}
+						{{ctx.Locale.Tr "ascbyo.storage.index.unknown"}}
+					{{end}}
+				</dd>
+			</div>
+			<div data-index="meaning"{{if .MeaningOn}} data-active{{end}}>
+				<dt>{{ctx.Locale.Tr "ascbyo.storage.index.meaning"}}</dt>
+				<dd>
+					{{if $.AscMeaningOff}}
+						{{ctx.Locale.Tr "ascbyo.storage.index.meaning_repo_off"}} <a href="{{$.RepoLink}}/settings">{{ctx.Locale.Tr "ascbyo.storage.index.meaning_repo_on"}}</a>
+					{{else if .MeaningOn}}
+						<progress class="asc-usage-bar" max="100" value="{{.MeaningPercent}}" aria-label="{{ctx.Locale.Tr "ascbyo.storage.index.meaning"}}">{{.MeaningPercent}}%</progress>
+						{{ctx.Locale.Tr "ascbyo.storage.index.covered" .MeaningPercent}}
+						<span class="asc-byo-hint ds-mono">{{.MeaningModel}}</span>
+					{{else}}
+						<span data-testid="asc-index-meaning-off">{{ctx.Locale.Tr "ascbyo.storage.index.meaning_off"}}</span>
+					{{end}}
+				</dd>
+			</div>
+		</dl>
+		{{if .LagMinutes}}<p class="asc-byo-hint" data-testid="asc-index-lag">{{ctx.Locale.Tr "ascbyo.storage.index.lag" .LagMinutes}}</p>{{end}}
+	{{end}}{{end}}
+</section>
+
 <section class="asc-byo-card" aria-labelledby="asc-assign-h">
 	<h3 id="asc-assign-h">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_title"}}</h3>
 	<p>{{ctx.Locale.Tr "ascbyo.storage.repo.assign_help"}}</p>
