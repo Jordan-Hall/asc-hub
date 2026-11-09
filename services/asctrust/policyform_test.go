@@ -127,6 +127,38 @@ func TestApplyFormRefuses(t *testing.T) {
 	}
 }
 
+func TestListOfJoinsChipsAndTheAddField(t *testing.T) {
+	assert.Equal(t, []string{"build", "lint", "unit", "e2e"}, ListOf([]string{"build", " lint ", "", "build"}, "unit\n e2e, lint\n"))
+	assert.Equal(t, []string{"a", "b"}, ListOf([]string{"a\nb"}, ""), "a value of the older text area still splits")
+	assert.Nil(t, ListOf(nil, " \n, "))
+}
+
+func TestRuntimeMinutes(t *testing.T) {
+	assert.EqualValues(t, 0, PolicyForm{}.MaxRuntimeMinutes())
+	assert.EqualValues(t, 2, PolicyForm{MaxRuntimeSecs: 90}.MaxRuntimeMinutes(), "rounded up")
+	assert.EqualValues(t, 30, PolicyForm{MaxRuntimeSecs: 1800}.MaxRuntimeMinutes())
+
+	assert.EqualValues(t, 90, RuntimeSecsOf(2, 90), "unchanged minutes keep the seconds")
+	assert.EqualValues(t, 180, RuntimeSecsOf(3, 90))
+	assert.EqualValues(t, 0, RuntimeSecsOf(0, 90), "0 clears the limit")
+	assert.EqualValues(t, 600, RuntimeSecsOf(10, 0))
+	assert.EqualValues(t, -1, RuntimeSecsOf(-1, 90), "a negative value is left for ApplyForm to refuse")
+	assert.EqualValues(t, -1, RuntimeSecsOf(1<<62, 0), "an overflowing value is refused")
+	_, err := ApplyForm("", PolicyForm{MaxRuntimeSecs: RuntimeSecsOf(-5, 0)})
+	assert.ErrorIs(t, err, ErrBadInput)
+}
+
+func TestFormHumanApprovalIsReadAndKept(t *testing.T) {
+	assert.True(t, FormOfText("").HumanApproval, "on by default")
+	text := "[review]\nhuman_approval = false\n"
+	f := FormOfText(text)
+	assert.False(t, f.HumanApproval)
+	f.HumanApproval = true // the form cannot turn it back on
+	out, err := ApplyForm(text, f)
+	assert.NoError(t, err)
+	assert.False(t, FormOfText(out).HumanApproval, "ApplyForm leaves human_approval as the text says")
+}
+
 func TestSplitLines(t *testing.T) {
 	assert.Equal(t, []string{"a", "b", "c"}, SplitLines("a, b\nc\r\n\n"))
 	assert.Empty(t, SplitLines(" \n,"))
