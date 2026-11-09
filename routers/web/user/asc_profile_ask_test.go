@@ -73,7 +73,7 @@ func TestAscProfileAskPicker(t *testing.T) {
 	for _, c := range []struct {
 		kind         string
 		doer, person int64
-	}{{"review", 1, 1}, {"review", 1, 3}, {"poke", 1, 5}} {
+	}{{"review", 1, 1}, {"review", 1, 3}, {"poke", 1, 5}, {"review", 5, 31}} {
 		ctx, res = askCtx(t, "GET", c.kind, c.doer, c.person, nil)
 		AscProfileAsk(ctx)
 		code, _, _ = res()
