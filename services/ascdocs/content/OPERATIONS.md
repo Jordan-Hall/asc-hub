@@ -496,6 +496,26 @@ required, the required checks, Only people approve, Changes must be signed, Land
 strategy, or "Not set yet". **Read the policy** opens the merge defaults in the organization settings, which a member
 who is not an owner reads without changing. When asc cannot be asked the card keeps its lead and the link.
 
+## Chips, agent rows and who is active, in the people directory
+
+The people directory (`/explore/users`) has the chips **All**, **People**, **Agents**, **Maintainers** and **Online
+now** under its filter bar, the same choices as **Show**; each chip keeps the search, the order and the organization,
+and they stay on a phone with 44 px targets. **Maintainers** keeps the people with that role and is for signed-in
+viewers who are not restricted, like the roles; for anyone else `show=maintainers` shows everyone. **Online now** keeps
+the people the viewer would see as online on their profile: a request in the last ten minutes, "Show when I am online"
+on, and activity not kept private (a site admin and the person themself see past that).
+
+For a viewer with agent features on, the first page of All and Agents starts with rows for the agents that ran in the
+asc repositories the viewer can read (the agent directory, at most 50 repositories): a violet square avatar,
+`@owner/name`, the owner, the repositories it ran in, the last run, the number of runs and **View runs**, which opens
+its runs in its busiest repository. All shows five and **Show all agents (N)**; Agents shows all of them. The search
+keeps the agents whose `owner/name` contains it; an organization filter keeps that organization's agents.
+
+The side of the page has **Who is active now**: up to five people online in name order, with the repository of their
+last public action when it was in the last hour, "and N more online" linking to Online now, and, for a viewer with
+agent features on, **Agents at work** with the agents that have runs going. With no one it says "No one is active
+right now."
+
 ## Agents a person runs, on the profile
 
 The side of a profile has an **Agents <name> runs** card for a signed-in viewer with agent features on. It names, most
