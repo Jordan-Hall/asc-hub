@@ -822,6 +822,18 @@ When you may adopt or delete repositories (site administrators, or when the serv
 lists directories under your name in the repository root that have no repository record, up to 100 at a time; adopt or
 delete them to see more.
 
+## Signing changesets by default
+
+**Settings > Signing keys** has a **Sign my changesets by default** switch. When it is on, every changeset you author
+is signed with your key without a flag. The value is kept by asc with your account (`Signing.SetSigningDefaults`), so
+the web page and every machine agree, and each change of it is in the audit log as `signing.defaults.set`. The card is
+not shown when the asc server is older than the switch; the rest of the page works as before.
+
+On a machine, `asc signing default` shows the value and `asc signing default on` or `off` sets it. Both keep a copy in
+the global config key `asc.signByDefault`, which commands that write changes read, also offline. A machine follows a
+change made on the web page the next time `asc signing default` runs there. A `commit.gpgsign` set in a repository or
+globally wins over the account value; `asc signing default` says so when the two disagree.
+
 ## Following a storage migration
 
 Under the progress bar the storage page shows the objects copied, the bytes moved once asc has counted them (for example

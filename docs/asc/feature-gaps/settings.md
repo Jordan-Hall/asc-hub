@@ -18,17 +18,17 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 159 |
+| done | 160 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 14 |
+| needs-both | 13 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 17, L 8.
+Open rows by size: S 0, M 16, L 8.
 
 Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` are in `D:/dev/asc-hub`; `proto/` and `crates/` are in `D:/dev/asc`.
 
@@ -101,7 +101,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsKeys | SSH keys (fingerprint, added, last used, delete) and GPG keys | done | templates/user/settings/keys_ssh.tmpl, keys_gpg.tmpl | - |
 | UserSettingsKeys | ASC signing keys list, add, revoke with state chips | done | templates/user/settings/asc_keys.tmpl, routers/web/user/setting/asc_keys.go | - |
 | UserSettingsKeys | Rotate action that keeps the old key verifying past signatures | done | services/asctrust/rotate.go RotateKey (add, then revoke with its own op id), routers/web/user/setting/asc_keys.go AscKeysRotate, asc_keys.tmpl details form | - |
-| UserSettingsKeys | Sign my changesets by default switch | needs-both | hub pref + asc config the CLI reads (no field in proto/asc/v1/signing.proto) | M |
+| UserSettingsKeys | Sign my changesets by default switch | done | One value, kept by asc with the account: Signing.GetSigningDefaults/SetSigningDefaults (proto/asc/v1/signing.proto, migration 0607). Hub: switch card on templates/user/settings/asc_keys.tmpl, AscKeysDefault in routers/web/user/setting/asc_keys.go, asctrust.SetSigningDefault. CLI: asc signing default [on/off] keeps asc.signByDefault; commit.gpgsign wins. | M |
 | UserSettingsKeys | Delete confirm that lists what stops working | done | keys_ssh.tmpl modal text | S |
 | UserSettingsApps | OAuth2 apps, authorized apps with revoke, client secret shown once, regenerate | done | templates/user/settings/applications_oauth2*.tmpl, grants_oauth2.tmpl | - |
 | UserSettingsApps | Webhooks table: events column, last delivery status text and time, Replay from the list | done | templates/shared/webhook/rows.tmpl (host over URL, events as chips with "+N more", last delivery dot with status and time, Edit or Replay when the last delivery failed), services/webhook/rows.go ListRows, models/webhook LastDeliveries; used by repository, user, organization and admin lists. Tests: services/webhook/rows_test.go, routers/web/repo/setting/asc_webhook_list_test.go | - |

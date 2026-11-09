@@ -22,10 +22,10 @@ After this audit:
 | repo | 24 | 274 | 154 | 23 | 97 | 56% |
 | review | 5 | 88 | 35 | 15 | 38 | 40% |
 | agents-ops | 12 | 126 | 96 | 7 | 23 | 76% |
-| auth | 6 | 40 | 24 | 5 | 11 | 60% |
-| **all** | 94 | 845 | 447 | 85 | 313 | 53% |
+| auth | 6 | 40 | 25 | 5 | 10 | 62% |
+| **all** | 94 | 845 | 448 | 85 | 312 | 53% |
 
-Missing rows by kind of work: UI 141, hub 130, asc 14, hub+asc 82. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 141, hub 130, asc 14, hub+asc 81. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -56,7 +56,7 @@ Other findings that cross boards:
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
-- **auth**: 6 boards, 40 rows, done 29, partial 4, missing 7. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
+- **auth**: 6 boards, 40 rows, done 30, partial 4, missing 6. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
 
 Cross-cutting mobile rows (not tied to one board) are counted in the area they belong to and listed in section 6.
 
@@ -1807,16 +1807,16 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsKeys (ASC Hub settings: ssh and signing keys)
 
-Area auth. Rows 5: done 4, partial 0, missing 1. Copy found in the hub: 70% of 66 copy strings (mobile twin 62%). Template(s): asc_keys.tmpl, keys.tmpl, keys_gpg.tmpl, keys_ssh.tmpl. Mobile twin: yes.
+Area auth. Rows 5: done 5, partial 0, missing 0. Copy found in the hub: 73% of 66 copy strings (mobile twin 62%). Template(s): asc_keys.tmpl, keys.tmpl, keys_gpg.tmpl, keys_ssh.tmpl. Mobile twin: yes.
 
-Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Changesets signed by ASC show a verified badge to reviewers and in the operatio...; Sign my changesets by default; Every changeset you author carries a signature from the key below.; ASC signing key.
+Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Changesets signed by ASC show a verified badge to reviewers and in the operatio...; ASC signing key.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | SSH keys (fingerprint, added, last used, delete) and GPG keys | done | templates/user/settings/keys_ssh.tmpl (file) | - |
 | ASC signing keys list, add, revoke with state chips | done | templates/user/settings/asc_keys.tmpl (file) | - |
 | Rotate action that keeps the old key verifying past signatures | done | services/asctrust/rotate.go (file) | - |
-| Sign my changesets by default switch | missing (hub+asc) | logged as not built (not re-probed) | hub pref + asc config the CLI reads (no field in proto/asc/v1/signing.proto) |
+| Sign my changesets by default switch | done | templates/user/settings/asc_keys.tmpl (asc-keys-default card), routers/web/user/setting/asc_keys.go AscKeysDefault (POST /user/settings/asc/keys/default), services/asctrust/ops.go SetSigningDefault; asc keeps the value with the account (Signing.GetSigningDefaults/SetSigningDefaults, audit signing.defaults.set) and the CLI follows it through asc signing default and asc.signByDefault | - |
 | Delete confirm that lists what stops working | done | templates/user/settings/keys_gpg.tmpl:92 (best match) | - |
 | Board note: Delete asks to confirm and lists what stops working | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Rotate keeps the old key verifying past signatures | unverified | not tracked in the gap files | needs a row and a test |
