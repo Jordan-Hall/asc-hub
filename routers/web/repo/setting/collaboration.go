@@ -45,6 +45,9 @@ func loadAccess(ctx *context.Context) bool {
 	}
 	ctx.Data["Collaborators"] = users
 	ctx.Data["AgentScope"] = ascAgentScope(ctx, users)
+	if !loadAscAccessRequests(ctx) {
+		return false
+	}
 
 	teams, err := organization.GetRepoTeams(ctx, ctx.Repo.Repository)
 	if err != nil {

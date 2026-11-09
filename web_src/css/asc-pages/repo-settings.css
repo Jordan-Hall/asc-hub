@@ -671,6 +671,13 @@
 }
 
 /* the access page (board RepoSettingsAccess): one list of people, teams and agents, and one add form */
+.rp-access-request-msg {
+  margin: 4px 0 0;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .rp-access-lede {
   margin: 0 0 12px;
 }

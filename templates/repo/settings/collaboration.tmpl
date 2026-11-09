@@ -1,6 +1,35 @@
 {{template "repo/settings/layout_head" (dict "ctxData" . "pageClass" "repository settings collaboration")}}
 	<div class="repo-setting-content">
 		<p class="ds-hint rp-access-lede">{{ctx.Locale.Tr "asc_rp.access_lede"}}</p>
+		{{if .AscAccessRequests}}
+		<h4 class="ds-card-top" id="access-requests-title">{{ctx.Locale.Tr "asc_rp.access_requests_title"}}<span class="ds-count">{{len .AscAccessRequests}}</span></h4>
+		<div class="ds-card ds-card-b ds-card-attach" data-testid="access-requests">
+			<div class="flex-list" role="list" aria-labelledby="access-requests-title">
+				{{range .AscAccessRequests}}
+				<div class="flex-item" role="listitem" data-access-request="{{.User.Name}}">
+					<div class="flex-item-leading"><a href="{{.User.HomeLink}}" aria-label="{{.User.GetDisplayName}}">{{ctx.AvatarUtils.Avatar .User 32}}</a></div>
+					<div class="flex-item-main">
+						<div class="flex-item-title">{{template "shared/user/name" .User}}</div>
+						<div class="flex-item-body" data-request-role="{{.Role}}">{{ctx.Locale.Tr "asc_rp.access_request_asks" (ctx.Locale.Tr (print "repo.settings.collaboration." .Role)) (DateUtils.TimeSince .CreatedUnix)}}</div>
+						{{if .Message}}<p class="rp-access-request-msg" data-request-message>{{.Message}}</p>{{end}}
+					</div>
+					<div class="flex-item-trailing">
+						<form method="post" action="{{$.RepoLink}}/settings/collaboration/requests/grant">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="id" value="{{.ID}}">
+							<button class="ds-btn ds-btn-primary ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_rp.access_request_grant_for" .User.GetDisplayName}}">{{ctx.Locale.Tr "asc_rp.access_request_grant"}}</button>
+						</form>
+						<form method="post" action="{{$.RepoLink}}/settings/collaboration/requests/dismiss">
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="id" value="{{.ID}}">
+							<button class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_rp.access_request_dismiss_for" .User.GetDisplayName}}">{{ctx.Locale.Tr "asc_rp.access_request_dismiss"}}</button>
+						</form>
+					</div>
+				</div>
+				{{end}}
+			</div>
+		</div>
+		{{end}}
 		<h4 class="ds-card-top">{{ctx.Locale.Tr "asc_rp.access_title"}}</h4>
 		<div class="ds-card ds-card-b ds-card-attach" data-testid="access-list">
 			<p class="ds-hint">{{ctx.Locale.Tr "asc_rp.access_desc"}}</p>

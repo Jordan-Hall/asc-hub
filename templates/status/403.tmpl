@@ -7,10 +7,39 @@
 			<p class="st-code ds-mono">403</p>
 			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{ctx.Locale.Tr "asc_err.title403"}}</h1>
 			<p class="st-text">{{if .ForbiddenPrompt}}{{.ForbiddenPrompt}}{{else if .IsSigned}}{{ctx.Locale.Tr "asc_err.text403"}}{{else}}{{ctx.Locale.Tr "asc_err.text403_guest"}}{{end}}</p>
+			{{template "base/alert" .}}
+			{{if .AscRequestAccessMode}}
+			{{if .AscAccessRequest}}
+			<div class="st-request" data-testid="access-requested">
+				<p class="st-text">{{ctx.Locale.Tr "asc_err.request_access_pending" (DateUtils.TimeSince .AscAccessRequest.CreatedUnix)}}</p>
+				<form method="post" action="{{.RepoLink}}/action/withdraw_access_request">
+					{{.CsrfTokenHtml}}
+					<input type="hidden" name="redirect_to" value="{{.AscForbiddenBack}}">
+					<button class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_err.request_access_withdraw"}}</button>
+				</form>
+			</div>
+			{{else}}
+			<form class="st-request" method="post" action="{{.RepoLink}}/action/request_access" data-testid="access-request">
+				{{.CsrfTokenHtml}}
+				<input type="hidden" name="redirect_to" value="{{.AscForbiddenBack}}">
+				<label class="ds-label" for="st-request-message">{{ctx.Locale.Tr "asc_err.request_access_message"}}</label>
+				<textarea class="ds-textarea" id="st-request-message" name="message" rows="3" maxlength="{{.AscAccessRequestMax}}" aria-describedby="st-request-hint"></textarea>
+				<p class="ds-hint" id="st-request-hint">{{ctx.Locale.Tr (print "asc_err.request_access_hint_" .AscRequestAccessMode)}}</p>
+				<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_err.request_access"}}</button>
+			</form>
+			{{end}}
+			{{end}}
 			<div class="st-actions">
 				{{if not .IsSigned}}<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/user/login">{{ctx.Locale.Tr "sign_in"}}</a>{{end}}
 				<a class="ds-btn {{if .IsSigned}}ds-btn-primary{{else}}ds-btn-secondary{{end}}" href="{{AppSubUrl}}/">{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}</a>
 				<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "asc_err.search_hub"}}</a>
+				{{if .IsSigned}}
+				<form method="post" action="{{AppSubUrl}}/user/switch_account" data-testid="switch-account">
+					{{.CsrfTokenHtml}}
+					<input type="hidden" name="redirect_to" value="{{.AscForbiddenBack}}">
+					<button class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "asc_err.switch_account"}}</button>
+				</form>
+				{{end}}
 			</div>
 		</section>
 	</div>

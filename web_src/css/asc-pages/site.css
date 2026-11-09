@@ -898,6 +898,20 @@
   margin-top: 12px;
 }
 
+.st-request {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 44ch;
+  margin-top: 12px;
+  text-align: start;
+}
+
+.st-request .ds-btn {
+  align-self: flex-start;
+}
+
 .st-meta {
   margin: 8px 0 0;
   color: var(--text-3);

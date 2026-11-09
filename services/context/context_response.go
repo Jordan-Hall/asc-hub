@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"forgejo.org/models/auth"
+	perm_model "forgejo.org/models/perm"
+	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/httplib"
@@ -210,7 +212,32 @@ func (ctx *Context) Error(status int, contents ...string) {
 	}
 	ctx.Data["IsRepo"] = ctx.Repo != nil && ctx.Repo.Repository != nil
 	ctx.Data["Title"] = ctx.Locale.TrString(key)
+	if status == http.StatusForbidden {
+		ctx.ascForbiddenActions()
+	}
 	ctx.HTML(status, tpl)
+}
+
+// ascForbiddenActions puts what the actions of the 403 page need into the page data: for a signed-in person on a
+// repository, the access a request would ask for (none for an admin or a restricted account) and the request sent
+// before; and the path to come back to after Request access or Switch account.
+func (ctx *Context) ascForbiddenActions() {
+	ctx.Data["AscForbiddenBack"] = ctx.Req.URL.RequestURI()
+	if ctx.Doer == nil || ctx.Doer.IsRestricted || ctx.Repo == nil || ctx.Repo.Repository == nil {
+		return
+	}
+	mode := repo_model.AscAccessRequestMode(ctx.Repo.Permission.AccessMode)
+	if mode == perm_model.AccessModeNone {
+		return
+	}
+	req, err := repo_model.GetAscAccessRequest(ctx, ctx.Repo.Repository.ID, ctx.Doer.ID)
+	if err != nil {
+		log.Error("the access request of %s for %s (request %v): %v", ctx.Doer.Name, ctx.Repo.Repository.FullName(), ctx.Data["RequestID"], err)
+		return
+	}
+	ctx.Data["AscRequestAccessMode"] = mode.String()
+	ctx.Data["AscAccessRequest"] = req
+	ctx.Data["AscAccessRequestMax"] = repo_model.AscAccessRequestMessageMax
 }
 
 func (ctx *Context) acceptsHTML() bool {

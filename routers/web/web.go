@@ -957,6 +957,7 @@ func registerRoutes(m *web.Route) {
 		m.Get("/forgot_password", auth.ForgotPasswd)
 		m.Post("/forgot_password", auth.ForgotPasswdPost)
 		m.Post("/logout", auth.SignOut)
+		m.Post("/switch_account", reqSignIn, auth.AscSwitchAccount)
 		m.Get("/task/{task}", reqSignIn, user.TaskStatus)
 		m.Get("/stopwatches", reqSignIn, user.GetStopwatches)
 		m.Get("/search_candidates", ignExploreSignIn, user.SearchCandidates)
@@ -1380,6 +1381,8 @@ func registerRoutes(m *web.Route) {
 				m.Get("/search", repo_setting.AscAccessSearch)
 				m.Post("/access_mode", repo_setting.ChangeCollaborationAccessMode)
 				m.Post("/delete", repo_setting.DeleteCollaboration)
+				m.Post("/requests/grant", repo_setting.AscGrantAccessRequest)
+				m.Post("/requests/dismiss", repo_setting.AscDismissAccessRequest)
 				m.Group("/team", func() {
 					m.Post("", repo_setting.AddTeamPost)
 					m.Post("/delete", repo_setting.DeleteTeam)
@@ -1473,6 +1476,8 @@ func registerRoutes(m *web.Route) {
 		m.Post("/unwatch", repo.ActionWatchConst(repo_model.WatchNoneSelection))
 		m.Post("/accept_transfer", repo.ActionTransfer(true))
 		m.Post("/reject_transfer", repo.ActionTransfer(false))
+		m.Post("/request_access", repo.AscRequestAccess)
+		m.Post("/withdraw_access_request", repo.AscWithdrawAccessRequest)
 		if !setting.Repository.DisableStars {
 			m.Post("/star", repo.ActionStar(true))
 			m.Post("/unstar", repo.ActionStar(false))
