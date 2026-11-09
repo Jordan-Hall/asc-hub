@@ -3,6 +3,11 @@
 	<div class="ds-banner ds-banner-warn">{{svg "dsi-lock" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "auth.prohibit_login_desc"}}</div></div>
 	{{/* A suspension an administrator recorded (row 194): its reason and, once, an appeal. routers/web/moderation SuspendedAppeal
 	fills these only after the password was checked; the code makes the form usable for an hour, once. */}}
+	{{if .AscAppealByMail}}
+		<p class="ds-c-2 ds-mt-12">{{ctx.Locale.Tr "asc_admin.mod_appeal_by_mail"}}</p>
+	{{else if .AscAppealLinkDead}}
+		<div class="ds-banner ds-banner-err ds-mt-12" role="alert"><div class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.mod_appeal_link_dead"}}</div></div>
+	{{end}}
 	{{with .AscSuspension}}
 		<section class="ds-card ds-mt-12" aria-labelledby="mod-why">
 			<h2 class="ds-t-h3" id="mod-why">{{ctx.Locale.Tr "asc_admin.mod_mail_reason"}} {{template "moderation/asc_appeal_state" (dict "D" .)}}</h2>

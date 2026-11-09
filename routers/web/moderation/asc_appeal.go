@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/moderation"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/base"
@@ -21,6 +22,8 @@ import (
 const (
 	tplDecisions base.TplName = "moderation/asc_decisions"
 	tplDecision  base.TplName = "moderation/asc_decision"
+	// tplProhibitLogin is the page of an account that may not sign in, where a suspension is appealed.
+	tplProhibitLogin base.TplName = "user/auth/prohibit_login"
 	// decisionsShown bounds the decisions the list shows.
 	decisionsShown = 50
 )
@@ -136,6 +139,26 @@ func AppealSignInPost(ctx *context.Context) {
 	ctx.Redirect(signIn)
 }
 
+// AppealLinkForm opens the appeal form from the link emailed with a suspension (GET /-/moderation/appeal, query decision
+// and code). The code is not used up until the appeal is sent.
+func AppealLinkForm(ctx *context.Context) {
+	ctx.Data["Title"] = ctx.Tr("auth.prohibit_login")
+	id, _ := strconv.ParseInt(ctx.FormString("decision"), 10, 64)
+	code := ctx.FormString("code")
+	d := ascmoderation.CodeOpens(ctx, id, code)
+	if d == nil {
+		ctx.Data["AscAppealLinkDead"] = true
+		ctx.HTML(http.StatusOK, tplProhibitLogin)
+		return
+	}
+	ctx.Data["AscSuspension"] = rowOf(d)
+	if ascmoderation.Appealable(d) {
+		ctx.Data["AscAppealCode"] = code
+		ctx.Data["AscAppealMax"] = moderation.MaxAppealText
+	}
+	ctx.HTML(http.StatusOK, tplProhibitLogin)
+}
+
 // SuspendedAppeal puts the appeal form of a suspended account in the data of the sign-in page: the reason of the
 // newest suspension and a code for the form, or the state of the appeal already made. Call it only once the password
 // of uid was checked.
@@ -153,6 +176,17 @@ func SuspendedAppeal(ctx *context.Context, uid int64) {
 		return
 	}
 	if d == nil {
+		return
+	}
+	// A password alone is not a sign-in for an account with a second factor: it shows nothing of the decision and
+	// appeals with the link that was emailed with it.
+	twoFactor, err := auth_model.HasTwoFactorByUID(ctx, uid)
+	if err != nil {
+		log.Error("moderation: two-factor of %d: %v", uid, err)
+		return
+	}
+	if twoFactor {
+		ctx.Data["AscAppealByMail"] = true
 		return
 	}
 	ctx.Data["AscSuspension"] = rowOf(d)

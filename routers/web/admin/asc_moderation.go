@@ -4,10 +4,12 @@
 package admin
 
 import (
+	stdctx "context"
 	"errors"
 	"net/http"
 	"strconv"
 
+	"forgejo.org/models/db"
 	"forgejo.org/models/moderation"
 	"forgejo.org/models/user"
 	"forgejo.org/modules/log"
@@ -139,6 +141,26 @@ func loadAppeals(ctx *context.Context) bool {
 	return true
 }
 
+// liftSuspension lets the account of an overturned suspension sign in again, but only when that suspension is the
+// newest one: a later suspension stays in force.
+func liftSuspension(ctx stdctx.Context, d *moderation.Decision) error {
+	latest, err := moderation.LatestSuspension(ctx, d.OwnerID, d.Action)
+	if err != nil || latest == nil || latest.ID != d.ID {
+		return err
+	}
+	owner, err := user.GetUserByID(ctx, d.OwnerID)
+	if err != nil {
+		if user.IsErrUserNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	if !owner.ProhibitLogin {
+		return nil
+	}
+	return user_service.UpdateAuth(ctx, owner, &user_service.UpdateAuthOptions{ProhibitLogin: optional.Some(false)})
+}
+
 // AnswerAppeal keeps or reverses a decision its owner appealed (POST /admin/moderation/appeals/{id}, answer uphold or
 // overturn, with a reason). Overturning a suspension lets the account sign in again; content that was deleted is not
 // brought back, and the owner is told so. The answer is written to the audit log of asc and emailed to the owner.
@@ -166,7 +188,16 @@ func AnswerAppeal(ctx *context.Context) {
 		return
 	}
 	overturn := answer == "overturn"
-	if err := moderation.DecideAppeal(ctx, d.ID, ctx.Doer.ID, overturn, reason); err != nil {
+	err = db.WithTx(ctx, func(tx stdctx.Context) error {
+		if err := moderation.DecideAppeal(tx, d.ID, ctx.Doer.ID, overturn, reason); err != nil {
+			return err
+		}
+		if overturn && ascmoderation.IsSuspension(d) {
+			return liftSuspension(tx, d)
+		}
+		return nil
+	})
+	if err != nil {
 		if errors.Is(err, moderation.ErrAppealNotAllowed) {
 			ctx.Flash.Info(ctx.Tr("asc_admin.mod_appeal_answered"), true)
 			ctx.HTML(http.StatusOK, tplAlert)
@@ -174,17 +205,6 @@ func AnswerAppeal(ctx *context.Context) {
 		}
 		ctx.ServerError("DecideAppeal", err)
 		return
-	}
-	if overturn && ascmoderation.IsSuspension(d) {
-		if owner, err := user.GetUserByID(ctx, d.OwnerID); err == nil && owner.ProhibitLogin {
-			if err := user_service.UpdateAuth(ctx, owner, &user_service.UpdateAuthOptions{ProhibitLogin: optional.Some(false)}); err != nil {
-				ctx.ServerError("UpdateAuth", err)
-				return
-			}
-		} else if err != nil && !user.IsErrUserNotExist(err) {
-			ctx.ServerError("GetUserByID", err)
-			return
-		}
 	}
 	if answered, err := moderation.GetDecision(ctx, d.ID); err == nil && answered != nil {
 		ascmoderation.TellAnswer(ctx, answered)

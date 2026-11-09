@@ -703,6 +703,7 @@ func registerRoutes(m *web.Route) {
 		m.Get("/-/moderation/decisions", reqSignIn, moderation.Decisions)
 		m.Get("/-/moderation/decisions/{id}", reqSignIn, moderation.Decision)
 		m.Post("/-/moderation/decisions/{id}/appeal", reqSignIn, moderation.AppealPost)
+		m.Get("/-/moderation/appeal", moderation.AppealLinkForm)
 		m.Post("/-/moderation/appeal", moderation.AppealSignInPost)
 	}
 
