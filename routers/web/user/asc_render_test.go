@@ -113,7 +113,8 @@ func ascRenderEntries(t *testing.T) {
 		{PullID: 9004, Title: "Docs and metrics", Link: "/user2/repo1/pulls/5", RepoFullName: "acme/payments", Index: 93, Section: issues_model.AscInboxWaiting, Updated: now.Add(-3 * time.Hour), Author: "user2"},
 		{PullID: 9005, Title: "Add jitter to the retry delay", Link: "/user2/repo1/pulls/6", RepoFullName: "acme/payments", Index: 80, Section: issues_model.AscInboxMerged, Updated: now.Add(-5 * 24 * time.Hour), Author: "user2"},
 	}
-	oldLoad, oldInfo, oldAgents := ascInboxLoad, ascInboxInfoLoad, ascDashAgentsLoad
+	oldLoad, oldInfo, oldAgents, oldQueueable := ascInboxLoad, ascInboxInfoLoad, ascDashAgentsLoad, ascDashQueueable
+	ascDashQueueable = func(_ gocontext.Context, e *AscInboxEntry) bool { return e.PullID == 9003 }
 	ascInboxLoad = func(gocontext.Context, *user_model.User, time.Time) ([]*AscInboxEntry, error) { return es, nil }
 	ascInboxInfoLoad = func(_ gocontext.Context, e *AscInboxEntry) *AscInboxInfo {
 		switch e.PullID {
@@ -131,11 +132,13 @@ func ascRenderEntries(t *testing.T) {
 	ascDashAgentsLoad = func(*context.Context, *user_model.User) ([]AscDashAgent, int, error) {
 		return []AscDashAgent{
 			{Title: "docs and metrics", Agent: "coder-2", Repo: "acme/payments", Link: "/user2/repo1/asc/agents/runs/214", State: ascagentui.State{Slug: "running", Key: "asc_review.run_state_running", Tone: "run", Active: true}, Percent: 58, Meter: "58% of time: 6m of 20m"},
-			{Title: "currency tables", Agent: "coder-1", Repo: "acme/payments", Link: "/user2/repo1/asc/agents/runs/213", State: ascagentui.State{Slug: "waiting", Key: "asc_review.run_state_waiting", Tone: "wait", Active: true}, Percent: 31, Meter: "31% of time: 4m of 30m"},
+			{Title: "currency tables", Agent: "coder-1", Repo: "acme/payments", Link: "/user2/repo1/asc/agents/runs/213", State: ascagentui.State{Slug: "waiting", Key: "asc_review.run_state_waiting", Tone: "wait", Active: true}, Percent: 31, Meter: "31% of time: 4m of 30m", InputLink: "/user2/repo1/asc/agents/runs/213/input"},
 			{Title: "first pass on web-app #88", Agent: "reviewer-1", Repo: "acme/web-app", Link: "/user2/repo1/asc/agents/runs/212", State: ascagentui.State{Slug: "running", Key: "asc_review.run_state_running", Tone: "run", Active: true}, Percent: 82, Meter: "82% of time: 2m of 10m"},
 		}, 1, nil
 	}
-	t.Cleanup(func() { ascInboxLoad, ascInboxInfoLoad, ascDashAgentsLoad = oldLoad, oldInfo, oldAgents })
+	t.Cleanup(func() {
+		ascInboxLoad, ascInboxInfoLoad, ascDashAgentsLoad, ascDashQueueable = oldLoad, oldInfo, oldAgents, oldQueueable
+	})
 }
 
 func TestAscRenderUserPages(t *testing.T) {

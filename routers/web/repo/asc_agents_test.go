@@ -912,6 +912,17 @@ func TestAscAgentsCancelAndInput(t *testing.T) {
 		noCallTokens(t)
 	})
 
+	t.Run("an answer from the dashboard goes back there", func(t *testing.T) {
+		p := runAgents(t, agentsReq{method: "POST", path: back + "/input", user: agentsOwner, features: true, params: id, form: url.Values{"text": {"yes, keep the 30 s ceiling"}, "back": {"dash"}}}, AscAgentsInput)
+		require.Equal(t, http.StatusSeeOther, p.status)
+		assert.Equal(t, "/", p.loc)
+		assert.NotEmpty(t, p.ctx.Flash.SuccessMsg)
+		p = runAgents(t, agentsReq{method: "POST", path: back + "/input", user: agentsOwner, features: true, params: id, form: url.Values{"text": {""}, "back": {"dash"}}}, AscAgentsInput)
+		assert.Equal(t, "/", p.loc, "a refusal goes back there too")
+		p = runAgents(t, agentsReq{method: "POST", path: back + "/input", user: agentsOwner, features: true, params: id, form: url.Values{"text": {"hi"}, "back": {"https://example.org/"}}}, AscAgentsInput)
+		assert.Equal(t, back, p.loc, "no other place")
+	})
+
 	t.Run("a message is text of 1 to 16 KiB", func(t *testing.T) {
 		before := len(hub.callsOf("Agents.SendInput"))
 		for _, bad := range []string{"", "   ", "a\x00b", strings.Repeat("x", ascagentui.MaxInputBytes+1)} {

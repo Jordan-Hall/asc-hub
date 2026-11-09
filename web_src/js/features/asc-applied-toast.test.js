@@ -40,3 +40,13 @@ test('no toast, nothing to do', () => {
   document.body.innerHTML = '';
   expect(() => initAscAppliedToast()).not.toThrow();
 });
+
+test('data-ms sets how long the toast stays', () => {
+  const toast = page();
+  toast.setAttribute('data-ms', '10000');
+  initAscAppliedToast();
+  vi.advanceTimersByTime(appliedToastMs);
+  expect(toast.isConnected).toBe(true);
+  vi.advanceTimersByTime(10000 - appliedToastMs);
+  expect(toast.isConnected).toBe(false);
+});

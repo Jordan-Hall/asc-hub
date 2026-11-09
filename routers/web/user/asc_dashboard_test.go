@@ -4,6 +4,7 @@
 package user
 
 import (
+	gocontext "context"
 	"testing"
 	"time"
 
@@ -71,6 +72,12 @@ func TestAscDashRows(t *testing.T) {
 	assert.Equal(t, int64(9), review.PullID)
 	assert.Equal(t, "Review requested", review.Chips[0].Text)
 	assert.Empty(t, review.Meta)
+	assert.Equal(t, "approve", review.Do, "a review asked of the person is approved in place")
+
+	returned := ascDashRowFor(l, &AscInboxEntry{Link: "/o/r/pulls/4", Section: issues_model.AscInboxReturned}, nil)
+	assert.Empty(t, returned.Do)
+	assert.Equal(t, "/o/r/pulls/4#issue-comment-form", returned.ActLink, "Reply opens the reply box")
+	assert.Empty(t, ready.Do, "the dashboard says whether the queue is there")
 
 	assert.False(t, ascDashActionable(issues_model.AscInboxWaiting))
 	assert.False(t, ascDashActionable(issues_model.AscInboxMerged))
@@ -139,6 +146,34 @@ func TestAscDashPage(t *testing.T) {
 	// pull to refresh in the installed app
 	assert.Contains(t, html, `wk-dash-grid" data-asc-pull-refresh`)
 	assert.Contains(t, html, `data-asc-ptr`)
+	// the rows act in place: approve and queue are forms, the others are real links named for their row
+	assert.Contains(t, html, `data-asc-dash-act="approve"`)
+	assert.Contains(t, html, `aria-label="Approve: Wire retry policy into the client"`)
+	assert.Contains(t, html, `data-asc-dash-act="queue"`)
+	assert.Contains(t, html, `aria-label="Add to merge queue: Rate limit headers"`)
+	assert.Contains(t, html, `href="/user2/repo1/pulls/2#issue-comment-form" aria-label="Reply: Pagination cursor format"`)
+	assert.NotContains(t, html, `tabindex="-1" aria-hidden="true">Review`)
+	// a run that waits for the person is answered on the dashboard
+	assert.Contains(t, html, `action="/user2/repo1/asc/agents/runs/213/input" data-asc-dash-answer`)
+	assert.NotContains(t, html, `data-asc-dash-undo`, "no toast without ?queued=")
+
+	t.Run("after Add to merge queue the toast can undo", func(t *testing.T) {
+		old := ascInboxLoad
+		ascInboxLoad = func(gocontext.Context, *user_model.User, time.Time) ([]*AscInboxEntry, error) {
+			return []*AscInboxEntry{{PullID: 77, Title: "Rate limit headers", Link: "/user2/repo1/pulls/4", RepoFullName: "acme/infra", Index: 12, Section: issues_model.AscInboxQueued, Updated: time.Now()}}, nil
+		}
+		defer func() { ascInboxLoad = old }()
+		ctx, body := ascRenderContext(t, "/?queued=77", 2)
+		Dashboard(ctx)
+		html := string(body())
+		assert.Contains(t, html, `data-asc-dash-undo`)
+		assert.Contains(t, html, `name="do" value="unqueue"`)
+		assert.Contains(t, html, "Added to merge queue")
+
+		ctx, body = ascRenderContext(t, "/?queued=78", 2)
+		Dashboard(ctx)
+		assert.NotContains(t, string(body()), `data-asc-dash-undo`, "only a change of the person's that is queued")
+	})
 
 	t.Run("agents are hidden while the person's switch is off", func(t *testing.T) {
 		user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
