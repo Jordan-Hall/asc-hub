@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 208, partial 25, missing 84. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 209, partial 25, missing 83. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -443,7 +443,7 @@ Board copy not found word for word in locale, templates or scripts: Teams that o
 
 #### ExploreUsers (ASC Hub explore people and agents)
 
-Area shell/settings. Rows 13: done 2, partial 5, missing 6. Copy found in the hub: 67% of 145 copy strings (mobile twin 80%). Template(s): user_list.tmpl, users.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 13: done 3, partial 5, missing 5. Copy found in the hub: 67% of 145 copy strings (mobile twin 80%). Template(s): user_list.tmpl, users.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: The people and agents who write and review here, with how much they do.; Search by name, handle or role; Online now; accounts: 34 people and 8 agents; Staff engineer. Design reviews, flaky tests and anything that touches checkout.; Bengaluru.
 
@@ -451,7 +451,7 @@ Board copy not found word for word in locale, templates or scripts: The people a
 |---|---|---|---|
 | "People and agents" header and Invite people button | partial (UI) | logged as not built (not re-probed) | explore/navbar.tmpl offers New repository / New organization only; invite needs a hub-level invite flow (org invite exists) |
 | Search by name, handle or role | done | templates/explore/users.tmpl (file) | - |
-| Show filter (People and agents / People / Agents), Organization filter, Sort "Most active" | missing (hub) | logged as not built (not re-probed) | Sort has Newest, Oldest, A to Z only. Add activity sort and organization filter in routers/web/explore/user.go / user_model.Searc... |
+| Show filter (People and agents / People / Agents), Organization filter, Sort "Most active" | done | templates/explore/search.tmpl, routers/web/explore/user.go, models/user/asc_search.go | - |
 | Chips All, People, Agents, Maintainers, Online now | partial (hub+asc) | logged as not built (not re-probed) | None present. Agents are not hub users (they are tokens and runs in proto/asc/v1/agents.proto); Maintainers needs a role; Online... |
 | Role chip (Owner, Maintainer, Member, Agent) and "Roles on this hub" card | missing (hub) | logged as not built (not re-probed) | No hub-level role beyond site admin. Define Owner = site admin, Maintainer = write on any repo, Member; compute in the search; us... |
 | Agent rows: violet square avatar, @org/name, owner, scope, View runs | missing (hub+asc) | logged as not built (not re-probed) | asc has repo-scoped ListTokens and ListRuns; no hub-wide agent directory. asc: ListAgents(owner) RPC; hub: row type in user_list.... |
