@@ -182,9 +182,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Reports queue with Dismiss, mark handled, content actions | done | templates/admin/moderation/reports.tmpl:28 | - |
-| Reason per action written to the audit log; reports grouped by target; appeal state; agent rep... | missing (hub) | logged as not built (not re-probed) | reports.go PerformAction, moderation service, reports.tmpl |
+| Reason per action written to the audit log; reports grouped by target; appeal state; agent rep... | partial (hub) | routers/web/admin/asc_moderation.go, services/ascmoderation, templates/moderation/asc_decision.tmpl | agent reporters |
 | Board note: Dismiss, Hide and Suspend are separate, each with a reason that goes to the audit log | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Reports group by target | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Reports group by target | done | models/moderation GetOpenReports (one item per content, reported_times) | - |
 | Board note: Queue with items, empty (all caught up), item hidden toast, appeal received | unverified | not tracked in the gap files | needs a row and a test |
 
 #### AdminMonitor (ASC Hub admin: monitor)
