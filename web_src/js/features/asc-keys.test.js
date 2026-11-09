@@ -1,4 +1,4 @@
-import {isTypingTarget, nextRowIndex, initAscKeys, initAscInboxBadge, initAscInboxDone, doneFadeMs, nextChangeLink} from './asc-keys.js';
+import {isTypingTarget, nextRowIndex, initAscKeys, initAscInboxBadge, initAscInboxDone, doneFadeMs, nextChangeLink, initAscAgentsPill, agentsPillText} from './asc-keys.js';
 
 test('nextRowIndex moves one row and never wraps', () => {
   expect(nextRowIndex(-1, 1, 3)).toBe(0);
@@ -243,4 +243,47 @@ test('n finds the change after the current one in the stack rail', () => {
   expect(nextChangeLink()).toBeNull();
   document.body.innerHTML = '<p>no stack</p>';
   expect(nextChangeLink()).toBeNull();
+});
+
+const agentsPill = (testid) => `<a class="ds-agents-pill tw-hidden" href="/-/asc/agents" data-asc-agents-url="/-/asc/agents/count" data-word-one="{n} agent running" data-word-other="{n} agents running" data-testid="${testid}"><span class="ds-agents-dot" aria-hidden="true"></span><span data-asc-agents-n></span><span class="ds-agents-word" data-asc-agents-text></span></a>`;
+
+test('the agents pill says how many runs are active, in the header and the top bar, and hides at zero', async () => {
+  sessionStorage.clear();
+  document.body.innerHTML = agentsPill('hdr-agents') + agentsPill('topbar-agents');
+  globalThis.fetch = vi.fn().mockResolvedValue({ok: true, json: async () => ({count: 3})});
+  await initAscAgentsPill();
+  expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  for (const pill of document.querySelectorAll('.ds-agents-pill')) {
+    expect(pill.classList.contains('tw-hidden')).toBe(false);
+    expect(pill.getAttribute('aria-label')).toBe('3 agents running');
+    expect(pill.querySelector('[data-asc-agents-n]').textContent).toBe('3');
+    expect(pill.querySelector('[data-asc-agents-text]').textContent).toBe('3 agents running');
+  }
+  // the next page within 30 seconds asks nobody
+  document.body.innerHTML = agentsPill('hdr-agents');
+  globalThis.fetch = vi.fn();
+  await initAscAgentsPill();
+  expect(globalThis.fetch).not.toHaveBeenCalled();
+  expect(document.querySelector('.ds-agents-pill').classList.contains('tw-hidden')).toBe(false);
+
+  sessionStorage.clear();
+  globalThis.fetch = vi.fn().mockResolvedValue({ok: true, json: async () => ({count: 0})});
+  await initAscAgentsPill();
+  expect(document.querySelector('.ds-agents-pill').classList.contains('tw-hidden')).toBe(true);
+
+  sessionStorage.clear();
+  document.body.innerHTML = agentsPill('hdr-agents');
+  globalThis.fetch = vi.fn().mockResolvedValue({ok: false});
+  await initAscAgentsPill();
+  expect(document.querySelector('.ds-agents-pill').classList.contains('tw-hidden')).toBe(true);
+  globalThis.fetch = vi.fn().mockRejectedValue(new Error('offline'));
+  await initAscAgentsPill();
+  expect(document.querySelector('.ds-agents-pill').classList.contains('tw-hidden')).toBe(true);
+});
+
+test('the agents pill words are singular for one run', () => {
+  document.body.innerHTML = agentsPill('hdr-agents');
+  const pill = document.querySelector('.ds-agents-pill');
+  expect(agentsPillText(pill, 1)).toBe('1 agent running');
+  expect(agentsPillText(pill, 12)).toBe('12 agents running');
 });

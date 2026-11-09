@@ -48,7 +48,7 @@ func (f *fakeAgentsAsc) ListRuns(_ context.Context, req *ascv1.ListAgentRunsRequ
 	return by(req)
 }
 
-func useFakeAgents(t *testing.T, f *fakeAgentsAsc) {
+func useFakeAgents(t *testing.T, f ascv1.AgentsServer) {
 	t.Helper()
 	srv := grpc.NewServer()
 	ascv1.RegisterAgentsServer(srv, f)
