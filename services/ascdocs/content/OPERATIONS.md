@@ -464,6 +464,25 @@ an asc repository with `History.Log` and `count_only`, one page after another, w
 the stored count even when the head has moved since, and queues the repository to be counted again; a repository that
 was never counted shows no count until the indexer ran. The table row goes when the repository is deleted.
 
+## The agent directory
+
+An agent is a name that asc runs under in the repositories of one owner, written `@owner/name`: `@acme/review` is the
+agent `review` in the repositories of acme. The same name in the repositories of two owners is two agents. The hub
+reads the directory from asc with one `Agents.SummarizeAgents` call over at most 50 asc repositories (the newest
+activity first) whose code the viewer can read, so a page never names an agent of a repository the viewer may not see.
+Only a signed-in viewer with agent features on gets agents. The answer of asc is kept 60 seconds per set of
+repositories (and person, for a profile); a failure is logged and the page shows no agent information. A name that is
+not a valid agent name is left out. Code: `services/ascagentdir`.
+
+## Members and agents on organization rows
+
+Each row of Explore organizations shows a member stack: up to four member avatars and **+N** for the rest, with the
+number of members as its label. A visitor and a viewer who is not a member see only the public members; a member and
+an administrator see all of them. For a viewer who gets agents (see "The agent directory") the row also shows **N
+agents**: the agents that ran in the asc repositories of the organization the viewer can read. The repositories of
+the organizations of the page are taken in page order, at most 50 for the whole page, so an organization far down a
+page with many repositories can show fewer agents than it has. A failed lookup leaves that part out of the row.
+
 ## Checks and Watch on organization rows
 
 Each repository row of an organization page says how the checks of the head of its default branch went: **Checks
