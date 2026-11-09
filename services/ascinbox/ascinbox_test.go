@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"forgejo.org/models/db"
+	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
+	api "forgejo.org/modules/structs"
 	"forgejo.org/modules/timeutil"
 	"forgejo.org/services/authz"
 
@@ -90,6 +92,23 @@ func TestArrange(t *testing.T) {
 		assert.True(t, got[1].DoneAt.IsZero())
 	})
 
+	t.Run("a snooze until the checks finish ends when no check runs or the head moved", func(t *testing.T) {
+		until := timeutil.TimeStamp(now.Add(time.Hour).Unix())
+		in := []*Entry{
+			{PullID: 11, Section: issues_model.AscInboxNeedsReview, Updated: t0, HeadCommitID: "a", ChecksRunning: true},
+			{PullID: 12, Section: issues_model.AscInboxNeedsReview, Updated: t0, HeadCommitID: "b"},
+			{PullID: 13, Section: issues_model.AscInboxNeedsReview, Updated: t0, HeadCommitID: "c2", ChecksRunning: true},
+		}
+		marks := map[int64]*issues_model.AscInboxState{
+			11: {SnoozedUntil: until, SnoozeHead: "a"},
+			12: {SnoozedUntil: until, SnoozeHead: "b"},
+			13: {SnoozedUntil: until, SnoozeHead: "c1"},
+		}
+		got := Arrange(in, marks, now, Options{})
+		assert.Equal(t, []int64{13, 12}, pullIDs(got), "11 waits for its checks; 12 finished, 13 has another head")
+		assert.True(t, got[0].SnoozedUntil.IsZero())
+	})
+
 	t.Run("marks of an earlier call do not stick", func(t *testing.T) {
 		in := mk()
 		Arrange(in, states, now, Options{IncludeSnoozed: true})
@@ -100,6 +119,25 @@ func TestArrange(t *testing.T) {
 			assert.True(t, e.DoneAt.IsZero())
 		}
 	})
+}
+
+func TestChecksRunning(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	running := "aaaa000000000000000000000000000000000000"
+	finished := "bbbb000000000000000000000000000000000000"
+	for i, s := range []*git_model.CommitStatus{
+		{Index: 1, RepoID: 1, SHA: running, State: api.CommitStatusSuccess, Context: "lint", ContextHash: "lint"},
+		{Index: 2, RepoID: 1, SHA: running, State: api.CommitStatusPending, Context: "test", ContextHash: "test"},
+		{Index: 1, RepoID: 1, SHA: finished, State: api.CommitStatusPending, Context: "test", ContextHash: "test"},
+		{Index: 2, RepoID: 1, SHA: finished, State: api.CommitStatusFailure, Context: "test", ContextHash: "test"},
+	} {
+		_, err := db.GetEngine(db.DefaultContext).Insert(s)
+		require.NoError(t, err, i)
+	}
+	assert.True(t, ChecksRunning(db.DefaultContext, 1, running))
+	assert.False(t, ChecksRunning(db.DefaultContext, 1, finished), "only the latest status of each check counts")
+	assert.False(t, ChecksRunning(db.DefaultContext, 2, running), "statuses of another repository")
+	assert.False(t, ChecksRunning(db.DefaultContext, 1, ""))
 }
 
 func TestLoadAndList(t *testing.T) {

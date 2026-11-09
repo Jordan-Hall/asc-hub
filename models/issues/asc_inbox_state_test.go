@@ -111,6 +111,48 @@ func TestAscInboxStatePinSnooze(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestAscInboxStateSnoozeChecks(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := t.Context()
+	now := time.Unix(1_800_000_000, 0)
+
+	s, err := issues_model.SetAscInboxSnoozeChecks(ctx, 1, 20, "abc", now)
+	require.NoError(t, err)
+	assert.Equal(t, "abc", s.SnoozeHead)
+	assert.True(t, s.IsSnoozedFor(now, "abc", true))
+	assert.False(t, s.IsSnoozedFor(now, "abc", false), "no check runs")
+	assert.False(t, s.IsSnoozedFor(now, "def", true), "another head")
+	assert.False(t, s.IsSnoozedFor(now.Add(issues_model.AscInboxChecksSnooze), "abc", true), "a day at most")
+	got, err := issues_model.GetAscInboxState(ctx, 1, 20)
+	require.NoError(t, err)
+	assert.Equal(t, "abc", got.SnoozeHead, "stored")
+
+	// a snooze for a time is not tied to the checks
+	until := now.Add(time.Hour)
+	s, err = issues_model.SetAscInboxState(ctx, 1, 20, nil, &until, now)
+	require.NoError(t, err)
+	assert.Empty(t, s.SnoozeHead)
+	assert.True(t, s.IsSnoozedFor(now, "def", false))
+
+	// waking and marking done end it too
+	_, err = issues_model.SetAscInboxSnoozeChecks(ctx, 1, 20, "abc", now)
+	require.NoError(t, err)
+	s, err = issues_model.SetAscInboxDone(ctx, 1, 20, true, now)
+	require.NoError(t, err)
+	assert.Empty(t, s.SnoozeHead)
+	_, err = issues_model.SetAscInboxSnoozeChecks(ctx, 1, 21, "abc", now)
+	require.NoError(t, err)
+	zero := time.Time{}
+	_, err = issues_model.SetAscInboxState(ctx, 1, 21, nil, &zero, now)
+	require.NoError(t, err)
+	got, err = issues_model.GetAscInboxState(ctx, 1, 21)
+	require.NoError(t, err)
+	assert.Nil(t, got, "no mark left, no row")
+
+	_, err = issues_model.SetAscInboxSnoozeChecks(ctx, 1, 20, "", now)
+	require.Error(t, err)
+}
+
 func TestAscInboxStateDone(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	ctx := t.Context()
