@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 186 |
+| done | 187 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 9 |
+| needs-both | 8 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 16, L 8.
+Open rows by size: S 0, M 16, L 7.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -233,7 +233,7 @@ Open rows by size: S 0, M 16, L 8.
 | Dashboard | Keys j k, Enter, e (done), g then i, `/` | done | `asc-keys.js`: j k, Enter on the row link, g i and `/`; e on the focused row sends its hidden state form (`user/asc_row_state.tmpl`, `asc-row-swipe.js`), back to the dashboard | - |
 | Dashboard | Agents working now with budget bar, paused state, All runs | done | `asc_home.tmpl`, `ascDashAgentsFromServe` | - |
 | Dashboard | Stack bars: click a segment opens the review at that segment | done | `wk-segs` items are not links; `ascDashStackFrom` has the pull link per segment | S |
-| Dashboard | Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | needs-both | No such card. Hub aggregates the person's queue entries (`routers/web/repo/asc_queue.go`; asc `mergequeue.proto` `List`, `Get`, `Watch`); median wait needs an asc statistic | L |
+| Dashboard | Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | done | `routers/web/user/asc_dashboard_queue.go` `ascDashQueue` (`AscDashQueueCard`: positions from `automerge.AscQueueViewOf`, Running from its branch lock, median and estimates from asc `MergeQueue.List`, checks from the inbox facts); `user/dashboard/asc_dash_work.tmpl` (TestDashboardQueueShowsTheChangesOfThePersonThatWait, TestAscDashWork) | - |
 | Dashboard | Today feed with Filter | done | Feed present; filter menu missing | S |
 | Dashboard | From your terminal card with Copy; g i tip | done | `asc_home.tmpl` | - |
 | Dashboard | Live updates | done | `GET /-/asc/dash/work` (`AscDashWork`, `user/dashboard/asc_dash_work.tmpl`) reloads Needs you, the merge queue and the agents working now with the Today card every minute; `asc-dash-live.js` `refreshWork` skips while the focus is in them or an answer is typed, keeps them on a failed load and binds the swipe again (TestAscDashWork, asc-dash-live.test.js) | - |

@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 235, partial 17, missing 65. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 236, partial 17, missing 64. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -307,7 +307,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Dashboard (ASC Hub dashboard)
 
-Area shell/settings. Rows 18: done 12, partial 1, missing 5. Copy found in the hub: 61% of 102 copy strings (mobile twin 60%). Template(s): asc_home.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 18: done 13, partial 1, missing 4. Copy found in the hub: 61% of 102 copy strings (mobile twin 60%). Template(s): asc_home.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; j/k to move - Enter to open - e to done; "Can we keep the old cursor format for one release? Mobile clients pin to it."; Agent asked a question: which currency table wins?; Blocking 2 changes; Ready to merge: Rate limit headers.
 
@@ -323,7 +323,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Keys j k, Enter, e (done), g then i, / | done | `asc-keys.js` e on the focused row; `asc_dashboard_test.go` | - |
 | Agents working now with budget bar, paused state, All runs | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Stack bars: click a segment opens the review at that segment | done | see where-cell | - |
-| Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | missing (hub+asc) | logged as not built (not re-probed) | No such card. Hub aggregates the person's queue entries (routers/web/repo/asc_queue.go; asc mergequeue.proto List, Get, Watch); m... |
+| Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | done | routers/web/user/asc_dashboard_queue.go, templates/user/dashboard/asc_dash_work.tmpl | median and estimates from asc MergeQueue.List |
 | Today feed with Filter | done | see where-cell | - |
 | From your terminal card with Copy; g i tip | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Live updates | done | routers/web/user/asc_dashboard.go `AscDashWork`, web_src/js/features/asc-dash-live.js `refreshWork` | every minute with the Today card, not while in use |
