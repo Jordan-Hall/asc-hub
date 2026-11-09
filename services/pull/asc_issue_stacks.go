@@ -32,7 +32,7 @@ type AscIssueStack struct {
 }
 
 // Done reports whether every entry of the stack has landed.
-func (s *AscIssueStack) Done() bool { return len(s.Entries) > 0 && s.Landed == len(s.Entries) }
+func (s AscIssueStack) Done() bool { return len(s.Entries) > 0 && s.Landed == len(s.Entries) }
 
 // referencingPulls maps issue ids to the pull request issue ids that name them, with whether any of them closes.
 func referencingPulls(ctx context.Context, issueIDs []int64) (map[int64][]int64, map[[2]int64]bool, error) {
