@@ -438,6 +438,19 @@ agents (the 30 most recently updated that they own or collaborate on), asked wit
 are off, when they have no asc repository, and when `asc serve` cannot be asked (logged with the request id; a failure
 is not cached). The number shown is at most 999.
 
+## The agent activity chip of a repository row
+
+For a signed-in person with agent features on, each row of Explore, a profile, an organization and Watching that is an
+asc repository whose code they can read shows **N agent runs**: the runs started there in the last 7 days (the window
+of the Agent activity quick chip), any state and anyone's. The chip links to the agent runs of the repository
+(`/{owner}/{repo}/asc/agents`); hovering or a screen reader gives the full words (**3 agent runs in the last 7 days**).
+A row without runs, a git repository, a visitor and a person with agent features off get no chip.
+
+The hub asks `asc serve` with one `Agents.CountRuns` call (`since`, answer `per_repo`) per 50 rows, with the system
+credential, naming only the rows the viewer can read; asc checks read on each. The counts of a set of repositories
+are kept 60 seconds in the hub cache. The number shown is at most 999. When `asc serve` cannot be asked the rows show
+no chip and the failure is logged with the request id (not cached).
+
 ## Checks and Watch on organization rows
 
 Each repository row of an organization page says how the checks of the head of its default branch went: **Checks
