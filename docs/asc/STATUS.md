@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 252, partial 13, missing 52. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 253, partial 13, missing 51. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -611,7 +611,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### OrgTeams (ASC Hub organization teams)
 
-Area shell/settings. Rows 4: done 3, partial 0, missing 1. Copy found in the hub: 68% of 53 copy strings (mobile twin 66%). Template(s): members.tmpl, new.tmpl, repositories.tmpl, teams.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 4: done 4, partial 0, missing 0. Copy found in the hub: 68% of 53 copy strings (mobile twin 66%). Template(s): members.tmpl, new.tmpl, repositories.tmpl, teams.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Infra, queues, rate limits and runners.; Cross-team reviewers for money-touching paths.; Tokens, components and docs.; Edit team.
 
@@ -620,10 +620,10 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Team cards (name, access, description, avatars, member and repo counts), create/edit/delete te... | done | templates/org/team/teams.tmpl (file) | - |
 | Selecting a card loads detail below without leaving (members + repositories with access) | done | web_src/js/features/org-team.js pickTeam | - |
 | Policy owner note: team linked to a path pattern in merge policy | done | services/ascteams (team sync and OwnershipOf), templates/org/team/teams.tmpl (Policy owner) | - |
-| Agents as team members with a path scope | missing (hub+asc) | logged as not built (not re-probed) | asc: agent identity + path scope; hub: team members list |
+| Agents as team members with a path scope | done | services/ascteams/agents.go, teams.tmpl (Agents), TestAgentsAreTeamMembers, TestTheTeamPageManagesAgentMembers | - |
 | Board note: Teams is a view of the organization; selecting a card loads detail below without leaving | done | web_src/js/features/org-team.test.js | - |
 | Board note: Policy owner links a team to a path pattern in merge policy | done | TestTheTeamPageShowsWhatPoliciesGiveTheTeam | - |
-| Board note: Agents can be team members with a path scope | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Agents can be team members with a path scope | done | TestTheTeamPageManagesAgentMembers | - |
 | Board note: Default with selected team, empty team (add member prompt), team without repositories, de... | unverified | not tracked in the gap files | needs a row and a test |
 
 #### Packages (ASC Hub packages)

@@ -508,6 +508,23 @@ minute. A repository whose policy could not be read is counted under the list. C
 `services/asctrust/teams.go`, `routers/web/org/teams.go`, `templates/org/team/teams.tmpl`. Tests: TestReconcile*,
 TestATeamChangeIsSentAfterItCommits, TestReconcileGoesOnPastAFailingTeam, TestARenamedOrDeletedAccountMovesItsTeams, TestOwnershipShowsWhatPoliciesGiveATeam, TestTheTeamPageShowsWhatPoliciesGiveTheTeam.
 
+### Agents in teams
+
+An organization's agents (its asc agent identities, see the People page) can be members of its teams. Owners add one
+in the **Agents** part of the team detail on the **Teams** page and remove it there; members see the team's agents
+with the paths each may write (**Any path** when the agent has no path limit) and whether it is paused. A team holds
+at most 64 agents. Only agents asc lists for the organization can be added. The hub keeps the memberships
+(`asc_team_agent`) and sends each as `agent:<name>` with the team's people, so path rules and policies that name the
+team admit the agent too. The team does not widen an agent: asc still refuses a draft from an agent that is paused,
+kept to other repositories or writing outside its own paths (`AGENT_SCOPE_DENIED`), whatever its teams allow.
+When the organization deletes an agent in asc, the next sync drops its memberships, so a later agent with the same
+name inherits none of them; until then the team detail marks it **No longer an agent of the organization** and asc is
+not sent it. When the agents cannot be read, the sync sends the team's people without its agents (a team then admits
+fewer, never more) and the Agents part says the agents could not be read. Deleting a team or the organization deletes
+its agent memberships. Code: `models/organization/asc_team_agent.go`, `services/ascteams/agents.go`,
+`routers/web/org/teams.go`. Tests: TestAgentsAreTeamMembers, TestTheTeamPageManagesAgentMembers,
+Test_addAscTeamAgent.
+
 ## Agents and the merge policy on the organization page
 
 The head of an organization page counts its agents beside its people, and the side of the page has an **Agents** card.
