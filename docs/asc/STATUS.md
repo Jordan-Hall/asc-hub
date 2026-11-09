@@ -1086,7 +1086,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### NewRepo (ASC Hub new repository)
 
-Area repo. Rows 15: done 3, partial 4, missing 8. Copy found in the hub: 65% of 91 copy strings (mobile twin 61%). Template(s): create.tmpl, create_advanced.tmpl, create_basic.tmpl, create_from_template.tmpl. Mobile twin: yes.
+Area repo. Rows 15: done 4, partial 4, missing 7. Copy found in the hub: 65% of 91 copy strings (mobile twin 61%). Template(s): create.tmpl, create_advanced.tmpl, create_basic.tmpl, create_from_template.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Second-generation payment service; Import brings history, refs and tags from another server. It never changes the...; Only people and agents you add can see it.; Everyone signed in to this hub can read it.; Anyone can read it. Only collaborators can change it.; Working mode.
 
@@ -1103,7 +1103,7 @@ Board copy not found word for word in locale, templates or scripts: Second-gener
 | Preview card ("acme / payments-v2, Private, Policy on") and "Then, from your terminal" commands | missing (UI) | logged as not built (not re-probed) | H:templates/repo/create.tmpl plus script |
 | Quota line "41 of 100 used on the Team plan" and quota-reached state | partial (hub) | logged as not built (not re-probed) | H:models/quota is wired to size limits; repository count limit exists (MaxCreationLimit banner) but no plan name or usage line |
 | Creating state ("Creating acme/payments-v2 and its first policy...") | missing (UI) | logged as not built (not re-probed) | button disabled and busy text in script |
-| Import running: progress "3,412 of 9,880 history entries", Run in background, Cancel | missing (hub+asc) | logged as not built (not re-probed) | hub H:web_src/js/features/repo-migration.js polls Forgejo migration tasks; asc needs a history-to-changes import progress source... |
+| Import running: progress "3,412 of 9,880 history entries", Run in background, Cancel | done | services/repository/migrate_asc.go (reportImportProgress), routers/web/user/task.go, web_src/js/features/repo-migrate.js | - |
 | "Signed with your key mo_41c9" line | missing (hub) | logged as not built (not re-probed) | H:services/ascidentity signing-key lookup, template line |
 | Sticky primary action on mobile | done | templates/admin/runners/create.tmpl:18 | - |
 | Mobile: Name check after 300 ms, Start from keeps typed values, sticky primary | missing (hub) | logged as not built (not re-probed) | see NewRepo rows |

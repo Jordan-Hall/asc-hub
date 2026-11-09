@@ -1024,6 +1024,20 @@ repository admins, **Open storage**. Code: `services/ascbyo/searchindex.go`, `ro
 `templates/shared/asc/byo_storage_repo.tmpl`, `templates/repo/asc_search.tmpl`. Tests: TestSearchIndexOf,
 TestRepoStorageSearchIndexes, TestAscSearchMeaningIndexOff.
 
+## How far a repository import is
+
+While a migration hands the history of an asc repository to asc, the migration page says "Importing history: 3,412 of 9,880
+history entries" and fills its bar. The total is the hub's own count of the commits in the clone (`git rev-list --count
+--all`, after the pull request refs are removed); the count done is asc's: the hub asks `Repo.ImportProgress` every 2
+seconds, and asc answers with the commits the running import has turned into changes so far. A history that goes to asc in
+several batches (more than 1,024 branches and tags) adds the batches up. When the import ends the page shows the whole
+history as done; a retry starts from what asc already holds, so its count can jump to the end. A refused import shows asc's
+reason as before, never a full bar. Before the import starts, and while git clones, the bar only says that the import runs.
+
+Scripts read the same counts from `GET /user/task/{id}`, which returns `done` and `total` next to `status` and `message`
+(both 0 when the step reports no counts). `Repo.ImportProgress` takes the internal token only; when it cannot be reached
+the page keeps the last count and the import is not affected.
+
 ## Where repositories keep their objects
 
 The Storage column of **Site administration > Repositories** names the storage target each repository on the page writes

@@ -105,9 +105,10 @@ and the files. Not covered: `asc submit` from the browser goes through the RPC p
 
 The form, the progress page and the failure page were checked at 390 and 1440 px, light and dark, with axe (WCAG 2.2 AA):
 no violations and no horizontal overflow in any of the 16 captures (`tests/asc-e2e/design_pass.mjs`). The NewRepo board
-shows the progress as "N of M history entries" with a bar; git reports no such count, so the page shows an indeterminate
-bar (it says the import runs, not how far), "Run in the background" and Cancel. The board has no failure state: the page
-shows asc's or git's reason, Retry and Delete.
+shows the progress as "N of M history entries" with a bar. While git clones, git reports no such count and the bar only
+says that the import runs; once asc takes the history, the page shows "Importing history: N of M history entries" and
+fills the bar (see OPERATIONS.md "How far a repository import is"), with "Run in the background" and Cancel. The board has
+no failure state: the page shows asc's or git's reason, Retry and Delete.
 
 ## Known limits
 
