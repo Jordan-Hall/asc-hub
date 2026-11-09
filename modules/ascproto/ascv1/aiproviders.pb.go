@@ -186,6 +186,62 @@ func (AiUsageGroup) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{2}
 }
 
+// What a key was used for.
+type AiActivityKind int32
+
+const (
+	AiActivityKind_AI_ACTIVITY_KIND_UNSPECIFIED    AiActivityKind = 0
+	AiActivityKind_AI_ACTIVITY_KIND_AGENT_RUN      AiActivityKind = 1 // `subject` is the run id
+	AiActivityKind_AI_ACTIVITY_KIND_REVIEW_SUMMARY AiActivityKind = 2 // `subject` is the change id (32 letters k-z), or empty for a range
+	AiActivityKind_AI_ACTIVITY_KIND_KEY_TEST       AiActivityKind = 3 // a test or replace of the key; `subject` is the UTC day
+	AiActivityKind_AI_ACTIVITY_KIND_OTHER          AiActivityKind = 4 // a call made for no run and no person
+)
+
+// Enum value maps for AiActivityKind.
+var (
+	AiActivityKind_name = map[int32]string{
+		0: "AI_ACTIVITY_KIND_UNSPECIFIED",
+		1: "AI_ACTIVITY_KIND_AGENT_RUN",
+		2: "AI_ACTIVITY_KIND_REVIEW_SUMMARY",
+		3: "AI_ACTIVITY_KIND_KEY_TEST",
+		4: "AI_ACTIVITY_KIND_OTHER",
+	}
+	AiActivityKind_value = map[string]int32{
+		"AI_ACTIVITY_KIND_UNSPECIFIED":    0,
+		"AI_ACTIVITY_KIND_AGENT_RUN":      1,
+		"AI_ACTIVITY_KIND_REVIEW_SUMMARY": 2,
+		"AI_ACTIVITY_KIND_KEY_TEST":       3,
+		"AI_ACTIVITY_KIND_OTHER":          4,
+	}
+)
+
+func (x AiActivityKind) Enum() *AiActivityKind {
+	p := new(AiActivityKind)
+	*p = x
+	return p
+}
+
+func (x AiActivityKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AiActivityKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_aiproviders_proto_enumTypes[3].Descriptor()
+}
+
+func (AiActivityKind) Type() protoreflect.EnumType {
+	return &file_asc_v1_aiproviders_proto_enumTypes[3]
+}
+
+func (x AiActivityKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AiActivityKind.Descriptor instead.
+func (AiActivityKind) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{3}
+}
+
 // A feature that calls a model with a key of its owner.
 type AiFeature int32
 
@@ -220,11 +276,11 @@ func (x AiFeature) String() string {
 }
 
 func (AiFeature) Descriptor() protoreflect.EnumDescriptor {
-	return file_asc_v1_aiproviders_proto_enumTypes[3].Descriptor()
+	return file_asc_v1_aiproviders_proto_enumTypes[4].Descriptor()
 }
 
 func (AiFeature) Type() protoreflect.EnumType {
-	return &file_asc_v1_aiproviders_proto_enumTypes[3]
+	return &file_asc_v1_aiproviders_proto_enumTypes[4]
 }
 
 func (x AiFeature) Number() protoreflect.EnumNumber {
@@ -233,7 +289,7 @@ func (x AiFeature) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AiFeature.Descriptor instead.
 func (AiFeature) EnumDescriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{3}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{4}
 }
 
 type AiKey struct {
@@ -1419,6 +1475,268 @@ func (x *AiUsageResponse) GetTotal() *AiUsageRow {
 	return nil
 }
 
+// The activity of one key of `owner`, kept for 90 days after its last call. `page_size` 0 means 50; at most 100.
+type ListAiActivityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Owner         *OwnerRef              `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	KeyId         string                 `protobuf:"bytes,2,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	PageSize      uint32                 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAiActivityRequest) Reset() {
+	*x = ListAiActivityRequest{}
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAiActivityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAiActivityRequest) ProtoMessage() {}
+
+func (x *ListAiActivityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAiActivityRequest.ProtoReflect.Descriptor instead.
+func (*ListAiActivityRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListAiActivityRequest) GetOwner() *OwnerRef {
+	if x != nil {
+		return x.Owner
+	}
+	return nil
+}
+
+func (x *ListAiActivityRequest) GetKeyId() string {
+	if x != nil {
+		return x.KeyId
+	}
+	return ""
+}
+
+func (x *ListAiActivityRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListAiActivityRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+// One use of a key: every call of one run, of one person's summaries of one change, or of the tests of one day.
+type AiActivity struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Kind             AiActivityKind         `protobuf:"varint,1,opt,name=kind,proto3,enum=asc.v1.AiActivityKind" json:"kind,omitempty"`
+	Subject          string                 `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
+	Actor            string                 `protobuf:"bytes,3,opt,name=actor,proto3" json:"actor,omitempty"` // the handle of the person who started the run or asked; empty when none
+	Repo             string                 `protobuf:"bytes,4,opt,name=repo,proto3" json:"repo,omitempty"`   // "owner/name", or empty
+	Agent            string                 `protobuf:"bytes,5,opt,name=agent,proto3" json:"agent,omitempty"`
+	Model            string                 `protobuf:"bytes,6,opt,name=model,proto3" json:"model,omitempty"` // the model of the last call
+	FirstAt          int64                  `protobuf:"varint,7,opt,name=first_at,json=firstAt,proto3" json:"first_at,omitempty"`
+	LastAt           int64                  `protobuf:"varint,8,opt,name=last_at,json=lastAt,proto3" json:"last_at,omitempty"`
+	Requests         uint64                 `protobuf:"varint,9,opt,name=requests,proto3" json:"requests,omitempty"`
+	InputTokens      uint64                 `protobuf:"varint,10,opt,name=input_tokens,json=inputTokens,proto3" json:"input_tokens,omitempty"`
+	OutputTokens     uint64                 `protobuf:"varint,11,opt,name=output_tokens,json=outputTokens,proto3" json:"output_tokens,omitempty"`
+	CostMicroUsd     uint64                 `protobuf:"varint,12,opt,name=cost_micro_usd,json=costMicroUsd,proto3" json:"cost_micro_usd,omitempty"`
+	UnpricedRequests uint64                 `protobuf:"varint,13,opt,name=unpriced_requests,json=unpricedRequests,proto3" json:"unpriced_requests,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *AiActivity) Reset() {
+	*x = AiActivity{}
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AiActivity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AiActivity) ProtoMessage() {}
+
+func (x *AiActivity) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AiActivity.ProtoReflect.Descriptor instead.
+func (*AiActivity) Descriptor() ([]byte, []int) {
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *AiActivity) GetKind() AiActivityKind {
+	if x != nil {
+		return x.Kind
+	}
+	return AiActivityKind_AI_ACTIVITY_KIND_UNSPECIFIED
+}
+
+func (x *AiActivity) GetSubject() string {
+	if x != nil {
+		return x.Subject
+	}
+	return ""
+}
+
+func (x *AiActivity) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
+func (x *AiActivity) GetRepo() string {
+	if x != nil {
+		return x.Repo
+	}
+	return ""
+}
+
+func (x *AiActivity) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *AiActivity) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *AiActivity) GetFirstAt() int64 {
+	if x != nil {
+		return x.FirstAt
+	}
+	return 0
+}
+
+func (x *AiActivity) GetLastAt() int64 {
+	if x != nil {
+		return x.LastAt
+	}
+	return 0
+}
+
+func (x *AiActivity) GetRequests() uint64 {
+	if x != nil {
+		return x.Requests
+	}
+	return 0
+}
+
+func (x *AiActivity) GetInputTokens() uint64 {
+	if x != nil {
+		return x.InputTokens
+	}
+	return 0
+}
+
+func (x *AiActivity) GetOutputTokens() uint64 {
+	if x != nil {
+		return x.OutputTokens
+	}
+	return 0
+}
+
+func (x *AiActivity) GetCostMicroUsd() uint64 {
+	if x != nil {
+		return x.CostMicroUsd
+	}
+	return 0
+}
+
+func (x *AiActivity) GetUnpricedRequests() uint64 {
+	if x != nil {
+		return x.UnpricedRequests
+	}
+	return 0
+}
+
+type ListAiActivityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*AiActivity          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"` // empty on the last page
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAiActivityResponse) Reset() {
+	*x = ListAiActivityResponse{}
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAiActivityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAiActivityResponse) ProtoMessage() {}
+
+func (x *ListAiActivityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAiActivityResponse.ProtoReflect.Descriptor instead.
+func (*ListAiActivityResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ListAiActivityResponse) GetItems() []*AiActivity {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *ListAiActivityResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 type ReplaceAiKeyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1429,7 +1747,7 @@ type ReplaceAiKeyRequest struct {
 
 func (x *ReplaceAiKeyRequest) Reset() {
 	*x = ReplaceAiKeyRequest{}
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[19]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1441,7 +1759,7 @@ func (x *ReplaceAiKeyRequest) String() string {
 func (*ReplaceAiKeyRequest) ProtoMessage() {}
 
 func (x *ReplaceAiKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[19]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1454,7 +1772,7 @@ func (x *ReplaceAiKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplaceAiKeyRequest.ProtoReflect.Descriptor instead.
 func (*ReplaceAiKeyRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{19}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ReplaceAiKeyRequest) GetId() string {
@@ -1484,7 +1802,7 @@ type ReplaceAiKeyResponse struct {
 
 func (x *ReplaceAiKeyResponse) Reset() {
 	*x = ReplaceAiKeyResponse{}
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[20]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1496,7 +1814,7 @@ func (x *ReplaceAiKeyResponse) String() string {
 func (*ReplaceAiKeyResponse) ProtoMessage() {}
 
 func (x *ReplaceAiKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[20]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1509,7 +1827,7 @@ func (x *ReplaceAiKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplaceAiKeyResponse.ProtoReflect.Descriptor instead.
 func (*ReplaceAiKeyResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{20}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ReplaceAiKeyResponse) GetReplaced() bool {
@@ -1571,7 +1889,7 @@ type AiFeatureSetting struct {
 
 func (x *AiFeatureSetting) Reset() {
 	*x = AiFeatureSetting{}
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[21]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1583,7 +1901,7 @@ func (x *AiFeatureSetting) String() string {
 func (*AiFeatureSetting) ProtoMessage() {}
 
 func (x *AiFeatureSetting) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[21]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1596,7 +1914,7 @@ func (x *AiFeatureSetting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AiFeatureSetting.ProtoReflect.Descriptor instead.
 func (*AiFeatureSetting) Descriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{21}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *AiFeatureSetting) GetFeature() AiFeature {
@@ -1685,7 +2003,7 @@ type ListAiFeaturesRequest struct {
 
 func (x *ListAiFeaturesRequest) Reset() {
 	*x = ListAiFeaturesRequest{}
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[22]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1697,7 +2015,7 @@ func (x *ListAiFeaturesRequest) String() string {
 func (*ListAiFeaturesRequest) ProtoMessage() {}
 
 func (x *ListAiFeaturesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[22]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1710,7 +2028,7 @@ func (x *ListAiFeaturesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAiFeaturesRequest.ProtoReflect.Descriptor instead.
 func (*ListAiFeaturesRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{22}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListAiFeaturesRequest) GetOwner() *OwnerRef {
@@ -1729,7 +2047,7 @@ type ListAiFeaturesResponse struct {
 
 func (x *ListAiFeaturesResponse) Reset() {
 	*x = ListAiFeaturesResponse{}
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[23]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1741,7 +2059,7 @@ func (x *ListAiFeaturesResponse) String() string {
 func (*ListAiFeaturesResponse) ProtoMessage() {}
 
 func (x *ListAiFeaturesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[23]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1754,7 +2072,7 @@ func (x *ListAiFeaturesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAiFeaturesResponse.ProtoReflect.Descriptor instead.
 func (*ListAiFeaturesResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{23}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListAiFeaturesResponse) GetFeatures() []*AiFeatureSetting {
@@ -1777,7 +2095,7 @@ type SetAiFeatureRequest struct {
 
 func (x *SetAiFeatureRequest) Reset() {
 	*x = SetAiFeatureRequest{}
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[24]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1789,7 +2107,7 @@ func (x *SetAiFeatureRequest) String() string {
 func (*SetAiFeatureRequest) ProtoMessage() {}
 
 func (x *SetAiFeatureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[24]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1802,7 +2120,7 @@ func (x *SetAiFeatureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAiFeatureRequest.ProtoReflect.Descriptor instead.
 func (*SetAiFeatureRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{24}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SetAiFeatureRequest) GetOwner() *OwnerRef {
@@ -1849,7 +2167,7 @@ type SetAiFeatureResponse struct {
 
 func (x *SetAiFeatureResponse) Reset() {
 	*x = SetAiFeatureResponse{}
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[25]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1861,7 +2179,7 @@ func (x *SetAiFeatureResponse) String() string {
 func (*SetAiFeatureResponse) ProtoMessage() {}
 
 func (x *SetAiFeatureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_aiproviders_proto_msgTypes[25]
+	mi := &file_asc_v1_aiproviders_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1874,7 +2192,7 @@ func (x *SetAiFeatureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAiFeatureResponse.ProtoReflect.Descriptor instead.
 func (*SetAiFeatureResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{25}
+	return file_asc_v1_aiproviders_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *SetAiFeatureResponse) GetFeature() *AiFeatureSetting {
@@ -1982,7 +2300,32 @@ const file_asc_v1_aiproviders_proto_rawDesc = "" +
 	"\x11unpriced_requests\x18\x06 \x01(\x04R\x10unpricedRequests\"c\n" +
 	"\x0fAiUsageResponse\x12&\n" +
 	"\x04rows\x18\x01 \x03(\v2\x12.asc.v1.AiUsageRowR\x04rows\x12(\n" +
-	"\x05total\x18\x02 \x01(\v2\x12.asc.v1.AiUsageRowR\x05total\">\n" +
+	"\x05total\x18\x02 \x01(\v2\x12.asc.v1.AiUsageRowR\x05total\"\x92\x01\n" +
+	"\x15ListAiActivityRequest\x12&\n" +
+	"\x05owner\x18\x01 \x01(\v2\x10.asc.v1.OwnerRefR\x05owner\x12\x15\n" +
+	"\x06key_id\x18\x02 \x01(\tR\x05keyId\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\rR\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"\x93\x03\n" +
+	"\n" +
+	"AiActivity\x12*\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x16.asc.v1.AiActivityKindR\x04kind\x12\x18\n" +
+	"\asubject\x18\x02 \x01(\tR\asubject\x12\x14\n" +
+	"\x05actor\x18\x03 \x01(\tR\x05actor\x12\x12\n" +
+	"\x04repo\x18\x04 \x01(\tR\x04repo\x12\x14\n" +
+	"\x05agent\x18\x05 \x01(\tR\x05agent\x12\x14\n" +
+	"\x05model\x18\x06 \x01(\tR\x05model\x12\x19\n" +
+	"\bfirst_at\x18\a \x01(\x03R\afirstAt\x12\x17\n" +
+	"\alast_at\x18\b \x01(\x03R\x06lastAt\x12\x1a\n" +
+	"\brequests\x18\t \x01(\x04R\brequests\x12!\n" +
+	"\finput_tokens\x18\n" +
+	" \x01(\x04R\vinputTokens\x12#\n" +
+	"\routput_tokens\x18\v \x01(\x04R\foutputTokens\x12$\n" +
+	"\x0ecost_micro_usd\x18\f \x01(\x04R\fcostMicroUsd\x12+\n" +
+	"\x11unpriced_requests\x18\r \x01(\x04R\x10unpricedRequests\"j\n" +
+	"\x16ListAiActivityResponse\x12(\n" +
+	"\x05items\x18\x01 \x03(\v2\x12.asc.v1.AiActivityR\x05items\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\">\n" +
 	"\x13ReplaceAiKeyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\"\xb5\x01\n" +
@@ -2039,11 +2382,17 @@ const file_asc_v1_aiproviders_proto_rawDesc = "" +
 	"\x12AI_USAGE_GROUP_DAY\x10\x00\x12\x18\n" +
 	"\x14AI_USAGE_GROUP_MODEL\x10\x01\x12\x17\n" +
 	"\x13AI_USAGE_GROUP_REPO\x10\x02\x12\x18\n" +
-	"\x14AI_USAGE_GROUP_AGENT\x10\x03*c\n" +
+	"\x14AI_USAGE_GROUP_AGENT\x10\x03*\xb2\x01\n" +
+	"\x0eAiActivityKind\x12 \n" +
+	"\x1cAI_ACTIVITY_KIND_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aAI_ACTIVITY_KIND_AGENT_RUN\x10\x01\x12#\n" +
+	"\x1fAI_ACTIVITY_KIND_REVIEW_SUMMARY\x10\x02\x12\x1d\n" +
+	"\x19AI_ACTIVITY_KIND_KEY_TEST\x10\x03\x12\x1a\n" +
+	"\x16AI_ACTIVITY_KIND_OTHER\x10\x04*c\n" +
 	"\tAiFeature\x12\x1a\n" +
 	"\x16AI_FEATURE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15AI_FEATURE_AGENT_RUNS\x10\x01\x12\x1f\n" +
-	"\x1bAI_FEATURE_REVIEW_SUMMARIES\x10\x022\x83\x06\n" +
+	"\x1bAI_FEATURE_REVIEW_SUMMARIES\x10\x022\xd2\x06\n" +
 	"\vAiProviders\x12D\n" +
 	"\tCreateKey\x12\x1a.asc.v1.CreateAiKeyRequest\x1a\x1b.asc.v1.CreateAiKeyResponse\x12A\n" +
 	"\bListKeys\x12\x19.asc.v1.ListAiKeysRequest\x1a\x1a.asc.v1.ListAiKeysResponse\x12;\n" +
@@ -2058,7 +2407,8 @@ const file_asc_v1_aiproviders_proto_rawDesc = "" +
 	"ReplaceKey\x12\x1b.asc.v1.ReplaceAiKeyRequest\x1a\x1c.asc.v1.ReplaceAiKeyResponse\x12M\n" +
 	"\fListFeatures\x12\x1d.asc.v1.ListAiFeaturesRequest\x1a\x1e.asc.v1.ListAiFeaturesResponse\x12G\n" +
 	"\n" +
-	"SetFeature\x12\x1b.asc.v1.SetAiFeatureRequest\x1a\x1c.asc.v1.SetAiFeatureResponseB{\n" +
+	"SetFeature\x12\x1b.asc.v1.SetAiFeatureRequest\x1a\x1c.asc.v1.SetAiFeatureResponse\x12M\n" +
+	"\fListActivity\x12\x1d.asc.v1.ListAiActivityRequest\x1a\x1e.asc.v1.ListAiActivityResponseB{\n" +
 	"\n" +
 	"com.asc.v1B\x10AiprovidersProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -2074,95 +2424,104 @@ func file_asc_v1_aiproviders_proto_rawDescGZIP() []byte {
 	return file_asc_v1_aiproviders_proto_rawDescData
 }
 
-var file_asc_v1_aiproviders_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_asc_v1_aiproviders_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_asc_v1_aiproviders_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_asc_v1_aiproviders_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_asc_v1_aiproviders_proto_goTypes = []any{
 	(AiProvider)(0),                // 0: asc.v1.AiProvider
 	(AiKeyState)(0),                // 1: asc.v1.AiKeyState
 	(AiUsageGroup)(0),              // 2: asc.v1.AiUsageGroup
-	(AiFeature)(0),                 // 3: asc.v1.AiFeature
-	(*AiKey)(nil),                  // 4: asc.v1.AiKey
-	(*CreateAiKeyRequest)(nil),     // 5: asc.v1.CreateAiKeyRequest
-	(*CreateAiKeyResponse)(nil),    // 6: asc.v1.CreateAiKeyResponse
-	(*ListAiKeysRequest)(nil),      // 7: asc.v1.ListAiKeysRequest
-	(*ListAiKeysResponse)(nil),     // 8: asc.v1.ListAiKeysResponse
-	(*GetAiKeyRequest)(nil),        // 9: asc.v1.GetAiKeyRequest
-	(*GetAiKeyResponse)(nil),       // 10: asc.v1.GetAiKeyResponse
-	(*UpdateAiKeyRequest)(nil),     // 11: asc.v1.UpdateAiKeyRequest
-	(*UpdateAiKeyResponse)(nil),    // 12: asc.v1.UpdateAiKeyResponse
-	(*DeleteAiKeyRequest)(nil),     // 13: asc.v1.DeleteAiKeyRequest
-	(*DeleteAiKeyResponse)(nil),    // 14: asc.v1.DeleteAiKeyResponse
-	(*TestAiKeyRequest)(nil),       // 15: asc.v1.TestAiKeyRequest
-	(*TestAiKeyResponse)(nil),      // 16: asc.v1.TestAiKeyResponse
-	(*ListAiModelsRequest)(nil),    // 17: asc.v1.ListAiModelsRequest
-	(*AiModel)(nil),                // 18: asc.v1.AiModel
-	(*ListAiModelsResponse)(nil),   // 19: asc.v1.ListAiModelsResponse
-	(*AiUsageRequest)(nil),         // 20: asc.v1.AiUsageRequest
-	(*AiUsageRow)(nil),             // 21: asc.v1.AiUsageRow
-	(*AiUsageResponse)(nil),        // 22: asc.v1.AiUsageResponse
-	(*ReplaceAiKeyRequest)(nil),    // 23: asc.v1.ReplaceAiKeyRequest
-	(*ReplaceAiKeyResponse)(nil),   // 24: asc.v1.ReplaceAiKeyResponse
-	(*AiFeatureSetting)(nil),       // 25: asc.v1.AiFeatureSetting
-	(*ListAiFeaturesRequest)(nil),  // 26: asc.v1.ListAiFeaturesRequest
-	(*ListAiFeaturesResponse)(nil), // 27: asc.v1.ListAiFeaturesResponse
-	(*SetAiFeatureRequest)(nil),    // 28: asc.v1.SetAiFeatureRequest
-	(*SetAiFeatureResponse)(nil),   // 29: asc.v1.SetAiFeatureResponse
-	(*OwnerRef)(nil),               // 30: asc.v1.OwnerRef
+	(AiActivityKind)(0),            // 3: asc.v1.AiActivityKind
+	(AiFeature)(0),                 // 4: asc.v1.AiFeature
+	(*AiKey)(nil),                  // 5: asc.v1.AiKey
+	(*CreateAiKeyRequest)(nil),     // 6: asc.v1.CreateAiKeyRequest
+	(*CreateAiKeyResponse)(nil),    // 7: asc.v1.CreateAiKeyResponse
+	(*ListAiKeysRequest)(nil),      // 8: asc.v1.ListAiKeysRequest
+	(*ListAiKeysResponse)(nil),     // 9: asc.v1.ListAiKeysResponse
+	(*GetAiKeyRequest)(nil),        // 10: asc.v1.GetAiKeyRequest
+	(*GetAiKeyResponse)(nil),       // 11: asc.v1.GetAiKeyResponse
+	(*UpdateAiKeyRequest)(nil),     // 12: asc.v1.UpdateAiKeyRequest
+	(*UpdateAiKeyResponse)(nil),    // 13: asc.v1.UpdateAiKeyResponse
+	(*DeleteAiKeyRequest)(nil),     // 14: asc.v1.DeleteAiKeyRequest
+	(*DeleteAiKeyResponse)(nil),    // 15: asc.v1.DeleteAiKeyResponse
+	(*TestAiKeyRequest)(nil),       // 16: asc.v1.TestAiKeyRequest
+	(*TestAiKeyResponse)(nil),      // 17: asc.v1.TestAiKeyResponse
+	(*ListAiModelsRequest)(nil),    // 18: asc.v1.ListAiModelsRequest
+	(*AiModel)(nil),                // 19: asc.v1.AiModel
+	(*ListAiModelsResponse)(nil),   // 20: asc.v1.ListAiModelsResponse
+	(*AiUsageRequest)(nil),         // 21: asc.v1.AiUsageRequest
+	(*AiUsageRow)(nil),             // 22: asc.v1.AiUsageRow
+	(*AiUsageResponse)(nil),        // 23: asc.v1.AiUsageResponse
+	(*ListAiActivityRequest)(nil),  // 24: asc.v1.ListAiActivityRequest
+	(*AiActivity)(nil),             // 25: asc.v1.AiActivity
+	(*ListAiActivityResponse)(nil), // 26: asc.v1.ListAiActivityResponse
+	(*ReplaceAiKeyRequest)(nil),    // 27: asc.v1.ReplaceAiKeyRequest
+	(*ReplaceAiKeyResponse)(nil),   // 28: asc.v1.ReplaceAiKeyResponse
+	(*AiFeatureSetting)(nil),       // 29: asc.v1.AiFeatureSetting
+	(*ListAiFeaturesRequest)(nil),  // 30: asc.v1.ListAiFeaturesRequest
+	(*ListAiFeaturesResponse)(nil), // 31: asc.v1.ListAiFeaturesResponse
+	(*SetAiFeatureRequest)(nil),    // 32: asc.v1.SetAiFeatureRequest
+	(*SetAiFeatureResponse)(nil),   // 33: asc.v1.SetAiFeatureResponse
+	(*OwnerRef)(nil),               // 34: asc.v1.OwnerRef
 }
 var file_asc_v1_aiproviders_proto_depIdxs = []int32{
-	30, // 0: asc.v1.AiKey.owner:type_name -> asc.v1.OwnerRef
+	34, // 0: asc.v1.AiKey.owner:type_name -> asc.v1.OwnerRef
 	0,  // 1: asc.v1.AiKey.provider:type_name -> asc.v1.AiProvider
 	1,  // 2: asc.v1.AiKey.state:type_name -> asc.v1.AiKeyState
-	30, // 3: asc.v1.CreateAiKeyRequest.owner:type_name -> asc.v1.OwnerRef
+	34, // 3: asc.v1.CreateAiKeyRequest.owner:type_name -> asc.v1.OwnerRef
 	0,  // 4: asc.v1.CreateAiKeyRequest.provider:type_name -> asc.v1.AiProvider
-	4,  // 5: asc.v1.CreateAiKeyResponse.key:type_name -> asc.v1.AiKey
-	30, // 6: asc.v1.ListAiKeysRequest.owner:type_name -> asc.v1.OwnerRef
-	4,  // 7: asc.v1.ListAiKeysResponse.keys:type_name -> asc.v1.AiKey
-	4,  // 8: asc.v1.GetAiKeyResponse.key:type_name -> asc.v1.AiKey
-	4,  // 9: asc.v1.UpdateAiKeyResponse.key:type_name -> asc.v1.AiKey
-	4,  // 10: asc.v1.TestAiKeyResponse.key:type_name -> asc.v1.AiKey
-	18, // 11: asc.v1.ListAiModelsResponse.models:type_name -> asc.v1.AiModel
-	30, // 12: asc.v1.AiUsageRequest.owner:type_name -> asc.v1.OwnerRef
+	5,  // 5: asc.v1.CreateAiKeyResponse.key:type_name -> asc.v1.AiKey
+	34, // 6: asc.v1.ListAiKeysRequest.owner:type_name -> asc.v1.OwnerRef
+	5,  // 7: asc.v1.ListAiKeysResponse.keys:type_name -> asc.v1.AiKey
+	5,  // 8: asc.v1.GetAiKeyResponse.key:type_name -> asc.v1.AiKey
+	5,  // 9: asc.v1.UpdateAiKeyResponse.key:type_name -> asc.v1.AiKey
+	5,  // 10: asc.v1.TestAiKeyResponse.key:type_name -> asc.v1.AiKey
+	19, // 11: asc.v1.ListAiModelsResponse.models:type_name -> asc.v1.AiModel
+	34, // 12: asc.v1.AiUsageRequest.owner:type_name -> asc.v1.OwnerRef
 	2,  // 13: asc.v1.AiUsageRequest.group_by:type_name -> asc.v1.AiUsageGroup
-	21, // 14: asc.v1.AiUsageResponse.rows:type_name -> asc.v1.AiUsageRow
-	21, // 15: asc.v1.AiUsageResponse.total:type_name -> asc.v1.AiUsageRow
-	4,  // 16: asc.v1.ReplaceAiKeyResponse.key:type_name -> asc.v1.AiKey
-	3,  // 17: asc.v1.AiFeatureSetting.feature:type_name -> asc.v1.AiFeature
-	30, // 18: asc.v1.AiFeatureSetting.set_by:type_name -> asc.v1.OwnerRef
-	4,  // 19: asc.v1.AiFeatureSetting.key:type_name -> asc.v1.AiKey
-	30, // 20: asc.v1.AiFeatureSetting.paused_by:type_name -> asc.v1.OwnerRef
-	30, // 21: asc.v1.ListAiFeaturesRequest.owner:type_name -> asc.v1.OwnerRef
-	25, // 22: asc.v1.ListAiFeaturesResponse.features:type_name -> asc.v1.AiFeatureSetting
-	30, // 23: asc.v1.SetAiFeatureRequest.owner:type_name -> asc.v1.OwnerRef
-	3,  // 24: asc.v1.SetAiFeatureRequest.feature:type_name -> asc.v1.AiFeature
-	25, // 25: asc.v1.SetAiFeatureResponse.feature:type_name -> asc.v1.AiFeatureSetting
-	5,  // 26: asc.v1.AiProviders.CreateKey:input_type -> asc.v1.CreateAiKeyRequest
-	7,  // 27: asc.v1.AiProviders.ListKeys:input_type -> asc.v1.ListAiKeysRequest
-	9,  // 28: asc.v1.AiProviders.GetKey:input_type -> asc.v1.GetAiKeyRequest
-	11, // 29: asc.v1.AiProviders.UpdateKey:input_type -> asc.v1.UpdateAiKeyRequest
-	13, // 30: asc.v1.AiProviders.DeleteKey:input_type -> asc.v1.DeleteAiKeyRequest
-	15, // 31: asc.v1.AiProviders.TestKey:input_type -> asc.v1.TestAiKeyRequest
-	20, // 32: asc.v1.AiProviders.Usage:input_type -> asc.v1.AiUsageRequest
-	17, // 33: asc.v1.AiProviders.ListModels:input_type -> asc.v1.ListAiModelsRequest
-	23, // 34: asc.v1.AiProviders.ReplaceKey:input_type -> asc.v1.ReplaceAiKeyRequest
-	26, // 35: asc.v1.AiProviders.ListFeatures:input_type -> asc.v1.ListAiFeaturesRequest
-	28, // 36: asc.v1.AiProviders.SetFeature:input_type -> asc.v1.SetAiFeatureRequest
-	6,  // 37: asc.v1.AiProviders.CreateKey:output_type -> asc.v1.CreateAiKeyResponse
-	8,  // 38: asc.v1.AiProviders.ListKeys:output_type -> asc.v1.ListAiKeysResponse
-	10, // 39: asc.v1.AiProviders.GetKey:output_type -> asc.v1.GetAiKeyResponse
-	12, // 40: asc.v1.AiProviders.UpdateKey:output_type -> asc.v1.UpdateAiKeyResponse
-	14, // 41: asc.v1.AiProviders.DeleteKey:output_type -> asc.v1.DeleteAiKeyResponse
-	16, // 42: asc.v1.AiProviders.TestKey:output_type -> asc.v1.TestAiKeyResponse
-	22, // 43: asc.v1.AiProviders.Usage:output_type -> asc.v1.AiUsageResponse
-	19, // 44: asc.v1.AiProviders.ListModels:output_type -> asc.v1.ListAiModelsResponse
-	24, // 45: asc.v1.AiProviders.ReplaceKey:output_type -> asc.v1.ReplaceAiKeyResponse
-	27, // 46: asc.v1.AiProviders.ListFeatures:output_type -> asc.v1.ListAiFeaturesResponse
-	29, // 47: asc.v1.AiProviders.SetFeature:output_type -> asc.v1.SetAiFeatureResponse
-	37, // [37:48] is the sub-list for method output_type
-	26, // [26:37] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	22, // 14: asc.v1.AiUsageResponse.rows:type_name -> asc.v1.AiUsageRow
+	22, // 15: asc.v1.AiUsageResponse.total:type_name -> asc.v1.AiUsageRow
+	34, // 16: asc.v1.ListAiActivityRequest.owner:type_name -> asc.v1.OwnerRef
+	3,  // 17: asc.v1.AiActivity.kind:type_name -> asc.v1.AiActivityKind
+	25, // 18: asc.v1.ListAiActivityResponse.items:type_name -> asc.v1.AiActivity
+	5,  // 19: asc.v1.ReplaceAiKeyResponse.key:type_name -> asc.v1.AiKey
+	4,  // 20: asc.v1.AiFeatureSetting.feature:type_name -> asc.v1.AiFeature
+	34, // 21: asc.v1.AiFeatureSetting.set_by:type_name -> asc.v1.OwnerRef
+	5,  // 22: asc.v1.AiFeatureSetting.key:type_name -> asc.v1.AiKey
+	34, // 23: asc.v1.AiFeatureSetting.paused_by:type_name -> asc.v1.OwnerRef
+	34, // 24: asc.v1.ListAiFeaturesRequest.owner:type_name -> asc.v1.OwnerRef
+	29, // 25: asc.v1.ListAiFeaturesResponse.features:type_name -> asc.v1.AiFeatureSetting
+	34, // 26: asc.v1.SetAiFeatureRequest.owner:type_name -> asc.v1.OwnerRef
+	4,  // 27: asc.v1.SetAiFeatureRequest.feature:type_name -> asc.v1.AiFeature
+	29, // 28: asc.v1.SetAiFeatureResponse.feature:type_name -> asc.v1.AiFeatureSetting
+	6,  // 29: asc.v1.AiProviders.CreateKey:input_type -> asc.v1.CreateAiKeyRequest
+	8,  // 30: asc.v1.AiProviders.ListKeys:input_type -> asc.v1.ListAiKeysRequest
+	10, // 31: asc.v1.AiProviders.GetKey:input_type -> asc.v1.GetAiKeyRequest
+	12, // 32: asc.v1.AiProviders.UpdateKey:input_type -> asc.v1.UpdateAiKeyRequest
+	14, // 33: asc.v1.AiProviders.DeleteKey:input_type -> asc.v1.DeleteAiKeyRequest
+	16, // 34: asc.v1.AiProviders.TestKey:input_type -> asc.v1.TestAiKeyRequest
+	21, // 35: asc.v1.AiProviders.Usage:input_type -> asc.v1.AiUsageRequest
+	18, // 36: asc.v1.AiProviders.ListModels:input_type -> asc.v1.ListAiModelsRequest
+	27, // 37: asc.v1.AiProviders.ReplaceKey:input_type -> asc.v1.ReplaceAiKeyRequest
+	30, // 38: asc.v1.AiProviders.ListFeatures:input_type -> asc.v1.ListAiFeaturesRequest
+	32, // 39: asc.v1.AiProviders.SetFeature:input_type -> asc.v1.SetAiFeatureRequest
+	24, // 40: asc.v1.AiProviders.ListActivity:input_type -> asc.v1.ListAiActivityRequest
+	7,  // 41: asc.v1.AiProviders.CreateKey:output_type -> asc.v1.CreateAiKeyResponse
+	9,  // 42: asc.v1.AiProviders.ListKeys:output_type -> asc.v1.ListAiKeysResponse
+	11, // 43: asc.v1.AiProviders.GetKey:output_type -> asc.v1.GetAiKeyResponse
+	13, // 44: asc.v1.AiProviders.UpdateKey:output_type -> asc.v1.UpdateAiKeyResponse
+	15, // 45: asc.v1.AiProviders.DeleteKey:output_type -> asc.v1.DeleteAiKeyResponse
+	17, // 46: asc.v1.AiProviders.TestKey:output_type -> asc.v1.TestAiKeyResponse
+	23, // 47: asc.v1.AiProviders.Usage:output_type -> asc.v1.AiUsageResponse
+	20, // 48: asc.v1.AiProviders.ListModels:output_type -> asc.v1.ListAiModelsResponse
+	28, // 49: asc.v1.AiProviders.ReplaceKey:output_type -> asc.v1.ReplaceAiKeyResponse
+	31, // 50: asc.v1.AiProviders.ListFeatures:output_type -> asc.v1.ListAiFeaturesResponse
+	33, // 51: asc.v1.AiProviders.SetFeature:output_type -> asc.v1.SetAiFeatureResponse
+	26, // 52: asc.v1.AiProviders.ListActivity:output_type -> asc.v1.ListAiActivityResponse
+	41, // [41:53] is the sub-list for method output_type
+	29, // [29:41] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_aiproviders_proto_init() }
@@ -2177,8 +2536,8 @@ func file_asc_v1_aiproviders_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_aiproviders_proto_rawDesc), len(file_asc_v1_aiproviders_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   26,
+			NumEnums:      5,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -30,6 +30,7 @@ const (
 	AiProviders_ReplaceKey_FullMethodName   = "/asc.v1.AiProviders/ReplaceKey"
 	AiProviders_ListFeatures_FullMethodName = "/asc.v1.AiProviders/ListFeatures"
 	AiProviders_SetFeature_FullMethodName   = "/asc.v1.AiProviders/SetFeature"
+	AiProviders_ListActivity_FullMethodName = "/asc.v1.AiProviders/ListActivity"
 )
 
 // AiProvidersClient is the client API for AiProviders service.
@@ -55,6 +56,7 @@ type AiProvidersClient interface {
 	ReplaceKey(ctx context.Context, in *ReplaceAiKeyRequest, opts ...grpc.CallOption) (*ReplaceAiKeyResponse, error)
 	ListFeatures(ctx context.Context, in *ListAiFeaturesRequest, opts ...grpc.CallOption) (*ListAiFeaturesResponse, error)
 	SetFeature(ctx context.Context, in *SetAiFeatureRequest, opts ...grpc.CallOption) (*SetAiFeatureResponse, error)
+	ListActivity(ctx context.Context, in *ListAiActivityRequest, opts ...grpc.CallOption) (*ListAiActivityResponse, error)
 }
 
 type aiProvidersClient struct {
@@ -175,6 +177,16 @@ func (c *aiProvidersClient) SetFeature(ctx context.Context, in *SetAiFeatureRequ
 	return out, nil
 }
 
+func (c *aiProvidersClient) ListActivity(ctx context.Context, in *ListAiActivityRequest, opts ...grpc.CallOption) (*ListAiActivityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAiActivityResponse)
+	err := c.cc.Invoke(ctx, AiProviders_ListActivity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AiProvidersServer is the server API for AiProviders service.
 // All implementations should embed UnimplementedAiProvidersServer
 // for forward compatibility.
@@ -198,6 +210,7 @@ type AiProvidersServer interface {
 	ReplaceKey(context.Context, *ReplaceAiKeyRequest) (*ReplaceAiKeyResponse, error)
 	ListFeatures(context.Context, *ListAiFeaturesRequest) (*ListAiFeaturesResponse, error)
 	SetFeature(context.Context, *SetAiFeatureRequest) (*SetAiFeatureResponse, error)
+	ListActivity(context.Context, *ListAiActivityRequest) (*ListAiActivityResponse, error)
 }
 
 // UnimplementedAiProvidersServer should be embedded to have
@@ -239,6 +252,9 @@ func (UnimplementedAiProvidersServer) ListFeatures(context.Context, *ListAiFeatu
 }
 func (UnimplementedAiProvidersServer) SetFeature(context.Context, *SetAiFeatureRequest) (*SetAiFeatureResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetFeature not implemented")
+}
+func (UnimplementedAiProvidersServer) ListActivity(context.Context, *ListAiActivityRequest) (*ListAiActivityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListActivity not implemented")
 }
 func (UnimplementedAiProvidersServer) testEmbeddedByValue() {}
 
@@ -458,6 +474,24 @@ func _AiProviders_SetFeature_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiProviders_ListActivity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAiActivityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiProvidersServer).ListActivity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiProviders_ListActivity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiProvidersServer).ListActivity(ctx, req.(*ListAiActivityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AiProviders_ServiceDesc is the grpc.ServiceDesc for AiProviders service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -508,6 +542,10 @@ var AiProviders_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetFeature",
 			Handler:    _AiProviders_SetFeature_Handler,
+		},
+		{
+			MethodName: "ListActivity",
+			Handler:    _AiProviders_ListActivity_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
