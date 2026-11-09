@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 254, partial 12, missing 51. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 255, partial 12, missing 50. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -129,7 +129,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### AdminDashboard (ASC Hub admin: dashboard)
 
-Area shell/settings. Rows 7: done 4, partial 0, missing 3. Copy found in the hub: 70% of 79 copy strings (mobile twin 63%). Template(s): dashboard.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 7: done 5, partial 0, missing 2. Copy found in the hub: 70% of 79 copy strings (mobile twin 63%). Template(s): dashboard.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; +38 this week; Changesets today; Agent runs today; Last backup is 26 hours old; Nightly backup missed at 02:00. The target was unreachable..
 
@@ -139,7 +139,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Tiles "Changesets today (31% by agents)", "Agent runs today (96.4% finished)", "+38 this week" | missing (hub+asc) | logged as not built (not re-probed) | asc: new admin stats RPC; hub: overview.go dashboardFacts |
 | Needs attention: runners offline, reports, notices | done | see where-cell | - |
 | Needs attention: backup overdue with "Back up now" | done | routers/web/admin/overview.go backupAttention, TestTheDashboardOffersABackupWhenBackupsAreOverdue | - |
-| System card rows: object storage usage and mail queue age (database, queues, runners exist) | missing (hub+asc) | logged as not built (not re-probed) | asc: storage usage; hub: overview.go system rows |
+| System card rows: object storage usage and mail queue age (database, queues, runners exist) | done | overview.go storageRow, mailRow; TestTheSystemCardShowsObjectStorage, TestTheSystemCardShowsTheMailQueue | - |
 | Recent audit entries card | missing (hub) | logged as not built (not re-probed) | call Audit.List via asctrust.CallInstance (as admin/asc_audit.go) from dashboardFacts + template |
 | Numbers refresh every 30 s without layout shift | done | see where-cell | - |
 

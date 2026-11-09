@@ -357,6 +357,23 @@ By hand:
 - Look in the container log for `asc-hub:` lines and for `[asc]` validation errors; an invalid `[asc]` value stops the start.
 - `asc clone https://hub.example.org/<owner>/<repo>` with the `asc` CLI, for the ASC-native path that the smoke test does not use.
 
+## The System card of site administration
+
+The **System** card on the site administration dashboard has a row for each part of the site: database, cache,
+queues, runners (when Actions is on), mail and object storage.
+
+- **Mail** reads the outgoing mail queue. It says how many mails wait and how long the oldest has waited, and warns
+  when that is over five minutes. It is **Down** when the last attempt to send failed and no mail was sent after it
+  (check `[mailer]`), and **None** when mail is not set up. The age is known for mail this hub process queued: mail a
+  persistent queue kept across a restart is counted without an age until it is sent.
+- **Object storage** is what asc serve stores for the whole server this month (Usage, `usage.v1`) against the
+  server's storage limit: **Nearly full** from 90%, **Full** over the limit, with no limit only the amount. asc is
+  asked as the site administrator, for at most three seconds; when it does not answer the row says so, and when asc
+  is off or has no usage figures there is no row. The hub's own files (attachments, packages) are not counted here.
+
+Code: `routers/web/admin/overview.go` (mailRow, storageRow), `services/mailer/queue_watch.go`. Tests:
+TestTheSystemCardShowsTheMailQueue, TestTheSystemCardShowsObjectStorage, TestTheQueueWatch*.
+
 ## The default branch asc protects
 
 asc protects one branch of each repository (path rules, secret scanning, review, signing): the trunk it holds. The hub

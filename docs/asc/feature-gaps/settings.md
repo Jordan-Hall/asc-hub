@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 164 |
+| done | 165 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 9 |
+| needs-both | 8 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -156,7 +156,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminDashboard | Tiles "Changesets today (31% by agents)", "Agent runs today (96.4% finished)", "+38 this week" | needs-both | asc: new admin stats RPC; hub: overview.go dashboardFacts | M |
 | AdminDashboard | Needs attention: runners offline, reports, notices | done | overview.go dashboardFacts | - |
 | AdminDashboard | Needs attention: backup overdue with "Back up now" | done | asc: Backups.ListBackups status (overdue, last success and failure, running). Hub: routers/web/admin/overview.go backupAttention adds the row when backups are overdue or the last one failed, with a Back up now button posting to /admin/asc/backups/run (Open while a backup runs); services/asctrust/backups.go BackupHealth | M |
-| AdminDashboard | System card rows: object storage usage and mail queue age (database, queues, runners exist) | needs-both | asc: storage usage; hub: overview.go system rows | M |
+| AdminDashboard | System card rows: object storage usage and mail queue age (database, queues, runners exist) | done | asc: Usage.GetUsage for the instance (storage meter). Hub: routers/web/admin/overview.go storageRow and mailRow; services/mailer/queue_watch.go keeps the write time of each queued mail, the last send and the last failure | M |
 | AdminDashboard | Recent audit entries card | done | `routers/web/admin/asc_audit_recent.go` ascRecentAudit (Audit.List for the whole server as the signed-in site administrator, five newest, left out without asc or the audit service), card in `templates/admin/dashboard.tmpl`; tests: TestDashboardShowsTheNewestAuditEntries, TestDashboardLeavesTheCardOutWithoutTheAuditService | - |
 | AdminDashboard | Numbers refresh every 30 s without layout shift | done | dashboard.tmpl + htmx polling on /admin | S |
 | AdminHealth | Self check list with passed/warn/fail chips, Copy report, Run again | done | templates/admin/self_check.tmpl, overview.go healthFacts | - |
