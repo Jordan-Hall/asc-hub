@@ -470,3 +470,37 @@ func TestWriteSignedExport(t *testing.T) {
 
 	assert.ErrorIs(t, WriteSignedExport(io.Discard, "x.jsonl", bytes.NewReader(a), ExportResult{Signature: sig, SignerKey: "not a key"}, at), ErrExportSignature)
 }
+
+// The record of a row: its request id, client and hash, and the values it changed as a diff, apart from the rest of
+// the details; the raw details stay whole for the repository table.
+func TestAuditPageOfBuildsTheRecordAndTheDiff(t *testing.T) {
+	ref := auditEvent(3, "repo.ref.update")
+	ref.RequestId = "req-1\x00"
+	ref.UserAgent = "asc/0.1.3"
+	ref.Hash = []byte{0x01, 0xff}
+	ref.Details = map[string]string{"ref": "refs/heads/main", "old": "aaa", "new": "bbb", "via": "push"}
+	renamed := auditEvent(4, "repo.renamed")
+	renamed.Details = map[string]string{"from": "acme/old", "to": "acme/new"}
+	created := auditEvent(5, "repo.created")
+	created.Details = map[string]string{"name": "acme/x"}
+	created.Hash = make([]byte, 65)
+
+	page, err := AuditPageOf(&ascv1.ListAuditResponse{Events: []*ascv1.AuditEvent{ref, renamed, created}}, nil)
+	require.NoError(t, err)
+	require.Len(t, page.Rows, 3)
+
+	r := page.Rows[0]
+	assert.Equal(t, "req-1", r.RequestID)
+	assert.Equal(t, "asc/0.1.3", r.UserAgent)
+	assert.Equal(t, "01ff", r.Hash)
+	assert.Equal(t, []AuditChange{{What: "refs/heads/main", Old: "aaa", New: "bbb"}}, r.Changes)
+	assert.Equal(t, []KV{{Key: "via", Value: "push"}}, r.Rest)
+	assert.Len(t, r.Details, 4)
+
+	assert.Equal(t, []AuditChange{{Old: "acme/old", New: "acme/new"}}, page.Rows[1].Changes)
+	assert.Empty(t, page.Rows[1].Rest)
+
+	assert.Empty(t, page.Rows[2].Changes)
+	assert.Equal(t, []KV{{Key: "name", Value: "acme/x"}}, page.Rows[2].Rest)
+	assert.Empty(t, page.Rows[2].Hash, "a hash longer than any digest is not shown")
+}

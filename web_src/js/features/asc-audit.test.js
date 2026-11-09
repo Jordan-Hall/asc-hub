@@ -1,4 +1,4 @@
-import {exportFileName, formatSize, verifySlices} from './asc-audit.js';
+import {exportFileName, formatSize, showExportBusy, verifySlices} from './asc-audit.js';
 
 test('verifySlices verifies a short log in one post', () => {
   expect(verifySlices(1, 0)).toEqual([[0, 0]]);
@@ -26,4 +26,16 @@ test('formatSize writes the size as the board does', () => {
   expect(formatSize(8200, 'en')).toBe('8.2 kB');
   expect(formatSize(8_200_000, 'en')).toBe('8.2 MB');
   expect(formatSize(120_000_000, 'en')).toBe('120 MB');
+});
+
+test('showExportBusy spins the Export button and says the file is coming', () => {
+  document.body.innerHTML = '<details open><summary class="ds-btn">Export</summary></details><span data-text="Preparing the export."></span>';
+  const button = document.querySelector('summary');
+  const status = document.querySelector('span');
+  showExportBusy(button, status, true);
+  expect(button.classList.contains('is-loading')).toBe(true);
+  expect(status.textContent).toBe('Preparing the export.');
+  showExportBusy(button, status, false);
+  expect(button.classList.contains('is-loading')).toBe(false);
+  expect(status.textContent).toBe('');
 });
