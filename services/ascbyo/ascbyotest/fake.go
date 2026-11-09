@@ -12,6 +12,7 @@ import (
 	"crypto/rand"
 	"net"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -95,6 +96,10 @@ type Fake struct {
 	UsageByGroup map[ascv1.AiUsageGroup]*ascv1.AiUsageResponse
 	// Models is returned by ListModels.
 	Models []*ascv1.AiModel
+	// Uses are the uses of each key (by key id), newest first, as ListActivity pages them.
+	Uses map[string][]*ascv1.AiActivity
+	// NextTokenOverride, when set, is answered as every next page token, to prove the hub drops a bad one.
+	NextTokenOverride string
 	// SecretEcho makes error messages repeat the submitted secret, to prove the hub drops them.
 	SecretEcho bool
 	// ExtraFeatures are appended to every ListFeatures answer, to prove the hub drops what it does not know.
@@ -738,6 +743,41 @@ func (f *Fake) Usage(_ context.Context, req *ascv1.AiUsageRequest) (*ascv1.AiUsa
 		return f.UsageResp, nil
 	}
 	return &ascv1.AiUsageResponse{Total: &ascv1.AiUsageRow{}}, nil
+}
+
+// ListActivity pages the uses of a key of the owner: page_size rows from the offset in "o<n>". A key of another
+// owner is not found, as asc answers.
+func (f *Fake) ListActivity(_ context.Context, r *ascv1.ListAiActivityRequest) (*ascv1.ListAiActivityResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	k := f.keys[r.GetKeyId()]
+	if k == nil || !sameOwner(k.pub.GetOwner(), r.GetOwner()) {
+		return nil, status.Error(codes.NotFound, "no such key")
+	}
+	off := 0
+	if t := r.GetPageToken(); t != "" {
+		n, err := strconv.Atoi(strings.TrimPrefix(t, "o"))
+		if err != nil || n <= 0 || !strings.HasPrefix(t, "o") {
+			return nil, status.Error(codes.InvalidArgument, "bad page_token")
+		}
+		off = n
+	}
+	size := int(r.GetPageSize())
+	if size == 0 {
+		size = 50
+	}
+	size = min(size, 100)
+	all := f.Uses[r.GetKeyId()]
+	off = min(off, len(all))
+	end := min(off+size, len(all))
+	resp := &ascv1.ListAiActivityResponse{Items: all[off:end]}
+	if end < len(all) {
+		resp.NextPageToken = "o" + strconv.Itoa(end)
+	}
+	if f.NextTokenOverride != "" {
+		resp.NextPageToken = f.NextTokenOverride
+	}
+	return resp, nil
 }
 
 func (f *Fake) ListModels(_ context.Context, _ *ascv1.ListAiModelsRequest) (*ascv1.ListAiModelsResponse, error) {
