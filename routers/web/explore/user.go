@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"forgejo.org/models/db"
 	"forgejo.org/models/organization"
@@ -191,6 +192,7 @@ func Users(ctx *context.Context) {
 		"oldest",
 		"alphabetically",
 		"reversealphabetically",
+		"mostactive",
 	)
 	sortOrder := ctx.FormString("sort")
 	if sortOrder == "" {
@@ -203,7 +205,7 @@ func Users(ctx *context.Context) {
 	}
 
 	ctx.Data["InviteHref"] = inviteHref(ctx)
-	RenderUserSearchWith(ctx, &user_model.SearchUserOptions{
+	opts := &user_model.SearchUserOptions{
 		Actor:       ctx.Doer,
 		Type:        user_model.UserTypeIndividual,
 		ListOptions: db.ListOptions{PageSize: setting.UI.ExplorePagingNum},
@@ -211,7 +213,73 @@ func Users(ctx *context.Context) {
 		Visible:     []structs.VisibleType{structs.VisibleTypePublic, structs.VisibleTypeLimited, structs.VisibleTypePrivate},
 
 		SupportedSortOrders: supportedSortOrders,
-	}, tplExploreUsers, func(users []*user_model.User) { loadExploreUserRows(ctx, users) })
+		ExtraParamStrings:   map[string]string{},
+	}
+	if !readPeopleFilters(ctx, opts) {
+		return
+	}
+	RenderUserSearchWith(ctx, opts, tplExploreUsers, func(users []*user_model.User) { loadExploreUserRows(ctx, users) })
+}
+
+// exploreOrgChoices is how many organizations the Organization filter of the people directory suggests.
+const exploreOrgChoices = 100
+
+// readPeopleFilters reads the Show and Organization filters of the people directory (board ExploreUsers) into opts
+// and the page data. Show is all (people and agents, the default), people or agents. Organization is the name of an
+// organization the viewer may see; it keeps its public members, or all of them for a member of it or an admin. An
+// organization that does not exist or that the viewer may not see finds no one. It returns false when the page was
+// already answered (an error).
+func readPeopleFilters(ctx *context.Context, opts *user_model.SearchUserOptions) bool {
+	show := ctx.FormTrim("show")
+	switch show {
+	case "people":
+	case "agents":
+		opts.Type = user_model.UserTypeBot
+	default:
+		show = "all"
+		opts.Asc.WithAgents = true
+	}
+	ctx.Data["ExploreShow"] = show
+	if show != "all" {
+		opts.ExtraParamStrings["show"] = show
+	}
+
+	orgName := ctx.FormTrim("org")
+	ctx.Data["ExploreOrg"] = orgName
+	if orgName != "" {
+		opts.ExtraParamStrings["org"] = orgName
+		opts.Asc.MemberOf = -1 // finds no one unless the organization is found below
+		org, err := organization.GetOrgByName(ctx, orgName)
+		switch {
+		case err == nil && organization.HasOrgOrUserVisible(ctx, org.AsUser(), ctx.Doer):
+			opts.Asc.MemberOf = org.ID
+			if ctx.Doer != nil {
+				member, err := org.IsOrgMember(ctx, ctx.Doer.ID)
+				if err != nil {
+					ctx.ServerError("IsOrgMember", err)
+					return false
+				}
+				opts.Asc.AllMembers = member || ctx.Doer.IsAdmin
+			}
+		case err != nil && !organization.IsErrOrgNotExist(err):
+			ctx.ServerError("GetOrgByName", err)
+			return false
+		}
+	}
+	ctx.Data["ExploreUsersFiltered"] = show != "all" || orgName != ""
+
+	choices, _, err := user_model.SearchUsers(ctx, &user_model.SearchUserOptions{
+		Actor:       ctx.Doer,
+		Type:        user_model.UserTypeOrganization,
+		ListOptions: db.ListOptions{PageSize: exploreOrgChoices},
+		Visible:     []structs.VisibleType{structs.VisibleTypePublic, structs.VisibleTypeLimited, structs.VisibleTypePrivate},
+		OrderBy:     db.SearchOrderByAlphabetically,
+	})
+	if err != nil {
+		log.Error("explore: the organizations of the Organization filter (request %s): %v", ctx.RequestIDForLog(), err)
+	}
+	ctx.Data["ExploreOrgChoices"] = choices
+	return true
 }
 
 // inviteHref is where Invite people goes on the people page (board ExploreUsers): an administrator adds the
@@ -263,6 +331,9 @@ func MapSortOrder(sortOrder string) db.SearchOrderBy {
 
 	case "recentupdate":
 		return "`user`.updated_unix DESC"
+
+	case "mostactive":
+		return user_model.AscMostActiveOrder(time.Now())
 
 	default:
 		return ""

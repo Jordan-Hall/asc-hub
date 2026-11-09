@@ -2236,6 +2236,19 @@ a.ds-stat:hover {
   outline: none;
 }
 
+.ds-selectpill input {
+  width: 160px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.ds-selectpill input:focus {
+  outline: none;
+}
+
 .ds-selectpill > svg {
   position: absolute;
   right: 12px;

@@ -1,4 +1,5 @@
-{{/* The filter bar of the people and organizations lists: a search field and the order. GET form. */}}
+{{/* The filter bar of the people and organizations lists: a search field and the order; on the people list also Show
+(people and agents, people, agents) and Organization. GET form. */}}
 {{$placeholder := ctx.Locale.Tr "search.org_kind"}}
 {{if .PageIsExploreUsers}}{{$placeholder = ctx.Locale.Tr "search.user_kind"}}{{end}}
 <div class="ds-filterbar">
@@ -10,6 +11,22 @@
 					<label class="ds-sr" for="explore-user-q">{{$placeholder}}</label>
 					<input id="explore-user-q" class="ds-input" type="search" name="q" value="{{.Keyword}}" maxlength="255" spellcheck="false" enterkeyhint="search" placeholder="{{$placeholder}}">
 				</div>
+				{{if .PageIsExploreUsers}}
+				<label class="ds-selectpill">
+					<span>{{ctx.Locale.Tr "explore.show_label"}}</span>
+					<select name="show" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "explore.show_aria"}}" data-testid="explore-users-show">
+						<option value="all"{{if eq .ExploreShow "all"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_all"}}</option>
+						<option value="people"{{if eq .ExploreShow "people"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_people"}}</option>
+						<option value="agents"{{if eq .ExploreShow "agents"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_agents"}}</option>
+					</select>
+					{{svg "dsi-chevron-down" 16}}
+				</label>
+				<label class="ds-selectpill ds-hide-sm">
+					<span>{{ctx.Locale.Tr "explore.org_label"}}</span>
+					<input type="search" name="org" value="{{.ExploreOrg}}" list="explore-users-orgs" maxlength="255" spellcheck="false" autocomplete="off" placeholder="{{ctx.Locale.Tr "explore.org_any"}}" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "explore.org_aria"}}" data-testid="explore-users-org">
+					<datalist id="explore-users-orgs">{{range .ExploreOrgChoices}}<option value="{{.Name}}"></option>{{end}}</datalist>
+				</label>
+				{{end}}
 				<label class="ds-selectpill ds-hide-sm">
 					<span>{{ctx.Locale.Tr "explore.sort_label"}}</span>
 					<select name="sort" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "repo.issues.filter_sort"}}">
@@ -17,6 +34,7 @@
 						<option value="oldest"{{if eq .SortType "oldest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</option>
 						<option value="alphabetically"{{if eq .SortType "alphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
 						<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
+						{{if .PageIsExploreUsers}}<option value="mostactive"{{if eq .SortType "mostactive"}} selected{{end}}>{{ctx.Locale.Tr "explore.sort_most_active"}}</option>{{end}}
 					</select>
 					{{svg "dsi-chevron-down" 16}}
 				</label>

@@ -10,6 +10,7 @@
 					{{if .FullName}}<span class="ds-li-owner ds-hide-xs">{{.FullName}}</span>{{end}}
 					{{if and $.AscVerifiedOrgs (index $.AscVerifiedOrgs .ID)}}<span class="ds-chip ds-chip-ok">{{svg "dsi-shield-check" 14}} {{ctx.Locale.Tr "asc_work.org_verified"}}</span>{{end}}
 					{{if .Visibility.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}
+					{{if .IsBot}}<span class="ds-chip ds-chip-agent" data-testid="user-agent-chip">{{ctx.Locale.Tr "explore.agent_chip"}}</span>{{end}}
 				</div>
 				{{if .Description}}<div class="ds-li-sub ds-clamp-2">{{.Description}}</div>{{end}}
 				<div class="ds-li-meta">
@@ -62,6 +63,10 @@
 		</div>
 	{{else if .Keyword}}
 		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.no_users_title") "Body" (ctx.Locale.Tr "search.no_results") "PrimaryHref" "?" "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
+	{{else if and .PageIsExploreUsers .ExploreUsersFiltered}}
+		<div data-asc-users-filtered-none>
+		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.filtered_none_title") "Body" (ctx.Locale.Tr "explore.filtered_none_text") "PrimaryHref" (print "?sort=" (QueryEscape .SortType)) "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
+		</div>
 	{{else if .PageIsExploreUsers}}
 		{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_shell.nopeople_title") "Body" (ctx.Locale.Tr "asc_shell.nopeople_text"))}}
 	{{else if .PageIsExploreOrganizations}}

@@ -43,6 +43,9 @@ type SearchUserOptions struct {
 
 	Load2FAStatus     bool
 	ExtraParamStrings map[string]string
+
+	// Asc holds the filters of the people directory (board ExploreUsers).
+	Asc AscUserFilter
 }
 
 func (opts *SearchUserOptions) toSearchQueryBase(ctx context.Context) *xorm.Session {
@@ -89,6 +92,8 @@ func (opts *SearchUserOptions) toSearchQueryBase(ctx context.Context) *xorm.Sess
 
 		cond = cond.And(keywordCond)
 	}
+
+	cond = opts.Asc.cond(opts.Type, cond)
 
 	// If visibility filtered
 	if len(opts.Visible) > 0 {
