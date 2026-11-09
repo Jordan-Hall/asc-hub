@@ -72,8 +72,9 @@ state names the chip with a link that removes it. Forks and Mirrors stay in the 
 Each row of the repository lists shows a stack of up to four avatars: the people and agents that acted in the
 repository in the last 90 days, most active first. The stack is labelled with the total ("3 contributors in the last
 90 days"). An agent has a violet ring and its name reads "name (agent)". Each action counts once, even when the
-activity log copies it to the feed of every watcher. A person whose profile the viewer may not see (a private profile,
-seen by a visitor) is left out of the stack and the total. A repository without activity in the window has no stack.
+activity log copies it to the feed of every watcher. A person who keeps their activity private, or whose profile the
+viewer may not see (a private profile, seen by a visitor), is left out of the stack and the total; an admin and the
+person themselves still see them. A repository without activity in the window has no stack.
 
 The chips are read by `routers/web/shared/repoquick` and filtered by `AscQuickFilter` in
 `models/repo/asc_quick_filter.go`. Tests: TestTheQuickChipsOfTheRepositoryLists, TestTheQuickChipsOfExplore.
