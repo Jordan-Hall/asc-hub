@@ -756,6 +756,20 @@ so. Code:
 `routers/web/shared/byoweb/aifeatures.go` (`AIReplace`, `replaceRefusal`), `templates/shared/asc/byo_ai_dialogs.tmpl`.
 Tests: TestAIReplace.
 
+## Who used an AI key
+
+The **Activity** tab of a key's page (`Settings`, `AI`, a key's **Details**) starts with **Who used this key**, read
+from asc's `AiProviders.ListActivity`. Each row sums the calls of one agent run, one person's review summaries of one
+change, or one day's key tests, with the person, the repository, the model, requests, input and output tokens and the
+cost; calls the price list does not cover are counted as unpriced. Agent runs link to the run when the viewer may read
+the repository's code and its agents are on; review summaries link to the change's pull request or change page when
+the viewer may read pull requests; repositories link only when the viewer may read their code. A repository the
+viewer cannot read, or one that no longer exists, is shown by name only. asc keeps uses for 90 days; the table shows
+50 rows a page, newest first, with **Older** and **Newest**. A key of an organization is shown only to its
+administrators. When asc is older and has no `ListActivity`, the table says the uses could not be loaded and the
+rest of the page works; the key's events below it are the hub's own audit log. Code: `services/ascbyo/uses.go`,
+`routers/web/shared/byoweb/uses.go`, `templates/shared/asc/byo_ai_key.tmpl`. Tests: TestKeyUses, TestAIKeyUses.
+
 ## What uses AI
 
 The AI page lists each feature that uses a key: agent runs and review summaries each have the key they use, a monthly
