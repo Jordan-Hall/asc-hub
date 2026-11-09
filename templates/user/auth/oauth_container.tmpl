@@ -14,7 +14,7 @@
 		{{range $provider := .OAuth2Providers}}
 			<a class="{{$provider.Name}} ds-btn ds-btn-secondary ds-btn-block oauth-login-link" href="{{AppSubUrl}}/user/oauth2/{{$provider.DisplayName | PathEscape}}">
 				{{$provider.IconHTML 22}}
-				{{ctx.Locale.Tr "sign_in_with_provider" $provider.DisplayName}}
+				{{if eq $provider.Name "openidConnect"}}{{ctx.Locale.Tr "asc_auth.signin_sso" $provider.DisplayName}}{{else}}{{ctx.Locale.Tr "sign_in_with_provider" $provider.DisplayName}}{{end}}
 			</a>
 		{{end}}
 		{{if .EnableOpenIDSignIn}}
