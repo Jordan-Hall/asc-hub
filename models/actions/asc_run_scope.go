@@ -19,8 +19,9 @@ import (
 //
 // The pull request is the one the run records, or, for an event that runs the default branch's workflow
 // (pull_request_target, a comment or review on a pull request), the one its payload names, since such a workflow
-// can check out the pull request's code. A run whose starter or pull request author no longer exists has no scope
-// (0) and receives nothing, because nobody can tell whether an agent was behind it.
+// can check out the pull request's code. A run whose starter or pull request author no longer exists (or is
+// recorded as the ghost) has no scope (0) and receives nothing, because nobody can tell whether an agent was
+// behind it.
 //
 // A scheduled run, and a push an agent did not make, is a check: the default branch holds only what landed
 // through review, so its workflows are not an agent's code.
@@ -28,7 +29,7 @@ func (run *ActionRun) AscScope(ctx context.Context) (ascscope.Scope, error) {
 	if err := run.LoadAttributes(ctx); err != nil {
 		return 0, err
 	}
-	if run.TriggerUserID > 0 && run.TriggerUser.ID != run.TriggerUserID {
+	if unknownUser(run.TriggerUserID) || (run.TriggerUserID > 0 && run.TriggerUser.ID != run.TriggerUserID) {
 		return 0, nil
 	}
 	if run.TriggerUser.IsAscAgent() {
@@ -37,6 +38,9 @@ func (run *ActionRun) AscScope(ctx context.Context) (ascscope.Scope, error) {
 	posterID := run.PullRequestPosterID
 	if posterID == 0 {
 		posterID = pullRequestPosterOfPayload(run.EventPayload)
+	}
+	if unknownUser(posterID) {
+		return 0, nil
 	}
 	if posterID > 0 && posterID != run.TriggerUserID {
 		poster, err := user_model.GetPossibleUserByID(ctx, posterID)
@@ -53,6 +57,12 @@ func (run *ActionRun) AscScope(ctx context.Context) (ascscope.Scope, error) {
 		return ascscope.ScopeReleases, nil
 	}
 	return ascscope.ScopeChecks, nil
+}
+
+// unknownUser reports whether id stands for an account that is gone: the ghost, or any other negative id but the
+// Actions user's.
+func unknownUser(id int64) bool {
+	return id < 0 && id != user_model.ActionsUserID
 }
 
 // pullRequestPosterOfPayload is the author of the pull request an event payload is about: its pull_request, or
