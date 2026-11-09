@@ -106,7 +106,7 @@ func ascAskKind(ctx *context.Context) string {
 func ascAskPerson(ctx *context.Context) *user_model.User {
 	person := ctx.ContextUser
 	if ctx.Doer == nil || person == nil || person.IsOrganization() || person.ID == ctx.Doer.ID || ascAskKind(ctx) == "" ||
-		user_model.AscProfileLimited(person, ctx.Doer) {
+		user_model.AscProfileLimited(person, ctx.Doer) || !user_model.IsUserVisibleToViewer(ctx, person, ctx.Doer) {
 		ctx.NotFound("ascAskPerson", nil)
 		return nil
 	}
