@@ -788,6 +788,8 @@ img.ds-av {
 .ds-av-stack > .ds-av + .ds-av { margin-left: -6px; }
 .ds-av-stack > .ds-av-agent { box-shadow: 0 0 0 2px var(--agent); }
 .ds-repo-contrib { align-items: center; }
+.ds-org-members { align-items: center; align-self: center; }
+.ds-av-more { background: var(--surface-2); color: var(--text-2); font-size: 10px; }
 .ds-repo-check[data-check="passing"] { color: var(--ok); }
 .ds-repo-check[data-check="failing"] { color: var(--err); }
 .ds-repo-check[data-check="running"] { color: var(--warn); }

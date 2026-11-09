@@ -28,6 +28,14 @@
 					{{template "explore/asc_activity" (dict "A" (and $.ExploreActivity (index $.ExploreActivity .ID)) "Weeks" $.ExploreActivityWeeks)}}
 					<div class="ds-li-stat"><b>{{.NumRepos}}</b><span>{{ctx.Locale.Tr "explore.stat_repos"}}</span></div>
 					<div class="ds-li-stat"><b>{{.NumMembers}}</b><span>{{ctx.Locale.Tr "explore.stat_people"}}</span></div>
+					{{if $.ExploreOrgAgents}}{{with index $.ExploreOrgAgents .ID}}<div class="ds-li-stat" data-asc-org-agents><b>{{ctx.Locale.PrettyNumber .}}</b><span>{{ctx.Locale.Tr "explore.stat_agents"}}</span></div>{{end}}{{end}}
+					{{if $.ExploreOrgMembers}}{{with index $.ExploreOrgMembers .ID}}
+						{{$label := ctx.Locale.TrPluralString .Total "explore.org_members_n" (ctx.Locale.PrettyNumber .Total)}}
+						<span class="ds-av-stack ds-org-members" role="group" aria-label="{{$label}}" title="{{$label}}" data-asc-org-members>
+							{{range .Users}}<a class="ds-av ds-av-24{{if .IsBot}} ds-av-agent{{end}}" href="{{.HomeLink}}" title="{{.GetDisplayName}}" aria-label="{{.GetDisplayName}}">{{ctx.AvatarUtils.Avatar . 24}}</a>{{end}}
+							{{if .More}}<span class="ds-av ds-av-24 ds-av-more" aria-hidden="true">{{ctx.Locale.Tr "explore.org_members_more" (ctx.Locale.PrettyNumber .More)}}</span>{{end}}
+						</span>
+					{{end}}{{end}}
 				</div>
 			{{else}}
 				<div class="ds-li-stats ds-hide-xs">

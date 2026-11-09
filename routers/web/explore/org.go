@@ -60,7 +60,7 @@ func Organizations(ctx *context.Context) {
 		ExtraParamStrings:   map[string]string{},
 	}
 	readOrgFilters(ctx, opts)
-	RenderUserSearch(ctx, opts, tplExploreUsers)
+	RenderUserSearchWith(ctx, opts, tplExploreUsers, func(users []*user_model.User) { loadExploreOrgRows(ctx, users) })
 }
 
 // ExploreOrgChip is a chip of the organization directory: a link to the list with that one filter.

@@ -1033,6 +1033,10 @@
 		"one": "%s changeset",
 		"other": "%s changesets"
 	},
+	"explore.org_members_n": {
+		"one": "%s member",
+		"other": "%s members"
+	},
 	"explore.contributors_n": {
 		"one": "%s contributor in the last %d days",
 		"other": "%s contributors in the last %d days"
