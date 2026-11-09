@@ -371,8 +371,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | RepoSettingsAI | Provider list (Anthropic, OpenAI, own endpoint) with key hint, added by, verified time, Replace, Remove; stored encrypted | done | `H:templates/shared/asc/byo_ai*.tmpl`, `H:services/ascbyo/aikeys.go`, `AiProviders` RPCs | S |
-| RepoSettingsAI | Replace key dialog that verifies before swapping and shows "Anthropic rejected this key (401)" | needs-both | `UpdateKey` + `TestKey` exist; asc must keep the old key until the new one passes (atomic verify in `UpdateAiKey`), hub dialog | M |
-| RepoSettingsAI | "What uses AI" table: Agent runs, Review summaries, Meaning search, each with its provider and monthly cap and spend meter (amber 80%, red 100%) | needs-both | asc caps are per key (`monthly_cap_micro_usd`), not per feature; add feature routing (`AiFeature` -> key + cap) in `A:proto/asc/v1/aiproviders.proto` and the usage grouping; hub table | L |
+| RepoSettingsAI | Replace key dialog that verifies before swapping and shows "Anthropic rejected this key (401)" | done | `A:proto/asc/v1/aiproviders.proto` `ReplaceKey` tries the new key with the provider first and keeps the old one when it is refused; `H:routers/web/shared/byoweb/aifeatures.go` `AIReplace` and `replaceRefusal`; the refusal names the provider ("Anthropic rejected this key (401 or 403). The old key is still in use."); `TestAIReplace` | M |
+| RepoSettingsAI | "What uses AI" table: Agent runs, Review summaries, Meaning search, each with its provider and monthly cap and spend meter (amber 80%, red 100%) | done | `AiProviders.ListFeatures`/`SetFeature` route each feature to a key with its own cap; `H:templates/shared/asc/byo_ai_features.tmpl` shows the key, the meter (`asc-meter-warn` at 80%, `asc-meter-bad` at 100%) and Edit cap; meaning search runs on the asc server's own embedding model, so its row says "This server" and "No spend" with nothing to choose; `TestUserAIPageShowsFeatures` | L |
 | RepoSettingsAI | Cap reached: feature pauses with "until 1 Nov or you raise it" | done | `ListAiFeatures` returns `paused`, `resumes_at` and `paused_by`; `services/ascbyo/view.go` builds the pause line, `templates/shared/asc/byo_ai_features.tmpl` shows it with `ai.feature.*.paused` ("Cap reached. Agent runs are paused until %s or you raise it.") and `.paused_by`; tests in `routers/web/shared/byoweb/aifeatures_test.go` | M |
 | RepoSettingsAI | No keys: "AI features are off" empty state | done | `ascbyo.ai.empty` | S |
 | RepoSettingsAI | Repository-level page (keys are owner scope in asc, page lives under the repository menu) | done | `H:templates/shared/asc/byo_ai_repo.tmpl` under the repository menu (`/settings/asc/ai`) with the lead "Your keys, your providers, your caps."; keys of the repository are made there, and the owner's keys are linked, not listed, since agents use a repository key first and then the owner's; `TestRepoAIKeysPage` | S |
@@ -388,7 +388,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsStorage | Managed storage selected: "38.2 GB of 100 GB on your plan", Use my own bucket | needs-both | plan quota from `H:models/quota`; usage as above | M |
 | RepoSettingsStorage | Local-option and http refused message | done | `H:services/ascbyo/validate.go` | S |
 | RepoSettingsStorage | Bucket settings changed bar with Discard / Save and test | done | `H:templates/shared/asc/byo_storage_target.tmpl` savebar; `StorageUpdate` saves a changed target, tests it and shows both results | S |
-| RepoSettingsStorage | Meaning-search index enabling link ("An admin can enable the index in storage settings") | needs-both | no index toggle in the storage page or `CodeIntel.IndexStatus` surface | M |
+| RepoSettingsStorage | Meaning-search index enabling link ("An admin can enable the index in storage settings") | done | hub only, re-judged: the Search indexes card of `H:templates/shared/asc/byo_storage_repo.tmpl` reads `CodeIntel.IndexStatus` (`H:services/ascbyo/searchindex.go`): text and meaning coverage, the embedding model and the lag; the meaning index is on when the asc server has an embedding model and the repository has not switched meaning search off (link to the settings); a refused meaning search says "An admin can enable the index in storage settings" and links admins there; `TestRepoStorageSearchIndexes`, `TestSearchIndexOf`, `TestAscSearchMeaningIndexOff` | M |
 
 ## Mobile twins: behaviour that differs from the desktop board
 
@@ -409,12 +409,12 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 251 |
+| done | 254 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 12 |
+| needs-both | 9 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -442,8 +442,8 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsRules | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
-| RepoSettingsAI | 4 | 0 | 0 | 0 | 2 |
-| RepoSettingsStorage | 4 | 0 | 0 | 1 | 3 |
+| RepoSettingsAI | 6 | 0 | 0 | 0 | 0 |
+| RepoSettingsStorage | 5 | 0 | 0 | 1 | 2 |
 | Mobile-Repo | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Code | 1 | 0 | 0 | 0 | 0 |
 | Mobile-History | 1 | 0 | 0 | 0 | 0 |

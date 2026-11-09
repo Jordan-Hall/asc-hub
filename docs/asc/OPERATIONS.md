@@ -744,3 +744,44 @@ them from the agent runs page. A git repository has no agent runs, so nothing el
 from the account's login (`agent-<name>`); a shortened login is matched against the agents of the repository's runs.
 Code: `services/ascagentui/removeagent.go`, `routers/web/repo/setting/collaboration.go`. Tests: TestAgentOfUser,
 TestStopAgentRuns, TestStopRemovedAgentOutsideAsc, TestAccessAgentRows, TestAscAccessRemoveAgent.
+
+## Replacing an AI key
+
+**Replace** on a key's row (`Settings`, `AI`, for a person, an organization or a repository) opens a dialog for the
+new key. asc tries the new key with the provider first (`AiProviders.ReplaceKey`) and swaps it in only when the
+provider accepts it; until then the old key stays in use. When the provider refuses the key, the dialog says which
+provider refused it: "Anthropic rejected this key (401 or 403). The old key is still in use." A key that cannot be
+checked, because the provider cannot be reached or is limiting requests, is not swapped either, and the dialog says
+so. Code:
+`routers/web/shared/byoweb/aifeatures.go` (`AIReplace`, `replaceRefusal`), `templates/shared/asc/byo_ai_dialogs.tmpl`.
+Tests: TestAIReplace.
+
+## What uses AI
+
+The AI page lists each feature that uses a key: agent runs and review summaries each have the key they use, a monthly
+cap and a spend meter (amber at 80%, red at 100%), and a feature over its cap pauses until the next month or until
+the cap is raised (`AiProviders.ListFeatures`, `SetFeature`). Meaning search is listed too, with "This server" and
+"No spend": it runs on the asc server's own embedding model and never uses a key, so there is nothing to choose.
+Code: `templates/shared/asc/byo_ai_features.tmpl`. Tests: TestUserAIPageShowsFeatures.
+
+## Search indexes on the storage page
+
+The storage page of an asc repository (`Settings`, `Storage`) has a **Search indexes** card, read from asc's
+`CodeIntel.IndexStatus` for the repository:
+
+- **Text and symbol search**: how much of the default branch is indexed, or "Not indexed yet".
+- **Meaning search**: on, with how much is indexed and the embedding model; off for this repository, with a link to
+  the repository settings where it is switched on again; or off on this server.
+- How far behind the newest change the indexes are behind the default branch, in minutes.
+
+Meaning search is off on the server until an instance administrator installs the embedding model on the asc server:
+put the `asc-embed` helper, the `model/` directory and `calibration.bin` in one directory (the layout
+`asc codeintel enable-embed` installs), set `[codeintel.embed] dir = "<that directory>"` in `asc-serve.toml` and
+restart asc. The hub needs no change. When asc cannot be reached the card says the state of the indexes could not be
+read; search and the rest of the page still work.
+
+A meaning search on a repository without the meaning index says "Meaning search needs the meaning index, which is not
+on for this repository yet. An admin can enable the index in storage settings.", with **Use text search** and, for
+repository admins, **Open storage**. Code: `services/ascbyo/searchindex.go`, `routers/web/shared/byoweb/storage.go`,
+`templates/shared/asc/byo_storage_repo.tmpl`, `templates/repo/asc_search.tmpl`. Tests: TestSearchIndexOf,
+TestRepoStorageSearchIndexes, TestAscSearchMeaningIndexOff.
