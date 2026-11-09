@@ -310,6 +310,26 @@
   margin-top: 6px;
 }
 
+/* the reply of a person on a change that came back, and the question of a waiting agent */
+.wk-need-quote {
+  margin: 6px 0 0;
+  padding-block: 2px;
+  padding-inline: 10px 0;
+  border-inline-start: 2px solid var(--line-strong);
+  color: var(--text-2);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.wk-need-quote b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.wk-need-note {
+  margin-top: 4px;
+}
+
 /* the cards the page refreshes (asc_dash_work.tmpl) stay items of the column */
 .wk-dash-work {
   display: contents;

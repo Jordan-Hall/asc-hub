@@ -76,6 +76,11 @@ type AscDashRow struct {
 	Do      string
 	ActLink string // where the button goes when Do is empty: the reply box, the conflicts or the pull request
 	Head    string // the head commit the row shows; Approve approves only that commit
+	// Quote is the reply of a person on a change that came back to the person, nil for the other rows.
+	Quote *AscDashQuote
+	// Note is the line of the row's kind: "Joins the merge queue as number 3 · about 9 min" on a change ready to land
+	// through the queue, "asc restacked 2 of 3" after the trunk moved; empty for the other rows.
+	Note string
 }
 
 // AscDashSeg is one change of a stack.
@@ -103,6 +108,8 @@ type AscDashAgent struct {
 	Meter   string // "58% budget - 6 of 20 min", empty when nothing is limited
 	// InputLink answers a run that waits for the person (POST, field text); empty for a run that does not wait.
 	InputLink string
+	// Question is what a waiting run asks (its current step), empty when it does not wait or does not say.
+	Question string
 }
 
 // AscDashRepo is a repository of the sidebar.
@@ -372,14 +379,17 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 	}
 	d.Summary = ascDashSummary(ctx.Locale, d.NeedsCount, d.BlockedCount)
 
+	restacks := map[int64]ascDashRestack{}
 	for i, e := range actionable {
 		if i == ascDashMaxRows {
 			break
 		}
 		row := ascDashRowFor(ctx.Locale, e, ascInboxInfoLoad(ctx, e))
-		if e.Section == issues_model.AscInboxReady && ascDashQueueable(ctx, e) {
+		queueable := e.Section == issues_model.AscInboxReady && ascDashQueueable(ctx, e)
+		if queueable {
 			row.Do = "queue"
 		}
+		ascDashKinds(ctx, ctx.Locale, doer, e, &row, queueable, now, restacks)
 		d.Rows = append(d.Rows, row)
 	}
 	d.Stacks, d.StackCount = ascDashStacks(ctx, doer, ctx.Locale)
@@ -680,6 +690,7 @@ func ascDashAgentFrom(l translation.Locale, repo *repo_model.Repository, run *as
 	}
 	if a.State.Slug == "waiting" {
 		a.InputLink = a.Link + "/input"
+		a.Question = ascagentui.CleanLine(run.GetProgress().GetCurrent(), 200)
 	}
 	var fullest *ascagentui.Meter
 	meters := ascagentui.Meters(run.GetLimits(), run.GetUsage())

@@ -25,6 +25,10 @@ includes it, and GET /-/asc/dash/work renders it alone so the page refreshes it 
 									{{if .Meta}}<span class="ds-c-2 ds-t-small">{{.Meta}}</span>{{end}}
 								</div>
 							{{end}}
+							{{with .Quote}}
+								<blockquote class="wk-need-quote" data-asc-dash-quote><span class="ds-sr">{{ctx.Locale.Tr "user.asc_dash.reply_quote" .Who}}: </span><b aria-hidden="true">{{.Who}}</b> {{.Text}}</blockquote>
+							{{end}}
+							{{if .Note}}<div class="wk-need-note ds-t-small ds-c-2" data-asc-dash-note>{{.Note}}</div>{{end}}
 						</div>
 						{{if not .Updated.IsZero}}<span class="wk-when">{{DateUtils.TimeSince .Updated}}</span>{{end}}
 						<div class="wk-need-acts">
@@ -105,6 +109,7 @@ includes it, and GET /-/asc/dash/work renders it alone so the page refreshes it 
 						<a class="wk-agent-name" href="{{.Link}}">{{.Agent}} &middot; {{.Title}}</a>
 						{{if eq .State.Slug "waiting"}}
 							<div class="wk-agent-state ds-c-err ds-sb">{{ctx.Locale.Tr "user.asc_dash.paused"}}</div>
+							{{if .Question}}<blockquote class="wk-need-quote wk-agent-q" data-asc-dash-question><span class="ds-sr">{{ctx.Locale.Tr "user.asc_dash.agent_asks" .Agent}}: </span>{{.Question}}</blockquote>{{end}}
 							{{if .InputLink}}
 								<form class="wk-agent-answer" method="post" action="{{.InputLink}}" data-asc-dash-answer>
 									{{$.CsrfTokenHtml}}
