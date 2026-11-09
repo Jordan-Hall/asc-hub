@@ -23,6 +23,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/structs"
 	"forgejo.org/modules/util"
+	"forgejo.org/routers/web/shared/repoquick"
 	"forgejo.org/services/context"
 	issue_service "forgejo.org/services/issue"
 	pull_service "forgejo.org/services/pull"
@@ -408,6 +409,7 @@ func NotificationWatching(ctx *context.Context) {
 
 	private := ctx.FormOptionalBool("private")
 	ctx.Data["IsPrivate"] = private
+	quick := repoquick.Read(ctx)
 
 	repos, count, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
 		ListOptions: db.ListOptions{
@@ -427,6 +429,7 @@ func NotificationWatching(ctx *context.Context) {
 		Mirror:             mirror,
 		Template:           template,
 		IsPrivate:          private,
+		AscQuick:           quick,
 	})
 	if err != nil {
 		ctx.ServerError("SearchRepository", err)
@@ -454,6 +457,7 @@ func NotificationWatching(ctx *context.Context) {
 	if has, value := private.Get(); has {
 		pager.AddParamString("private", fmt.Sprint(value))
 	}
+	repoquick.KeepOnPages(pager, quick)
 	ctx.Data["Page"] = pager
 
 	ctx.Data["Status"] = 2

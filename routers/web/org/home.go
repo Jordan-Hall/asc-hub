@@ -22,6 +22,7 @@ import (
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
+	"forgejo.org/routers/web/shared/repoquick"
 	shared_user "forgejo.org/routers/web/shared/user"
 	"forgejo.org/services/context"
 )
@@ -89,6 +90,7 @@ func Home(ctx *context.Context) {
 
 	private := ctx.FormOptionalBool("private")
 	ctx.Data["IsPrivate"] = private
+	quick := repoquick.Read(ctx)
 
 	var (
 		repos []*repo_model.Repository
@@ -113,6 +115,7 @@ func Home(ctx *context.Context) {
 		Mirror:             mirror,
 		Template:           template,
 		IsPrivate:          private,
+		AscQuick:           quick,
 	})
 	if err != nil {
 		ctx.ServerError("SearchRepository", err)
@@ -164,6 +167,7 @@ func Home(ctx *context.Context) {
 	if has, value := private.Get(); has {
 		pager.AddParamString("private", fmt.Sprint(value))
 	}
+	repoquick.KeepOnPages(pager, quick)
 	ctx.Data["Page"] = pager
 
 	ctx.Data["ShowMemberAndTeamTab"] = ctx.Org.IsMember || len(members) > 0

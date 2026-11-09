@@ -15,6 +15,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/sitemap"
+	"forgejo.org/routers/web/shared/repoquick"
 	"forgejo.org/services/context"
 )
 
@@ -117,6 +118,7 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 
 	private := ctx.FormOptionalBool("private")
 	ctx.Data["IsPrivate"] = private
+	quick := repoquick.Read(ctx)
 
 	repos, count, err = searchRepositories(ctx, &repo_model.SearchRepoOptions{
 		ListOptions: db.ListOptions{
@@ -139,6 +141,7 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 		Mirror:             mirror,
 		Template:           template,
 		IsPrivate:          private,
+		AscQuick:           quick,
 	})
 	if err != nil {
 		if isSitemap || opts.TplName != tplExploreRepos {
@@ -198,6 +201,7 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 	if has, value := private.Get(); has {
 		pager.AddParamString("private", fmt.Sprint(value))
 	}
+	repoquick.KeepOnPages(pager, quick)
 	ctx.Data["Page"] = pager
 
 	ctx.HTML(http.StatusOK, opts.TplName)

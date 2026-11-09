@@ -14,7 +14,7 @@
 					</div>
 					{{template "shared/ds/layout_toggle" (dict "Target" ".ds-repolist")}}
 				</div>
-				{{if .Repos}}{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Sort" .SortType)}}{{end}}
+				{{if .Repos}}{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" .Language "Quick" .AscQuickLabel "Sort" .SortType)}}{{end}}
 				{{template "explore/repo_list" .}}
 				{{template "base/paginate" .}}
 				{{template "shared/ds/more" (dict "Page" .Page "Link" .Link "List" ".ds-repolist")}}

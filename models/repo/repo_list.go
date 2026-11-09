@@ -193,6 +193,8 @@ type SearchRepoOptions struct {
 	OwnerAndName [][2]string
 	// Filter to repositories with this unit enabled.
 	EnabledUnit optional.Option[unit.Type]
+	// AscQuick holds the quick chips of the repository lists (asc_quick_filter.go).
+	AscQuick AscQuickFilter
 }
 
 // UserOwnedRepoCond returns user ownered repositories
@@ -366,6 +368,8 @@ func SearchRepositoryCondition(opts *SearchRepoOptions) builder.Cond {
 	if opts.StarredByID > 0 {
 		cond = cond.And(builder.In("id", builder.Select("repo_id").From("star").Where(builder.Eq{"uid": opts.StarredByID})))
 	}
+
+	cond = cond.And(opts.AscQuick.cond())
 
 	// Restrict to watched repositories
 	if opts.WatchedByID > 0 {

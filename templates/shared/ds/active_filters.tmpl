@@ -1,11 +1,13 @@
 {{/*
 The filters a directory is narrowed by, each with a remove link, and Clear filters. Nothing renders when no filter is active.
-Props: Keyword, Language (optional), Sort (kept in every link), NoClear (leave out the Clear filters link, for a state that has its own button).
+Props: Keyword, Language (optional), Quick (optional: the label of the quick chip that is on, removed by dropping all of them), Sort (kept in every link), NoClear (leave out the Clear filters link, for a state that has its own button).
+The links of Keyword and Language drop the quick chips too: a link here is the filters it keeps.
 */}}
-{{if or .Keyword .Language}}
+{{if or .Keyword .Language .Quick}}
 <div class="ds-active-filters" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.filters_active"}}">
 	{{if .Keyword}}<a class="ds-chip-btn" href="?sort={{QueryEscape .Sort}}&language={{QueryEscape .Language}}" aria-label="{{ctx.Locale.Tr "asc_shell.filter_remove" .Keyword}}">{{.Keyword}} <span aria-hidden="true">&times;</span></a>{{end}}
 	{{if .Language}}<a class="ds-chip-btn" href="?q={{QueryEscape .Keyword}}&sort={{QueryEscape .Sort}}" aria-label="{{ctx.Locale.Tr "asc_shell.filter_remove" .Language}}">{{.Language}} <span aria-hidden="true">&times;</span></a>{{end}}
+	{{if .Quick}}<a class="ds-chip-btn" href="?q={{QueryEscape .Keyword}}&sort={{QueryEscape .Sort}}&language={{QueryEscape .Language}}" aria-label="{{ctx.Locale.Tr "asc_shell.filter_remove" .Quick}}">{{.Quick}} <span aria-hidden="true">&times;</span></a>{{end}}
 	{{if not .NoClear}}<a class="ds-link-quiet" href="?sort={{QueryEscape .Sort}}">{{ctx.Locale.Tr "asc_shell.filters_clear"}}</a>{{end}}
 </div>
 {{end}}

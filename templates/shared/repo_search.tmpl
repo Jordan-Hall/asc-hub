@@ -1,6 +1,6 @@
 {{/*
 The filter bar of every repository list (explore, organization and profile pages, subscriptions, the admin list). It is a GET form; web_src/js/features/repo-search.js sends it when a select changes.
-Reads: .Keyword, .SortType, .Language, .TopicOnly, .IsArchived, .IsFork, .IsMirror, .IsTemplate, .IsPrivate, .OnlyShowRelevant, .TabName, .DisableStars, .PageIsExploreRepositories
+Reads: .Keyword, .SortType, .Language, .TopicOnly, .IsArchived, .IsFork, .IsMirror, .IsTemplate, .IsPrivate, the quick chips of routers/web/shared/repoquick (.AscQuick*), .OnlyShowRelevant, .TabName, .DisableStars, .PageIsExploreRepositories
 Under 768 a "Sort and filter" button opens a sheet with the same choices; from 768 the sort and visibility selects sit in the bar and the kind pills below it.
 */}}
 {{$pageIsExplore := .PageIsExploreRepositories}}
@@ -25,6 +25,9 @@ Under 768 a "Sort and filter" button opens a sheet with the same choices; from 7
 				{{if $fork}}<input type="hidden" name="fork" value="{{$fork}}">{{end}}
 				{{if $mirror}}<input type="hidden" name="mirror" value="{{$mirror}}">{{end}}
 				{{if $template}}<input type="hidden" name="template" value="{{$template}}">{{end}}
+				{{if .AscQuickOpenStacks}}<input type="hidden" name="open_stacks" value="1">{{end}}
+				{{if .AscQuickAgents}}<input type="hidden" name="agents" value="1">{{end}}
+				{{if .AscQuickStarred}}<input type="hidden" name="starred" value="1">{{end}}
 				<div class="ds-inwrap">
 					{{svg "dsi-search" 16}}
 					<label class="ds-sr" for="repo-search-q">{{ctx.Locale.Tr "search.repo_kind"}}</label>
@@ -73,9 +76,10 @@ Under 768 a "Sort and filter" button opens a sheet with the same choices; from 7
 		</div>
 		<div class="ds-filterbar-pills">
 			<div class="ds-scrollx" role="group" aria-label="{{ctx.Locale.Tr "filter"}}">
-				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "explore.filter_all") "Href" $common "Active" (not (or $archived $fork $mirror $template)))}}
-				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_fork") "Href" (print $withPrivate "&fork=1") "Active" (eq $fork "1"))}}
-				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_mirror") "Href" (print $withPrivate "&mirror=1") "Active" (eq $mirror "1"))}}
+				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "explore.filter_all") "Href" $common "Active" (not (or $archived $fork $mirror $template .AscQuickOpenStacks .AscQuickAgents .AscQuickStarred)))}}
+				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "explore.quick_open_stacks") "Href" (print $withPrivate "&open_stacks=1") "Active" .AscQuickOpenStacks)}}
+				<a class="ds-chip-btn" href="{{$withPrivate}}&agents=1" title="{{ctx.Locale.Tr "explore.quick_agents_title" .AscQuickAgentDays}}"{{if .AscQuickAgents}} aria-current="true"{{end}}>{{ctx.Locale.Tr "explore.quick_agents"}}</a>
+				{{if .AscQuickStarredOffered}}{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "explore.quick_starred") "Href" (print $withPrivate "&starred=1") "Active" .AscQuickStarred)}}{{end}}
 				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_template") "Href" (print $withPrivate "&template=1") "Active" (eq $template "1"))}}
 				{{template "shared/ds/pill" (dict "Label" (ctx.Locale.Tr "filter.is_archived") "Href" (print $withPrivate "&archived=1") "Active" (eq $archived "1"))}}
 			</div>
@@ -126,6 +130,9 @@ Under 768 a "Sort and filter" button opens a sheet with the same choices; from 7
 				</fieldset>
 				<fieldset class="ds-fieldset">
 					<legend class="ds-label">{{ctx.Locale.Tr "explore.show_only"}}</legend>
+					<label class="ds-switch"><input type="checkbox" role="switch" name="open_stacks" value="1"{{if .AscQuickOpenStacks}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "explore.quick_open_stacks"}}</span></label>
+					<label class="ds-switch"><input type="checkbox" role="switch" name="agents" value="1"{{if .AscQuickAgents}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "explore.quick_agents"}}</span></label>
+					{{if .AscQuickStarredOffered}}<label class="ds-switch"><input type="checkbox" role="switch" name="starred" value="1"{{if .AscQuickStarred}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "explore.quick_starred"}}</span></label>{{end}}
 					<label class="ds-switch"><input type="checkbox" role="switch" name="fork" value="1"{{if eq $fork "1"}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "filter.is_fork"}}</span></label>
 					<label class="ds-switch"><input type="checkbox" role="switch" name="mirror" value="1"{{if eq $mirror "1"}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "filter.is_mirror"}}</span></label>
 					<label class="ds-switch"><input type="checkbox" role="switch" name="template" value="1"{{if eq $template "1"}} checked{{end}}><span class="ds-switch-track" aria-hidden="true"></span><span>{{ctx.Locale.Tr "filter.is_template"}}</span></label>

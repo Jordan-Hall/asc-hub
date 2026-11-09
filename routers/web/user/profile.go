@@ -29,6 +29,7 @@ import (
 	"forgejo.org/modules/util"
 	"forgejo.org/routers/web/feed"
 	"forgejo.org/routers/web/org"
+	"forgejo.org/routers/web/shared/repoquick"
 	shared_user "forgejo.org/routers/web/shared/user"
 	"forgejo.org/services/ascpresence"
 	"forgejo.org/services/context"
@@ -177,6 +178,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 
 	private := ctx.FormOptionalBool("private")
 	ctx.Data["IsPrivate"] = private
+	quick := repoquick.Read(ctx)
 
 	ascProfileCounts(ctx)
 	if ctx.ContextUser.IsIndividual() {
@@ -279,6 +281,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 			Mirror:             mirror,
 			Template:           template,
 			IsPrivate:          private,
+			AscQuick:           quick,
 		})
 		if err != nil {
 			ctx.ServerError("SearchRepository", err)
@@ -306,6 +309,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 			Mirror:             mirror,
 			Template:           template,
 			IsPrivate:          private,
+			AscQuick:           quick,
 		})
 		if err != nil {
 			ctx.ServerError("SearchRepository", err)
@@ -377,6 +381,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 			Mirror:             mirror,
 			Template:           template,
 			IsPrivate:          private,
+			AscQuick:           quick,
 		})
 		if err != nil {
 			ctx.ServerError("SearchRepository", err)
@@ -418,6 +423,7 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	if has, value := private.Get(); has {
 		pager.AddParamString("private", fmt.Sprint(value))
 	}
+	repoquick.KeepOnPages(pager, quick)
 	ctx.Data["Page"] = pager
 }
 
