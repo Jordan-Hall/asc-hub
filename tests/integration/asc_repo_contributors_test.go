@@ -65,4 +65,15 @@ func TestTheRepositoryListsShowWhoContributes(t *testing.T) {
 		doc := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/user2?tab=repositories"), http.StatusOK).Body)
 		assert.Equal(t, []string{"user2", "user30 (agent)"}, who(stack(t, doc, "user2/repo1")))
 	})
+
+	t.Run("A person who keeps their activity private is left out, but sees themselves", func(t *testing.T) {
+		_, err := e.Exec("UPDATE `user` SET keep_activity_private = ? WHERE id = 2", true)
+		require.NoError(t, err)
+		doc := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/explore/repos"), http.StatusOK).Body)
+		s := stack(t, doc, "user2/repo1")
+		assert.Equal(t, "1 contributor in the last 90 days", s.AttrOr("aria-label", ""))
+		assert.Equal(t, []string{"user30 (agent)"}, who(s))
+		doc = NewHTMLParser(t, loginUser(t, "user2").MakeRequest(t, NewRequest(t, "GET", "/explore/repos"), http.StatusOK).Body)
+		assert.Equal(t, []string{"user2", "user30 (agent)"}, who(stack(t, doc, "user2/repo1")))
+	})
 }
