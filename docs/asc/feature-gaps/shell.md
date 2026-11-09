@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 170 |
+| done | 171 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 2 |
+| needs-hub-backend | 1 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -300,7 +300,7 @@ Open rows by size: S 0, M 21, L 14.
 | Mobile-Menu | Top bar, five-item bottom nav (Inbox, Changes, Explore, Search, Me) with counts in the label, drawer, account sheet, full-screen palette | done | `head_navbar.tmpl` (`.ds-topbar`, `.ds-bnav`, `#ds-drawer`) | - |
 | Mobile-Menu | Swipe from the left edge opens the drawer | done | web_src/js/features/ds-shell.js edgeSwipe + touch handlers (test: ds-shell.test.js) | - |
 | Mobile-Menu | Create as a bottom sheet (drawer footer and list headers) | done | web_src/css/asc-ds/layout.css .ds-pop is a bottom sheet under 1024 px; templates/base/head_navbar.tmpl #ds-create | - |
-| Mobile-Menu | Notifications sheet | needs-hub-backend | With the popover (Shell) | M |
+| Mobile-Menu | Notifications sheet | done | The Inbox tab of `.ds-bnav` (`head_navbar.tmpl`) opens `#ds-bell` as a bottom sheet (ds-shell.js); full-width Open inbox in `layout.css`; tests: ds-shell.test.js, TestThePhoneInboxTabOpensTheNotificationsSheet | M |
 | Mobile-Menu | Palette filter chips scroll horizontally | done | With the scope chips | S |
 
 ## Cross-group notes
