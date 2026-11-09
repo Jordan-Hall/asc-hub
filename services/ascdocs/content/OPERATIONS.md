@@ -526,6 +526,30 @@ The chip is `VisibilityOf` in `routers/web/shared/packages/asc_list.go`, which f
 registries (`DeterminePackageAccessMode`). Tests: TestAPackageIsAsVisibleAsItsOwner,
 TestThePackageListShowsTheVisibilityOfEachPackage.
 
+## Where a package version came from
+
+When an Actions job publishes a package version with its job token, the hub records where it came from: the
+repository, the run, the commit and the ref of the job. The record is written once, when the version is created, and
+is never read from the upload, so it cannot be forged by the client. A version uploaded by a person with a password
+or an access token has no record.
+
+The version page then says one of these under the title:
+
+- **Published from owner/repo by a landed stack**: the commit is the merge of a pull request of an asc stack. The
+  link goes to that pull request (for people who can read pull requests).
+- **Published from owner/repo by run #N**: the commit is not a landed stack. The link goes to the run (for people who
+  can read Actions).
+- **Published from owner/repo at commit**: the run was deleted, or the person cannot read Actions.
+
+With asc on, the line also shows **Signed with release key** when the repository has a published release tagged with
+the version (for example `1.2.0` or `v1.2.0`) whose signature asc checked as valid. The chip links to the release and
+its hover names who signed it and the key. A draft release or a signature that is not valid gives no chip.
+
+Nothing is shown to a person who cannot read the code of the repository the version came from. The record is the
+version property `asc.provenance`; deleting the version deletes it. Code: `models/packages/asc_provenance.go`,
+`services/packages/asc_provenance.go`, `routers/web/user/package_asc_provenance.go`. Tests: TestAscProvenance,
+TestRecordAscProvenance, TestAscPackageProvenance, TestPackageViewShowsProvenance.
+
 ## Requests for access
 
 A signed-in person who is refused on a page of a repository (the 403 page) can ask its admins for more access with
