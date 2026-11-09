@@ -113,3 +113,33 @@ test('edge swipe: from the left edge opens the drawer, a swipe left closes it, a
   expect(edgeSwipe({x: 250, y: 300}, {x: 120, y: 310}, true)).toBe('close');
   expect(edgeSwipe({x: 120, y: 300}, {x: 250, y: 310}, true)).toBeNull();
 });
+
+test('phone Inbox tab: opens the notifications sheet, marks both triggers expanded, Esc gives the focus back', async () => {
+  const {openOverlay, closeOverlay} = await import('./ds-shell.js');
+  const saved = window.matchMedia;
+  window.matchMedia = () => ({matches: false});
+  document.body.innerHTML = `
+    <a id="bell" href="/notifications" data-ds-open="ds-bell" aria-expanded="false">bell</a>
+    <div id="ds-scrim"></div>
+    <div class="ds-pop" id="ds-bell"><a href="/-/asc/inbox">Open inbox</a></div>
+    <nav class="ds-bnav"><a id="tab" href="/notifications" data-ds-open="ds-bell" aria-expanded="false">Inbox</a></nav>`;
+  const tab = document.querySelector('#tab');
+  const sheet = document.querySelector('#ds-bell');
+  let opened = 0;
+  sheet.addEventListener('ds-open', () => opened++);
+  tab.focus();
+  try {
+    expect(openOverlay('ds-bell', tab)).toBe(true);
+    expect(sheet.classList.contains('is-open')).toBe(true);
+    expect(opened).toBe(1);
+    expect(tab.getAttribute('aria-expanded')).toBe('true');
+    expect(document.querySelector('#bell').getAttribute('aria-expanded')).toBe('true');
+    expect(document.body.classList.contains('ds-lock')).toBe(true);
+    closeOverlay();
+    expect(sheet.classList.contains('is-open')).toBe(false);
+    expect(tab.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(tab);
+  } finally {
+    window.matchMedia = saved;
+  }
+});

@@ -31,7 +31,7 @@ func TestAscBellPopover(t *testing.T) {
 
 	t.Run("Header", func(t *testing.T) {
 		page := NewHTMLParser(t, session.MakeRequest(t, NewRequest(t, "GET", "/"), http.StatusOK).Body)
-		page.AssertElement(t, `a[data-ds-open="ds-bell"][aria-controls="ds-bell"]`, true)
+		page.AssertElement(t, `a.ds-hdr-ic[data-ds-open="ds-bell"][aria-controls="ds-bell"]`, true)
 		pop := page.Find("#ds-bell[data-asc-bell]")
 		require.Equal(t, 1, pop.Length())
 		src, _ := pop.Attr("data-asc-bell")
