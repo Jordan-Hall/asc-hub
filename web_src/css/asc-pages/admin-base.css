@@ -1018,6 +1018,41 @@ a.adm-who-name:hover {
   display: none;
 }
 
+/* the diff of an audit record: what changed, the value before struck through and the value after */
+.adm-audit-diff {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  margin-block: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.adm-audit-diff li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.adm-audit-diff del,
+.adm-audit-diff ins {
+  padding-inline: 6px;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+.adm-audit-diff del {
+  background: var(--err-soft);
+  color: var(--err);
+}
+
+.adm-audit-diff ins {
+  background: var(--ok-soft);
+  color: var(--ok);
+  text-decoration: none;
+}
+
 /* the monitor: what is idle sits behind one line */
 .adm-idle > summary {
   padding: 12px 16px;

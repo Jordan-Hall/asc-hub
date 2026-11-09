@@ -5,6 +5,7 @@ package asctrust
 
 import (
 	"archive/zip"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -266,8 +267,22 @@ type AuditRow struct {
 	Outcome   string
 	Tone      string
 	Remote    string
-	Details   []KV
+	RequestID string
+	UserAgent string
+	Hash      string
+	Changes   []AuditChange
+	Details   []KV // every detail, in key order
+	Rest      []KV // the details that are not in Changes
 }
+
+// AuditChange is a value an event changed, as the diff of its row: what changed (a setting or a ref; empty when the
+// action names it), the value before and the value after.
+type AuditChange struct {
+	What, Old, New string
+}
+
+// auditChangePairs are the detail keys that hold a value before and after (the catalogue of asc serve).
+var auditChangePairs = [][2]string{{"old", "new"}, {"from", "to"}}
 
 // Initials are the first letters of the actor for the avatar of a row ("MO" for "Maya Okafor", "CO" for "coder-2").
 func (r AuditRow) Initials() string {
@@ -365,8 +380,34 @@ func AuditPageOf(resp *ascv1.ListAuditResponse, catalogue []ActionInfo) (*AuditP
 		default:
 			row.Outcome, row.Tone = "Unknown", "ro"
 		}
-		keys := make([]string, 0, len(e.GetDetails()))
-		for k := range e.GetDetails() {
+		row.RequestID = CleanText(e.GetRequestId(), 128)
+		row.UserAgent = CleanText(e.GetUserAgent(), 256)
+		if h := e.GetHash(); len(h) > 0 && len(h) <= 64 {
+			row.Hash = hex.EncodeToString(h)
+		}
+		details := e.GetDetails()
+		paired := map[string]bool{}
+		for _, pair := range auditChangePairs {
+			oldV, hasOld := details[pair[0]]
+			newV, hasNew := details[pair[1]]
+			if !hasOld && !hasNew {
+				continue
+			}
+			paired[pair[0]], paired[pair[1]] = true, true
+			what := CleanText(details["setting"], 64)
+			if what != "" {
+				paired["setting"] = true
+			} else if what = CleanText(details["ref"], maxTargetLen); what != "" {
+				paired["ref"] = true
+			}
+			c := AuditChange{What: what, Old: CleanText(oldV, maxDetailValue), New: CleanText(newV, maxDetailValue)}
+			if secretKey.MatchString(what) {
+				c.Old, c.New = "hidden", "hidden"
+			}
+			row.Changes = append(row.Changes, c)
+		}
+		keys := make([]string, 0, len(details))
+		for k := range details {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
@@ -383,6 +424,9 @@ func AuditPageOf(resp *ascv1.ListAuditResponse, catalogue []ActionInfo) (*AuditP
 				v = "hidden"
 			}
 			row.Details = append(row.Details, KV{Key: ck, Value: v})
+			if !paired[k] {
+				row.Rest = append(row.Rest, KV{Key: ck, Value: v})
+			}
 		}
 		page.Rows = append(page.Rows, row)
 	}

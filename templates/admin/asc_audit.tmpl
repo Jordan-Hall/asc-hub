@@ -86,6 +86,7 @@
 							<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{.ExportCSV}}" data-testid="asc-audit-export-csv" data-asc-audit-export download>{{ctx.Locale.Tr "asc_trust.audit.export_csv"}}</a>
 						</div>
 					</details>
+					<span class="ds-sr" aria-live="polite" data-asc-audit-export-status data-text="{{ctx.Locale.Tr "asc_trust.audit.export_preparing"}}"></span>
 					<form class="ds-ml-auto" method="post" action="{{.Base}}/verify" data-asc-audit-verify data-progress-text="{{ctx.Locale.Tr "asc_trust.audit.verify_progress" "{done}" "{total}"}}">
 						{{$.CsrfTokenHtml}}
 						<input type="hidden" name="from" value="">
@@ -118,12 +119,31 @@
 										<div class="ds-li-sub ds-break">{{if .Repo}}<span>{{.Repo}}</span>{{end}}{{if and .Repo .Target}} &middot; {{end}}{{if .Target}}<code class="adm-mono">{{.Target}}</code>{{end}} <code class="adm-mono ds-c-2">{{.Action}}</code></div>
 										<div class="ds-li-meta"><span>{{DateUtils.TodayTime .Time}}</span>{{if .Remote}}<span class="adm-mono">{{.Remote}}</span>{{end}}</div>
 									</div>
-									{{if .Details}}
-										<details class="ds-details adm-details adm-audit-more">
-											<summary>{{ctx.Locale.Tr "asc_trust.audit.details"}}</summary>
-											<dl class="adm-kv adm-kv-cfg">{{range .Details}}<div><dt>{{.Key}}</dt><dd class="adm-mono">{{.Value}}</dd></div>{{end}}</dl>
-										</details>
-									{{end}}
+									<details class="ds-details adm-details adm-audit-more" data-testid="asc-audit-record">
+										<summary>{{ctx.Locale.Tr "asc_trust.audit.details"}}</summary>
+										{{if .Changes}}
+											<ul class="adm-audit-diff" aria-label="{{ctx.Locale.Tr "asc_trust.audit.rec_change"}}" data-testid="asc-audit-diff">
+												{{range .Changes}}
+													<li>
+														{{if .What}}<code class="adm-mono adm-audit-diff-what">{{.What}}</code>{{end}}
+														<del class="adm-mono"><span class="ds-sr">{{ctx.Locale.Tr "asc_trust.audit.rec_old"}} </span>{{if .Old}}{{.Old}}{{else}}{{ctx.Locale.Tr "asc_trust.audit.rec_none"}}{{end}}</del>
+														<ins class="adm-mono"><span class="ds-sr">{{ctx.Locale.Tr "asc_trust.audit.rec_new"}} </span>{{if .New}}{{.New}}{{else}}{{ctx.Locale.Tr "asc_trust.audit.rec_none"}}{{end}}</ins>
+													</li>
+												{{end}}
+											</ul>
+										{{end}}
+										<dl class="adm-kv adm-kv-cfg">
+											<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_seq"}}</dt><dd class="adm-mono">{{.Seq}}</dd></div>
+											{{if .ID}}<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_id"}}</dt><dd class="adm-mono">{{.ID}}</dd></div>{{end}}
+											<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_time"}}</dt><dd class="adm-mono">{{.Time.Format "2006-01-02T15:04:05.000Z07:00"}}</dd></div>
+											<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_request"}}</dt><dd class="adm-mono" data-testid="asc-audit-request">{{if .RequestID}}{{.RequestID}}{{else}}{{ctx.Locale.Tr "asc_trust.audit.rec_none"}}{{end}}</dd></div>
+											<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_outcome"}}</dt><dd>{{.Outcome}}</dd></div>
+											{{if .Remote}}<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_remote"}}</dt><dd class="adm-mono">{{.Remote}}</dd></div>{{end}}
+											{{if .UserAgent}}<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_agent"}}</dt><dd class="adm-mono">{{.UserAgent}}</dd></div>{{end}}
+											{{range .Rest}}<div><dt>{{.Key}}</dt><dd class="adm-mono">{{.Value}}</dd></div>{{end}}
+											{{if .Hash}}<div><dt>{{ctx.Locale.Tr "asc_trust.audit.rec_hash"}}</dt><dd class="adm-mono ds-break">{{.Hash}}</dd></div>{{end}}
+										</dl>
+									</details>
 								</li>
 							{{end}}
 						</ul>

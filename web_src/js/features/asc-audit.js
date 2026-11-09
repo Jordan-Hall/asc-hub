@@ -112,6 +112,13 @@ function initVerify(form) {
   });
 }
 
+// showExportBusy shows that an export is being prepared: the Export button spins and the status line, which a
+// screen reader announces, says what happens next.
+export function showExportBusy(button, status, busy) {
+  button?.classList.toggle('is-loading', busy);
+  if (status) status.textContent = busy ? status.getAttribute('data-text') : '';
+}
+
 function initExports(card) {
   const sub = card.querySelector('[data-asc-audit-ready-sub]');
   const link = card.querySelector('[data-asc-audit-ready-link]');
@@ -128,6 +135,11 @@ function initExports(card) {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       a.setAttribute('aria-busy', 'true');
+      const menu = a.closest('details');
+      const button = menu?.querySelector('summary');
+      const status = document.querySelector('[data-asc-audit-export-status]');
+      showExportBusy(button, status, true);
+      if (menu) menu.open = false;
       try {
         const res = await GET(a.href);
         if (!res.ok) throw new Error(`export: ${res.status}`);
@@ -147,6 +159,7 @@ function initExports(card) {
         window.location.href = a.href;
       } finally {
         a.removeAttribute('aria-busy');
+        showExportBusy(button, status, false);
       }
     });
   }
