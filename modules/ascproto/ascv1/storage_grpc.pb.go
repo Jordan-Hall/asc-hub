@@ -19,21 +19,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Storage_CreateTarget_FullMethodName    = "/asc.v1.Storage/CreateTarget"
-	Storage_ListTargets_FullMethodName     = "/asc.v1.Storage/ListTargets"
-	Storage_GetTarget_FullMethodName       = "/asc.v1.Storage/GetTarget"
-	Storage_UpdateTarget_FullMethodName    = "/asc.v1.Storage/UpdateTarget"
-	Storage_DeleteTarget_FullMethodName    = "/asc.v1.Storage/DeleteTarget"
-	Storage_VerifyTarget_FullMethodName    = "/asc.v1.Storage/VerifyTarget"
-	Storage_SetEnabled_FullMethodName      = "/asc.v1.Storage/SetEnabled"
-	Storage_AssignRepo_FullMethodName      = "/asc.v1.Storage/AssignRepo"
-	Storage_StartMigration_FullMethodName  = "/asc.v1.Storage/StartMigration"
-	Storage_GetMigration_FullMethodName    = "/asc.v1.Storage/GetMigration"
-	Storage_ListMigrations_FullMethodName  = "/asc.v1.Storage/ListMigrations"
-	Storage_CancelMigration_FullMethodName = "/asc.v1.Storage/CancelMigration"
-	Storage_PauseMigration_FullMethodName  = "/asc.v1.Storage/PauseMigration"
-	Storage_ResumeMigration_FullMethodName = "/asc.v1.Storage/ResumeMigration"
-	Storage_GetRepoUsage_FullMethodName    = "/asc.v1.Storage/GetRepoUsage"
+	Storage_CreateTarget_FullMethodName       = "/asc.v1.Storage/CreateTarget"
+	Storage_ListTargets_FullMethodName        = "/asc.v1.Storage/ListTargets"
+	Storage_GetTarget_FullMethodName          = "/asc.v1.Storage/GetTarget"
+	Storage_UpdateTarget_FullMethodName       = "/asc.v1.Storage/UpdateTarget"
+	Storage_DeleteTarget_FullMethodName       = "/asc.v1.Storage/DeleteTarget"
+	Storage_VerifyTarget_FullMethodName       = "/asc.v1.Storage/VerifyTarget"
+	Storage_SetEnabled_FullMethodName         = "/asc.v1.Storage/SetEnabled"
+	Storage_AssignRepo_FullMethodName         = "/asc.v1.Storage/AssignRepo"
+	Storage_StartMigration_FullMethodName     = "/asc.v1.Storage/StartMigration"
+	Storage_GetMigration_FullMethodName       = "/asc.v1.Storage/GetMigration"
+	Storage_ListMigrations_FullMethodName     = "/asc.v1.Storage/ListMigrations"
+	Storage_CancelMigration_FullMethodName    = "/asc.v1.Storage/CancelMigration"
+	Storage_PauseMigration_FullMethodName     = "/asc.v1.Storage/PauseMigration"
+	Storage_ResumeMigration_FullMethodName    = "/asc.v1.Storage/ResumeMigration"
+	Storage_GetRepoUsage_FullMethodName       = "/asc.v1.Storage/GetRepoUsage"
+	Storage_ListRepoPlacements_FullMethodName = "/asc.v1.Storage/ListRepoPlacements"
 )
 
 // StorageClient is the client API for Storage service.
@@ -67,6 +68,7 @@ type StorageClient interface {
 	PauseMigration(ctx context.Context, in *PauseStorageMigrationRequest, opts ...grpc.CallOption) (*PauseStorageMigrationResponse, error)
 	ResumeMigration(ctx context.Context, in *ResumeStorageMigrationRequest, opts ...grpc.CallOption) (*ResumeStorageMigrationResponse, error)
 	GetRepoUsage(ctx context.Context, in *GetRepoStorageUsageRequest, opts ...grpc.CallOption) (*GetRepoStorageUsageResponse, error)
+	ListRepoPlacements(ctx context.Context, in *ListRepoPlacementsRequest, opts ...grpc.CallOption) (*ListRepoPlacementsResponse, error)
 }
 
 type storageClient struct {
@@ -227,6 +229,16 @@ func (c *storageClient) GetRepoUsage(ctx context.Context, in *GetRepoStorageUsag
 	return out, nil
 }
 
+func (c *storageClient) ListRepoPlacements(ctx context.Context, in *ListRepoPlacementsRequest, opts ...grpc.CallOption) (*ListRepoPlacementsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRepoPlacementsResponse)
+	err := c.cc.Invoke(ctx, Storage_ListRepoPlacements_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StorageServer is the server API for Storage service.
 // All implementations should embed UnimplementedStorageServer
 // for forward compatibility.
@@ -258,6 +270,7 @@ type StorageServer interface {
 	PauseMigration(context.Context, *PauseStorageMigrationRequest) (*PauseStorageMigrationResponse, error)
 	ResumeMigration(context.Context, *ResumeStorageMigrationRequest) (*ResumeStorageMigrationResponse, error)
 	GetRepoUsage(context.Context, *GetRepoStorageUsageRequest) (*GetRepoStorageUsageResponse, error)
+	ListRepoPlacements(context.Context, *ListRepoPlacementsRequest) (*ListRepoPlacementsResponse, error)
 }
 
 // UnimplementedStorageServer should be embedded to have
@@ -311,6 +324,9 @@ func (UnimplementedStorageServer) ResumeMigration(context.Context, *ResumeStorag
 }
 func (UnimplementedStorageServer) GetRepoUsage(context.Context, *GetRepoStorageUsageRequest) (*GetRepoStorageUsageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRepoUsage not implemented")
+}
+func (UnimplementedStorageServer) ListRepoPlacements(context.Context, *ListRepoPlacementsRequest) (*ListRepoPlacementsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRepoPlacements not implemented")
 }
 func (UnimplementedStorageServer) testEmbeddedByValue() {}
 
@@ -602,6 +618,24 @@ func _Storage_GetRepoUsage_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Storage_ListRepoPlacements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRepoPlacementsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServer).ListRepoPlacements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Storage_ListRepoPlacements_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServer).ListRepoPlacements(ctx, req.(*ListRepoPlacementsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Storage_ServiceDesc is the grpc.ServiceDesc for Storage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -668,6 +702,10 @@ var Storage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRepoUsage",
 			Handler:    _Storage_GetRepoUsage_Handler,
+		},
+		{
+			MethodName: "ListRepoPlacements",
+			Handler:    _Storage_ListRepoPlacements_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
