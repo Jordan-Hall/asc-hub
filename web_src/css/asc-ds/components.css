@@ -789,6 +789,10 @@ img.ds-av {
 .ds-av-stack > .ds-av-agent { box-shadow: 0 0 0 2px var(--agent); }
 .ds-repo-contrib { align-items: center; }
 
+.ds-roles { display: grid; gap: 12px; margin: 12px 0 0; }
+.ds-roles dt { font-weight: 600; }
+.ds-roles dd { margin: 2px 0 0; }
+
 /* the hub's own avatars (images from ctx.AvatarUtils) */
 img.ds-avatar {
   display: inline-block;

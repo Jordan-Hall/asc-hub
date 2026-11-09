@@ -10,7 +10,7 @@
 					{{if .FullName}}<span class="ds-li-owner ds-hide-xs">{{.FullName}}</span>{{end}}
 					{{if and $.AscVerifiedOrgs (index $.AscVerifiedOrgs .ID)}}<span class="ds-chip ds-chip-ok">{{svg "dsi-shield-check" 14}} {{ctx.Locale.Tr "asc_work.org_verified"}}</span>{{end}}
 					{{if .Visibility.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}
-					{{if .IsBot}}<span class="ds-chip ds-chip-agent" data-testid="user-agent-chip">{{ctx.Locale.Tr "explore.agent_chip"}}</span>{{end}}
+					{{if .IsBot}}<span class="ds-chip ds-chip-agent" data-testid="user-agent-chip">{{ctx.Locale.Tr "explore.agent_chip"}}</span>{{else if $.ExploreRoles}}{{with index $.ExploreRoles .ID}}<span class="ds-chip{{if eq . "owner"}} ds-chip-info{{else if eq . "maintainer"}} ds-chip-ok{{end}}" data-testid="user-role-chip" data-role="{{.}}">{{ctx.Locale.Tr (print "explore.role_" .)}}</span>{{end}}{{end}}
 				</div>
 				{{if .Description}}<div class="ds-li-sub ds-clamp-2">{{.Description}}</div>{{end}}
 				<div class="ds-li-meta">

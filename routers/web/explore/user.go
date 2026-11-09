@@ -172,6 +172,29 @@ func loadExploreUserRows(ctx *context.Context, users []*user_model.User) {
 	if ctx.Doer != nil {
 		ctx.Data["ExploreFollowing"] = following // may be empty: the template offers Follow only when the map was made
 	}
+	loadExploreRoles(ctx, users)
+}
+
+// loadExploreRoles puts the role of each person and the "Roles on this hub" counts into the page data. Roles tell who
+// runs the hub, so only a signed-in viewer who is not restricted gets them; a visitor sees the Agent chip only. A
+// lookup that fails leaves the roles out.
+func loadExploreRoles(ctx *context.Context, users []*user_model.User) {
+	if ctx.Doer == nil || ctx.Doer.IsRestricted {
+		return
+	}
+	roles, err := user_model.AscRolesOf(ctx, users)
+	if err != nil {
+		log.Error("explore: the roles of the people directory (request %s): %v", ctx.RequestIDForLog(), err)
+		return
+	}
+	counts, err := user_model.AscRoleCounts(ctx, ctx.Doer)
+	if err != nil {
+		log.Error("explore: the role counts of the people directory (request %s): %v", ctx.RequestIDForLog(), err)
+		return
+	}
+	ctx.Data["ExploreRoles"] = roles
+	ctx.Data["ExploreRoleCounts"] = counts
+	ctx.Data["ExploreRoleOrder"] = user_model.AscRoles
 }
 
 // Users render explore users page.

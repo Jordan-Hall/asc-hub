@@ -15,6 +15,23 @@
 				{{template "base/paginate" .}}
 				{{template "shared/ds/more" (dict "Page" .Page "Link" .Link "List" ".ds-userlist")}}
 			</div>
+			{{if and .PageIsExploreUsers .ExploreRoleCounts}}
+				<aside class="ds-rail ds-only-desktop ds-stack-24" aria-label="{{ctx.Locale.Tr "explore.roles_title"}}">
+					<div class="ds-card" data-asc-roles>
+						<div class="ds-card-b">
+						<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.roles_title"}}</h2>
+						<dl class="ds-roles">
+							{{range .ExploreRoleOrder}}
+							<div class="ds-roles-row" data-role="{{.}}">
+								<dt>{{ctx.Locale.Tr (print "explore.role_" .)}} <span class="ds-c-3">{{ctx.Locale.PrettyNumber (index $.ExploreRoleCounts .)}}</span></dt>
+								<dd class="ds-t-small ds-c-2">{{ctx.Locale.Tr (print "explore.role_" . "_text")}}</dd>
+							</div>
+							{{end}}
+						</dl>
+						</div>
+					</div>
+				</aside>
+			{{end}}
 			{{if .PageIsExploreOrganizations}}
 				<aside class="ds-rail ds-only-desktop ds-stack-24" aria-label="{{ctx.Locale.Tr "asc_shell.orgs_rail_label"}}">
 					{{if and .IsSigned .SignedUser.CanCreateOrganization}}
