@@ -21,7 +21,8 @@ import (
 // AscDashAct serves `POST /-/asc/dash/act`: a row of "Needs you" on the dashboard acts in place. The form names the
 // pull request (pull, its id) and what to do:
 //
-//   - approve: an approving review at the head of the pull request, as Approve on the review page;
+//   - approve: an approving review at the head of the pull request, as Approve on the review page. The form names
+//     the head the row showed (head); a pull request pushed to since is not approved, so nobody approves code unseen;
 //   - queue: the stack up to the pull request into the asc merge queue, as "Merge when ready";
 //   - unqueue: the undo of queue, the stack out of the queue again.
 //
@@ -121,6 +122,11 @@ func ascDashApprove(ctx *context.Context, pr *issues_model.PullRequest, back str
 	head, err := gitRepo.GetRefCommitID(pr.GetGitRefName())
 	if err != nil {
 		ctx.ServerError("GetRefCommitID", err)
+		return
+	}
+	if seen := ctx.FormString("head"); seen == "" || seen != head {
+		ctx.Flash.Error(ctx.Tr("user.asc_dash.act_stale"))
+		ctx.Redirect(back)
 		return
 	}
 	if _, _, err := pull_service.SubmitReview(ctx, ctx.Doer, gitRepo, issue, issues_model.ReviewTypeApprove, "", head, nil); err != nil {

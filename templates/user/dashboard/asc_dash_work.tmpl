@@ -34,6 +34,7 @@ includes it, and GET /-/asc/dash/work renders it alone so the page refreshes it 
 									{{$.CsrfTokenHtml}}
 									<input type="hidden" name="pull" value="{{.PullID}}">
 									<input type="hidden" name="do" value="{{.Do}}">
+									{{if .Head}}<input type="hidden" name="head" value="{{.Head}}">{{end}}
 									<button class="ds-btn ds-btn-primary ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "user.asc_dash.act_for" $label .Title}}">{{$label}}</button>
 								</form>
 							{{else}}

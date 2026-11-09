@@ -37,6 +37,10 @@ type AscInboxInfo struct {
 	ChecksPending int
 
 	Approvals int
+
+	// Head is the head commit of an open pull request the facts were read at, empty when it is not known. An approval
+	// from the dashboard names it, so it approves only the commit the person saw.
+	Head string
 }
 
 // ascInboxInfoLoad returns the facts of the pull request of e. Tests replace it.
@@ -68,6 +72,7 @@ func ascInboxInfoFromModels(ctx gocontext.Context, e *AscInboxEntry) *AscInboxIn
 	if head == "" {
 		return info
 	}
+	info.Head = head
 	statuses, _, err := git_model.GetLatestCommitStatus(ctx, pr.BaseRepo.ID, head, db.ListOptionsAll)
 	if err == nil {
 		for _, s := range statuses {

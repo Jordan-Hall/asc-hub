@@ -75,6 +75,7 @@ type AscDashRow struct {
 	// "queue" for a change ready to land in a repository with the asc merge queue. Empty: the button is ActLink.
 	Do      string
 	ActLink string // where the button goes when Do is empty: the reply box, the conflicts or the pull request
+	Head    string // the head commit the row shows; Approve approves only that commit
 }
 
 // AscDashSeg is one change of a stack.
@@ -239,6 +240,9 @@ func ascDashRowFor(l translation.Locale, e *AscInboxEntry, info *AscInboxInfo) A
 		Updated: e.Updated,
 		PullID:  e.PullID,
 	}
+	if info != nil {
+		row.Head = info.Head
+	}
 	where := e.RepoFullName + " #" + strconv.FormatInt(e.Index, 10)
 	if info != nil && info.StackTotal > 1 {
 		where = e.RepoFullName + " · " + l.TrString("user.asc_dash.stack_pos", info.StackIndex, info.StackTotal)
@@ -269,7 +273,10 @@ func ascDashRowFor(l translation.Locale, e *AscInboxEntry, info *AscInboxInfo) A
 	switch e.Section {
 	case issues_model.AscInboxNeedsReview:
 		row.Chips = append([]AscDashChip{{"amber", l.TrString("user.asc_dash.review_asked")}}, row.Chips...)
-		row.Do = "approve"
+		if row.Head != "" {
+			// without the head the person saw, the row opens the pull request instead of approving blind
+			row.Do = "approve"
+		}
 	case issues_model.AscInboxReturned:
 		row.Chips = append([]AscDashChip{{"amber", l.TrString("user.asc_dash.changes_asked")}}, row.Chips...)
 		row.ActLink = e.Link + "#issue-comment-form"
