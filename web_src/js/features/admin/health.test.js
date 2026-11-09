@@ -34,14 +34,14 @@ test('the steps run one after the other and each row shows its own result', asyn
   const {list, run} = page();
   const seen = [];
   vi.stubGlobal('fetch', vi.fn(async (url) => {
-    // when a step runs, it is "Running" and the steps after it still wait
-    seen.push(Array.from(list.querySelectorAll('[data-check]'), (r) => r.getAttribute('data-state')).join(','));
+    // when a step runs, it is "Running", the steps after it still wait, and every row keeps the result it had
+    seen.push(Array.from(list.querySelectorAll('[data-check]'), (r) => `${r.getAttribute('data-pending') ?? r.getAttribute('data-state')}:${r.querySelector('[data-check-text]').textContent}`).join(','));
     if (url.endsWith('/database')) return new Response(rowHTML('database', 'ok', 'Passed', 'answers'), {status: 200});
     if (url.endsWith('/collation')) return new Response(null, {status: 204});
     return new Response(rowHTML('cache', 'warn', 'Warning', 'slow'), {status: 200});
   }));
   await runHealthSteps(document, list, run);
-  expect(seen).toEqual(['run,wait,wait', 'ok,run,wait', 'ok,run']);
+  expect(seen).toEqual(['run:fine,wait:fine,wait:fine', 'ok:answers,run:fine,wait:fine', 'ok:answers,run:fine']);
   expect(Array.from(list.querySelectorAll('[data-check]'), (r) => r.getAttribute('data-check'))).toEqual(['database', 'cache'], 'a step that does not apply is removed');
   expect(document.querySelector('[data-health-tally]').textContent).toBe('1 passed, 1 warnings, 0 failed');
   expect(document.querySelector('[data-health-tally]').className).toBe('ds-chip ds-chip-warn');
@@ -78,4 +78,28 @@ test('the run link runs the steps in the page instead of loading it', async () =
   expect(run.getAttribute('aria-disabled')).toBe('true');
   await vi.waitFor(() => expect(run.getAttribute('aria-disabled')).toBeNull());
   expect(fetch).toHaveBeenCalledWith('/admin/self_check/checks/database', expect.objectContaining({method: 'GET'}));
+});
+
+test('a row keeps its old result, its label and its fix link while its step runs', async () => {
+  const {list, run} = page();
+  let during = null;
+  vi.stubGlobal('fetch', vi.fn(async (url) => {
+    if (url.endsWith('/database')) {
+      const row = list.querySelector('[data-check="database"]');
+      during = {
+        state: row.getAttribute('data-state'),
+        busy: row.getAttribute('aria-busy'),
+        pending: row.querySelector('[data-check-pending]').textContent,
+        label: row.querySelector('[data-check-label]').textContent,
+        fix: row.querySelector('.adm-row-side a')?.getAttribute('href'),
+      };
+    }
+    return new Response(rowHTML(url.split('/').pop(), 'ok', 'Passed', 'fine'), {status: 200});
+  }));
+  await runHealthSteps(document, list, run);
+  expect(during).toEqual({state: 'ok', busy: 'true', pending: 'Running', label: 'Passed', fix: '/fix'});
+  for (const row of list.querySelectorAll('[data-check]')) {
+    expect(row.getAttribute('aria-busy')).toBeNull();
+    expect(row.querySelector('[data-check-pending]')).toBeNull();
+  }
 });

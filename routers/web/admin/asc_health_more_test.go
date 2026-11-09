@@ -322,3 +322,49 @@ func TestLoadHealthMeasuresTheClocks(t *testing.T) {
 	assert.InDelta(t, (10 * time.Minute).Seconds(), h.Skew.Seconds(), 1)
 	assert.Positive(t, h.Uncertainty)
 }
+
+// Board AdminHealth, "Fix links to the page that solves it": the backups check of asc serve links a problem to the
+// Backups page; it applies only to a site administrator while asc serve offers backups.
+func TestTheBackupsCheckLinksAProblemToTheBackupsPage(t *testing.T) {
+	f := startBackups(t, asctrust.FeatureBackups)
+	run := func(user int64, list *ascv1.ListBackupsResponse) (checkRow, bool) {
+		f.mu.Lock()
+		f.list = list
+		f.mu.Unlock()
+		ctx, _ := contexttest.MockContext(t, "GET /admin/self_check")
+		contexttest.LoadUser(t, ctx, user)
+		return checkBackups(ctx)
+	}
+	fix := setting.AppSubURL + "/admin/asc/backups"
+
+	r, applies := run(1, &ascv1.ListBackupsResponse{Status: &ascv1.BackupStatus{Configured: true, LastSuccess: 1790812900}})
+	require.True(t, applies)
+	assert.Equal(t, checkOK, r.State)
+	assert.Contains(t, string(r.Text), "att_backup_last_good")
+	assert.Empty(t, r.Fix)
+
+	for name, c := range map[string]struct {
+		st    *ascv1.BackupStatus
+		state string
+		text  string
+	}{
+		"not set up": {&ascv1.BackupStatus{}, checkWarn, "check_backups_unset"},
+		"overdue":    {&ascv1.BackupStatus{Configured: true, Overdue: true}, checkErr, "check_backups_overdue"},
+		"failing":    {&ascv1.BackupStatus{Configured: true, LastSuccess: 1790812900, LastFailure: 1790899300}, checkWarn, "check_backups_failed"},
+	} {
+		r, applies = run(1, &ascv1.ListBackupsResponse{Status: c.st})
+		require.True(t, applies, name)
+		assert.Equal(t, c.state, r.State, name)
+		assert.Contains(t, string(r.Text), c.text, name)
+		assert.Equal(t, fix, r.Fix, name)
+	}
+
+	n := f.calls()
+	_, applies = run(2, nil)
+	assert.False(t, applies, "not a site administrator")
+	assert.Equal(t, n, f.calls())
+
+	startBackups(t)
+	_, applies = run(1, nil)
+	assert.False(t, applies, "asc serve without backups")
+}

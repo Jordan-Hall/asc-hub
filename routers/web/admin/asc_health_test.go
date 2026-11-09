@@ -40,7 +40,7 @@ func TestAscHealthSteps(t *testing.T) {
 	for _, c := range healthChecks() {
 		ids = append(ids, c.ID)
 	}
-	assert.Equal(t, []string{"database", "collation", "cache", "disk", "mail", "tls", "clock", "objectstore", "signingkey", "runners", "notices"}, ids)
+	assert.Equal(t, []string{"database", "collation", "cache", "disk", "mail", "tls", "clock", "objectstore", "signingkey", "backups", "runners", "notices"}, ids)
 
 	t.Run("the page draws every step that applies, ready to run again", func(t *testing.T) {
 		code, body, _ := runHealth(t, "/admin/self_check", "", SelfCheck)
@@ -97,4 +97,40 @@ func TestAscHealthNoRun(t *testing.T) {
 	assert.Equal(t, checkErr, r.State, "an unknown state is a failure")
 	assert.Equal(t, "asc_admin.check_tally_norun", checkTally(ctx, 1, 2, 3, 4))
 	assert.Equal(t, "asc_admin.check_tally", checkTally(ctx, 1, 2, 3, 0))
+}
+
+// Board AdminHealth, "All passed, warnings, failed, running, check could not run": the summary chip takes the worst
+// tone, and each row draws its state with its own icon and chip (running is drawn by health.js, health.test.js).
+func TestAscHealthStates(t *testing.T) {
+	assert.Equal(t, checkOK, checksTone(0, 0, 0), "all passed")
+	assert.Equal(t, checkWarn, checksTone(1, 0, 0), "warnings")
+	assert.Equal(t, checkWarn, checksTone(0, 0, 1), "a check could not run")
+	assert.Equal(t, checkErr, checksTone(1, 1, 1), "failed")
+
+	require.NoError(t, unittest.PrepareTestDatabase())
+	for state, want := range map[string][]string{
+		checkOK:    {`data-state="ok"`, `adm-tile adm-tile-ok`, `ds-chip ds-chip-ok`},
+		checkWarn:  {`data-state="warn"`, `adm-tile adm-tile-warn`, `ds-chip ds-chip-warn`, `href="/fix"`},
+		checkErr:   {`data-state="err"`, `adm-tile adm-tile-err`, `ds-chip ds-chip-err`, `href="/fix"`},
+		checkNoRun: {`data-state="norun"`, `adm-tile adm-tile-norun`, `ds-chip ds-chip-outline`},
+	} {
+		ctx, rec := contexttest.MockContext(t, "GET /admin/self_check")
+		ctx.Render = templates.HTMLRenderer()
+		row := checkRow{ID: "x", State: state, Name: "X", Label: "L", Text: "T"}
+		if state == checkWarn || state == checkErr {
+			row.Fix = "/fix"
+		}
+		ctx.Data["Row"] = row
+		ctx.HTML(http.StatusOK, "admin/self_check_row")
+		for _, w := range want {
+			assert.Contains(t, rec.Body.String(), w, state)
+		}
+		if row.Fix == "" {
+			assert.NotContains(t, rec.Body.String(), "asc_admin.fix", state)
+		}
+	}
+
+	code, body, _ := runHealth(t, "/admin/self_check", "", SelfCheck)
+	require.Equal(t, http.StatusOK, code)
+	assert.Regexp(t, `class="ds-chip ds-chip-(ok|warn|err)" data-health-tally>`, body)
 }
