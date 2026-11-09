@@ -125,6 +125,52 @@
 		</section>
 
 		<section id="asc-key-activity" class="asc-byo-card asc-byo-tabpanel" role="tabpanel" aria-labelledby="asc-key-tab-activity" data-doc-panel="asc-key-activity" data-testid="asc-key-activity"{{if ne $tab "activity"}} hidden{{end}}>
+			<div class="asc-byo-uses" data-testid="asc-key-uses">
+				<h3>{{ctx.Locale.Tr "ascbyo.ai.uses.title"}}</h3>
+				{{if not $a.UsesLoaded}}
+					<p class="asc-byo-empty" data-testid="asc-key-uses-none">{{ctx.Locale.Tr "ascbyo.ai.uses.none"}}</p>
+				{{else if $a.Uses}}
+					<table class="ds-table asc-stack">
+						<thead>
+							<tr>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.uses.col_when"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.uses.col_use"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.uses.col_who"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.uses.col_repo"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.uses.col_model"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_requests"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_input"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_output"}}</th>
+								<th>{{ctx.Locale.Tr "ascbyo.ai.detail.col_cost"}}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{{range $a.Uses}}
+								<tr data-testid="asc-key-use">
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.uses.col_when"}}">{{if not .LastAt.IsZero}}{{DateUtils.TimeSince .LastAt}}{{end}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.uses.col_use"}}">{{ctx.Locale.Tr .KindKey}}{{if .Subject}} {{if .SubjectURL}}<a class="asc-byo-mono" href="{{.SubjectURL}}" title="{{.Subject}}">{{.SubjectShort}}</a>{{else}}<span class="asc-byo-mono" title="{{.Subject}}">{{.SubjectShort}}</span>{{end}}{{end}}{{if .Agent}} <span class="asc-byo-use-agent">{{.Agent}}</span>{{end}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.uses.col_who"}}">{{if .Actor}}{{.Actor}}{{else}}{{ctx.Locale.Tr "ascbyo.ai.uses.nobody"}}{{end}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.uses.col_repo"}}">{{if .RepoURL}}<a href="{{.RepoURL}}">{{.Repo}}</a>{{else}}{{.Repo}}{{end}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.uses.col_model"}}" class="asc-byo-mono">{{.Model}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_requests"}}">{{.Requests}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_input"}}">{{.InputTokens}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_output"}}">{{.OutputTokens}}</td>
+									<td data-label="{{ctx.Locale.Tr "ascbyo.ai.detail.col_cost"}}">{{.Cost}}{{if .Unpriced}} <span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "ascbyo.ai.uses.unpriced" .Unpriced}}</span>{{end}}</td>
+								</tr>
+							{{end}}
+						</tbody>
+					</table>
+					<p class="ds-hint">{{ctx.Locale.Tr "ascbyo.ai.uses.hint"}}</p>
+					{{if or $a.UsesLater $a.UsesNextURL}}
+						<nav class="asc-byo-uses-pages" aria-label="{{ctx.Locale.Tr "ascbyo.ai.uses.pages"}}">
+							{{if $a.UsesLater}}<a class="ds-btn" href="{{$a.UsesFirstURL}}" data-testid="asc-key-uses-first">{{ctx.Locale.Tr "ascbyo.ai.uses.first"}}</a>{{end}}
+							{{if $a.UsesNextURL}}<a class="ds-btn" href="{{$a.UsesNextURL}}" data-testid="asc-key-uses-next">{{ctx.Locale.Tr "ascbyo.ai.uses.older"}}</a>{{end}}
+						</nav>
+					{{end}}
+				{{else}}
+					<p class="asc-byo-empty" data-testid="asc-key-uses-empty">{{ctx.Locale.Tr "ascbyo.ai.uses.empty"}}</p>
+				{{end}}
+			</div>
 			<h3>{{ctx.Locale.Tr "ascbyo.ai.activity.title"}}</h3>
 			{{if not $a.ActivityLoaded}}
 				<p class="asc-byo-empty" data-testid="asc-key-activity-none">{{ctx.Locale.Tr "ascbyo.ai.activity.none"}}</p>

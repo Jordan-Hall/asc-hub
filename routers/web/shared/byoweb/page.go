@@ -119,8 +119,13 @@ type Page struct {
 	// Activity is the newest audit events of the key; ActivityLoaded is false when they could not be read.
 	Activity       []ActivityRow
 	ActivityLoaded bool
-	Test           *TestView
-	OwnerAIURL     string
+	// Uses is one page of who used the key and for what; UsesLoaded is false when asc could not say. UsesNextURL
+	// opens the next (older) page, UsesFirstURL the newest, and UsesLater is set on any page but the first.
+	Uses                      []UseRow
+	UsesLoaded, UsesLater     bool
+	UsesNextURL, UsesFirstURL string
+	Test                      *TestView
+	OwnerAIURL                string
 
 	// The cards of the keys and the features that use AI (aifeatures.go). FeaturesFailed is set when the features
 	// could not be loaded. FeatureEdit and Replace are refused dialog forms shown again; AddOpen is the add dialog

@@ -110,6 +110,7 @@ func renderAIKey(ctx *context.Context, lvl *Level, s *svc.Service, p *Page, id s
 		log.Debug("asc byo: usage of a key in %s: %v", lvl.Scope, err)
 	}
 	loadSharing(ctx, lvl, p, id)
+	loadUses(ctx, lvl, s, p, id)
 	loadActivity(ctx, lvl, s, p, id)
 	ctx.HTML(status, lvl.AITpl)
 }
