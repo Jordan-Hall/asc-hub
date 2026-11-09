@@ -45,6 +45,12 @@ func healthChecks() []healthCheck {
 		{"database", checkDatabase},
 		{"collation", checkCollation},
 		{"cache", checkCache},
+		{"disk", checkDisk},
+		{"mail", checkMail},
+		{"tls", checkTLS},
+		{"clock", checkClock},
+		{"objectstore", checkObjectStore},
+		{"signingkey", checkSigningKey},
 	}
 	if setting.Actions.Enabled {
 		list = append(list, healthCheck{"runners", checkRunners})

@@ -35,6 +35,7 @@ import (
 	"forgejo.org/routers/common"
 	"forgejo.org/routers/private"
 	web_routers "forgejo.org/routers/web"
+	admin_router "forgejo.org/routers/web/admin"
 	web_auth "forgejo.org/routers/web/auth"
 	actions_service "forgejo.org/services/actions"
 	"forgejo.org/services/ascbridge"
@@ -182,6 +183,7 @@ func InitWebInstalled(ctx context.Context) {
 
 	actions_service.Init()
 	mustInit(stats.Init)
+	mustInitCtx(ctx, admin_router.InitDiskWatch)
 
 	mustInit(actions_router.InitOIDC)
 

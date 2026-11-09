@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Maintenance_GetMaintenance_FullMethodName = "/asc.v1.Maintenance/GetMaintenance"
 	Maintenance_SetMaintenance_FullMethodName = "/asc.v1.Maintenance/SetMaintenance"
+	Maintenance_CheckHealth_FullMethodName    = "/asc.v1.Maintenance/CheckHealth"
 )
 
 // MaintenanceClient is the client API for Maintenance service.
@@ -38,9 +39,15 @@ const (
 // Every call is for the site administrator: the host service with an `instance` claim of role admin, or the host service's own
 // credential. Any other caller gets PERMISSION_DENIED. SetMaintenance needs `x-asc-op-id` and is written to the audit log as
 // "server.maintenance.updated". Advertised as Version.features "maintenance.v1".
+//
+// CheckHealth is the part of the hub's health page that only this server can answer: whether its object store takes a
+// write, gives it back and deletes it, whether its own signing key still signs, and its clock. It is advertised as
+// Version.features "health.v1". The server makes the probes at most once every 5 seconds; a call in between gets the
+// last answer again.
 type MaintenanceClient interface {
 	GetMaintenance(ctx context.Context, in *GetMaintenanceRequest, opts ...grpc.CallOption) (*GetMaintenanceResponse, error)
 	SetMaintenance(ctx context.Context, in *SetMaintenanceRequest, opts ...grpc.CallOption) (*SetMaintenanceResponse, error)
+	CheckHealth(ctx context.Context, in *CheckHealthRequest, opts ...grpc.CallOption) (*CheckHealthResponse, error)
 }
 
 type maintenanceClient struct {
@@ -71,6 +78,16 @@ func (c *maintenanceClient) SetMaintenance(ctx context.Context, in *SetMaintenan
 	return out, nil
 }
 
+func (c *maintenanceClient) CheckHealth(ctx context.Context, in *CheckHealthRequest, opts ...grpc.CallOption) (*CheckHealthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckHealthResponse)
+	err := c.cc.Invoke(ctx, Maintenance_CheckHealth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MaintenanceServer is the server API for Maintenance service.
 // All implementations should embed UnimplementedMaintenanceServer
 // for forward compatibility.
@@ -86,9 +103,15 @@ func (c *maintenanceClient) SetMaintenance(ctx context.Context, in *SetMaintenan
 // Every call is for the site administrator: the host service with an `instance` claim of role admin, or the host service's own
 // credential. Any other caller gets PERMISSION_DENIED. SetMaintenance needs `x-asc-op-id` and is written to the audit log as
 // "server.maintenance.updated". Advertised as Version.features "maintenance.v1".
+//
+// CheckHealth is the part of the hub's health page that only this server can answer: whether its object store takes a
+// write, gives it back and deletes it, whether its own signing key still signs, and its clock. It is advertised as
+// Version.features "health.v1". The server makes the probes at most once every 5 seconds; a call in between gets the
+// last answer again.
 type MaintenanceServer interface {
 	GetMaintenance(context.Context, *GetMaintenanceRequest) (*GetMaintenanceResponse, error)
 	SetMaintenance(context.Context, *SetMaintenanceRequest) (*SetMaintenanceResponse, error)
+	CheckHealth(context.Context, *CheckHealthRequest) (*CheckHealthResponse, error)
 }
 
 // UnimplementedMaintenanceServer should be embedded to have
@@ -103,6 +126,9 @@ func (UnimplementedMaintenanceServer) GetMaintenance(context.Context, *GetMainte
 }
 func (UnimplementedMaintenanceServer) SetMaintenance(context.Context, *SetMaintenanceRequest) (*SetMaintenanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetMaintenance not implemented")
+}
+func (UnimplementedMaintenanceServer) CheckHealth(context.Context, *CheckHealthRequest) (*CheckHealthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckHealth not implemented")
 }
 func (UnimplementedMaintenanceServer) testEmbeddedByValue() {}
 
@@ -160,6 +186,24 @@ func _Maintenance_SetMaintenance_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Maintenance_CheckHealth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckHealthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MaintenanceServer).CheckHealth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Maintenance_CheckHealth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MaintenanceServer).CheckHealth(ctx, req.(*CheckHealthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Maintenance_ServiceDesc is the grpc.ServiceDesc for Maintenance service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -174,6 +218,10 @@ var Maintenance_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetMaintenance",
 			Handler:    _Maintenance_SetMaintenance_Handler,
+		},
+		{
+			MethodName: "CheckHealth",
+			Handler:    _Maintenance_CheckHealth_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

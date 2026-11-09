@@ -21,6 +21,230 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type HealthState int32
+
+const (
+	HealthState_HEALTH_STATE_UNSPECIFIED    HealthState = 0
+	HealthState_HEALTH_STATE_OK             HealthState = 1
+	HealthState_HEALTH_STATE_FAILED         HealthState = 2
+	HealthState_HEALTH_STATE_NOT_CONFIGURED HealthState = 3 // the server has no such thing to check (no signing key is set)
+)
+
+// Enum value maps for HealthState.
+var (
+	HealthState_name = map[int32]string{
+		0: "HEALTH_STATE_UNSPECIFIED",
+		1: "HEALTH_STATE_OK",
+		2: "HEALTH_STATE_FAILED",
+		3: "HEALTH_STATE_NOT_CONFIGURED",
+	}
+	HealthState_value = map[string]int32{
+		"HEALTH_STATE_UNSPECIFIED":    0,
+		"HEALTH_STATE_OK":             1,
+		"HEALTH_STATE_FAILED":         2,
+		"HEALTH_STATE_NOT_CONFIGURED": 3,
+	}
+)
+
+func (x HealthState) Enum() *HealthState {
+	p := new(HealthState)
+	*p = x
+	return p
+}
+
+func (x HealthState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (HealthState) Descriptor() protoreflect.EnumDescriptor {
+	return file_asc_v1_maintenance_proto_enumTypes[0].Descriptor()
+}
+
+func (HealthState) Type() protoreflect.EnumType {
+	return &file_asc_v1_maintenance_proto_enumTypes[0]
+}
+
+func (x HealthState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use HealthState.Descriptor instead.
+func (HealthState) EnumDescriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{0}
+}
+
+type HealthProbe struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         HealthState            `protobuf:"varint,1,opt,name=state,proto3,enum=asc.v1.HealthState" json:"state,omitempty"`
+	Millis        uint32                 `protobuf:"varint,2,opt,name=millis,proto3" json:"millis,omitempty"` // how long the probe took
+	Detail        string                 `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`  // why it failed, a fixed phrase (never a provider's own text); empty when it passed
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HealthProbe) Reset() {
+	*x = HealthProbe{}
+	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HealthProbe) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HealthProbe) ProtoMessage() {}
+
+func (x *HealthProbe) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HealthProbe.ProtoReflect.Descriptor instead.
+func (*HealthProbe) Descriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *HealthProbe) GetState() HealthState {
+	if x != nil {
+		return x.State
+	}
+	return HealthState_HEALTH_STATE_UNSPECIFIED
+}
+
+func (x *HealthProbe) GetMillis() uint32 {
+	if x != nil {
+		return x.Millis
+	}
+	return 0
+}
+
+func (x *HealthProbe) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+type CheckHealthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckHealthRequest) Reset() {
+	*x = CheckHealthRequest{}
+	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckHealthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckHealthRequest) ProtoMessage() {}
+
+func (x *CheckHealthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckHealthRequest.ProtoReflect.Descriptor instead.
+func (*CheckHealthRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{1}
+}
+
+type CheckHealthResponse struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	ObjectStore          *HealthProbe           `protobuf:"bytes,1,opt,name=object_store,json=objectStore,proto3" json:"object_store,omitempty"` // write a random object under `<root>/.asc-probe/`, read it back, compare, delete it
+	ServerKey            *HealthProbe           `protobuf:"bytes,2,opt,name=server_key,json=serverKey,proto3" json:"server_key,omitempty"`       // sign a fixed message with the key of signing.server_key_file and verify the signature
+	ServerKeyFingerprint string                 `protobuf:"bytes,3,opt,name=server_key_fingerprint,json=serverKeyFingerprint,proto3" json:"server_key_fingerprint,omitempty"`
+	CheckedAtMs          int64                  `protobuf:"varint,4,opt,name=checked_at_ms,json=checkedAtMs,proto3" json:"checked_at_ms,omitempty"` // the server's clock (unix milliseconds) when it made the probes
+	NowMs                int64                  `protobuf:"varint,5,opt,name=now_ms,json=nowMs,proto3" json:"now_ms,omitempty"`                     // the server's clock when it answered, for the caller to compare with its own
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *CheckHealthResponse) Reset() {
+	*x = CheckHealthResponse{}
+	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckHealthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckHealthResponse) ProtoMessage() {}
+
+func (x *CheckHealthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckHealthResponse.ProtoReflect.Descriptor instead.
+func (*CheckHealthResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CheckHealthResponse) GetObjectStore() *HealthProbe {
+	if x != nil {
+		return x.ObjectStore
+	}
+	return nil
+}
+
+func (x *CheckHealthResponse) GetServerKey() *HealthProbe {
+	if x != nil {
+		return x.ServerKey
+	}
+	return nil
+}
+
+func (x *CheckHealthResponse) GetServerKeyFingerprint() string {
+	if x != nil {
+		return x.ServerKeyFingerprint
+	}
+	return ""
+}
+
+func (x *CheckHealthResponse) GetCheckedAtMs() int64 {
+	if x != nil {
+		return x.CheckedAtMs
+	}
+	return 0
+}
+
+func (x *CheckHealthResponse) GetNowMs() int64 {
+	if x != nil {
+		return x.NowMs
+	}
+	return 0
+}
+
 type MaintenanceState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	On            bool                   `protobuf:"varint,1,opt,name=on,proto3" json:"on,omitempty"`
@@ -36,7 +260,7 @@ type MaintenanceState struct {
 
 func (x *MaintenanceState) Reset() {
 	*x = MaintenanceState{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -48,7 +272,7 @@ func (x *MaintenanceState) String() string {
 func (*MaintenanceState) ProtoMessage() {}
 
 func (x *MaintenanceState) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +285,7 @@ func (x *MaintenanceState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MaintenanceState.ProtoReflect.Descriptor instead.
 func (*MaintenanceState) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{0}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *MaintenanceState) GetOn() bool {
@@ -121,7 +345,7 @@ type GetMaintenanceRequest struct {
 
 func (x *GetMaintenanceRequest) Reset() {
 	*x = GetMaintenanceRequest{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -133,7 +357,7 @@ func (x *GetMaintenanceRequest) String() string {
 func (*GetMaintenanceRequest) ProtoMessage() {}
 
 func (x *GetMaintenanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -146,7 +370,7 @@ func (x *GetMaintenanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMaintenanceRequest.ProtoReflect.Descriptor instead.
 func (*GetMaintenanceRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{1}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{4}
 }
 
 type GetMaintenanceResponse struct {
@@ -158,7 +382,7 @@ type GetMaintenanceResponse struct {
 
 func (x *GetMaintenanceResponse) Reset() {
 	*x = GetMaintenanceResponse{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -170,7 +394,7 @@ func (x *GetMaintenanceResponse) String() string {
 func (*GetMaintenanceResponse) ProtoMessage() {}
 
 func (x *GetMaintenanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -183,7 +407,7 @@ func (x *GetMaintenanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMaintenanceResponse.ProtoReflect.Descriptor instead.
 func (*GetMaintenanceResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{2}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetMaintenanceResponse) GetState() *MaintenanceState {
@@ -206,7 +430,7 @@ type SetMaintenanceRequest struct {
 
 func (x *SetMaintenanceRequest) Reset() {
 	*x = SetMaintenanceRequest{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -218,7 +442,7 @@ func (x *SetMaintenanceRequest) String() string {
 func (*SetMaintenanceRequest) ProtoMessage() {}
 
 func (x *SetMaintenanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -231,7 +455,7 @@ func (x *SetMaintenanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMaintenanceRequest.ProtoReflect.Descriptor instead.
 func (*SetMaintenanceRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{3}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SetMaintenanceRequest) GetOn() bool {
@@ -271,7 +495,7 @@ type SetMaintenanceResponse struct {
 
 func (x *SetMaintenanceResponse) Reset() {
 	*x = SetMaintenanceResponse{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -283,7 +507,7 @@ func (x *SetMaintenanceResponse) String() string {
 func (*SetMaintenanceResponse) ProtoMessage() {}
 
 func (x *SetMaintenanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -296,7 +520,7 @@ func (x *SetMaintenanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMaintenanceResponse.ProtoReflect.Descriptor instead.
 func (*SetMaintenanceResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{4}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SetMaintenanceResponse) GetState() *MaintenanceState {
@@ -310,7 +534,19 @@ var File_asc_v1_maintenance_proto protoreflect.FileDescriptor
 
 const file_asc_v1_maintenance_proto_rawDesc = "" +
 	"\n" +
-	"\x18asc/v1/maintenance.proto\x12\x06asc.v1\"\xcc\x01\n" +
+	"\x18asc/v1/maintenance.proto\x12\x06asc.v1\"h\n" +
+	"\vHealthProbe\x12)\n" +
+	"\x05state\x18\x01 \x01(\x0e2\x13.asc.v1.HealthStateR\x05state\x12\x16\n" +
+	"\x06millis\x18\x02 \x01(\rR\x06millis\x12\x16\n" +
+	"\x06detail\x18\x03 \x01(\tR\x06detail\"\x14\n" +
+	"\x12CheckHealthRequest\"\xf2\x01\n" +
+	"\x13CheckHealthResponse\x126\n" +
+	"\fobject_store\x18\x01 \x01(\v2\x13.asc.v1.HealthProbeR\vobjectStore\x122\n" +
+	"\n" +
+	"server_key\x18\x02 \x01(\v2\x13.asc.v1.HealthProbeR\tserverKey\x124\n" +
+	"\x16server_key_fingerprint\x18\x03 \x01(\tR\x14serverKeyFingerprint\x12\"\n" +
+	"\rchecked_at_ms\x18\x04 \x01(\x03R\vcheckedAtMs\x12\x15\n" +
+	"\x06now_ms\x18\x05 \x01(\x03R\x05nowMs\"\xcc\x01\n" +
 	"\x10MaintenanceState\x12\x0e\n" +
 	"\x02on\x18\x01 \x01(\bR\x02on\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
@@ -329,10 +565,16 @@ const file_asc_v1_maintenance_proto_rawDesc = "" +
 	"\x05until\x18\x03 \x01(\x03R\x05until\x12\x18\n" +
 	"\aversion\x18\x04 \x01(\tR\aversion\"H\n" +
 	"\x16SetMaintenanceResponse\x12.\n" +
-	"\x05state\x18\x01 \x01(\v2\x18.asc.v1.MaintenanceStateR\x05state2\xaf\x01\n" +
+	"\x05state\x18\x01 \x01(\v2\x18.asc.v1.MaintenanceStateR\x05state*z\n" +
+	"\vHealthState\x12\x1c\n" +
+	"\x18HEALTH_STATE_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fHEALTH_STATE_OK\x10\x01\x12\x17\n" +
+	"\x13HEALTH_STATE_FAILED\x10\x02\x12\x1f\n" +
+	"\x1bHEALTH_STATE_NOT_CONFIGURED\x10\x032\xf7\x01\n" +
 	"\vMaintenance\x12O\n" +
 	"\x0eGetMaintenance\x12\x1d.asc.v1.GetMaintenanceRequest\x1a\x1e.asc.v1.GetMaintenanceResponse\x12O\n" +
-	"\x0eSetMaintenance\x12\x1d.asc.v1.SetMaintenanceRequest\x1a\x1e.asc.v1.SetMaintenanceResponseB{\n" +
+	"\x0eSetMaintenance\x12\x1d.asc.v1.SetMaintenanceRequest\x1a\x1e.asc.v1.SetMaintenanceResponse\x12F\n" +
+	"\vCheckHealth\x12\x1a.asc.v1.CheckHealthRequest\x1a\x1b.asc.v1.CheckHealthResponseB{\n" +
 	"\n" +
 	"com.asc.v1B\x10MaintenanceProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -348,26 +590,36 @@ func file_asc_v1_maintenance_proto_rawDescGZIP() []byte {
 	return file_asc_v1_maintenance_proto_rawDescData
 }
 
-var file_asc_v1_maintenance_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_asc_v1_maintenance_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_asc_v1_maintenance_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_asc_v1_maintenance_proto_goTypes = []any{
-	(*MaintenanceState)(nil),       // 0: asc.v1.MaintenanceState
-	(*GetMaintenanceRequest)(nil),  // 1: asc.v1.GetMaintenanceRequest
-	(*GetMaintenanceResponse)(nil), // 2: asc.v1.GetMaintenanceResponse
-	(*SetMaintenanceRequest)(nil),  // 3: asc.v1.SetMaintenanceRequest
-	(*SetMaintenanceResponse)(nil), // 4: asc.v1.SetMaintenanceResponse
+	(HealthState)(0),               // 0: asc.v1.HealthState
+	(*HealthProbe)(nil),            // 1: asc.v1.HealthProbe
+	(*CheckHealthRequest)(nil),     // 2: asc.v1.CheckHealthRequest
+	(*CheckHealthResponse)(nil),    // 3: asc.v1.CheckHealthResponse
+	(*MaintenanceState)(nil),       // 4: asc.v1.MaintenanceState
+	(*GetMaintenanceRequest)(nil),  // 5: asc.v1.GetMaintenanceRequest
+	(*GetMaintenanceResponse)(nil), // 6: asc.v1.GetMaintenanceResponse
+	(*SetMaintenanceRequest)(nil),  // 7: asc.v1.SetMaintenanceRequest
+	(*SetMaintenanceResponse)(nil), // 8: asc.v1.SetMaintenanceResponse
 }
 var file_asc_v1_maintenance_proto_depIdxs = []int32{
-	0, // 0: asc.v1.GetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
-	0, // 1: asc.v1.SetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
-	1, // 2: asc.v1.Maintenance.GetMaintenance:input_type -> asc.v1.GetMaintenanceRequest
-	3, // 3: asc.v1.Maintenance.SetMaintenance:input_type -> asc.v1.SetMaintenanceRequest
-	2, // 4: asc.v1.Maintenance.GetMaintenance:output_type -> asc.v1.GetMaintenanceResponse
-	4, // 5: asc.v1.Maintenance.SetMaintenance:output_type -> asc.v1.SetMaintenanceResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: asc.v1.HealthProbe.state:type_name -> asc.v1.HealthState
+	1, // 1: asc.v1.CheckHealthResponse.object_store:type_name -> asc.v1.HealthProbe
+	1, // 2: asc.v1.CheckHealthResponse.server_key:type_name -> asc.v1.HealthProbe
+	4, // 3: asc.v1.GetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
+	4, // 4: asc.v1.SetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
+	5, // 5: asc.v1.Maintenance.GetMaintenance:input_type -> asc.v1.GetMaintenanceRequest
+	7, // 6: asc.v1.Maintenance.SetMaintenance:input_type -> asc.v1.SetMaintenanceRequest
+	2, // 7: asc.v1.Maintenance.CheckHealth:input_type -> asc.v1.CheckHealthRequest
+	6, // 8: asc.v1.Maintenance.GetMaintenance:output_type -> asc.v1.GetMaintenanceResponse
+	8, // 9: asc.v1.Maintenance.SetMaintenance:output_type -> asc.v1.SetMaintenanceResponse
+	3, // 10: asc.v1.Maintenance.CheckHealth:output_type -> asc.v1.CheckHealthResponse
+	8, // [8:11] is the sub-list for method output_type
+	5, // [5:8] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_maintenance_proto_init() }
@@ -380,13 +632,14 @@ func file_asc_v1_maintenance_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_maintenance_proto_rawDesc), len(file_asc_v1_maintenance_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   5,
+			NumEnums:      1,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_asc_v1_maintenance_proto_goTypes,
 		DependencyIndexes: file_asc_v1_maintenance_proto_depIdxs,
+		EnumInfos:         file_asc_v1_maintenance_proto_enumTypes,
 		MessageInfos:      file_asc_v1_maintenance_proto_msgTypes,
 	}.Build()
 	File_asc_v1_maintenance_proto = out.File
