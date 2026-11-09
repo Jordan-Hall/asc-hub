@@ -367,6 +367,7 @@ func healthFacts(ctx *context.Context) {
 	ctx.Data["Checks"] = rows
 	ctx.Data["ChecksOK"], ctx.Data["ChecksWarn"], ctx.Data["ChecksFail"], ctx.Data["ChecksNoRun"] = ok, warn, fail, norun
 	ctx.Data["ChecksTally"] = checkTally(ctx, ok, warn, fail, norun)
+	ctx.Data["ChecksTone"] = checksTone(warn, fail, norun)
 	var report strings.Builder
 	for _, r := range rows {
 		fmt.Fprintf(&report, "%s: %s. %s\n", r.Name, r.Label, r.Text)

@@ -273,6 +273,35 @@ func checkObjectStore(ctx *context.Context) (checkRow, bool) {
 	return checkRow{State: checkErr, Name: name, Text: ctx.Tr("asc_admin.check_store_bad", h.ObjectStore.Detail)}, true
 }
 
+// checkBackups is the state of the scheduled backups of asc serve; a problem links to the Backups page. It runs only
+// while asc serve offers backups.
+func checkBackups(ctx *context.Context) (checkRow, bool) {
+	conn, callCtx, done, ok := dashboardAscCall(ctx, asctrust.FeatureBackups)
+	if !ok {
+		return checkRow{}, false
+	}
+	defer done()
+	name, fix := ctx.Tr("asc_admin.backups"), setting.AppSubURL+"/admin/asc/backups"
+	st, err := asctrust.BackupHealth(callCtx, conn)
+	if err != nil {
+		log.Debug("health: backup status: %v", err)
+		return checkRow{State: checkNoRun, Name: name, Text: ctx.Tr("asc_admin.check_asc_unread")}, true
+	}
+	last := ctx.Tr("asc_admin.att_backup_never")
+	if !st.LastSuccess.IsZero() {
+		last = ctx.Tr("asc_admin.att_backup_last_good", st.LastSuccess.UTC().Format("2 Jan 2006 15:04 UTC"))
+	}
+	switch {
+	case !st.Configured:
+		return checkRow{State: checkWarn, Name: name, Text: ctx.Tr("asc_admin.check_backups_unset"), Fix: fix}, true
+	case st.Overdue:
+		return checkRow{State: checkErr, Name: name, Text: ctx.Tr("asc_admin.check_backups_overdue", last), Fix: fix}, true
+	case st.Failing():
+		return checkRow{State: checkWarn, Name: name, Text: ctx.Tr("asc_admin.check_backups_failed", last), Fix: fix}, true
+	}
+	return checkRow{State: checkOK, Name: name, Text: last}, true
+}
+
 func checkSigningKey(ctx *context.Context) (checkRow, bool) {
 	h, ok, err := ascHealth(ctx)
 	if !ok {

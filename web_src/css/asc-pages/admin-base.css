@@ -143,6 +143,8 @@
 }
 
 .adm-check[data-state="wait"] .ds-li-title { color: var(--text-2); }
+.adm-check[data-pending] .ds-li-main { color: var(--text-2); }
+.adm-check[data-pending] .ds-li-title { color: var(--text-2); }
 
 @media (prefers-reduced-motion: reduce) {
   .adm-tile-run::after { animation: none; border-right-color: var(--text-2); }

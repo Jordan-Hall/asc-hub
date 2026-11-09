@@ -51,6 +51,7 @@ func healthChecks() []healthCheck {
 		{"clock", checkClock},
 		{"objectstore", checkObjectStore},
 		{"signingkey", checkSigningKey},
+		{"backups", checkBackups},
 	}
 	if setting.Actions.Enabled {
 		list = append(list, healthCheck{"runners", checkRunners})
@@ -85,6 +86,18 @@ func checkTally(ctx *context.Context, ok, warn, fail, norun int) string {
 		return ctx.Locale.TrString("asc_admin.check_tally_norun", strconv.Itoa(ok), strconv.Itoa(warn), strconv.Itoa(fail), strconv.Itoa(norun))
 	}
 	return ctx.Locale.TrString("asc_admin.check_tally", strconv.Itoa(ok), strconv.Itoa(warn), strconv.Itoa(fail))
+}
+
+// checksTone is the tone of the summary chip: failed when any check failed, a warning when any warned or could not
+// run, and passed when all passed (web_src/js/features/admin/health.js gives the same after Run again).
+func checksTone(warn, fail, norun int) string {
+	switch {
+	case fail > 0:
+		return checkErr
+	case warn > 0 || norun > 0:
+		return checkWarn
+	}
+	return checkOK
 }
 
 func checkDatabase(ctx *context.Context) (checkRow, bool) {

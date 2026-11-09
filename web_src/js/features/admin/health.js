@@ -3,9 +3,10 @@
 
 import {GET} from '../../modules/fetch.js';
 
-// "Run again" on the health page (board AdminHealth) runs the checks one after the other. Every row waits, then runs,
-// then shows its result, so the person sees each step finish. A step that does not answer is "could not run". Without
-// the script the button is a link that loads the page again.
+// "Run again" on the health page (board AdminHealth) runs the checks one after the other. Every row keeps its old
+// result, marked as waiting and then as running, until its own step answers; then the new result replaces it, so the
+// person sees each step finish. A step that does not answer is "could not run". Without the script the button is a link
+// that loads the page again.
 export function initAdminHealth(root = document) {
   const list = root.querySelector('[data-health-steps]');
   const run = root.querySelector('[data-health-run]');
@@ -17,7 +18,24 @@ export function initAdminHealth(root = document) {
   });
 }
 
+// markPending marks a row whose step has not answered yet ("wait" or "run") and keeps the result it shows.
+function markPending(row, pending, label) {
+  row.setAttribute('data-pending', pending);
+  row.setAttribute('aria-busy', 'true');
+  let chip = row.querySelector('[data-check-pending]');
+  if (!chip) {
+    chip = document.createElement('span');
+    chip.className = 'ds-chip ds-chip-outline';
+    chip.setAttribute('data-check-pending', '');
+    row.querySelector('.adm-row-side')?.prepend(chip);
+  }
+  chip.textContent = label;
+}
+
 function setRowState(row, state, label) {
+  row.removeAttribute('data-pending');
+  row.removeAttribute('aria-busy');
+  row.querySelector('[data-check-pending]')?.remove();
   row.setAttribute('data-state', state);
   const tile = row.querySelector('.adm-tile');
   if (tile) {
@@ -44,14 +62,10 @@ export async function runHealthSteps(root, list, run) {
   run.setAttribute('aria-disabled', 'true');
   run.classList.add('is-loading');
   list.setAttribute('aria-busy', 'true');
-  for (const row of rows) {
-    setRowState(row, 'wait', list.getAttribute('data-waiting'));
-    const text = row.querySelector('[data-check-text]');
-    if (text) text.textContent = '';
-  }
+  for (const row of rows) markPending(row, 'wait', list.getAttribute('data-waiting'));
   for (const row of rows) {
     const name = row.querySelector('[data-check-name]')?.textContent.trim() ?? '';
-    setRowState(row, 'run', list.getAttribute('data-running'));
+    markPending(row, 'run', list.getAttribute('data-running'));
     if (live) live.textContent = fill(list.getAttribute('data-live-running'), {name});
     let next = null;
     try {

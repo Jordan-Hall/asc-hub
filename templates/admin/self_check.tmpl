@@ -56,7 +56,7 @@
 	<section class="ds-card adm-sec" aria-labelledby="adm-chk">
 		<div class="ds-card-h">
 			<h2 id="adm-chk">{{ctx.Locale.Tr "admin.self_check"}}</h2>
-			<span class="ds-chip {{if .ChecksFail}}ds-chip-err{{else if or .ChecksWarn .ChecksNoRun}}ds-chip-warn{{else}}ds-chip-ok{{end}}" data-health-tally>{{.ChecksTally}}</span>
+			<span class="ds-chip ds-chip-{{.ChecksTone}}" data-health-tally>{{.ChecksTally}}</span>
 			<div class="ds-ml-auto ds-row ds-gap-8">
 				<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{AppSubUrl}}/admin/self_check" data-health-run>{{svg "dsi-refresh" 16}}{{ctx.Locale.Tr "asc_admin.run_again"}}</a>
 				<button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" data-clipboard-text="{{.HealthReport}}" data-health-report>{{svg "dsi-copy" 16}}{{ctx.Locale.Tr "asc_admin.copy_report"}}</button>
