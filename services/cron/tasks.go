@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/process"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/taskout"
 	"forgejo.org/modules/translation"
 )
 
@@ -40,6 +41,8 @@ type Task struct {
 	ExecTimes   int64
 	// This stores the time of the last manual run of this task.
 	LastRun time.Time
+	// out is what the current or last run wrote (see Say); the monitor page follows it while the task runs.
+	out taskout.Buffer
 }
 
 // DoRunAtStart returns if this task should run at the start
@@ -108,7 +111,11 @@ func (t *Task) RunWithUser(doer *user_model.User, config Config) {
 		ctx, _, finished := pm.AddContext(baseCtx, config.FormatMessage(translation.NewLocale("en-US"), t.Name, "process", doerName))
 		defer finished()
 
-		if err := t.fun(ctx, doer, config); err != nil {
+		t.out.Begin(doerName)
+		ctx = taskout.With(ctx, &t.out)
+		err := t.fun(ctx, doer, config)
+		t.out.End(err)
+		if err != nil {
 			var message string
 			var status string
 			if db.IsErrCancelled(err) {
@@ -143,6 +150,39 @@ func (t *Task) RunWithUser(doer *user_model.User, config Config) {
 			}
 		}
 	})
+}
+
+// Output returns the output of the current or last run of the task from line from on.
+func (t *Task) Output(from int) taskout.Output {
+	return t.out.View(from)
+}
+
+// LookupTask returns the named task, or nil, without the log line of GetTask; the monitor page polls it.
+func LookupTask(name string) *Task {
+	lock.Lock()
+	defer lock.Unlock()
+	return tasksMap[name]
+}
+
+// UseTestTask adds a task named name that runs fun, without a schedule and without the check of its translation, until
+// the returned function is called. It is for tests.
+func UseTestTask(name string, fun func(context.Context, *user_model.User, Config) error) (remove func()) {
+	task := &Task{Name: name, config: &BaseConfig{}, fun: fun}
+	lock.Lock()
+	defer lock.Unlock()
+	tasks = append(tasks, task)
+	tasksMap[name] = task
+	return func() {
+		lock.Lock()
+		defer lock.Unlock()
+		delete(tasksMap, name)
+		for i, t := range tasks {
+			if t == task {
+				tasks = append(tasks[:i], tasks[i+1:]...)
+				break
+			}
+		}
+	}
 }
 
 // GetTask gets the named task

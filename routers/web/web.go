@@ -1000,6 +1000,7 @@ func registerRoutes(m *web.Route) {
 		m.Group("/monitor", func() {
 			m.Get("/stats", admin.MonitorStats)
 			m.Get("/cron", admin.CronTasks)
+			m.Get("/cron/{name}/output", admin.CronOutput)
 			m.Get("/stacktrace", admin.Stacktrace)
 			m.Post("/stacktrace/cancel/{pid}", admin.StacktraceCancel)
 			m.Get("/queue", admin.Queues)

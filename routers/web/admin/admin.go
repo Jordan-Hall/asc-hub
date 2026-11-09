@@ -7,6 +7,7 @@ package admin
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
 	"runtime"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"forgejo.org/modules/graceful"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
+	"forgejo.org/modules/taskout"
 	"forgejo.org/modules/updatechecker"
 	"forgejo.org/modules/web"
 	"forgejo.org/services/context"
@@ -203,7 +205,13 @@ func DashboardPost(ctx *context.Context) {
 		default:
 			task := cron.GetTask(form.Op)
 			if task != nil {
+				prev := task.Output(0).Run
 				go task.RunWithUser(ctx.Doer, nil)
+				if form.From == "monitor" {
+					// The monitor page shows the output of the run as it happens.
+					ctx.Redirect(fmt.Sprintf("%s/admin/monitor/cron?run=%s&after=%d#adm-run", setting.AppSubURL, url.QueryEscape(form.Op), prev))
+					return
+				}
 				ctx.Flash.Success(ctx.Tr("admin.dashboard.task.started", ctx.Tr("admin.dashboard."+form.Op)))
 			} else {
 				ctx.Flash.Error(ctx.Tr("admin.dashboard.task.unknown", form.Op))
@@ -229,7 +237,38 @@ func CronTasks(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("asc_admin.monitor")
 	ctx.Data["PageIsAdminMonitorCron"] = true
 	monitorData(ctx)
+	if task := cron.LookupTask(ctx.FormString("run")); task != nil {
+		after := ctx.FormInt64("after")
+		out := task.Output(0)
+		ctx.Data["CronRun"] = &CronRunView{
+			Name: task.Name, After: after, Output: out, Started: out.Run > after || out.Running,
+			URL: fmt.Sprintf("%s/admin/monitor/cron/%s/output", setting.AppSubURL, url.PathEscape(task.Name)),
+		}
+	}
 	ctx.HTML(http.StatusOK, tplQueue)
+}
+
+// CronRunView is the run panel of the monitor page: the output of the run a "Run now" started.
+type CronRunView struct {
+	Name string
+	// After is the run number before the click; a run with a higher number is the one it started.
+	After  int64
+	Output taskout.Output
+	// Started is false while the run the click started has not begun.
+	Started bool
+	URL     string
+}
+
+// CronOutput serves GET /admin/monitor/cron/{name}/output?from=N: the output of the current or last run of the task
+// from line N on, which the run panel polls while the task runs.
+func CronOutput(ctx *context.Context) {
+	task := cron.LookupTask(ctx.Params("name"))
+	if task == nil {
+		ctx.NotFound("cron task", nil)
+		return
+	}
+	ctx.Resp.Header().Set("Cache-Control", "no-store")
+	ctx.JSON(http.StatusOK, task.Output(max(ctx.FormInt("from"), 0)))
 }
 
 func MonitorStats(ctx *context.Context) {

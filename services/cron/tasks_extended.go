@@ -22,6 +22,7 @@ import (
 	"forgejo.org/services/ascexportmail"
 	"forgejo.org/services/ascorgverify"
 	"forgejo.org/services/ascteams"
+	"forgejo.org/services/asctrust"
 	moderation_service "forgejo.org/services/moderation"
 	repo_service "forgejo.org/services/repository"
 	archiver_service "forgejo.org/services/repository/archiver"
@@ -262,6 +263,7 @@ func initExtendedTasks() {
 	registerRecheckAscOrgDomains()
 	registerMailAscExports()
 	registerSyncAscTeams()
+	registerVerifyAscAuditChain()
 	if setting.Moderation.Enabled {
 		registerRemoveResolvedReports()
 	}
@@ -315,6 +317,19 @@ func registerRecheckAscOrgDomains() {
 		Schedule:   "@every 6h",
 	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
 		_, err := ascorgverify.RecheckDue(ctx)
+		return err
+	})
+}
+
+// registerVerifyAscAuditChain asks asc serve every night to verify the hash chain of the instance audit log. A broken
+// chain fails the task, and a failed task leaves a system notice that names the first bad event.
+func registerVerifyAscAuditChain() {
+	RegisterTaskFatal("verify_asc_audit_chain", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: false,
+		Schedule:   "@midnight",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		_, err := asctrust.RunAuditCheck(ctx)
 		return err
 	})
 }

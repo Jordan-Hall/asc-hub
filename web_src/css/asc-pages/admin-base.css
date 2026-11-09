@@ -585,6 +585,44 @@ a.adm-who-name:hover {
   min-width: 0;
 }
 
+/* the output of a run a "Run now" on the monitor page started (board AdminMonitor) */
+.adm-cronrun .ds-card-h {
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.adm-runout {
+  max-block-size: 360px;
+  overflow: auto;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  list-style: none;
+  border: 1px solid var(--line-3);
+  border-radius: 6px;
+  background: var(--surface-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.adm-runout:empty {
+  display: none;
+}
+
+.adm-cronrun[data-state="running"] [data-cron-state]::before,
+.adm-cronrun[data-state="waiting"] [data-cron-state]::before {
+  content: "";
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  border: 2px solid currentcolor;
+  border-inline-end-color: transparent;
+  animation: ds-spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-cronrun [data-cron-state]::before { animation: none; }
+}
+
 /* the agent runners of asc serve, under the Actions runners */
 .adm-agentrunners {
   margin-block-start: 16px;

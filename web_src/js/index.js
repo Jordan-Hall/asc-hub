@@ -50,6 +50,7 @@ import {initRepoTopicBar} from './features/repo-home.js';
 import {initAdminEmails} from './features/admin/emails.js';
 import {initAdminCommon} from './features/admin/common.js';
 import {initAdminHealth} from './features/admin/health.js';
+import {initAdminCronRun} from './features/admin/cronrun.js';
 import {initRepoTemplateSearch} from './features/repo-template.js';
 import {initRepoCodeView} from './features/repo-code.ts';
 import {initSshKeyFormParser} from './features/sshkey-helper.js';
@@ -220,6 +221,7 @@ onDomReady(() => {
 
   initAdminCommon();
   initAdminHealth();
+  initAdminCronRun();
   initAdminEmails();
   initAdminUserListSearchForm();
   initAdminConfigs();

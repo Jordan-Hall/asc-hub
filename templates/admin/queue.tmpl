@@ -16,6 +16,28 @@
 		{{end}}
 	</section>
 
+	{{with .CronRun}}
+		{{$state := "waiting"}}{{if .Started}}{{if .Output.Running}}{{$state = "running"}}{{else if .Output.Failed}}{{$state = "failed"}}{{else}}{{$state = "finished"}}{{end}}{{end}}
+		<section class="ds-card adm-sec adm-cronrun" id="adm-run" aria-labelledby="adm-run-h" data-testid="cron-run" data-state="{{$state}}" data-cron-output="{{.URL}}" data-after="{{.After}}" data-next="{{if .Started}}{{.Output.Next}}{{else}}0{{end}}"
+			data-label-waiting="{{ctx.Locale.Tr "asc_admin.cron_run_waiting"}}" data-label-running="{{ctx.Locale.Tr "asc_admin.cron_run_running"}}" data-label-finished="{{ctx.Locale.Tr "asc_admin.cron_result_ok"}}" data-label-failed="{{ctx.Locale.Tr "asc_admin.cron_result_failed"}}"
+			data-took="{{ctx.Locale.Tr "asc_admin.cron_run_took" "{s}"}}" data-stuck="{{ctx.Locale.Tr "asc_admin.cron_run_stuck"}}" data-lost="{{ctx.Locale.Tr "asc_admin.cron_run_lost"}}">
+			<div class="ds-card-h">
+				<h2 id="adm-run-h">{{ctx.Locale.Tr "asc_admin.cron_run_title" (ctx.Locale.Tr (printf "admin.dashboard.%s" .Name))}}</h2>
+				<span class="ds-chip {{if eq $state "finished"}}ds-chip-ok{{else if eq $state "failed"}}ds-chip-err{{else}}ds-chip-outline{{end}}" data-cron-state>{{if eq $state "finished"}}{{ctx.Locale.Tr "asc_admin.cron_result_ok"}}{{else if eq $state "failed"}}{{ctx.Locale.Tr "asc_admin.cron_result_failed"}}{{else if eq $state "running"}}{{ctx.Locale.Tr "asc_admin.cron_run_running"}}{{else}}{{ctx.Locale.Tr "asc_admin.cron_run_waiting"}}{{end}}</span>
+				<span class="ds-card-sub" data-cron-meta>{{if .Started}}{{if .Output.Doer}}{{ctx.Locale.Tr "asc_admin.cron_run_by" .Output.Doer}}{{else}}{{ctx.Locale.Tr "asc_admin.cron_run_by_schedule"}}{{end}} · {{DateUtils.FullTime .Output.Started}} · <span data-cron-took>{{ctx.Locale.Tr "asc_admin.cron_run_took" (printf "%.1f" .Output.Seconds)}}</span>{{else}}<span data-cron-took></span>{{end}}</span>
+			</div>
+			<div class="ds-card-b">
+				{{if and .Started (gt .Output.Dropped 0)}}<p class="ds-c-2" data-cron-dropped>{{ctx.Locale.Tr "asc_admin.cron_run_dropped" .Output.Dropped}}</p>{{end}}
+				<ol class="adm-runout adm-mono" data-cron-lines aria-live="polite" aria-label="{{ctx.Locale.Tr "asc_admin.cron_run_output"}}">{{if .Started}}{{range .Output.Lines}}<li>{{.}}</li>{{end}}{{end}}</ol>
+				<p class="ds-c-2" data-cron-empty{{if and .Started .Output.Lines}} hidden{{end}}>{{ctx.Locale.Tr "asc_admin.cron_run_no_output"}}</p>
+				<div class="ds-row ds-row-wrap">
+					<a class="ds-btn ds-btn-secondary ds-btn-sm" data-cron-refresh href="{{AppSubUrl}}/admin/monitor/cron?run={{.Name}}&after={{.After}}#adm-run">{{ctx.Locale.Tr "asc_admin.cron_run_refresh"}}</a>
+					<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{AppSubUrl}}/admin/monitor/cron">{{ctx.Locale.Tr "asc_admin.cron_run_close"}}</a>
+				</div>
+			</div>
+		</section>
+	{{end}}
+
 	<section class="ds-card adm-sec" aria-labelledby="adm-cron">
 		<div class="ds-card-h"><h2 id="adm-cron">{{ctx.Locale.Tr "asc_admin.monitor_tab_cron"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.cron_note"}}</span></div>
 		<details class="adm-idle"{{if gt .CronFailed 0}} open{{end}}>
