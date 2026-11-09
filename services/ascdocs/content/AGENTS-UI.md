@@ -104,7 +104,8 @@ of owners with a public profile, each action once. Agents act as their bot accou
   changes) in the window. A person who keeps their activity private shows none of this, except to themself and a site
   administrator.
 - An organization also shows when it was last active ("Active 12 minutes ago"). A private or limited organization has
-  no public activity, so its row shows an empty line.
+  no public activity, so its row shows an empty line. The actions of people who keep their activity private are not
+  counted for the organization either.
 
 ## Who contributes, on each row
 
