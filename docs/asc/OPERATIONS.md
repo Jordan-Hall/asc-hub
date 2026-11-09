@@ -413,6 +413,9 @@ check is done. A check that does not apply to this hub has no row. Each row is p
   reloading the page does not write many objects; the probe object lives under `<root>/.asc-probe/` and is always
   deleted. When asc serve does not answer, Object storage and Signing key could not run.
 - Behind a proxy that ends TLS there is no TLS certificate check: check the proxy's certificate there.
+- **The gauges** above the checks are the hub host's CPU (one-minute load per core), memory and disk, and Object
+  storage: what asc serve stores for the whole server against its storage limit, or the size alone when no limit is
+  set. The Object storage gauge is drawn only when asc answers.
 
 Code: `routers/web/admin/asc_health.go`, `asc_health_more.go`, `services/asctrust/health.go`. Tests:
 TestTheDiskCheckSaysHowSoonTheVolumeFills, TestTheTLSCheckReadsTheCertificateTheHubServes, TestTheClockCheck,
