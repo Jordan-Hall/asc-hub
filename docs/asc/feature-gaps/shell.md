@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 164 |
+| done | 166 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 8 |
+| needs-hub-backend | 6 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -168,7 +168,7 @@ Open rows by size: S 0, M 21, L 14.
 | ExploreUsers | Role chip (Owner, Maintainer, Member, Agent) and "Roles on this hub" card | done | `models/user/asc_roles.go` reads the role (Owner = site admin, Maintainer = write to a repository of someone else, Agent = bot account, Member) and counts the accounts the viewer may see; chips and the rail card in `user_list.tmpl` and `users.tmpl`, for signed-in viewers only | M |
 | ExploreUsers | Agent rows: violet square avatar, `@org/name`, owner, scope, View runs | needs-both | asc has repo-scoped `ListTokens` and `ListRuns`; no hub-wide agent directory. asc: `ListAgents(owner)` RPC; hub: row type in `user_list.tmpl`, links to `/-/asc/agents` | L |
 | ExploreUsers | Meta row: location, joined, organizations, public email as own labelled item | done | `user_list.tmpl` meta row with icons; organizations from `loadExploreUserRows` in `routers/web/explore/user.go` | - |
-| ExploreUsers | Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | needs-hub-backend | No sparkline component anywhere. Weekly series from `models/activities/user_heatmap.go` or pull and review tables, cached; partial `shared/ds/sparkline.tmpl` with a text label | M |
+| ExploreUsers | Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | done | `models/activities/asc_weekly.go` counts the public actions per week (public repositories of public owners, one count per action), the pull requests opened and the reviews given; `templates/explore/asc_activity.tmpl` draws the line with the same fact as its label; a person who keeps activity private shows none | M |
 | ExploreUsers | Hover action Follow; View runs for agents | done | Row Follow/Unfollow form in `user_list.tmpl` posting to the profile action with `redirect_to`; View runs for agents moves with the agent rows (row 169) | - |
 | ExploreUsers | Rail "Who is active now" with presence and current activity | needs-both | No presence model. Hub: last-seen heartbeat (`models/user`); asc: run state for agents (`GetRun`) | L |
 | ExploreUsers | Grid layout | done | With the layout toggle (Explore) | M |
@@ -182,7 +182,7 @@ Open rows by size: S 0, M 21, L 14.
 | ExploreOrgs | Org row: avatar, name, description, repositories and people counts | done | `explore/user_list.tmpl` (`IsOrganization`) | - |
 | ExploreOrgs | Verified badge (domain proof) and explainer card | done | No flag. Add a verified field and domain proof (DNS TXT or well-known file) in `models/user`, migration under `models/migrations`, owner settings, a check job; chip in `user_list.tmpl` | L |
 | ExploreOrgs | Agents count; member stack with up to four avatars and +N | needs-both | Members: `organization.GetOrgUsersByOrgID` (hub). Agents count: asc, as for Explore users | M |
-| ExploreOrgs | 12-week sparkline and "Active 12 min ago" | needs-hub-backend | Sparkline partial; org activity from the `action` table | M |
+| ExploreOrgs | 12-week sparkline and "Active 12 min ago" | done | `AscOrgActivity` in `models/activities/asc_weekly.go` counts the actions in the public repositories of the organization and keeps the latest; the row shows the line and "Active" with a relative time | M |
 | ExploreOrgs | Chips All, Verified, Has agents, I am a member; Size filter; Sort most active | needs-hub-backend | `routers/web/explore/org.go`; membership filter is simple, the others depend on rows above | M |
 | ExploreOrgs | View hover action; Start an organization card; grid layout; states | done | View row action and empty, no-match and error states in `explore/user_list.tmpl`; Start an organization and verified explainer cards in `explore/users.tmpl`; List and Grid via `shared/ds/layout_toggle`; loading not shown, server rendered | - |
 

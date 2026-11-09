@@ -93,6 +93,19 @@ A signed-in person also sees the role of each account and a **Roles on this hub*
 Roles tell who runs the hub, so a visitor or a restricted account sees the Agent chip only. The counts include only
 the active accounts the viewer may see.
 
+## Activity in the people and organization directories
+
+Each row of the people and organization directories shows a line of the public actions of the last 12 weeks, one point
+per week, oldest on the left. The line has the same fact as text for a screen reader ("5 public actions in the last 12
+weeks"); a dashed line means no public activity. Only what anyone may see is counted: actions in public repositories
+of owners with a public profile, each action once. Agents act as their bot accounts, so their work is in the line.
+
+- A person also shows the changesets (pull requests) they opened and the reviews they gave (approve, comment, request
+  changes) in the window. A person who keeps their activity private shows none of this, except to themself and a site
+  administrator.
+- An organization also shows when it was last active ("Active 12 minutes ago"). A private or limited organization has
+  no public activity, so its row shows an empty line.
+
 ## Who contributes, on each row
 
 Each row of the repository lists shows a stack of up to four avatars: the people and agents that acted in the

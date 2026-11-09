@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 210, partial 25, missing 82. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 212, partial 23, missing 82. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -428,7 +428,7 @@ Board copy not found word for word in locale, templates or scripts: Filter repos
 
 #### ExploreOrgs (ASC Hub explore organizations)
 
-Area shell/settings. Rows 6: done 2, partial 1, missing 3. Copy found in the hub: 67% of 109 copy strings (mobile twin 47%). Template(s): user_list.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 6: done 3, partial 0, missing 3. Copy found in the hub: 67% of 109 copy strings (mobile twin 47%). Template(s): user_list.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Teams that own repositories, with who is in them.; Has agents; I am a member; Checkout, design system and storefront tooling.; Active Yesterday; Agent workflows, evaluations and the playbook library..
 
@@ -437,13 +437,13 @@ Board copy not found word for word in locale, templates or scripts: Teams that o
 | Org row: avatar, name, description, repositories and people counts | done | templates/explore/user_list.tmpl:6 | - |
 | Verified badge (domain proof) and explainer card | done | templates/admin/federation/user_list.tmpl (file) | - |
 | Agents count; member stack with up to four avatars and +N | missing (hub+asc) | logged as not built (not re-probed) | Members: organization.GetOrgUsersByOrgID (hub). Agents count: asc, as for Explore users |
-| 12-week sparkline and "Active 12 min ago" | partial (hub) | logged as not built (not re-probed) | Sparkline partial; org activity from the action table |
+| 12-week sparkline and "Active 12 min ago" | done | models/activities/asc_weekly.go, templates/explore/asc_activity.tmpl | - |
 | Chips All, Verified, Has agents, I am a member; Size filter; Sort most active | missing (hub) | logged as not built (not re-probed) | routers/web/explore/org.go; membership filter is simple, the others depend on rows above |
 | View hover action; Start an organization card; grid layout; states | missing (UI) | logged as not built (not re-probed) | user_list.tmpl, explore/rail.tmpl, layout toggle |
 
 #### ExploreUsers (ASC Hub explore people and agents)
 
-Area shell/settings. Rows 13: done 4, partial 5, missing 4. Copy found in the hub: 67% of 145 copy strings (mobile twin 80%). Template(s): user_list.tmpl, users.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 13: done 5, partial 4, missing 4. Copy found in the hub: 67% of 145 copy strings (mobile twin 80%). Template(s): user_list.tmpl, users.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: The people and agents who write and review here, with how much they do.; Search by name, handle or role; Online now; accounts: 34 people and 8 agents; Staff engineer. Design reviews, flaky tests and anything that touches checkout.; Bengaluru.
 
@@ -456,7 +456,7 @@ Board copy not found word for word in locale, templates or scripts: The people a
 | Role chip (Owner, Maintainer, Member, Agent) and "Roles on this hub" card | done | templates/explore/user_list.tmpl, templates/explore/users.tmpl, models/user/asc_roles.go | - |
 | Agent rows: violet square avatar, @org/name, owner, scope, View runs | missing (hub+asc) | logged as not built (not re-probed) | asc has repo-scoped ListTokens and ListRuns; no hub-wide agent directory. asc: ListAgents(owner) RPC; hub: row type in user_list.... |
 | Meta row: location, joined, organizations, public email as own labelled item | missing (UI) | logged as not built (not re-probed) | user_list.tmpl shows location, email, joined; organizations missing |
-| Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | partial (hub) | logged as not built (not re-probed) | No sparkline component anywhere. Weekly series from models/activities/user_heatmap.go or pull and review tables, cached; partial... |
+| Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | done | models/activities/asc_weekly.go, templates/explore/asc_activity.tmpl, templates/explore/user_list.tmpl | - |
 | Hover action Follow; View runs for agents | partial (UI) | logged as not built (not re-probed) | Follow endpoint exists (profile htmx); row button in user_list.tmpl |
 | Rail "Who is active now" with presence and current activity | missing (hub+asc) | logged as not built (not re-probed) | No presence model. Hub: last-seen heartbeat (models/user); asc: run state for agents (GetRun) |
 | Grid layout | done | see where-cell | - |
