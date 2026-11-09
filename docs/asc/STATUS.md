@@ -371,19 +371,19 @@ Board copy not found word for word in locale, templates or scripts: The command 
 
 #### Drafts (ASC Hub drafts)
 
-Area shell/settings. Rows 3: done 1, partial 0, missing 2. Copy found in the hub: 51% of 39 copy strings (mobile twin 69%). Template(s): asc_drafts.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 3: done 3, partial 0, missing 0. Copy found in the hub: 51% of 39 copy strings (mobile twin 69%). Template(s): asc_drafts.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Add rate limit headers; - 3 changes - On this laptop and on the hub; Spike: streaming exports; - 1 change - Only on this laptop; Saved yesterday.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | List of drafts from the hub (name, repo, change count, saved time), terminal card, empty and e... | done | routers/web/user/asc_drafts.go:32 | - |
-| Location line "On this laptop and on the hub / only on this laptop" | missing (asc) | logged as not built (not re-probed) | Cloud.GetWorkspace returns hub heads only; local-only drafts need a client report RPC |
-| Continue (open in editor or show asc stack resume) and Discard buttons, 30-day undo, discarded... | missing (hub+asc) | logged as not built (not re-probed) | asc: Cloud.Purge deletes for good, add soft discard + undo; hub: POST /-/asc/drafts/discard and undo, buttons in asc_drafts.tmpl |
-| Board note: Continue opens the draft in the editor or shows the asc command to resume | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Discard asks nothing: it is in the operation log and can be undone for 30 days | unverified | not tracked in the gap files | needs a row and a test |
+| Location line "On this laptop and on the hub / only on this laptop" | done | routers/web/user/asc_drafts.go (ascDraftsDevices); TestAscDraftsLocation | - |
+| Continue (open in editor or show asc stack resume) and Discard buttons, 30-day undo, discarded... | done | routers/web/user/asc_drafts.go (ascDraftsAct); TestAscDraftsDiscardAndUndo | - |
+| Board note: Continue opens the draft in the editor or shows the asc command to resume | done | templates/user/asc_drafts.tmpl (wk-draft-resume); TestAscDraftsDiscardAndUndo | Shows the command; there is no editor URI handler to open |
+| Board note: Discard asks nothing: it is in the operation log and can be undone for 30 days | done | routers/web/user/asc_drafts.go (ascDraftsUndoDays); TestAscDraftsDiscardAndUndo | - |
 | Board note: Drafts sync when you opt in; local-only drafts say so | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Drafts from the terminal and the hub, where each lives, empty, discarded with undo, loadi... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Drafts from the terminal and the hub, where each lives, empty, discarded with undo, loadi... | done | templates/user/asc_drafts.tmpl; TestAscDraftsPage, TestAscDraftsLocation, TestAscDraftsDiscardAndUndo | - |
 
 #### Errors (ASC Hub error and status pages)
 
