@@ -18,8 +18,8 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 151 |
-| partial | 1 |
+| done | 152 |
+| partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 4 |
 | needs-asc-backend | 0 |
@@ -141,7 +141,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | OrgPeople | Member rows with avatar, owner/member chips, 2FA chip, remove/leave, public/private toggle | done | templates/org/member/members.tmpl | - |
 | OrgPeople | Search box, filter chips with counts (Everyone, Owners, 2FA off done; Pending needs the invitation list), pagination | done | templates/org/member/members.tmpl, routers/web/org/members.go (search, Everyone, Owner, 2FA off, Pending, pager "n of m people") | M |
 | OrgPeople | Change role menu with Maintainer role and undo toast; last owner cannot be demoted | done | routers/web/org/people.go: Owner, Maintainer (a team with the administrator permission; "Maintainers" is made when none exists) and Member; the last owner is protected. changeRole redirects with ?undo=uid-was-now and members.tmpl shows the role-undo banner with Undo, gone after 10 s (data-undo-ms, asc-confirm.js expireUndos); tests/integration/org_people_test.go | M |
-| OrgPeople | Row detail: teams list, last active, changesets count | partial | teams, last active and the changes landed in the last year (Insights.ListContributors per repository, cached a minute). Needs asc: a per-person total across organization repositories | M |
+| OrgPeople | Row detail: teams list, last active, changesets count | done | teams, last active and the changes landed in the last year: one Insights.ListOwnerContributors call (feature insights-owner.v1, up to 64 repositories the viewer may read, organisation read claim from asctrust.UserCallOrgRepos) in routers/web/org/people.go; per-repository calls (24 at most) when asc lacks the feature | M |
 | OrgPeople | Agents section (agent identity, run by, scoped to paths, Manage) | done | routers/web/org/people.go orgAgents (OrgSettings.ListAgents), members.tmpl section | L |
 | OrgPeople | Pending invitations (email, role, invited by, Resend, Revoke) | done | routers/web/org/people.go pendingInvites, Resend and Revoke actions, members.tmpl section | M |
 | OrgPeople | Invite dialog accepting several emails and a role | done | add_org_member.tmpl: names and addresses separated by commas, spaces or lines, a role, extra teams under a disclosure | M |
