@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/structs"
 
 	"xorm.io/builder"
 )
@@ -30,8 +31,17 @@ var AscRoles = []string{AscRoleOwner, AscRoleMaintainer, AscRoleMember, AscRoleA
 // accessModeWrite is perm.AccessModeWrite; the user package cannot import models/perm/access.
 const accessModeWrite = 2
 
+// ascPublicWriteCond is write access to a repository anyone may see (public, of an owner with a public profile). Write
+// access to a private repository is not shown, so the role does not tell that a private repository exists.
+func ascPublicWriteCond() builder.Cond {
+	return builder.Gte{"`access`.mode": accessModeWrite}.And(builder.In("`access`.repo_id",
+		builder.Select("`repository`.id").From("`repository`").
+			Join("INNER", "`user` `owner`", "`owner`.id = `repository`.owner_id").
+			Where(builder.Eq{"`repository`.is_private": false, "`owner`.visibility": structs.VisibleTypePublic})))
+}
+
 func ascWritersCond() builder.Cond {
-	return builder.In("`user`.id", builder.Select("user_id").From("access").Where(builder.Gte{"mode": accessModeWrite}))
+	return builder.In("`user`.id", builder.Select("`access`.user_id").From("`access`").Where(ascPublicWriteCond()))
 }
 
 // AscRolesOf gives the role of each of the users.
@@ -55,7 +65,7 @@ func AscRolesOf(ctx context.Context, users []*User) (map[int64]string, error) {
 	}
 	var writers []int64
 	if err := db.GetEngine(ctx).Table("access").Distinct("user_id").
-		In("user_id", ids).And(builder.Gte{"mode": accessModeWrite}).
+		In("`access`.user_id", ids).And(ascPublicWriteCond()).
 		Find(&writers); err != nil {
 		return nil, err
 	}
