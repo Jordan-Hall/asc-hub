@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 163 |
+| done | 164 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 9 |
+| needs-hub-backend | 8 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -165,7 +165,7 @@ Open rows by size: S 0, M 21, L 14.
 | ExploreUsers | Search by name, handle or role | done | `explore/users.tmpl` (role not searchable until roles exist) | - |
 | ExploreUsers | Show filter (People and agents / People / Agents), Organization filter, Sort "Most active" | done | `templates/explore/search.tmpl` has Show, Organization (any organization the viewer may see, with suggestions) and Most active; `models/user/asc_search.go` (`AscUserFilter`, `AscMostActiveOrder`) | M |
 | ExploreUsers | Chips All, People, Agents, Maintainers, Online now | needs-both | None present. Agents are not hub users (they are tokens and runs in `proto/asc/v1/agents.proto`); Maintainers needs a role; Online now needs presence | L |
-| ExploreUsers | Role chip (Owner, Maintainer, Member, Agent) and "Roles on this hub" card | needs-hub-backend | No hub-level role beyond site admin. Define Owner = site admin, Maintainer = write on any repo, Member; compute in the search; `user_list.tmpl`, `rail.tmpl` | M |
+| ExploreUsers | Role chip (Owner, Maintainer, Member, Agent) and "Roles on this hub" card | done | `models/user/asc_roles.go` reads the role (Owner = site admin, Maintainer = write to a repository of someone else, Agent = bot account, Member) and counts the accounts the viewer may see; chips and the rail card in `user_list.tmpl` and `users.tmpl`, for signed-in viewers only | M |
 | ExploreUsers | Agent rows: violet square avatar, `@org/name`, owner, scope, View runs | needs-both | asc has repo-scoped `ListTokens` and `ListRuns`; no hub-wide agent directory. asc: `ListAgents(owner)` RPC; hub: row type in `user_list.tmpl`, links to `/-/asc/agents` | L |
 | ExploreUsers | Meta row: location, joined, organizations, public email as own labelled item | done | `user_list.tmpl` meta row with icons; organizations from `loadExploreUserRows` in `routers/web/explore/user.go` | - |
 | ExploreUsers | Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | needs-hub-backend | No sparkline component anywhere. Weekly series from `models/activities/user_heatmap.go` or pull and review tables, cached; partial `shared/ds/sparkline.tmpl` with a text label | M |

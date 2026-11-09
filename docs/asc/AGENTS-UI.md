@@ -81,6 +81,18 @@ has:
 
 The pager keeps the filters. With no result, the list says so and offers to clear the filters.
 
+A signed-in person also sees the role of each account and a **Roles on this hub** card with the count of each:
+
+| Role | Who |
+| --- | --- |
+| Owner | A site administrator. |
+| Maintainer | Can write to a repository someone else owns (a collaborator, or a team member with write). |
+| Member | Anyone else with an account. |
+| Agent | A bot account an agent acts as. |
+
+Roles tell who runs the hub, so a visitor or a restricted account sees the Agent chip only. The counts include only
+the active accounts the viewer may see.
+
 ## Who contributes, on each row
 
 Each row of the repository lists shows a stack of up to four avatars: the people and agents that acted in the
