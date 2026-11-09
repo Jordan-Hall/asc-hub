@@ -397,3 +397,21 @@ The requests are the table `asc_access_request` (`models/repo/asc_access_request
 `routers/web/repo/asc_access_request.go`, `routers/web/repo/setting/asc_access_request.go` and
 `routers/web/auth/asc_switch_account.go`. Tests: TestAscAccessRequests, Test_addAscAccessRequest,
 TestAscAccessRequestFromTheForbiddenPage, TestAscSwitchAccount.
+
+## Presence on profiles
+
+The head of a profile has a pill that says **Online**, **Online, local time 14:20** or **Local time 14:20**, and the
+avatar has a green dot while the person is online. Online means a request in the last ten minutes; the time of the
+last request is stored at most once every five minutes (`asc.last_seen`). The local time is the time in the zone the
+person chose on their profile page, drawn by the server.
+
+The person decides on **Settings > Privacy**:
+
+- **Show when I am online** (on by default). Off, neither the dot nor the pill shows, local time included.
+- **Show my local time on my profile** (off by default), because the time tells others the time zone. On, the pill
+  shows the time even while the person is offline.
+
+Neither shows to someone who may not see the person's activity (activity kept private, or a private profile seen by
+someone else). The pill is `ascpresence.Of` (`services/ascpresence`), filled in `routers/web/user/profile.go` and drawn
+in `templates/shared/user/profile_big_avatar.tmpl`. Tests: TestThePillSaysOnlineAndTheLocalTime,
+TestTheProfileShowsAPresencePill.

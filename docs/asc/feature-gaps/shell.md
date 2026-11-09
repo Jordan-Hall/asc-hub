@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 168 |
+| done | 169 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 4 |
+| needs-hub-backend | 3 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -267,7 +267,7 @@ Open rows by size: S 0, M 21, L 14.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | Profile | Header: avatar, name, handle, location, bio, followers, following, joined, website, Follow | done | `templates/user/overview/header.tmpl`, `shared/user/asc_profile_band.tmpl` | - |
-| Profile | Presence pill ("Online, local time 14:20") | needs-hub-backend | None. Last-seen model plus the person's time zone; pill in `header.tmpl` with text | M |
+| Profile | Presence pill ("Online, local time 14:20") | done | `profile_big_avatar.tmpl` pill from `ascpresence.Of`: online from the last request, local time in the zone of the profile behind its own privacy switch (off by default); OPERATIONS.md "Presence on profiles" | M |
 | Profile | Role line ("Staff engineer · Payments team · London") | done | Role is the `asc.role` user setting (Role field in profile settings, 60 characters, trimmed, empty clears it); the line in `profile_big_avatar.tmpl` adds role, the first team the viewer may know about (`AscProfileTeams`) and location; `tests/integration/asc_profile_role_test.go` | S |
 | Profile | Request a review (picker with repository and change) and Mention | needs-both | Absent. Hub: picker modal of the viewer's open pull requests (`routers/web/user/profile.go`) and POST to asc `RequestReview` (exists in `review.proto`) via `asc_rpc_proxy.go`; Mention opens a comment composer | L |
 | Profile | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | Tabs today: Overview, Repositories, Projects, Packages, Code, Activity, Stars (`overview/header.tmpl`). Add Work (`ascProfileWork`) and Reviews with counts | M |
