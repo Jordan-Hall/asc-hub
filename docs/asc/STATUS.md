@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 204, partial 26, missing 87. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 205, partial 26, missing 86. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -666,18 +666,18 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Projects (ASC Hub projects)
 
-Area shell/settings. Rows 5: done 4, partial 0, missing 1. Copy found in the hub: 54% of 48 copy strings (mobile twin 56%). Template(s): list.tmpl, new.tmpl, view.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 5: done 5, partial 0, missing 0. Copy found in the hub: 54% of 48 copy strings (mobile twin 56%). Template(s): list.tmpl, new.tmpl, view.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Release 2.19; Everything planned for the next release, with the real state of each stack.; Add card; Webhook receivers back off per host.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Kanban board with columns, drag, edit/close/delete | done | templates/projects/view.tmpl:82 | - |
-| Cards that are stacks following real state; Landed column by stack state | missing (hub) | logged as not built (not re-probed) | project_issue model holds issues/PRs; map PullRequestAscStack state to a column, issue/card.tmpl |
+| Cards that are stacks following real state; Landed column by stack state | done | services/pull/asc_project_cards.go, templates/repo/issue/card.tmpl, templates/projects/view.tmpl (Landed column), models/project/column.go SetLandedColumn | - |
 | Move menu (keyboard alternative) announcing the new column | done | templates/projects/view.tmpl, web_src/js/features/project-move.js | - |
 | Add card, Switch project select, rename and hide columns | done | templates/projects/view.tmpl, services/issue/asc_project_card.go, web_src/js/features/project-board.js | - |
 | Empty, loading and error ("request id") states | done | templates/projects/view.tmpl (empty, error banner, status), project-move.js | - |
-| Board note: Cards move between columns by drag or by the Move menu; a stack card follows its real sta... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Cards move between columns by drag or by the Move menu; a stack card follows its real sta... | done | settings.md row 217; services/pull/asc_project_cards_test.go, routers/web/repo/asc_project_landed_test.go | - |
 | Board note: Cards link to the stack or the issue | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Columns can be renamed and hidden | done | settings.md row "Add card, Switch project select, rename and hide columns"; TestProjectBoardCardsAndColumns | - |
 | Board note: Project board with four columns of stacks and issues; empty; loading; error | unverified | not tracked in the gap files | needs a row and a test |

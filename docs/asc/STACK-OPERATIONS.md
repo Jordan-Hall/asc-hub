@@ -151,6 +151,25 @@ What the pull request page and the notification list show of the queue:
 - Review summaries go back to asc after each of these events (`reviewed_version` is the newest version a review was made
   on). A check posted through the commit status API reaches asc the same way as one from Actions.
 
+## Project boards
+
+A card on a project board follows the stack it belongs to, read from the stack rows each time the board is drawn:
+
+- The card of a pull request that is a change of a stack shows "Stack · 1 of 4 landed" and links to the stack panel of that
+  pull request. The card of an issue shows the stack that names it, as the issue list does: "Fixed by #12 · 1 of 4 landed"
+  when a pull request of the stack closes it, else "Stack #12 · 1 of 4 landed". The chip is green when every entry has
+  landed. A viewer who cannot read the pull requests of the repository sees no chip.
+- One column of a project can be its Landed column: "Use as Landed column" in the column menu (writers of the project only;
+  choosing another column moves the mark, "Stop using as Landed column" removes it). The column title shows "Landed".
+- When a pull request merges (a merge, a land of the stack, or the queue) and its whole stack has landed, the cards of the
+  pull requests of the stack and of the issues they close ("fixes #n") move to the end of the Landed column of every project
+  they are on, bottom of the stack first. A pull request that is not stacked is a stack of one. A card already in the Landed
+  column stays where it is; a project without a Landed column is not changed; a stack with an entry still open moves nothing.
+  A hidden Landed column still takes its cards.
+
+The mark is `project_board.asc_landed` (migration v18x); the move is `pull_service.MoveAscLandedCards`, run by a notifier on
+the merged events. A failed move is logged and never undoes the merge.
+
 ## Secrets and errors
 
 The hub calls asc with the internal token after Forgejo has decided who may act (`ascclient.WithSystem`). No token
@@ -173,3 +192,6 @@ Every restack and revert writes an `asc audit:` line to the log with the reposit
 - `services/ascsync/review_version_test.go`: `reviewed_version` of the review summary.
 - `routers/web/repo/asc_queue_test.go`: every handler, the error mapping and the action buttons.
 - `tests/integration/asc_queue_test.go`: the routes through the full router.
+- `services/pull/asc_project_cards_test.go`, `models/project/column_test.go`, `issue_test.go`: the stack of a card, the
+  Landed column and the card moves. `routers/web/repo/asc_project_landed_test.go`, `tests/integration/project_test.go`: the
+  column menu and the board.
