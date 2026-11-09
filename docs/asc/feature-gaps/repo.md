@@ -43,10 +43,10 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Repo | README card with tabs README / AGENTS.md / License | done (seen on a live hub (ui10): tabs switch the panel, arrow keys move; AGENTS.md as markdown, License as text) | `H:templates/repo/home_dir.tmpl`, `view_file.tmpl` (only one README is shown) | M |
 | Repo | About card: description, topics, website, numbers | done | `H:templates/repo/asc_about.tmpl` | S |
 | Repo | About card: license line and "1,204 changes on main" wording | done | `H:templates/repo/asc_about.tmpl` (`rp-numbers`) | S |
-| Repo | "Who writes the code" card: 46% people / 54% agents, "100% reviewed by a human", median review time | needs-both | asc: a landed-change statistics RPC (author kind, review latency); hub: card on `asc_about.tmpl` | L |
+| Repo | "Who writes the code" card: 46% people / 54% agents, "100% reviewed by a human", median review time | done | Re-judged 2026-11-09: built in commit 4960bebe16 from the existing `Insights.GetStats` (author kind, review latency) and the hub's pull requests; no new RPC. `H:routers/web/repo/asc_insights_home.go`, `asc_about.tmpl` (TestHomeAuthorsOf) | L |
 | Repo | Policy card: Valid / invalid chip, rule summary, link to `.asc/policy.toml` | done | `Policy.GetSource` / `Repo.GetPolicy` already called by `H:routers/web/repo/setting/asc_policy.go`; add the call to the home handler and a card in `asc_about.tmpl` | M |
 | Repo | Policy card lines that need new policy keys (budget "20 min and 200k tokens", merge queue on) | done (the card adds "Agent runs stop at 20 min and 200k tokens." from `[agents] max_runtime_seconds` and `[agents.budgets] max_tokens, max_cost_micro_usd`, and "Changes land on trunk through the merge queue." when `[merge] queue = true`; each line is left out when the key is not set) | `H:services/asctrust/ops.go` (`LoadPolicySummary`, `RunBudgetWords`), `H:templates/repo/asc_about.tmpl`; `asc_home_policy_test.go`, `ops_test.go` | M |
-| Repo | Activity card: landed per week over 12 weeks, Contributors list with agent marks | needs-both | same statistics RPC as Insights; hub `asc_about.tmpl` | L |
+| Repo | Activity card: landed per week over 12 weeks, Contributors list with agent marks | done | Re-judged 2026-11-09: the weeks come from one git log on the viewed ref (`prepareHomeActivity`, hub only) and the agent marks from the existing `Insights.ListContributors`; `asc_about.tmpl` (TestHomeContributorsOf) | L |
 | Repo | Languages bar with legend and aria-label | done | `H:templates/repo/asc_about.tmpl` | S |
 | Repo | Latest release card ("9 changes, 3 by agents. Published 6 days ago") | done (seen on a live hub (ui10): name, chip, change count, age) | `H:templates/repo/asc_about.tmpl` shows name and age only; counts need the release-changes data (see Releases) | S |
 | Repo | Loading skeleton that keeps row geometry | done | `H:templates/repo/view_list.tmpl`: while the last commit loads, the author and age cells hold `rp-sk-word` blocks of their usual width, so the columns keep their size; `routers/web/repo/asc_files_skeleton_test.go` | S |
@@ -135,7 +135,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | History | Export | done (seen on a live hub (ui18): Export CSV on the history page, newest first, at most 1000 rows, formula cells quoted) | new route (CSV/JSON of the filtered list) in `H:routers/web/repo/commit.go` | S |
 | History | Keyboard: `j`/`k` move, Enter opens, `c` copies id | done | none bound; list-nav helper in `H:web_src/js` | S |
 | History | Row hover actions (copy id, browse files) and hover lift | done | copy hash and view-at-point buttons in `commits_list.tmpl` | S |
-| History | "Landing rate, last 12 weeks" card with this-week delta | needs-both | statistics RPC (see Insights) | M |
+| History | "Landing rate, last 12 weeks" card with this-week delta | done | Re-judged 2026-11-09 as hub only: one git log on the viewed ref, counted per week like the home Activity card; this week, the change on last week and a bar per week. `H:routers/web/repo/commits_landing.go`, `commits.tmpl` (TestHistoryLandingOf, TestAscHistoryLandingRate) | M |
 | History | Graph key legend | done | `asc_graph.tmpl` | S |
 | History | "Show 25 older changes" on-demand load (44 px button on mobile) | done | pager/`AscGraphNextURL` | S |
 | History | States: loading skeleton, no results with explanation and Clear filters, partial-data banner with Retry | done | `H:templates/repo/commits_table.tmpl`: a skeleton while the next page, filter or search loads (`commits_loading.tmpl`); no results under the people / agents filter says so and offers Clear filters; the partial banner is for that filter, which reads the newest 500 changes (the hub has no index lag), and offers "Show all changes" in place of Retry; `asc_history_states_test.go` | M |
@@ -409,23 +409,23 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 247 |
+| done | 250 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 16 |
+| needs-both | 13 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 | --- | --- | --- | --- | --- | --- |
-| Repo | 26 | 0 | 0 | 0 | 2 |
+| Repo | 28 | 0 | 0 | 0 | 0 |
 | NewRepo | 13 | 0 | 0 | 0 | 1 |
 | Code | 20 | 0 | 0 | 0 | 0 |
 | Changeset | 13 | 0 | 0 | 0 | 1 |
-| History | 14 | 0 | 0 | 0 | 1 |
+| History | 15 | 0 | 0 | 0 | 0 |
 | Refs | 9 | 0 | 0 | 0 | 0 |
 | Compare | 6 | 0 | 0 | 0 | 0 |
 | Search | 20 | 0 | 0 | 0 | 0 |

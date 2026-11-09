@@ -53,7 +53,7 @@ Other findings that cross boards:
 ## 3. Per-area counts and boards
 
 - **shell/settings**: 47 boards, 317 rows, done 244, partial 14, missing 59. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **repo**: 24 boards, 274 rows, done 143, partial 25, missing 106. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
 - **auth**: 6 boards, 40 rows, done 29, partial 4, missing 7. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
@@ -993,7 +993,7 @@ Board copy not found word for word in locale, templates or scripts: Collapsed (d
 
 #### History (ASC Hub history and graph)
 
-Area repo. Rows 16: done 8, partial 2, missing 6. Copy found in the hub: 57% of 88 copy strings (mobile twin 70%). Template(s): asc_graph.tmpl, asc_ops.tmpl, commits.tmpl. Mobile twin: yes.
+Area repo. Rows 16: done 9, partial 2, missing 5. Copy found in the hub: 57% of 88 copy strings (mobile twin 70%). Template(s): asc_graph.tmpl, asc_ops.tmpl, commits.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Filter by message, id or author; Open on top of main; writing now; Needs review; Diego Alvarez; In the merge queue, lands next.
 
@@ -1009,7 +1009,7 @@ Board copy not found word for word in locale, templates or scripts: Filter by me
 | Export | done | routers/web/repo/commit.go (file) | - |
 | Keyboard: j/k move, Enter opens, c copies id | done | see where-cell | the where-cell cites H:web_src/js, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Row hover actions (copy id, browse files) and hover lift | done | templates/repo/commits_list.tmpl (file) | - |
-| "Landing rate, last 12 weeks" card with this-week delta | missing (hub+asc) | logged as not built (not re-probed) | statistics RPC (see Insights) |
+| "Landing rate, last 12 weeks" card with this-week delta | done | routers/web/repo/commits_landing.go, templates/repo/commits.tmpl | Hub only: one git log per week on the viewed ref (TestAscHistoryLandingRate) |
 | Graph key legend | done | templates/repo/asc_graph.tmpl (file) | - |
 | "Show 25 older changes" on-demand load (44 px button on mobile) | done | see where-cell | - |
 | States: loading skeleton, no results with explanation and Clear filters, partial-data banner w... | partial (UI) | logged as not built (not re-probed) | commits.tmpl; partial banner needs index lag signal from Repo.CommitGraph (hub AscGraphError path) |
@@ -1152,7 +1152,7 @@ Board copy not found word for word in locale, templates or scripts: Stable 11; P
 
 #### Repo (ASC Hub repository home)
 
-Area repo. Rows 29: done 21, partial 2, missing 6. Copy found in the hub: 57% of 158 copy strings (mobile twin 60%). Template(s): asc_about.tmpl, clone_asc_tabs.tmpl, header.tmpl, home.tmpl. Mobile twin: yes.
+Area repo. Rows 29: done 23, partial 2, missing 4. Copy found in the hub: 57% of 158 copy strings (mobile twin 60%). Template(s): asc_about.tmpl, clone_asc_tabs.tmpl, header.tmpl, home.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Diego Alvarez; Add repository policy file; Document the failover order; Describe how agents work in this repo; Explain local setup; Ordered by what needs a person next.
 
@@ -1172,10 +1172,10 @@ Board copy not found word for word in locale, templates or scripts: Diego Alvare
 | README card with tabs README / AGENTS.md / License | done | templates/repo/home_dir.tmpl (file) | - |
 | About card: description, topics, website, numbers | done | templates/repo/asc_about.tmpl (file) | - |
 | About card: license line and "1,204 changes on main" wording | done | templates/repo/asc_about.tmpl:35 | - |
-| "Who writes the code" card: 46% people / 54% agents, "100% reviewed by a human", median review... | missing (hub+asc) | logged as not built (not re-probed) | asc: a landed-change statistics RPC (author kind, review latency); hub: card on asc_about.tmpl |
+| "Who writes the code" card: 46% people / 54% agents, "100% reviewed by a human", median review... | done | routers/web/repo/asc_insights_home.go, templates/repo/asc_about.tmpl | Existing Insights.GetStats; no new RPC (TestHomeAuthorsOf) |
 | Policy card: Valid / invalid chip, rule summary, link to .asc/policy.toml | done | routers/web/repo/setting/asc_policy.go (file) | the where-cell cites .asc/policy.toml, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Policy card lines that need new policy keys (budget "20 min and 200k tokens", merge queue on) | missing (asc) | logged as not built (not re-probed) | A:crates/asc-core/src/policy.rs (see Policy rows) |
-| Activity card: landed per week over 12 weeks, Contributors list with agent marks | missing (hub+asc) | logged as not built (not re-probed) | same statistics RPC as Insights; hub asc_about.tmpl |
+| Activity card: landed per week over 12 weeks, Contributors list with agent marks | done | routers/web/repo/view_home_cards.go, asc_insights_home.go, templates/repo/asc_about.tmpl | Weeks from git log (hub only); agent marks from the existing Insights.ListContributors (TestHomeContributorsOf) |
 | Languages bar with legend and aria-label | done | templates/repo/asc_about.tmpl (file) | - |
 | Latest release card ("9 changes, 3 by agents. Published 6 days ago") | done | templates/repo/asc_about.tmpl:106 | - |
 | Loading skeleton that keeps row geometry | partial (UI) | logged as not built (not re-probed) | H:templates/repo/home_cards.tmpl (skeleton rp-sk exists only for the last-commit column) |

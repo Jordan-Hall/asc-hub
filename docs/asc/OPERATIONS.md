@@ -717,3 +717,15 @@ in `pull_request_asc_dirs` per head commit, so a page view reads the repository 
 (at most ten per view; the rest are counted on a later view). Code: `routers/web/user/asc_profile_knows.go`,
 `models/issues/pull_asc_dirs.go`. Tests: TestAscKnowsDir, TestAscKnowsRank, TestPullRequestAscDirs,
 Test_addPullRequestAscDirs, TestAscProfileKnows.
+
+## Landing rate on the history
+
+The history of a branch (`/{owner}/{repo}/commits/branch/{name}`) has a **Landing rate** card at the top of its side
+column: the changes that landed on the viewed ref this week, how that compares with last week (`+4 on last week`,
+`2 fewer than last week` or `Same as last week`) and a bar per week for the last twelve weeks, this week's bar in the
+link colour. A week is seven days ending now, the same weeks as the Activity card of the repository home. The card is
+left out when nothing landed in the twelve weeks or the repository cannot be read.
+
+It is worked out by the hub alone, with one `git log --since` on the viewed ref, for git and asc repositories alike;
+no asc call is made. Code: `routers/web/repo/commits_landing.go`, `templates/repo/commits.tmpl`. Tests:
+TestHistoryLandingOf, TestHistoryLandingTimes, TestAscHistoryLandingRate.
