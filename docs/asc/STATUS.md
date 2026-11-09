@@ -53,7 +53,7 @@ Other findings that cross boards:
 ## 3. Per-area counts and boards
 
 - **shell/settings**: 47 boards, 317 rows, done 266, partial 11, missing 40. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 155, partial 23, missing 96. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **repo**: 24 boards, 274 rows, done 157, partial 21, missing 96. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
 - **auth**: 6 boards, 40 rows, done 30, partial 4, missing 6. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
@@ -1240,7 +1240,7 @@ Board copy not found word for word in locale, templates or scripts: Name, visibi
 
 #### RepoSettingsPolicy (ASC Hub repository settings: Policy)
 
-Area repo. Rows 12: done 7, partial 3, missing 2. Copy found in the hub: 75% of 142 copy strings (mobile twin 73%). Template(s): asc_policy.tmpl. Mobile twin: yes.
+Area repo. Rows 12: done 9, partial 1, missing 2. Copy found in the hub: 75% of 142 copy strings (mobile twin 73%). Template(s): asc_policy.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: The rules every change and every agent run follows in this repository.; , so they are reviewed like code and travel with a fork. Approvals and checks a...; What a change needs before it can land on main.; People who must approve each change. Agents never count.; A change cannot land while any of these is failing or missing.; Authors may approve their own change.
 
@@ -1249,8 +1249,8 @@ Board copy not found word for word in locale, templates or scripts: The rules ev
 | File header: .asc/policy.toml, Valid chip, "Last changed by Priya Raman, 5 days ago, in change... | missing (UI) | logged as not built (not re-probed) | H:templates/repo/settings/asc_policy.tmpl has the chip; last-change info via Repo.Log path filter |
 | TOML editor with Check (validate), diagnostics with line, Propose change | done | routers/web/repo/setting/asc_policy.go:77 | - |
 | Seg Form / TOML / Changes (three views of one file) | done | templates/repo/settings/asc_policy.tmpl (file) | - |
-| Form: approvals stepper, check chips with Add, authors-may-approve switch, keep-approvals swit... | partial (hub+asc) | logged as not built (not re-probed) | form needs a structured parse (ValidatePolicyResponse.parsed); keys author_may_approve, keep_approvals_on_restack do not exist in... |
-| Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person ap... | partial (hub+asc) | templates/repo/settings/asc_policy.tmpl:79-88 agents fieldset (scope, denied paths, runtime, change... | Agents section exists as text areas and numbers; the approvals stepper, check chips and switches of the board were not found. |
+| Form: approvals stepper, check chips with Add, authors-may-approve switch, keep-approvals swit... | done | templates/repo/settings/asc_policy.tmpl (stepper, switches), asc_policy_chips.tmpl, web_src/js/features/asc-policy-form.js; TestAscPolicyFormControls | - |
+| Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person ap... | done | templates/repo/settings/asc_policy.tmpl agents fieldset (path chips, minutes, tokens, locked human approval switch); services/asctrust/policyform.go RuntimeSecsOf, HumanApproval; TestRuntimeMinutes, TestFormHumanApprovalIsReadAndKept | - |
 | Merge queue section: use queue, batch size, checks after merge | done | proto/asc/v1/mergequeue.proto (not found in tree) | the where-cell cites A:crates/asc-serve, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Live file beside the form with changed lines flashing (+/-) | done | see where-cell | the where-cell cites GetSource.text, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewer... | partial | templates/repo/settings/asc_policy.tmpl:93 live file | Marked done; the Changing policy is a change panel naming reviewers was not found. |

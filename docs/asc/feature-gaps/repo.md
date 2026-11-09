@@ -314,8 +314,8 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsPolicy | File header: `.asc/policy.toml`, Valid chip, "Last changed by Priya Raman, 5 days ago, in change kz4np" | done | `H:templates/repo/settings/asc_policy.tmpl` header: the Valid chip, the changeset it was read from and "Last changed by …, … ago, in change …" from the newest default-branch change touching `.asc/policy.toml` (`ascPolicyLastChange`, through the git backend); `asc_policy_lastchange_test.go` | S |
 | RepoSettingsPolicy | TOML editor with Check (validate), diagnostics with line, Propose change | done | `H:routers/web/repo/setting/asc_policy.go` (`/check`, `/propose`) | S |
 | RepoSettingsPolicy | Seg Form / TOML / Changes (three views of one file) | done (seen on a live hub (ui18): three tabs over one file, arrow keys move; Form fields are approvals, checks, signing, force, merge strategy and queue, agent scope, denied paths and budgets) | `asc_policy.tmpl` has a textarea and a read-only "what it means" table only | L |
-| RepoSettingsPolicy | Form: approvals stepper, check chips with Add, authors-may-approve switch, keep-approvals switch | needs-both | form needs a structured parse (`ValidatePolicyResponse.parsed`); keys `author_may_approve`, `keep_approvals_on_restack` do not exist in `A:crates/asc-core/src/policy.rs` | L |
-| RepoSettingsPolicy | Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person approves every agent change" | needs-both | schema has `default_scope`, `denied_paths`, `max_runtime_seconds`, `budgets.max_tokens`; no `human_approval`; UI mapping minutes to seconds;; Audit 2026-10-30 (part built): Agents section exists as text areas and numbers; the approvals stepper, check chips and switches of the board were not found. | L |
+| RepoSettingsPolicy | Form: approvals stepper, check chips with Add, authors-may-approve switch, keep-approvals switch | done | ui-only (re-judged from needs-both): the form already reads and writes the policy text in the hub (`H:services/asctrust/policyform.go` FormOfText, ApplyForm), and asc already has the keys; the Form view has a −/+ stepper around the approvals number, the required checks as ticked chips with an Add field (`H:templates/repo/settings/asc_policy_chips.tmpl`, `H:web_src/js/features/asc-policy-form.js`; untick to remove; works without the script through the Add field), and every yes/no option as a switch; tests: TestAscPolicyFormControls, TestListOfJoinsChipsAndTheAddField, asc-policy-form.test.js | - |
+| RepoSettingsPolicy | Agents section: write paths, never-touch paths, budget minutes and tokens, locked "A person approves every agent change" | done | ui-only (re-judged from needs-both): asc already has `[review] human_approval` (ReviewPolicy); the write and never-touch paths are chips with Add, the longest run is asked in minutes (rounded up, and an unchanged value keeps the exact seconds: `RuntimeSecsOf`), the token budget is a number, and "A person approves every agent change" is a locked switch that shows `human_approval` (on by default; turned off only in the TOML view, which the help text says); tests: TestAscPolicyFormControls, TestRuntimeMinutes, TestFormHumanApprovalIsReadAndKept | - |
 | RepoSettingsPolicy | Merge queue section: use queue, batch size, checks after merge | done (seen on a live hub (ui20): use queue, batch size (1 to 20) and checks after merge, written as [merge] queue, batch and post_merge_checks) | `[merge] queue` exists; `batch` and `post_merge_checks` do not (`A:crates/asc-serve` merge queue, `proto/asc/v1/mergequeue.proto`) | L |
 | RepoSettingsPolicy | Live file beside the form with changed lines flashing (+/-) | done (seen on a live hub (ui20): the file as it would be, changed lines marked + and -, beside the Form view) | client-side diff against `GetSource.text` | M |
 | RepoSettingsPolicy | Changes tab: diff of the one pending edit; "Changing policy is a change" panel naming reviewers (Priya Raman and Diego Alvarez) | done | `H:templates/repo/settings/asc_policy.tmpl` Changes view: the line diff of the pending edit and a "Changing policy is a change" panel listing the maintainers named in the policy as reviewers (or saying none is named); `TestAscPolicyChangesReviewers` | M |
@@ -409,12 +409,12 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 258 |
+| done | 260 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 5 |
+| needs-both | 3 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -438,7 +438,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsMenu | 2 | 0 | 0 | 0 | 0 |
 | RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
 | RepoSettingsAccess | 8 | 0 | 0 | 0 | 0 |
-| RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
+| RepoSettingsPolicy | 12 | 0 | 0 | 0 | 0 |
 | RepoSettingsRules | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
