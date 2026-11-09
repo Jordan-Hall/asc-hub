@@ -424,6 +424,20 @@ someone else). The pill is `ascpresence.Of` (`services/ascpresence`), filled in 
 in `templates/shared/user/profile_big_avatar.tmpl`. Tests: TestThePillSaysOnlineAndTheLocalTime,
 TestTheProfileShowsAPresencePill.
 
+## The agents pill in the header
+
+While a signed-in person has an agent run that is queued, running or waiting, the header (beside Inbox) and the phone
+top bar show a pill with a cyan dot: **3 agents running** on a wide header, the number alone on a phone, with the full
+words as its accessible name. It links to Your agents (`/-/asc/agents`). The page script asks
+`GET /-/asc/agents/count` (JSON `{"count"}`, never cached by the browser, a sign-in needed) once and keeps the answer
+for 30 seconds in the session storage of the tab; the hub keeps it 30 seconds per person in its cache.
+
+The count covers the person's own runs only (`created_by` is the signed-in name) over the asc repositories of Your
+agents (the 30 most recently updated that they own or collaborate on), asked with one `Agents.CountRuns` call to
+`asc serve`, which checks read on each repository. It is 0 and the pill stays hidden while the person's agent features
+are off, when they have no asc repository, and when `asc serve` cannot be asked (logged with the request id; a failure
+is not cached). The number shown is at most 999.
+
 ## Checks and Watch on organization rows
 
 Each repository row of an organization page says how the checks of the head of its default branch went: **Checks
