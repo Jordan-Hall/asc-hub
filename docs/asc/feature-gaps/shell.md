@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 175 |
+| done | 176 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 20 |
+| needs-both | 19 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 21, L 14.
+Open rows by size: S 0, M 20, L 14.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -181,7 +181,7 @@ Open rows by size: S 0, M 21, L 14.
 | --- | --- | --- | --- | --- |
 | ExploreOrgs | Org row: avatar, name, description, repositories and people counts | done | `explore/user_list.tmpl` (`IsOrganization`) | - |
 | ExploreOrgs | Verified badge (domain proof) and explainer card | done | No flag. Add a verified field and domain proof (DNS TXT or well-known file) in `models/user`, migration under `models/migrations`, owner settings, a check job; chip in `user_list.tmpl` | L |
-| ExploreOrgs | Agents count; member stack with up to four avatars and +N | needs-both | Members: `organization.GetOrgUsersByOrgID` (hub). Agents count: asc, as for Explore users | M |
+| ExploreOrgs | Agents count; member stack with up to four avatars and +N | done | `routers/web/explore/org_rows.go`: the member stack from `organization.GetOrgUsersByOrgID` (public members, or all for a member or an administrator) and the agents from `services/ascagentdir` (asc `Agents.SummarizeAgents`); `explore/user_list.tmpl`. Docs: OPERATIONS "The agent directory" and "Members and agents on organization rows"; test `TestTheExploreOrgRowsHaveMembersAndAgents` | - |
 | ExploreOrgs | 12-week sparkline and "Active 12 min ago" | done | `AscOrgActivity` in `models/activities/asc_weekly.go` counts the actions in the public repositories of the organization and keeps the latest; the row shows the line and "Active" with a relative time | M |
 | ExploreOrgs | Chips All, Verified, Has agents, I am a member; Size filter; Sort most active | done | `models/user/asc_org_search.go` adds the filters to the account search (agents count only memberships the viewer may see) and the Most active order (public repositories of public organizations, without people who keep activity private); `routers/web/explore/org.go` reads `only` and `size`; `templates/explore/search.tmpl` shows the chips and the Size select | M |
 | ExploreOrgs | View hover action; Start an organization card; grid layout; states | done | View row action and empty, no-match and error states in `explore/user_list.tmpl`; Start an organization and verified explainer cards in `explore/users.tmpl`; List and Grid via `shared/ds/layout_toggle`; loading not shown, server rendered | - |

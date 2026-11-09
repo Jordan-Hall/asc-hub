@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 220, partial 23, missing 74. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 221, partial 23, missing 73. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -428,7 +428,7 @@ Board copy not found word for word in locale, templates or scripts: Filter repos
 
 #### ExploreOrgs (ASC Hub explore organizations)
 
-Area shell/settings. Rows 6: done 4, partial 0, missing 2. Copy found in the hub: 67% of 109 copy strings (mobile twin 47%). Template(s): user_list.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 6: done 5, partial 0, missing 1. Copy found in the hub: 67% of 109 copy strings (mobile twin 47%). Template(s): user_list.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Teams that own repositories, with who is in them.; Has agents; I am a member; Checkout, design system and storefront tooling.; Active Yesterday; Agent workflows, evaluations and the playbook library..
 
@@ -436,7 +436,7 @@ Board copy not found word for word in locale, templates or scripts: Teams that o
 |---|---|---|---|
 | Org row: avatar, name, description, repositories and people counts | done | templates/explore/user_list.tmpl:6 | - |
 | Verified badge (domain proof) and explainer card | done | templates/admin/federation/user_list.tmpl (file) | - |
-| Agents count; member stack with up to four avatars and +N | missing (hub+asc) | logged as not built (not re-probed) | Members: organization.GetOrgUsersByOrgID (hub). Agents count: asc, as for Explore users |
+| Agents count; member stack with up to four avatars and +N | done | routers/web/explore/org_rows.go, services/ascagentdir/dir.go, templates/explore/user_list.tmpl | - |
 | 12-week sparkline and "Active 12 min ago" | done | models/activities/asc_weekly.go, templates/explore/asc_activity.tmpl | - |
 | Chips All, Verified, Has agents, I am a member; Size filter; Sort most active | done | models/user/asc_org_search.go, routers/web/explore/org.go, templates/explore/search.tmpl | - |
 | View hover action; Start an organization card; grid layout; states | missing (UI) | logged as not built (not re-probed) | user_list.tmpl, explore/rail.tmpl, layout toggle |
