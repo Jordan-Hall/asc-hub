@@ -25,8 +25,8 @@ import (
 //
 // Hub data first: the repository, run and commit are what the hub recorded when an Actions job published the version
 // (packages_model.AscProvenance), and "a landed stack" is a merged pull request of an asc stack that landed as that
-// commit. Only the signature is asc's: the release of the repository tagged with the version (or "v" and the version), whose
-// tag is the commit the version was published from and whose signature asc checked as valid (asctrust.ListReleaseRecords);
+// commit. Only the signature is asc's: the release of the repository tagged with the version (or "v" and the version), cut
+// from the commit the version was published from and whose signature asc checked as valid (asctrust.ListReleaseRecords);
 // it is shown to people who can read the releases. Nothing is shown about a repository the person cannot read the code of.
 
 // AscPackageProvenance is the provenance line of a package version.
@@ -83,10 +83,14 @@ func ascPackageProvenance(ctx gocontext.Context, doer *user_model.User, pv *pack
 			if rec == nil || rec.Draft || !rec.SignatureOK || rec.SignedBy == "" {
 				continue
 			}
-			// The signature vouches for the release's commit: it says something about the version only when the
-			// version was published from that very commit (the tag's commit as the hub keeps it).
-			rel, err := repo_model.GetRelease(ctx, repo.ID, rec.Tag)
-			if err != nil || rel.IsDraft || rel.Sha1 != p.Commit {
+			// The signature vouches for the commit the release was cut from, as asc recorded it (a tag can be moved;
+			// that record cannot): it says something about the version only when the version was published from that
+			// very commit.
+			commit, err := asctrust.ReleaseCommit(ctx, repo, rec)
+			if err != nil {
+				log.Warn("packages: the commit of release %s of %-v: %v", rec.Tag, repo, err)
+			}
+			if err != nil || commit == "" || commit != p.Commit {
 				continue
 			}
 			out.Signed, out.SignedBy, out.SigningKey, out.ReleaseTag = true, rec.SignedBy, rec.SigningKey, rec.Tag

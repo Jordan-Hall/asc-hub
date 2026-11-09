@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -64,6 +65,9 @@ type ReleaseRecord struct {
 	SigningKey   string
 	SignatureOK  bool
 	Assets       map[string]string // asset name -> sha256
+	// Target is the changeset the release was cut from (32 bytes), the commit its signature vouches for; nil when asc
+	// did not say. ReleaseCommit gives its git commit.
+	Target []byte
 
 	// What a release that exists only in asc (made with `asc release create`) needs to be listed on the hub.
 	Title      string
@@ -114,6 +118,9 @@ func releaseRecordOf(r *ascv1.Release) *ReleaseRecord {
 		out.SigningKey = CleanText(p.GetSigningKey(), 120)
 		out.SignatureOK = p.GetSignatureValid()
 	}
+	if t := r.GetTarget(); len(t) == 32 {
+		out.Target = slices.Clone(t)
+	}
 	for i, a := range r.GetAssets() {
 		if i >= releaseMaxAssets {
 			break
@@ -130,6 +137,23 @@ func releaseRecordOf(r *ascv1.Release) *ReleaseRecord {
 		}
 	}
 	return out
+}
+
+// ReleaseCommit returns the git commit (40 hex digits) of the changeset release rec was cut from, the commit its
+// signature vouches for, or "" when asc names none or has no git commit for it.
+func ReleaseCommit(ctx context.Context, repo *repo_model.Repository, rec *ReleaseRecord) (string, error) {
+	if rec == nil || len(rec.Target) != 32 {
+		return "", nil
+	}
+	name, err := RepoName(repo)
+	if err != nil {
+		return "", err
+	}
+	conn, err := Conn()
+	if err != nil {
+		return "", err
+	}
+	return gitCommitOf(ctx, conn, name, rec.Target)
 }
 
 // ListReleaseRecords returns the asc records of the releases of repo by tag. Without asc it returns nothing and no error:
