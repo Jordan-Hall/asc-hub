@@ -53,7 +53,7 @@ Other findings that cross boards:
 ## 3. Per-area counts and boards
 
 - **shell/settings**: 47 boards, 317 rows, done 266, partial 11, missing 40. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **repo**: 24 boards, 274 rows, done 155, partial 23, missing 96. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
 - **auth**: 6 boards, 40 rows, done 30, partial 4, missing 6. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
@@ -884,7 +884,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Changeset (ASC Hub change)
 
-Area repo. Rows 14: done 8, partial 1, missing 5. Copy found in the hub: 67% of 81 copy strings (mobile twin 66%). Template(s): commit_page.tmpl. Mobile twin: yes.
+Area repo. Rows 14: done 9, partial 1, missing 4. Copy found in the hub: 67% of 81 copy strings (mobile twin 66%). Template(s): commit_page.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: main@c8a02f1; Browse files; Spread retries so a provider outage does not turn into a synchronized stampede...; The cap on line 23 and the new bounds test. Everything else is mechanical.; , attempt: u32) ->; .base * 2u32..
 
@@ -892,7 +892,7 @@ Board copy not found word for word in locale, templates or scripts: main@c8a02f1
 |---|---|---|---|
 | Page shell with breadcrumb History / id, title, Landed chip, Browse files, Copy id | done | templates/repo/commit_page.tmpl (file) | - |
 | "Why this exists" (intent) block | missing (hub) | logged as not built (not re-probed) | derive from the message body of the change (Repo.ReadChangeset header); H:templates/repo/commit_header.tmpl |
-| "Where to look" and "Risk" lines | missing (hub+asc) | logged as not built (not re-probed) | asc has no such field in ChangeInfo/LogEntry; produce them through the "Review summaries" AI feature (A:proto new RPC or trailer)... |
+| "Where to look" and "Risk" lines | done | routers/web/repo/asc_change_brief.go, templates/repo/change_facts.tmpl | - |
 | Facts strip: Size, Files, Checks 14 of 14, Risk | done | templates/repo/commit_header.tmpl (file) | - |
 | Stack position bar: previous / next change, "Change 2 in retry-with-backoff" | done | templates/repo/commit_header.tmpl:23 | the where-cell cites repo.walk_commits, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Files grouped by meaning (Behaviour, Tests, Generated) with counts, collapsible groups, genera... | missing (hub) | logged as not built (not re-probed) | Repo.Classify is wrapped in H:modules/git/ascbackend/classify.go and rendered as a pill (diff/asc_class_badge.tmpl) on pull files... |
