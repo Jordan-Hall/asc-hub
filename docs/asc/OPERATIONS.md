@@ -496,6 +496,24 @@ required, the required checks, Only people approve, Changes must be signed, Land
 strategy, or "Not set yet". **Read the policy** opens the merge defaults in the organization settings, which a member
 who is not an owner reads without changing. When asc cannot be asked the card keeps its lead and the link.
 
+## Rows that act in place, on the dashboard
+
+Each row of **Needs you** on the dashboard has one button that does the next step without opening the pull request:
+
+- a review asked of the person: **Approve** sends an approving review at the head of the pull request, as Approve on
+  the review page; a person cannot approve their own pull request;
+- a change ready to land in a repository with the asc merge queue: **Add to merge queue** queues the stack up to it, as
+  "Merge when ready" (the same permission checks). The dashboard then shows "Added to merge queue" with **Undo** for
+  10 seconds, longer while the pointer or the focus is on it; Undo takes the stack out of the queue again;
+- changes asked of the person: **Reply** opens the reply box of the pull request; a blocked change: **Resolve** opens
+  it; a change ready in a repository without the queue: **Merge** opens it.
+
+The buttons post to `POST /-/asc/dash/act` (`pull`, the id of the pull request, and `do`: approve, queue or unqueue).
+A pull request the person may not read is a 404; a refusal (no permission, the queue paused or turned off, an archived
+repository, a closed pull request) is a message on the dashboard. An agent run that waits for the person in **Agents
+working now** has an answer box; Send posts the answer to the run (`.../asc/agents/runs/{id}/input` with
+`back=dash`) and comes back to the dashboard.
+
 ## Chips, agent rows and who is active, in the people directory
 
 The people directory (`/explore/users`) has the chips **All**, **People**, **Agents**, **Maintainers** and **Online

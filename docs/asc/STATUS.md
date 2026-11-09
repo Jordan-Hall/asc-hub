@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 232, partial 18, missing 67. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 234, partial 17, missing 66. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -307,7 +307,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Dashboard (ASC Hub dashboard)
 
-Area shell/settings. Rows 18: done 9, partial 2, missing 7. Copy found in the hub: 61% of 102 copy strings (mobile twin 60%). Template(s): asc_home.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 18: done 11, partial 1, missing 6. Copy found in the hub: 61% of 102 copy strings (mobile twin 60%). Template(s): asc_home.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; j/k to move - Enter to open - e to done; "Can we keep the old cursor format for one release? Mobile clients pin to it."; Agent asked a question: which currency table wins?; Blocking 2 changes; Ready to merge: Rate limit headers.
 
@@ -318,7 +318,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Pinned repositories per person; counts update live | done | routers/web/user/asc_dashboard.go `ascDashRepos`, `AscDashCounts`; web_src/js/features/asc-dash-live.js `refreshCounts` | Profile pins lead the work switcher; the counts load again with the Today card every minute (TestAscDashReposPutThePinsFirst) |
 | Scope chips Everything / org / Personal filter the whole page, remembered | done | templates/user/dashboard/asc_home.tmpl:48 (best match) | - |
 | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | templates/user/dashboard/asc_home.tmpl (file) | - |
-| Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | missing (hub+asc) | logged as not built (not re-probed) | Buttons are links (aria-hidden, tabindex -1) to the review. Hub: POST handlers for approve (review in routers/web/repo/pull.go),... |
+| Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | done | routers/web/repo/asc_dash_act.go, templates/user/dashboard/asc_home.tmpl | Answer is the box of a waiting run in Agents working now |
 | Row kinds: reply from a person, agent question, ready to merge with queue position and estimat... | missing (hub+asc) | logged as not built (not re-probed) | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (mergequeue.proto List, stack... |
 | Keys j k, Enter, e (done), g then i, / | done | `asc-keys.js` e on the focused row; `asc_dashboard_test.go` | - |
 | Agents working now with budget bar, paused state, All runs | done | templates/user/dashboard/asc_home.tmpl (file) | - |
@@ -328,7 +328,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | From your terminal card with Copy; g i tip | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Live updates | missing (hub+asc) | logged as not built (not re-probed) | Counts load once. Hub: poll /-/asc/inbox/count or reuse eventsource.sharedworker.js; asc WatchRefs / queue Watch for pushes |
 | States: loading skeleton, new account, offline error with retry countdown | partial (UI) | logged as not built (not re-probed) | Inbox zero exists; the others missing |
-| Undo toast ("Added to merge queue. Undo for 10 s") | partial (hub+asc) | logged as not built (not re-probed) | toast.js has no action button; asc Dequeue exists for undo; goes with row actions |
+| Undo toast ("Added to merge queue. Undo for 10 s") | done | templates/user/dashboard/asc_home.tmpl `data-asc-dash-undo`, web_src/js/features/asc-applied-toast.js | - |
 | Appearance setting hides agent surfaces | done | see where-cell | - |
 | Mobile: Pull to refresh; swipe a row left to snooze, right to mark done | done | `asc-row-swipe.js`, `data-asc-pull-refresh` on the dashboard; `asc-row-swipe.test.js` | - |
 

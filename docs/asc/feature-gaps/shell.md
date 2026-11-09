@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 183 |
+| done | 185 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 12 |
+| needs-both | 10 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 17, L 10.
+Open rows by size: S 0, M 16, L 9.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -228,7 +228,7 @@ Open rows by size: S 0, M 17, L 10.
 | Dashboard | Pinned repositories per person; counts update live | done | `ascDashRepos` lists the person's profile pins first (read-checked, archived left out), then the latest; `GET /-/asc/dash/counts` refreshes Inbox, My stacks, Review requests and Agent runs with the Today card (`asc-dash-live.js` `refreshCounts`; `TestAscDashReposPutThePinsFirst`, `TestAscProfilePins/Dashboard`) | M |
 | Dashboard | Scope chips Everything / org / Personal filter the whole page, remembered | done | None in the template. `?scope=` in `ascDashBuild` filtering inbox rows, agents, stacks; persist as a user setting | M |
 | Dashboard | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | `asc_home.tmpl`, `ascDashRowFor` | - |
-| Dashboard | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | needs-both | Buttons are links (`aria-hidden`, tabindex -1) to the review. Hub: POST handlers for approve (review in `routers/web/repo/pull.go`), queue (`asc_queue.go`, asc `Enqueue`), answer (asc `SendInput`), htmx row swap | L |
+| Dashboard | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | done | `routers/web/repo/asc_dash_act.go` `AscDashAct` (`POST /-/asc/dash/act`: approve through `pull_service.SubmitReview`, queue and unqueue through `automerge`); Reply and Resolve are real links; the answer box of a waiting run posts to `AscAgentsInput` with `back=dash` (TestTheDashboardRowsActInPlace, TestAscDashPage) | - |
 | Dashboard | Row kinds: reply from a person, agent question, ready to merge with queue position and estimate, trunk moved with restack summary | needs-both | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (`mergequeue.proto` `List`, `stacks.proto` restack result); `services/ascinbox` | L |
 | Dashboard | Keys j k, Enter, e (done), g then i, `/` | done | `asc-keys.js`: j k, Enter on the row link, g i and `/`; e on the focused row sends its hidden state form (`user/asc_row_state.tmpl`, `asc-row-swipe.js`), back to the dashboard | - |
 | Dashboard | Agents working now with budget bar, paused state, All runs | done | `asc_home.tmpl`, `ascDashAgentsFromServe` | - |
@@ -238,7 +238,7 @@ Open rows by size: S 0, M 17, L 10.
 | Dashboard | From your terminal card with Copy; g i tip | done | `asc_home.tmpl` | - |
 | Dashboard | Live updates | needs-both | Counts load once. Hub: poll `/-/asc/inbox/count` or reuse `eventsource.sharedworker.js`; asc `WatchRefs` / queue `Watch` for pushes | L |
 | Dashboard | States: loading skeleton, new account, offline error with retry countdown | done | `user/dashboard/asc_home.tmpl`: the main column is `data-asc-list-main` with a three-row skeleton a scope chip shows (`asc-list-loading.js`); new account and inbox zero empty states; `user/dashboard/asc_today.tmpl` Today card refreshes every minute from `GET /-/asc/dash/today` (`asc-dash-live.js`: not while hidden or in use) and on a failed load keeps its items and shows "Offline. Activity could not load." with Try again and "Retrying in N s" (8, 16, 32, 60 s), the `online` event retries at once | - |
-| Dashboard | Undo toast ("Added to merge queue. Undo for 10 s") | needs-both | `toast.js` has no action button; asc `Dequeue` exists for undo; goes with row actions | M |
+| Dashboard | Undo toast ("Added to merge queue. Undo for 10 s") | done | `data-asc-dash-undo` in `templates/user/dashboard/asc_home.tmpl` after `?queued=`, timed by `asc-applied-toast.js` (`data-ms`); Undo posts `do=unqueue` | - |
 | Dashboard | Appearance setting hides agent surfaces | done | `ascagentui.FeaturesEnabled` | - |
 | Mobile-Dashboard | Pull to refresh; swipe a row left to snooze, right to mark done | done | `asc_home.tmpl`: `data-asc-pull-refresh` with the arrow (`asc-pull-refresh.js`, installed app); `asc-row-swipe.js` on `data-asc-swipe` rows: right marks done, left snoozes 4 h through `POST /-/asc/inbox/state` with `back=dash` | - |
 
