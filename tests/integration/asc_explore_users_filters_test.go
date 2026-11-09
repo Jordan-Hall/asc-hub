@@ -93,3 +93,40 @@ func TestThePeopleDirectoryFilters(t *testing.T) {
 		assert.Contains(t, next, "org=org3")
 	})
 }
+
+func TestThePeopleDirectoryRoles(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	_, err := db.GetEngine(db.DefaultContext).Exec("UPDATE `user` SET type = ? WHERE id = 30", user_model.UserTypeBot)
+	require.NoError(t, err)
+	roleOf := func(doc *HTMLDoc, name string) string {
+		row := doc.doc.Find(".ds-user-row").FilterFunction(func(_ int, s *goquery.Selection) bool {
+			return strings.TrimSpace(s.Find(".ds-li-title > a").Text()) == name
+		})
+		if chip := row.Find(`[data-testid="user-role-chip"]`); chip.Length() > 0 {
+			return chip.AttrOr("data-role", "") + ": " + strings.TrimSpace(chip.Text())
+		}
+		return strings.TrimSpace(row.Find(`[data-testid="user-agent-chip"]`).Text())
+	}
+	url := "/explore/users?sort=alphabetically&q=user"
+
+	t.Run("A signed-in person sees each role and the roles card", func(t *testing.T) {
+		defer test.MockVariableValue(&setting.UI.ExplorePagingNum, 50)()
+		doc := NewHTMLParser(t, loginUser(t, "user5").MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
+		assert.Equal(t, "owner: Owner", roleOf(doc, "user1"))
+		assert.Equal(t, "maintainer: Maintainer", roleOf(doc, "user2"))
+		assert.Equal(t, "member: Member", roleOf(doc, "user5"))
+		assert.Equal(t, "Agent", roleOf(doc, "user30"))
+		card := doc.doc.Find("[data-asc-roles]")
+		assert.Equal(t, "Roles on this hub", strings.TrimSpace(card.Find("h2").Text()))
+		assert.Equal(t, []string{"owner", "maintainer", "member", "agent"}, card.Find(".ds-roles-row").Map(func(_ int, s *goquery.Selection) string { return s.AttrOr("data-role", "") }))
+		assert.Contains(t, card.Find(`[data-role="agent"] dt`).Text(), "1")
+	})
+
+	t.Run("A visitor sees the Agent chip only", func(t *testing.T) {
+		defer test.MockVariableValue(&setting.UI.ExplorePagingNum, 50)()
+		doc := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", url), http.StatusOK).Body)
+		assert.Equal(t, 0, doc.doc.Find(`[data-testid="user-role-chip"]`).Length())
+		assert.Equal(t, 0, doc.doc.Find("[data-asc-roles]").Length())
+		assert.Equal(t, "Agent", roleOf(doc, "user30"))
+	})
+}
