@@ -12,11 +12,11 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 174 |
+| done | 175 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 21 |
+| needs-both | 20 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -148,7 +148,7 @@ Open rows by size: S 0, M 21, L 14.
 | Explore | List and Grid layout toggle; layout persists per person | done | No layout toggle anywhere (density exists in the account menu). Toggle, grid CSS, `localStorage` in `repo_search.tmpl`, `repo_list.tmpl` | M |
 | Explore | Row: owner avatar, name, visibility chip, description, topics, language, stars, updated, open-stacks chip | done | `explore/repo_list.tmpl` | - |
 | Explore | Agent activity chip on a row | done | asc `Agents.CountRuns` answers `per_repo` and counts `since` a time; `routers/web/shared/repoquick/agents.go` asks once per 50 rows for the asc repositories the viewer can read (agent features on), over the 7 days of the Agent activity quick chip, cached 60 s; `templates/explore/repo_list.tmpl` draws **N agent runs** linked to the runs of the repository | M |
-| Explore | Changeset count on a row ("3,812 changesets") | needs-both | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add `RepoStats` or cache in `services/ascsync` | M |
+| Explore | Changeset count on a row ("3,812 changesets") | done | `models/repo/asc_changesets.go` keeps the count of the default branch head, filled by the stats indexer (`modules/indexer/stats/db.go`, asc repositories through `History.Log` `count_only`); `routers/web/shared/repoquick/changesets.go` shows it for the rows the viewer can read and queues a stale one; `templates/explore/repo_list.tmpl` | - |
 | Explore | Contributor avatar stack on a row (people and agents) | done | `models/activities/asc_contributors.go` ranks who acted in each repository of the page in the last 90 days (one count per action, agents as their bot accounts); `routers/web/shared/repoquick` hides profiles the viewer may not see and keeps four; `templates/explore/repo_list.tmpl` draws the stack with an agent ring | M |
 | Explore | Row actions on hover or focus-within: Copy clone command, Star | done | Neither on the row. Buttons with `data-clipboard-text` (`asc clone host/owner/name`) and the existing star action | S |
 | Explore | Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can see | done | `templates/explore/rail.tmpl` (Trending this week, Popular topics, clone card), `models/repo/asc_trending.go` (weekly count, refreshed by a cron task). Audit 2026-11-05: found built | - |
