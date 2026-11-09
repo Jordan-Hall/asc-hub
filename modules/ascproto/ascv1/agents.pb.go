@@ -3965,6 +3965,7 @@ type CountAgentRunsRequest struct {
 	Repos         []*RepoRef             `protobuf:"bytes,1,rep,name=repos,proto3" json:"repos,omitempty"`                                     // 1 to 50, each named once
 	States        []AgentRunState        `protobuf:"varint,2,rep,packed,name=states,proto3,enum=asc.v1.AgentRunState" json:"states,omitempty"` // empty: every state
 	CreatedBy     string                 `protobuf:"bytes,3,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`            // empty: anyone; else the runs this person started or created
+	Since         int64                  `protobuf:"varint,4,opt,name=since,proto3" json:"since,omitempty"`                                    // unix seconds; 0: any time, else the runs created at or after it
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4020,9 +4021,17 @@ func (x *CountAgentRunsRequest) GetCreatedBy() string {
 	return ""
 }
 
+func (x *CountAgentRunsRequest) GetSince() int64 {
+	if x != nil {
+		return x.Since
+	}
+	return 0
+}
+
 type CountAgentRunsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Total         uint64                 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	PerRepo       []uint64               `protobuf:"varint,2,rep,packed,name=per_repo,json=perRepo,proto3" json:"per_repo,omitempty"` // the count of each repository, in the order of the request
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4062,6 +4071,13 @@ func (x *CountAgentRunsResponse) GetTotal() uint64 {
 		return x.Total
 	}
 	return 0
+}
+
+func (x *CountAgentRunsResponse) GetPerRepo() []uint64 {
+	if x != nil {
+		return x.PerRepo
+	}
+	return nil
 }
 
 type RecentAgentTasksRequest struct {
@@ -5403,14 +5419,16 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
 	"\x05agent\x18\x03 \x01(\tR\x05agent\x12\x15\n" +
 	"\x06run_id\x18\x04 \x01(\x04R\x05runId\x12\x0e\n" +
-	"\x02at\x18\x05 \x01(\x03R\x02at\"\x8c\x01\n" +
+	"\x02at\x18\x05 \x01(\x03R\x02at\"\xa2\x01\n" +
 	"\x15CountAgentRunsRequest\x12%\n" +
 	"\x05repos\x18\x01 \x03(\v2\x0f.asc.v1.RepoRefR\x05repos\x12-\n" +
 	"\x06states\x18\x02 \x03(\x0e2\x15.asc.v1.AgentRunStateR\x06states\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\x03 \x01(\tR\tcreatedBy\".\n" +
+	"created_by\x18\x03 \x01(\tR\tcreatedBy\x12\x14\n" +
+	"\x05since\x18\x04 \x01(\x03R\x05since\"I\n" +
 	"\x16CountAgentRunsResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x04R\x05total\"T\n" +
+	"\x05total\x18\x01 \x01(\x04R\x05total\x12\x19\n" +
+	"\bper_repo\x18\x02 \x03(\x04R\aperRepo\"T\n" +
 	"\x17RecentAgentTasksRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\rR\x05limit\"F\n" +
