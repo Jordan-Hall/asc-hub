@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/structs"
 
 	"xorm.io/builder"
 )
@@ -42,12 +43,15 @@ func (f AscUserFilter) cond(t UserType, cond builder.Cond) builder.Cond {
 }
 
 // AscMostActiveOrder is the Most active order of the people directory at now: most actions in the last
-// AscActiveDays days first. Only the actions anyone may see count, those in public repositories by people who do not
-// keep their activity private, so the order tells nothing a visitor could not read in the public feeds. Each action
+// AscActiveDays days first. Only the actions anyone may see count, those in public repositories of public owners by
+// people who do not keep their activity private, so the order tells nothing a visitor could not read in the public feeds. Each action
 // counts once (the copy in the feed of the actor). A tie goes to the name.
 func AscMostActiveOrder(now time.Time) db.SearchOrderBy {
 	since := now.AddDate(0, 0, -AscActiveDays).Unix()
 	return db.SearchOrderBy(fmt.Sprintf("CASE WHEN `user`.keep_activity_private = true THEN 0 ELSE (SELECT COUNT(*) FROM `action` "+
 		"WHERE `action`.act_user_id = `user`.id AND `action`.user_id = `user`.id AND `action`.is_private = false "+
-		"AND `action`.created_unix >= %d) END DESC, `user`.name ASC", since))
+		"AND `action`.created_unix >= %d AND `action`.repo_id IN (SELECT `repository`.id FROM `repository` "+
+		"INNER JOIN `user` `owner` ON `owner`.id = `repository`.owner_id "+
+		"WHERE `repository`.is_private = false AND `owner`.visibility = %d)) END DESC, `user`.name ASC",
+		since, structs.VisibleTypePublic))
 }
