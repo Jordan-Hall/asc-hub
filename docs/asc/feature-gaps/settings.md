@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 161 |
+| done | 162 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 12 |
+| needs-both | 11 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -38,7 +38,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 2. Backups: done (Backups service and the admin board).
 3. Usage and quota: done (Usage service; account, organization and admin pages).
 4. Access tokens: no expiry, and the ASC scope model (None/Read/Write per area) does not exist; asc authn must enforce it.
-5. Org agents: switch, spend ceiling, merge defaults and agent identities are done. Open: agent members and path-scoped policy owners.
+5. Org agents: switch, spend ceiling, merge defaults and agent identities are done. Path-scoped policy owners are done (team subjects). Open: agent members.
 6. Issue-to-stack links: chips, rail, auto-close on landing, quarantine chip, and stack cards on the Projects board.
 7. Signed-in devices and sessions: the asc side (tokens, SSH keys, agent tokens) is done. Browser sessions are done too (security page, Signed-in browsers).
 8. Account data export: done except the emailed link.
@@ -147,7 +147,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | OrgPeople | Invite dialog accepting several emails and a role | done | add_org_member.tmpl: names and addresses separated by commas, spaces or lines, a role, extra teams under a disclosure | M |
 | OrgTeams | Team cards (name, access, description, avatars, member and repo counts), create/edit/delete team | done | templates/org/team/teams.tmpl, routers/web/org/teams.go | - |
 | OrgTeams | Selecting a card loads detail below without leaving (members + repositories with access) | done | teams.tmpl cards link to ?team= (teams.go SelectedTeam) and web_src/js/features/org-team.js pickTeam swaps #team-detail in place, marks the card, moves focus to its heading and pushes the address (Back works); a failed load follows the link; org-team.test.js | M |
-| OrgTeams | Policy owner note: team linked to a path pattern in merge policy | needs-both | asc: policy path-owner rule naming a hub team (crates/asc-core/src/policy.rs); hub: team page card | L |
+| OrgTeams | Policy owner note: team linked to a path pattern in merge policy | done | asc: `team:<name>` subjects in roles and `[paths]` (crates/asc-core/src/policy.rs), members read from PathRules teams. Hub: services/ascteams copies every organization's teams to asc after each team change and every 10 minutes (cron sync_asc_teams); the Policy owner part of the team detail in templates/org/team/teams.tmpl lists the repositories whose policy names the team, with the roles and paths it gives | L |
 | OrgTeams | Agents as team members with a path scope | needs-both | asc: agent identity + path scope; hub: team members list | L |
 | NewOrg | Handle field, visibility, create | done | templates/org/create.tmpl, routers/web/org/org.go | - |
 | NewOrg | Display name field, "Who owns it", "Create a first team Everyone", "Allow agents" switch | done | create.tmpl full_name, owner block, create_everyone and allow_agents switches; org.go CreatePost makes the Everyone team (read on every unit, all repositories, creator in it) and turns agents on through asctrust.AllowOrgAgents (the rest of the agent policy kept); a failure of either is a warning and the organization stays; routers/web/org/org_create_test.go | - |

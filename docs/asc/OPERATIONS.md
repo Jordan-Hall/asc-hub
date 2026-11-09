@@ -483,6 +483,26 @@ agents**: the agents that ran in the asc repositories of the organization the vi
 the organizations of the page are taken in page order, at most 50 for the whole page, so an organization far down a
 page with many repositories can show fewer agents than it has. A failed lookup leaves that part out of the row.
 
+## Teams in path rules and policies
+
+A repository's path rules and its policy (`.asc/policy.toml`) may name `team:<name>`, a team of the organization that
+owns the repository. asc admits the members it holds for that team, so the hub copies its teams there
+(`PathRules.SetTeamMembers`, as the hub itself): a few seconds after a team is created, renamed or deleted, or a
+member is added or removed, and every 10 minutes for every organization with asc repositories (cron task
+**Copy organization teams to asc for path rules and policies**, `sync_asc_teams`), which also catches renamed and
+deleted accounts. The hub is the authority: a team asc holds that the organization no longer has is cleared, and a
+team's members are replaced by the hub's list. Team and member names go lower case; asc compares them ignoring case.
+When asc is off, unreachable or has no `pathrules.v1`, nothing is sent and the next run repairs it; a rule naming a
+team then admits nobody through it, never more.
+
+The team detail on the organization's **Teams** page has a **Policy owner** part when a repository policy names the
+selected team: each repository with the roles that list the team and the paths whose writers name the team or one of
+those roles (`*` is not counted). The repository links to its policy file. Only repositories the viewer may read the
+code of are listed; at most the first 50 asc repositories of the organization are checked and policies are kept for a
+minute. A repository whose policy could not be read is counted under the list. Code: `services/ascteams`,
+`services/asctrust/teams.go`, `routers/web/org/teams.go`, `templates/org/team/teams.tmpl`. Tests: TestReconcile*,
+TestATeamChangeIsSentAfterItCommits, TestOwnershipShowsWhatPoliciesGiveATeam, TestTheTeamPageShowsWhatPoliciesGiveTheTeam.
+
 ## Agents and the merge policy on the organization page
 
 The head of an organization page counts its agents beside its people, and the side of the page has an **Agents** card.
