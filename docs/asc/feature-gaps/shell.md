@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 160 |
+| done | 161 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 12 |
+| needs-hub-backend | 11 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -144,7 +144,7 @@ Open rows by size: S 0, M 21, L 14.
 | Explore | Tabs Repositories, Users, Organizations with counts | done | `explore/navbar.tmpl` | - |
 | Explore | Filter bar: search, Sort, Visibility, kind pills; `/` focuses search | done | `shared/repo_search.tmpl`, `repo-search.js` | - |
 | Explore | Language filter menu | done | `.Language` is read from the query but no menu lists languages. Menu from language stats (`models/repo/language_stats.go`) in `repo_search.tmpl` | M |
-| Explore | Quick chips All, Has open stacks, Agent activity, Starred, Templates, Archived | needs-hub-backend | `repo_search` has fork, mirror, template, archived pills only. "Has open stacks" needs an option on `repo_model.SearchRepoOptions` (`routers/web/explore/repo.go`); "Agent activity" needs the agent flag below; "Starred" a per-user filter | M |
+| Explore | Quick chips All, Has open stacks, Agent activity, Starred, Templates, Archived | done | Built on every repository list that uses `shared/repo_search.tmpl` (Explore, organization, profile, Watching): `open_stacks`, `agents` and `starred` are read by `routers/web/shared/repoquick` and filtered by `AscQuickFilter` (`models/repo/asc_quick_filter.go`): an open pull request; an action of a bot account (an agent) in the last 7 days; starred by the viewer (signed in only). Search, pager and the phone sheet keep them; the no-result state names the chip with a remove link. Forks and Mirrors moved to the sheet only. Docs: AGENTS-UI.md "Agent activity in the repository lists"; tests: TestTheQuickChipsOfTheRepositoryLists, TestTheQuickChipsOfExplore | - |
 | Explore | List and Grid layout toggle; layout persists per person | done | No layout toggle anywhere (density exists in the account menu). Toggle, grid CSS, `localStorage` in `repo_search.tmpl`, `repo_list.tmpl` | M |
 | Explore | Row: owner avatar, name, visibility chip, description, topics, language, stars, updated, open-stacks chip | done | `explore/repo_list.tmpl` | - |
 | Explore | Agent activity chip on a row | needs-both | Not in `repo_list.tmpl`. Needs agent runs per repo over a recent window: asc `ListRuns` batched for a page, or a hub cache table fed by `services/ascsync` | M |
