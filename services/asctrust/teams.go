@@ -35,6 +35,9 @@ type AscTeam struct {
 	Members []string
 }
 
+// ValidTeamName reports whether asc takes name as a team name: 1 to 128 of [A-Za-z0-9._@+-/].
+func ValidTeamName(name string) bool { return ascTeamName.MatchString(name) }
+
 func validTeamMember(m string) bool {
 	return ascTeamName.MatchString(m) || pathRulePrincipal.MatchString(m)
 }

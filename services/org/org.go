@@ -15,6 +15,7 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/storage"
 	"forgejo.org/modules/util"
+	"forgejo.org/services/ascteams"
 	repo_service "forgejo.org/services/repository"
 )
 
@@ -55,6 +56,7 @@ func DeleteOrganization(ctx context.Context, org *org_model.Organization, purge 
 	if err := committer.Commit(); err != nil {
 		return err
 	}
+	ascteams.OrgDeleted(org.Name)
 
 	// FIXME: system notice
 	// Note: There are something just cannot be roll back,

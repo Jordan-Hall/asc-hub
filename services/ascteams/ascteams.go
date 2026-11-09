@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -79,8 +80,10 @@ func Desired(ctx context.Context, orgID int64) (map[string][]string, error) {
 	return out, nil
 }
 
-// Reconcile makes asc hold the teams of the organization orgID: it sends each team whose members differ and clears
-// the teams the organization no longer has. It returns ErrUnavailable when asc cannot take teams.
+// Reconcile makes asc hold the teams of the organization orgID: it clears the teams the organization no longer has,
+// then sends each team whose members differ. One team failing does not stop the others; every failure is returned
+// joined. A team whose name asc cannot take (longer than 128 characters) is skipped with a warning: no rule can name
+// it. It returns ErrUnavailable when asc cannot take teams.
 func Reconcile(ctx context.Context, orgID int64) (Result, error) {
 	var res Result
 	if !setting.Asc.Enabled {
@@ -114,12 +117,28 @@ func Reconcile(ctx context.Context, orgID int64) (Result, error) {
 	for _, t := range have {
 		held[t.Name] = t.Members
 	}
+	var errs []error
+	// Removals first: a failed send then never leaves more access than the hub gives.
+	for _, t := range have {
+		if _, ok := want[t.Name]; ok || len(t.Members) == 0 {
+			continue
+		}
+		if err := asctrust.SetTeamMembers(sctx, conn, org.LowerName, t.Name, nil, asctrust.NewOpID()); err != nil {
+			errs = append(errs, fmt.Errorf("ascteams: clearing team %s/%s: %w", org.LowerName, t.Name, err))
+			continue
+		}
+		res.Cleared++
+	}
 	names := make([]string, 0, len(want))
 	for name := range want {
 		names = append(names, name)
 	}
 	slices.Sort(names)
 	for _, name := range names {
+		if !asctrust.ValidTeamName(name) {
+			log.Warn("ascteams: team %s/%s has a name asc cannot take; it is not sent", org.LowerName, name)
+			continue
+		}
 		members := want[name]
 		if len(members) > asctrust.MaxTeamMembers {
 			log.Warn("ascteams: team %s/%s has %d members; asc keeps %d, the rest are not sent", org.LowerName, name, len(members), asctrust.MaxTeamMembers)
@@ -130,20 +149,94 @@ func Reconcile(ctx context.Context, orgID int64) (Result, error) {
 			continue
 		}
 		if err := asctrust.SetTeamMembers(sctx, conn, org.LowerName, name, members, asctrust.NewOpID()); err != nil {
-			return res, fmt.Errorf("ascteams: sending team %s/%s: %w", org.LowerName, name, err)
+			errs = append(errs, fmt.Errorf("ascteams: sending team %s/%s: %w", org.LowerName, name, err))
+			continue
 		}
 		res.Set++
 	}
+	return res, errors.Join(errs...)
+}
+
+// Forget clears every team asc holds under the organization name orgName. It is for a name that no longer belongs
+// to the organization (renamed or deleted), so a later owner of the name inherits none of its teams.
+func Forget(ctx context.Context, orgName string) (int, error) {
+	if !setting.Asc.Enabled {
+		return 0, ErrUnavailable
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrUnavailable, err)
+	}
+	if !asctrust.HasFeature(ctx, Feature) {
+		return 0, ErrUnavailable
+	}
+	sctx, cancel := asctrust.SystemContext(ctx, 2*time.Minute)
+	defer cancel()
+	have, err := asctrust.ListTeams(sctx, conn, orgName)
+	if err != nil {
+		return 0, fmt.Errorf("ascteams: reading the teams of %s: %w", orgName, err)
+	}
+	cleared := 0
+	var errs []error
 	for _, t := range have {
-		if _, ok := want[t.Name]; ok || len(t.Members) == 0 {
+		if len(t.Members) == 0 {
 			continue
 		}
-		if err := asctrust.SetTeamMembers(sctx, conn, org.LowerName, t.Name, nil, asctrust.NewOpID()); err != nil {
-			return res, fmt.Errorf("ascteams: clearing team %s/%s: %w", org.LowerName, t.Name, err)
+		if err := asctrust.SetTeamMembers(sctx, conn, orgName, t.Name, nil, asctrust.NewOpID()); err != nil {
+			errs = append(errs, fmt.Errorf("ascteams: clearing team %s/%s: %w", orgName, t.Name, err))
+			continue
 		}
-		res.Cleared++
+		cleared++
 	}
-	return res, nil
+	return cleared, errors.Join(errs...)
+}
+
+// OrgsOfUser lists the organizations whose teams have the user uid as a member.
+func OrgsOfUser(ctx context.Context, uid int64) ([]int64, error) {
+	var ids []int64
+	err := db.GetEngine(ctx).Table("team_user").Where("uid = ?", uid).Distinct("org_id").Find(&ids)
+	return ids, err
+}
+
+// Renamed is called after the account u was renamed from oldName. asc keeps names, not ids: an organization's teams
+// move from the old name to the new one, and a person's teams are sent again under the new login.
+func Renamed(ctx context.Context, u *user_model.User, oldName string) {
+	if !setting.Asc.Enabled {
+		return
+	}
+	if u.IsOrganization() {
+		forgetLater(strings.ToLower(oldName))
+		Kick(u.ID)
+		return
+	}
+	ids, err := OrgsOfUser(ctx, u.ID)
+	if err != nil {
+		log.Warn("ascteams: the organizations of %s: %v", u.Name, err)
+		return
+	}
+	for _, id := range ids {
+		Kick(id)
+	}
+}
+
+// OrgDeleted is called after the organization named orgName was deleted: asc forgets its teams.
+func OrgDeleted(orgName string) {
+	if setting.Asc.Enabled {
+		forgetLater(strings.ToLower(orgName))
+	}
+}
+
+func forgetLater(orgName string) {
+	kickMu.Lock()
+	ctx := kickCtx
+	kickMu.Unlock()
+	inFlight.Add(1)
+	go func() {
+		defer inFlight.Done()
+		if _, err := Forget(ctx, orgName); err != nil && !errors.Is(err, ErrUnavailable) {
+			log.Warn("ascteams: %v", err)
+		}
+	}()
 }
 
 // OrgsWithAscRepos lists the organizations that own a repository stored in asc.

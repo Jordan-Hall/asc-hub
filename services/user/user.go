@@ -26,6 +26,7 @@ import (
 	"forgejo.org/modules/storage"
 	"forgejo.org/modules/util"
 	"forgejo.org/services/agit"
+	"forgejo.org/services/ascteams"
 	"forgejo.org/services/auth/source/oauth2"
 	org_service "forgejo.org/services/org"
 	"forgejo.org/services/packages"
@@ -185,6 +186,7 @@ func renameUser(ctx context.Context, u *user_model.User, newUserName string, doe
 		}
 		return err
 	}
+	ascteams.Renamed(ctx, u, oldUserName)
 	return nil
 }
 
