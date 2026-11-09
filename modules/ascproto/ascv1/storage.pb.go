@@ -2111,15 +2111,18 @@ func (x *GetRepoStorageUsageRequest) GetRefresh() bool {
 }
 
 type GetRepoStorageUsageResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Rows          []*StorageUsageRow     `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"` // every kind, zero when none is stored
-	TotalBytes    uint64                 `protobuf:"varint,2,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
-	ComputedAt    int64                  `protobuf:"varint,3,opt,name=computed_at,json=computedAt,proto3" json:"computed_at,omitempty"`            // unix seconds of the scan; 0 when none finished yet
-	Computing     bool                   `protobuf:"varint,4,opt,name=computing,proto3" json:"computing,omitempty"`                                // a scan is running
-	ReadThisMonth uint64                 `protobuf:"varint,5,opt,name=read_this_month,json=readThisMonth,proto3" json:"read_this_month,omitempty"` // bytes read from storage in `month`
-	Month         string                 `protobuf:"bytes,6,opt,name=month,proto3" json:"month,omitempty"`                                         // YYYY-MM, UTC
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Rows             []*StorageUsageRow     `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"` // every kind, zero when none is stored
+	TotalBytes       uint64                 `protobuf:"varint,2,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	ComputedAt       int64                  `protobuf:"varint,3,opt,name=computed_at,json=computedAt,proto3" json:"computed_at,omitempty"`                    // unix seconds of the scan; 0 when none finished yet
+	Computing        bool                   `protobuf:"varint,4,opt,name=computing,proto3" json:"computing,omitempty"`                                        // a scan is running
+	ReadThisMonth    uint64                 `protobuf:"varint,5,opt,name=read_this_month,json=readThisMonth,proto3" json:"read_this_month,omitempty"`         // bytes read from storage in `month`
+	Month            string                 `protobuf:"bytes,6,opt,name=month,proto3" json:"month,omitempty"`                                                 // YYYY-MM, UTC
+	TargetId         string                 `protobuf:"bytes,7,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`                           // where new objects go; empty: the instance default
+	HasFallback      bool                   `protobuf:"varint,8,opt,name=has_fallback,json=hasFallback,proto3" json:"has_fallback,omitempty"`                 // objects remain in an earlier place until a migration moves them
+	FallbackTargetId string                 `protobuf:"bytes,9,opt,name=fallback_target_id,json=fallbackTargetId,proto3" json:"fallback_target_id,omitempty"` // that place when has_fallback; empty: the instance default
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GetRepoStorageUsageResponse) Reset() {
@@ -2190,6 +2193,27 @@ func (x *GetRepoStorageUsageResponse) GetReadThisMonth() uint64 {
 func (x *GetRepoStorageUsageResponse) GetMonth() string {
 	if x != nil {
 		return x.Month
+	}
+	return ""
+}
+
+func (x *GetRepoStorageUsageResponse) GetTargetId() string {
+	if x != nil {
+		return x.TargetId
+	}
+	return ""
+}
+
+func (x *GetRepoStorageUsageResponse) GetHasFallback() bool {
+	if x != nil {
+		return x.HasFallback
+	}
+	return false
+}
+
+func (x *GetRepoStorageUsageResponse) GetFallbackTargetId() string {
+	if x != nil {
+		return x.FallbackTargetId
 	}
 	return ""
 }
@@ -2340,7 +2364,7 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"\aobjects\x18\x03 \x01(\x04R\aobjects\"[\n" +
 	"\x1aGetRepoStorageUsageRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x18\n" +
-	"\arefresh\x18\x02 \x01(\bR\arefresh\"\xe8\x01\n" +
+	"\arefresh\x18\x02 \x01(\bR\arefresh\"\xd6\x02\n" +
 	"\x1bGetRepoStorageUsageResponse\x12+\n" +
 	"\x04rows\x18\x01 \x03(\v2\x17.asc.v1.StorageUsageRowR\x04rows\x12\x1f\n" +
 	"\vtotal_bytes\x18\x02 \x01(\x04R\n" +
@@ -2349,7 +2373,10 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"computedAt\x12\x1c\n" +
 	"\tcomputing\x18\x04 \x01(\bR\tcomputing\x12&\n" +
 	"\x0fread_this_month\x18\x05 \x01(\x04R\rreadThisMonth\x12\x14\n" +
-	"\x05month\x18\x06 \x01(\tR\x05month*\xe5\x01\n" +
+	"\x05month\x18\x06 \x01(\tR\x05month\x12\x1b\n" +
+	"\ttarget_id\x18\a \x01(\tR\btargetId\x12!\n" +
+	"\fhas_fallback\x18\b \x01(\bR\vhasFallback\x12,\n" +
+	"\x12fallback_target_id\x18\t \x01(\tR\x10fallbackTargetId*\xe5\x01\n" +
 	"\x12StorageTargetState\x12$\n" +
 	" STORAGE_TARGET_STATE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cSTORAGE_TARGET_STATE_PENDING\x10\x01\x12!\n" +
