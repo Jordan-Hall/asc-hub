@@ -653,6 +653,11 @@ func preparePullReviewType(ctx *context.APIContext, pr *issues_model.PullRequest
 			ctx.Error(http.StatusUnprocessableEntity, "", errors.New("approve your own pull is not allowed"))
 			return -1, true
 		}
+		// only a person approves
+		if ctx.Doer().IsAscAgent() {
+			ctx.Error(http.StatusUnprocessableEntity, "", issues_model.ErrAgentMayNotApprove)
+			return -1, true
+		}
 		reviewType = issues_model.ReviewTypeApprove
 		needsBody = false
 

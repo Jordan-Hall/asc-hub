@@ -398,8 +398,14 @@ func IsContentEmptyErr(err error) bool {
 	return ok
 }
 
+// ErrAgentMayNotApprove is the refusal of an approval by an asc agent (user.IsAscAgent): only a person approves.
+var ErrAgentMayNotApprove = errors.New("an agent cannot approve a pull request")
+
 // SubmitReview creates a review out of the existing pending review or creates a new one if no pending review exist
 func SubmitReview(ctx context.Context, doer *user_model.User, issue *Issue, reviewType ReviewType, content, commitID string, stale bool, attachmentUUIDs []string) (*Review, *Comment, error) {
+	if reviewType == ReviewTypeApprove && doer.IsAscAgent() {
+		return nil, nil, ErrAgentMayNotApprove
+	}
 	ctx, committer, err := db.TxContext(ctx)
 	if err != nil {
 		return nil, nil, err

@@ -428,9 +428,10 @@ func getAuthorSignatureSquash(ctx context.Context, pr *issues_model.PullRequest,
 	return pr.Issue.Poster.NewGitSig(), nil
 }
 
-// IsUserAllowedToMerge check if user is allowed to merge PR with given permissions and branch protections
+// IsUserAllowedToMerge check if user is allowed to merge PR with given permissions and branch protections.
+// An asc agent (user.IsAscAgent) never is, whatever its permission: a person merges.
 func IsUserAllowedToMerge(ctx context.Context, pr *issues_model.PullRequest, p access_model.Permission, user *user_model.User) (bool, error) {
-	if user == nil {
+	if user == nil || user.IsAscAgent() {
 		return false, nil
 	}
 
