@@ -56,6 +56,8 @@ type fakeAsc struct {
 	addKey      func(*ascv1.AddSigningKeyRequest) (*ascv1.AddSigningKeyResponse, error)
 	revokeKey   func(*ascv1.RevokeSigningKeyRequest) (*ascv1.RevokeSigningKeyResponse, error)
 	serverKey   func() (*ascv1.GetServerKeyResponse, error)
+	getDefaults func(*ascv1.GetSigningDefaultsRequest) (*ascv1.GetSigningDefaultsResponse, error)
+	setDefaults func(*ascv1.SetSigningDefaultsRequest) (*ascv1.SetSigningDefaultsResponse, error)
 	verify      func(*ascv1.VerifySignaturesRequest) (*ascv1.VerifySignaturesResponse, error)
 	listGroups  func(*ascv1.ListFailureGroupsRequest) (*ascv1.ListFailureGroupsResponse, error)
 	getGroup    func(*ascv1.GetFailureGroupRequest) (*ascv1.GetFailureGroupResponse, error)
@@ -263,6 +265,22 @@ func (f *fakeAsc) GetServerKey(ctx context.Context, req *ascv1.GetServerKeyReque
 		return f.UnimplementedSigningServer.GetServerKey(ctx, req)
 	}
 	return f.serverKey()
+}
+
+func (f *fakeAsc) GetSigningDefaults(ctx context.Context, req *ascv1.GetSigningDefaultsRequest) (*ascv1.GetSigningDefaultsResponse, error) {
+	f.note(ctx, "GetSigningDefaults", req)
+	if f.getDefaults == nil {
+		return f.UnimplementedSigningServer.GetSigningDefaults(ctx, req)
+	}
+	return f.getDefaults(req)
+}
+
+func (f *fakeAsc) SetSigningDefaults(ctx context.Context, req *ascv1.SetSigningDefaultsRequest) (*ascv1.SetSigningDefaultsResponse, error) {
+	f.note(ctx, "SetSigningDefaults", req)
+	if f.setDefaults == nil {
+		return f.UnimplementedSigningServer.SetSigningDefaults(ctx, req)
+	}
+	return f.setDefaults(req)
 }
 
 func (f *fakeAsc) Verify(ctx context.Context, req *ascv1.VerifySignaturesRequest) (*ascv1.VerifySignaturesResponse, error) {

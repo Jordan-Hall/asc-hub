@@ -311,3 +311,47 @@ func TestLoadKeysIncludesTheServerKeyWhenThereIsOne(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, page.Server.Configured)
 }
+
+func TestSigningDefaultReadAndSet(t *testing.T) {
+	f, c := startFake(t)
+	f.listKeys = func(*ascv1.ListSigningKeysRequest) (*ascv1.ListSigningKeysResponse, error) {
+		return &ascv1.ListSigningKeysResponse{}, nil
+	}
+	page, err := LoadKeys(userCtx(t, "t"), c, time.Now())
+	require.NoError(t, err)
+	assert.Nil(t, page.Defaults, "an asc without the switch leaves it out and the page goes on")
+
+	on, updated := false, int64(0)
+	f.getDefaults = func(req *ascv1.GetSigningDefaultsRequest) (*ascv1.GetSigningDefaultsResponse, error) {
+		assert.Empty(t, req.GetUser(), "the page asks for the signed-in person's own value")
+		return &ascv1.GetSigningDefaultsResponse{SignByDefault: on, Updated: updated}, nil
+	}
+	f.setDefaults = func(req *ascv1.SetSigningDefaultsRequest) (*ascv1.SetSigningDefaultsResponse, error) {
+		on, updated = req.GetSignByDefault(), 1_794_000_000
+		return &ascv1.SetSigningDefaultsResponse{SignByDefault: on, Updated: updated}, nil
+	}
+	page, err = LoadKeys(userCtx(t, "t"), c, time.Now())
+	require.NoError(t, err)
+	require.NotNil(t, page.Defaults)
+	assert.False(t, page.Defaults.SignByDefault)
+	assert.True(t, page.Defaults.Updated.IsZero(), "never set")
+
+	ctx := userCtx(t, "tok-person")
+	op := NewOpID()
+	d, err := SetSigningDefault(ctx, c, true, op)
+	require.NoError(t, err)
+	assert.True(t, d.SignByDefault)
+	assert.Equal(t, int64(1_794_000_000), d.Updated.Unix())
+	call := f.last(t, "SetSigningDefaults")
+	assert.Equal(t, op, call.OpID)
+	assert.Equal(t, "Bearer tok-person", call.Auth)
+
+	page, err = LoadKeys(userCtx(t, "t"), c, time.Now())
+	require.NoError(t, err)
+	assert.True(t, page.Defaults.SignByDefault)
+
+	before := f.count("SetSigningDefaults")
+	_, err = SetSigningDefault(ctx, c, false, "not-a-uuid")
+	require.ErrorIs(t, err, ErrBadInput)
+	assert.Equal(t, before, f.count("SetSigningDefaults"), "a bad op id never reaches the server")
+}
