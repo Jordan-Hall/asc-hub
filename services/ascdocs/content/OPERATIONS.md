@@ -442,6 +442,41 @@ processes that execute agent runs. The section is shown to the site administrato
 Code: `routers/web/shared/actions/asc_agent_runners.go`, `services/asctrust/runners.go`; asc serve
 `Maintenance.ListAgentRunners`. Tests: TestTheAdminRunnersPageListsTheAgentRunners, TestLoadAgentRunnersRefusesABadAnswer.
 
+## Scheduled tasks, Run now and the audit chain check
+
+Site administration > Monitor lists the queues and the scheduled tasks.
+
+- **Run now** starts the task and opens a run panel above the task table. The panel shows who started the run, when,
+  how long it has taken, and the lines the task writes, as it writes them (the page asks the hub once a second). It
+  ends with OK or Failed; a failed run ends with the error. A task that writes nothing shows "The task has written no
+  output." Without JavaScript the panel shows the output at the time the page loaded and a Refresh link.
+- A run keeps its last 500 lines; older lines are counted as no longer kept. The output is held in memory until the
+  next run of the task or a restart. The panel's data comes from `GET /admin/monitor/cron/{task}/output?from=N`
+  (site administrators only).
+- If the task is already running, Run now follows that run. If a run does not begin within 15 seconds, the panel
+  says so.
+- **Flush** on a queue's page asks for confirmation and names the number of waiting items; after the flush the
+  message says how many were removed.
+
+**Verify audit chain** (`verify_asc_audit_chain`) runs every night at midnight while asc is on and asc serve keeps an
+audit log (feature `audit.v1`). It verifies the hash chain of the whole instance audit log with the hub's own
+credential, 50,000 events per call, the last call up to the newest event so a removed tail is found. Its output lists
+each slice. A broken chain fails the task: the task table shows Failed and a system notice names the first bad event,
+the number of events checked and asc serve's reason. Open Site administration > Audit log and press Verify to see the
+event, and treat it as possible tampering. To change the schedule or switch the task off:
+
+```ini
+[cron.verify_asc_audit_chain]
+ENABLED = true
+SCHEDULE = @midnight
+```
+
+Code: `modules/taskout`, `services/cron/tasks.go` (Output, LookupTask), `routers/web/admin/admin.go` (CronTasks,
+CronOutput), `web_src/js/features/admin/cronrun.js`, `services/asctrust/auditcheck.go`. Tests:
+TestRunNowShowsTheOutputOfTheRun, TestQueueFlushNamesTheCount, TestRunWithUserKeepsTheOutputOfTheRun,
+TestVerifyInstanceChainGoesInSlicesToTheHead, TestVerifyInstanceChainStopsAtTheFirstBadSlice,
+TestRunAuditCheckFailsOnABrokenChain, `cronrun.test.js`.
+
 ## Usage and agents on a person's page
 
 The page of a person in site administration (Overview tab) has a **Usage** card (storage and agent minutes this
