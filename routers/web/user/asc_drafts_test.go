@@ -4,9 +4,11 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
@@ -25,6 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 type fakeCloud struct {
@@ -33,13 +38,55 @@ type fakeCloud struct {
 	reqs  []*ascv1.GetWorkspaceRequest
 	heads []*ascv1.CloudHead
 	local []*ascv1.LocalDraft
+	// version is the workspace version (1 when unset); stale is how many updates answer ABORTED first.
+	version uint64
+	stale   int
+	updates []*ascv1.UpdateWorkspaceRequest
+	// users is the forwarded user of each update.
+	users []string
 }
 
 func (f *fakeCloud) GetWorkspace(_ context.Context, req *ascv1.GetWorkspaceRequest) (*ascv1.GetWorkspaceResponse, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.reqs = append(f.reqs, req)
-	return &ascv1.GetWorkspaceResponse{Version: 1, Heads: f.heads, Local: f.local}, nil
+	heads := make([]*ascv1.CloudHead, 0, len(f.heads))
+	for _, h := range f.heads {
+		if h.GetHiddenAt() == 0 || req.GetIncludeHidden() {
+			heads = append(heads, h)
+		}
+	}
+	return &ascv1.GetWorkspaceResponse{Version: max(f.version, 1), Heads: heads, Local: f.local}, nil
+}
+
+func (f *fakeCloud) UpdateWorkspace(ctx context.Context, req *ascv1.UpdateWorkspaceRequest) (*ascv1.UpdateWorkspaceResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	md, _ := metadata.FromIncomingContext(ctx)
+	f.users = append(f.users, strings.Join(md.Get("x-asc-forwarded-user"), ","))
+	f.updates = append(f.updates, req)
+	if f.stale > 0 {
+		f.stale--
+		f.version = max(f.version, 1) + 1 // another device wrote in between
+		return nil, status.Error(codes.Aborted, "version conflict")
+	}
+	if req.GetBaseVersion() != max(f.version, 1) {
+		return nil, status.Error(codes.Aborted, "version conflict")
+	}
+	for _, h := range f.heads {
+		for _, cs := range req.GetHide() {
+			if bytes.Equal(cs, h.GetCs()) {
+				h.HiddenAt = 1700000500
+			}
+		}
+		for _, cs := range req.GetUnhide() {
+			if bytes.Equal(cs, h.GetCs()) {
+				h.HiddenAt = 0
+			}
+		}
+	}
+	f.version = max(f.version, 1) + 1
+	return &ascv1.UpdateWorkspaceResponse{Version: f.version}, nil
 }
 
 func useFakeCloud(t *testing.T, f *fakeCloud) {
@@ -177,6 +224,7 @@ func TestAscDraftsPage(t *testing.T) {
 		ctx.Doer = user2
 		repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1})
 		ctx.Data["AscDraftsRepos"] = []AscDraftsRepo{{Repo: repo, Drafts: []AscDraft{{Commit: "01", Labels: []string{"<img src=x onerror=alert(1)>"}}}}}
+		ctx.Data["AscDraftsAnyVisible"] = true
 		ctx.HTML(http.StatusOK, tplAscDrafts)
 		assert.NotContains(t, resp.Body.String(), "<img src=x")
 		assert.Contains(t, resp.Body.String(), "&lt;img src=x")
@@ -226,5 +274,136 @@ func TestAscDraftsPage(t *testing.T) {
 		for _, r := range f.reqs {
 			assert.NotEqual(t, "user2/repo1", r.GetRepo().GetName())
 		}
+	})
+}
+
+func TestAscDraftsRefs(t *testing.T) {
+	assert.Equal(t, []byte{0xab, 0x01}, ascDraftsCommit("ab01"))
+	for _, bad := range []string{"", "AB01", "abc", "zz", strings.Repeat("ab", ascDraftsMaxIDBytes+1)} {
+		assert.Nil(t, ascDraftsCommit(bad), bad)
+	}
+	assert.Equal(t, ascDraftsRef{repo: 7, cs: "ab"}, ascDraftsParseDiscarded("7.ab"))
+	for _, bad := range []string{"", "7", "x.ab", "0.ab", "-1.ab", "7.AB", "7.<b>"} {
+		assert.Equal(t, ascDraftsRef{}, ascDraftsParseDiscarded(bad), bad)
+	}
+}
+
+func postAscDrafts(t *testing.T, doer *user_model.User, action, query string) (resp *httptest.ResponseRecorder, ok, failed string) {
+	t.Helper()
+	ctx, resp := contexttest.MockContext(t, "POST /-/asc/drafts/"+action+query)
+	ctx.Doer = doer
+	ctx.IsSigned = doer != nil
+	if action == "discard" {
+		AscDraftsDiscard(ctx)
+	} else {
+		AscDraftsUndo(ctx)
+	}
+	return resp, ctx.Flash.SuccessMsg, ctx.Flash.ErrorMsg
+}
+
+func TestAscDraftsDiscardAndUndo(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	user4 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	setAscBackend(t, 1, "asc")
+	setAscBackend(t, 2, "asc")
+	defer setAscBackend(t, 2, "git")
+	defer test.MockVariableValue(&setting.Asc.ForwardedKey, bytes.Repeat([]byte{7}, 32))()
+
+	t.Run("discard hides the draft as the signed-in person, the page offers undo, undo shows it again", func(t *testing.T) {
+		f := &fakeCloud{heads: []*ascv1.CloudHead{{Cs: []byte{1}, Labels: []string{"spike"}, Added: 1700000000}}}
+		useFakeCloud(t, f)
+		resp, _, failed := postAscDrafts(t, user2, "discard", "?repo=1&cs=01")
+		assert.Empty(t, failed)
+		assert.Equal(t, http.StatusSeeOther, resp.Code)
+		assert.Equal(t, "/-/asc/drafts?discarded=1.01", resp.Header().Get("Location"))
+		f.mu.Lock()
+		require.Len(t, f.updates, 1)
+		assert.Equal(t, [][]byte{{1}}, f.updates[0].GetHide())
+		assert.Equal(t, uint64(1), f.updates[0].GetBaseVersion())
+		assert.Equal(t, "2:user2", f.users[0], "the claim names the signed-in person")
+		f.mu.Unlock()
+
+		code, body := getAscDrafts(t, user2, "?discarded=1.01")
+		assert.Equal(t, http.StatusOK, code)
+		assert.Contains(t, body, `data-testid="drafts-discarded"`, "the banner")
+		assert.Contains(t, body, `data-testid="drafts-discarded-list"`)
+		assert.Contains(t, body, "asc_work.drafts_empty_title", "nothing left in the main list")
+		assert.Contains(t, body, `action="/-/asc/drafts/undo"`)
+		assert.NotContains(t, body, `action="/-/asc/drafts/discard"`)
+
+		// A value that names no discarded draft gives no banner, only the list.
+		_, body = getAscDrafts(t, user2, "?discarded=1.02")
+		assert.NotContains(t, body, `data-testid="drafts-discarded"`)
+		assert.Contains(t, body, `data-testid="drafts-discarded-list"`)
+
+		resp, ok, failed := postAscDrafts(t, user2, "undo", "?repo=1&cs=01")
+		assert.Empty(t, failed)
+		assert.Equal(t, "asc_work.drafts_restored", ok)
+		assert.Equal(t, "/-/asc/drafts", resp.Header().Get("Location"))
+		f.mu.Lock()
+		require.Len(t, f.updates, 2)
+		assert.Equal(t, [][]byte{{1}}, f.updates[1].GetUnhide())
+		f.mu.Unlock()
+
+		_, body = getAscDrafts(t, user2, "")
+		assert.NotContains(t, body, `data-testid="drafts-discarded-list"`)
+		assert.Contains(t, body, `action="/-/asc/drafts/discard"`)
+		assert.Contains(t, body, "asc stack resume 01", "Continue shows the command")
+	})
+
+	t.Run("a second click changes nothing and a lost race is tried again", func(t *testing.T) {
+		f := &fakeCloud{heads: []*ascv1.CloudHead{{Cs: []byte{1}, Added: 1700000000, HiddenAt: 1700000100}}}
+		useFakeCloud(t, f)
+		resp, _, failed := postAscDrafts(t, user2, "discard", "?repo=1&cs=01")
+		assert.Empty(t, failed)
+		assert.Equal(t, "/-/asc/drafts?discarded=1.01", resp.Header().Get("Location"))
+		f.mu.Lock()
+		assert.Empty(t, f.updates, "already discarded")
+		f.stale = 1
+		f.mu.Unlock()
+		_, ok, failed := postAscDrafts(t, user2, "undo", "?repo=1&cs=01")
+		assert.Empty(t, failed)
+		assert.Equal(t, "asc_work.drafts_restored", ok)
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		require.Len(t, f.updates, 2)
+		assert.Equal(t, uint64(2), f.updates[1].GetBaseVersion(), "read again after the conflict")
+		assert.Zero(t, f.heads[0].GetHiddenAt())
+	})
+
+	t.Run("a draft that is not there, a bad id or a repository the person cannot read changes nothing", func(t *testing.T) {
+		f := &fakeCloud{heads: []*ascv1.CloudHead{{Cs: []byte{1}, Added: 1700000000}}}
+		useFakeCloud(t, f)
+		for _, q := range []string{"?repo=1&cs=02", "?repo=1&cs=ZZ", "?repo=1&cs=", "?repo=99999&cs=01", "?repo=3&cs=01"} {
+			resp, _, failed := postAscDrafts(t, user2, "discard", q)
+			assert.Equal(t, "asc_work.drafts_act_gone", failed, q)
+			assert.Equal(t, "/-/asc/drafts", resp.Header().Get("Location"), q)
+		}
+		// Repository 2 is user2's private repository: user4 cannot read it.
+		_, _, failed := postAscDrafts(t, user4, "discard", "?repo=2&cs=01")
+		assert.Equal(t, "asc_work.drafts_act_gone", failed)
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		assert.Empty(t, f.updates)
+	})
+
+	t.Run("asc failing is said", func(t *testing.T) {
+		f := &fakeCloud{heads: []*ascv1.CloudHead{{Cs: []byte{1}, Added: 1700000000}}, stale: 5}
+		useFakeCloud(t, f)
+		_, _, failed := postAscDrafts(t, user2, "discard", "?repo=1&cs=01")
+		assert.Equal(t, "asc_work.drafts_act_failed", failed)
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		assert.Len(t, f.updates, ascDraftsStaleTries)
+	})
+
+	t.Run("anonymous and disabled", func(t *testing.T) {
+		useFakeCloud(t, &fakeCloud{})
+		resp, _, _ := postAscDrafts(t, nil, "discard", "?repo=1&cs=01")
+		assert.Equal(t, http.StatusNotFound, resp.Code)
+		defer test.MockVariableValue(&setting.Asc.Enabled, false)()
+		resp, _, _ = postAscDrafts(t, user2, "undo", "?repo=1&cs=01")
+		assert.Equal(t, http.StatusNotFound, resp.Code)
 	})
 }
