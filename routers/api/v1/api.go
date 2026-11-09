@@ -732,8 +732,6 @@ func Routes() *web.Route {
 			// authorization reducer is applied to each one inside the handler
 			m.Get("/asc/inbox", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository), user.ListAscInbox)
 			m.Get("/asc/inbox/count", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository), user.CountAscInbox)
-			// (repo scope, the scope the command line signs in with) the machine report of `asc doctor --report`
-			m.Post("/asc/doctor", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository), bind(api.AscDoctorReport{}), user.ReportAscDoctor)
 			m.Get("/times", repo.ListMyTrackedTimes)
 			m.Get("/stopwatches", repo.GetStopwatches)
 			m.Get("/subscriptions", user.GetMyWatchedRepos)
@@ -759,6 +757,10 @@ func Routes() *web.Route {
 				m.Delete("", user.DeleteAvatar)
 			}, reqToken())
 		}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryUser), reqToken())
+
+		// (repo scope only, the scope the command line signs in with, which reads but does not write the user) the
+		// machine report of `asc doctor --report`
+		m.Post("/user/asc/doctor", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository), reqToken(), bind(api.AscDoctorReport{}), user.ReportAscDoctor)
 
 		// Repositories (requires repo scope, org scope)
 		m.Post("/org/{org}/repos",
