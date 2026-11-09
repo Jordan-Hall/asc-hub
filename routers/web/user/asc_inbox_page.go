@@ -127,6 +127,8 @@ type AscInboxPage struct {
 	Explicit bool           // the person picked a row (the address names a listed pull request): a phone then shows its pane instead of the list
 	DayOne   bool           // the list is empty and the person has no repository yet
 	Undo     *AscInboxEntry // the item just marked done, for the toast that can take it back
+	// LiveURL loads the rows of the same tab and filters again (GET /-/asc/inbox/rows), so the open page adds the new ones.
+	LiveURL string
 }
 
 // ascInboxDay names the day of t for the headings of the list: today, yesterday or the date.
@@ -443,9 +445,35 @@ func AscInbox(ctx *context.Context) {
 		return
 	}
 	page.DayOne = len(page.Rows) == 0 && !ascDashHasRepo(ctx, ctx.Doer)
+	page.LiveURL = ascInboxRowsURL(page)
 	ctx.Data["AscInbox"] = page
 	ctx.Data["AscInboxSnoozed"] = page.Snoozed
 	ctx.HTML(http.StatusOK, tplAscInbox)
+}
+
+// ascInboxRowsURL is the address of the rows of page alone: the same tab and filters, no chosen row (choosing one marks
+// it read, which a reload in the background must not do).
+func ascInboxRowsURL(page *AscInboxPage) string {
+	u := ascInboxURLF(page.Tab, page.Repo, 0, page.Kind, page.Sort)
+	return setting.AppSubURL + "/-/asc/inbox/rows" + strings.TrimPrefix(u, setting.AppSubURL+"/-/asc/inbox")
+}
+
+// AscInboxRows serves `GET /-/asc/inbox/rows`: the rows of the inbox alone, for the tab and filters of the query, which
+// the open inbox loads again to add the items that arrived (asc-inbox-live.js). It names no chosen row and marks
+// nothing read.
+func AscInboxRows(ctx *context.Context) {
+	if !setting.Asc.Enabled || ctx.Doer == nil {
+		ctx.NotFound("AscInboxRows", nil)
+		return
+	}
+	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+	page, err := ascInboxBuild(ctx, time.Now(), ctx.FormString("tab"), ctx.FormString("repo"), 0)
+	if err != nil {
+		ctx.ServerError("ascInboxBuild", err)
+		return
+	}
+	ctx.Data["AscInbox"] = page
+	ctx.HTML(http.StatusOK, tplAscInboxLive)
 }
 
 // ascInboxSnoozeUntil turns the choice of the snooze menu into a time.

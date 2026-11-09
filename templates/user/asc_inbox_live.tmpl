@@ -1,0 +1,2 @@
+{{/* The rows of the inbox alone, for GET /-/asc/inbox/rows (asc-inbox-live.js adds the new ones to the open list). */}}
+<ul data-asc-inbox-rows>{{template "user/asc_inbox_rows" (dict "Page" .AscInbox "CsrfTokenHtml" .CsrfTokenHtml)}}</ul>

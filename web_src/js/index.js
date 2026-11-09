@@ -120,6 +120,7 @@ import {initAscWhere} from './features/asc-where.js';
 import {initAscAudit} from './features/asc-audit.js';
 import {initAscListLoading} from './features/asc-list-loading.js';
 import {initAscDashLive} from './features/asc-dash-live.js';
+import {initAscInboxLive} from './features/asc-inbox-live.js';
 import {initAscPins} from './features/asc-pins.js';
 import {initAscBell} from './features/asc-bell.js';
 import {initAscPrefs} from './features/asc-prefs.js';
@@ -327,6 +328,7 @@ onDomReady(() => {
   initAscAudit();
   initAscListLoading();
   initAscDashLive();
+  initAscInboxLive();
   initAscPins();
   initAscBell();
   initAscPrefs();

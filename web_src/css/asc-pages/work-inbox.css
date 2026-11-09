@@ -622,3 +622,27 @@
     padding: 0 14px;
   }
 }
+
+/* An item that arrived while the inbox was open (asc-inbox-live.js): it slides in from the top; the rows under it
+   do not jump, the script keeps what the person reads in place. */
+.wk-irow.is-new {
+  background: var(--primary-tint);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wk-irow.is-new {
+    animation: wk-irow-in .32s ease-out;
+  }
+
+  @keyframes wk-irow-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

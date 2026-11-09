@@ -23,7 +23,10 @@ import (
 // Trust: the user is always the signed-in doer. No query value names a user or a section filter that
 // widens what is shown. The service checks read access to the pull requests of each repository, so one the
 // user lost access to is never listed, and marks are read only for the doer.
-const tplAscInbox base.TplName = "user/asc_inbox"
+const (
+	tplAscInbox     base.TplName = "user/asc_inbox"
+	tplAscInboxLive base.TplName = "user/asc_inbox_live"
+)
 
 // AscInboxEntry is one pull request in the inbox of one user.
 type AscInboxEntry = ascinbox.Entry
