@@ -366,6 +366,11 @@ type Migration struct {
 	Updated     timeutil.TimeStamp
 	Error       string
 	Cancellable bool
+	// Paused is a migration held by PauseMigration before the switch; StateName keeps the phase it stopped
+	// in and StateKey says it is paused. Pausable and Resumable say which of the two buttons applies.
+	Paused    bool
+	Pausable  bool
+	Resumable bool
 }
 
 // MigrationFrom converts the wire message; it returns nil when the message does not belong to repo.
@@ -402,6 +407,13 @@ func MigrationFrom(repo Scope, m *ascv1.StorageMigration) *Migration {
 		out.StateName, out.StateKey = "cancelled", "ascbyo.migration.state.cancelled"
 	default:
 		out.StateName, out.StateKey = "unknown", "ascbyo.migration.state.unknown"
+	}
+	if out.Cancellable {
+		out.Paused = m.GetPaused()
+		out.Pausable, out.Resumable = !out.Paused, out.Paused
+		if out.Paused {
+			out.StateKey = "ascbyo.migration.state.paused"
+		}
 	}
 	switch {
 	case out.State == ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_DONE:
@@ -470,6 +482,42 @@ func (s *Service) StartMigration(ctx context.Context, repo Scope, allowed []Scop
 	resp, err := s.api.Storage.StartMigration(cctx, &ascv1.StartStorageMigrationRequest{Repo: repo.Repo(), ToTargetId: targetID, DeleteSource: deleteSource})
 	if err != nil {
 		return nil, done("start storage migration", repo, err)
+	}
+	m := MigrationFrom(repo, resp.GetMigration())
+	if m == nil {
+		return nil, failure(FailInternal)
+	}
+	return m, nil
+}
+
+// PauseMigration holds a migration of the repository where it is, before the switch. Idempotent in asc.
+func (s *Service) PauseMigration(ctx context.Context, repo Scope, id, op string) (*Migration, error) {
+	if _, err := s.GetMigration(ctx, repo, id); err != nil {
+		return nil, err
+	}
+	cctx, cancel := s.call(ctx, repo, "PauseMigration", op, false)
+	defer cancel()
+	resp, err := s.api.Storage.PauseMigration(cctx, &ascv1.PauseStorageMigrationRequest{Id: id})
+	if err != nil {
+		return nil, done("pause storage migration", repo, err)
+	}
+	m := MigrationFrom(repo, resp.GetMigration())
+	if m == nil {
+		return nil, failure(FailInternal)
+	}
+	return m, nil
+}
+
+// ResumeMigration lets a paused migration of the repository carry on from where it stopped. Idempotent in asc.
+func (s *Service) ResumeMigration(ctx context.Context, repo Scope, id, op string) (*Migration, error) {
+	if _, err := s.GetMigration(ctx, repo, id); err != nil {
+		return nil, err
+	}
+	cctx, cancel := s.call(ctx, repo, "ResumeMigration", op, false)
+	defer cancel()
+	resp, err := s.api.Storage.ResumeMigration(cctx, &ascv1.ResumeStorageMigrationRequest{Id: id})
+	if err != nil {
+		return nil, done("resume storage migration", repo, err)
 	}
 	m := MigrationFrom(repo, resp.GetMigration())
 	if m == nil {

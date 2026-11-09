@@ -31,6 +31,8 @@ type Resolver func(ctx *context.Context) *Level
 //	POST /asc/storage/assign                       new objects go to a target
 //	POST /asc/storage/migrations                   move the existing objects
 //	POST /asc/storage/migrations/{id}/cancel       stop a migration
+//	POST /asc/storage/migrations/{id}/pause        hold a migration before the switch
+//	POST /asc/storage/migrations/{id}/resume       carry on with a paused migration
 //	GET  /asc/storage/migrations/{id}/status       progress as JSON
 //
 //	GET  /asc/ai                                   list and add form
@@ -75,6 +77,8 @@ func Routes(m *web.Route, resolve Resolver) {
 			m.Post("/assign", h(StorageAssign))
 			m.Post("/migrations", h(MigrationStart))
 			m.Post("/migrations/{id}/cancel", h(MigrationCancel))
+			m.Post("/migrations/{id}/pause", h(MigrationPause))
+			m.Post("/migrations/{id}/resume", h(MigrationResume))
 			m.Get("/migrations/{id}/status", h(MigrationStatus))
 			m.Post("/usage/refresh", h(UsageRefresh))
 		})

@@ -122,11 +122,26 @@
 			<p><strong class="asc-migration-label">{{ctx.Locale.Tr .StateKey}}</strong></p>
 			<progress class="asc-migration-bar" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr .StateKey}}">{{.Percent}}%</progress>
 			<p class="asc-byo-hint"><span class="asc-migration-count">{{ctx.Locale.Tr "ascbyo.storage.repo.progress" .Copied .Total}}</span></p>
+			{{if .Paused}}<p class="asc-byo-hint" data-testid="asc-migration-paused">{{ctx.Locale.Tr "ascbyo.storage.repo.paused_help"}}</p>{{end}}
 			{{if .Cancellable}}
-				<form method="post" action="{{$a.StorageURL}}/migrations/{{.ID}}/cancel">
-					{{$.CsrfTokenHtml}}
-					<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.cancel"}}</button>
-				</form>
+				<div class="asc-migration-actions">
+					{{if .Pausable}}
+						<form method="post" action="{{$a.StorageURL}}/migrations/{{.ID}}/pause">
+							{{$.CsrfTokenHtml}}
+							<button class="ds-btn" type="submit" data-testid="asc-migration-pause">{{ctx.Locale.Tr "ascbyo.storage.repo.pause"}}</button>
+						</form>
+					{{end}}
+					{{if .Resumable}}
+						<form method="post" action="{{$a.StorageURL}}/migrations/{{.ID}}/resume">
+							{{$.CsrfTokenHtml}}
+							<button class="ds-btn ds-btn-primary" type="submit" data-testid="asc-migration-resume">{{ctx.Locale.Tr "ascbyo.storage.repo.resume"}}</button>
+						</form>
+					{{end}}
+					<form method="post" action="{{$a.StorageURL}}/migrations/{{.ID}}/cancel">
+						{{$.CsrfTokenHtml}}
+						<button class="ds-btn ds-btn-danger" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.cancel"}}</button>
+					</form>
+				</div>
 			{{end}}
 		</div>
 		<p class="asc-byo-hint">{{ctx.Locale.Tr "ascbyo.storage.repo.migrate_running"}}</p>

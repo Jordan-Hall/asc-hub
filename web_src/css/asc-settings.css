@@ -530,6 +530,13 @@
   margin: 0 0 12px;
 }
 
+.asc-migration-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .asc-migration-bar,
 .asc-meter {
   display: block;

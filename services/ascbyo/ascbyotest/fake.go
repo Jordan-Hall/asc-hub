@@ -564,8 +564,34 @@ func (f *Fake) CancelMigration(_ context.Context, r *ascv1.CancelStorageMigratio
 	}
 	if m.GetState() < ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_DONE {
 		m.State = ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_CANCELLED
+		m.Paused = false
 	}
 	return &ascv1.CancelStorageMigrationResponse{Migration: m}, nil
+}
+
+func (f *Fake) PauseMigration(_ context.Context, r *ascv1.PauseStorageMigrationRequest) (*ascv1.PauseStorageMigrationResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	m := f.migrations[r.GetId()]
+	if m == nil {
+		return nil, status.Error(codes.NotFound, "no such migration")
+	}
+	if m.GetState() >= ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_SWITCHING {
+		return nil, status.Error(codes.FailedPrecondition, "the migration can no longer be paused")
+	}
+	m.Paused = true
+	return &ascv1.PauseStorageMigrationResponse{Migration: m}, nil
+}
+
+func (f *Fake) ResumeMigration(_ context.Context, r *ascv1.ResumeStorageMigrationRequest) (*ascv1.ResumeStorageMigrationResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	m := f.migrations[r.GetId()]
+	if m == nil {
+		return nil, status.Error(codes.NotFound, "no such migration")
+	}
+	m.Paused = false
+	return &ascv1.ResumeStorageMigrationResponse{Migration: m}, nil
 }
 
 // ---------------------------------------------------------------------------- AiProviders

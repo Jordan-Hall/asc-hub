@@ -32,7 +32,7 @@ export function initAscByoMigration() {
       window.location.reload();
       return false;
     }
-    return true;
+    return data.paused !== true; // paused: nothing moves until Resume reloads the page
   };
 
   const loop = async () => {

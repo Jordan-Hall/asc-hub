@@ -4,6 +4,7 @@
 package byoweb
 
 import (
+	stdctx "context"
 	"net/http"
 
 	"forgejo.org/modules/log"
@@ -494,6 +495,24 @@ func migrationID(ctx *context.Context) (string, bool) {
 
 // MigrationCancel is POST .../asc/storage/migrations/{id}/cancel.
 func MigrationCancel(ctx *context.Context, lvl *Level) {
+	migrationAction(ctx, lvl, (*svc.Service).CancelMigration, "cancelled storage migration", "ascbyo.flash.migration_cancelled")
+}
+
+// MigrationPause is POST .../asc/storage/migrations/{id}/pause.
+func MigrationPause(ctx *context.Context, lvl *Level) {
+	migrationAction(ctx, lvl, (*svc.Service).PauseMigration, "paused storage migration", "ascbyo.flash.migration_paused")
+}
+
+// MigrationResume is POST .../asc/storage/migrations/{id}/resume.
+func MigrationResume(ctx *context.Context, lvl *Level) {
+	migrationAction(ctx, lvl, (*svc.Service).ResumeMigration, "resumed storage migration", "ascbyo.flash.migration_resumed")
+}
+
+// migrationAct is one of the migration buttons of the service.
+type migrationAct func(s *svc.Service, ctx stdctx.Context, repo svc.Scope, id, op string) (*svc.Migration, error)
+
+// migrationAction runs one of the migration buttons and goes back to the storage page.
+func migrationAction(ctx *context.Context, lvl *Level, act migrationAct, what, flash string) {
 	if !repoOnly(ctx, lvl) {
 		return
 	}
@@ -509,13 +528,13 @@ func MigrationCancel(ctx *context.Context, lvl *Level) {
 		renderStorageIndex(ctx, lvl, nil, p, http.StatusServiceUnavailable)
 		return
 	}
-	if _, err := s.CancelMigration(ctx, lvl.Scope, id, form{ctx}.op()); err != nil {
+	if _, err := act(s, ctx, lvl.Scope, id, form{ctx}.op()); err != nil {
 		p.Problem = problemOf(ctx, err)
 		refuse(ctx, err, func(status int) { renderStorageIndex(ctx, lvl, s, p, status) })
 		return
 	}
-	record(ctx, lvl, "cancelled storage migration", id)
-	ctx.Flash.Success(ctx.Locale.TrString("ascbyo.flash.migration_cancelled"))
+	record(ctx, lvl, what, id)
+	ctx.Flash.Success(ctx.Locale.TrString(flash))
 	ctx.Redirect(lvl.Base + "/storage")
 }
 
@@ -524,6 +543,7 @@ type migrationStatus struct {
 	State   string `json:"state"`
 	Label   string `json:"label"`
 	Active  bool   `json:"active"`
+	Paused  bool   `json:"paused"`
 	Percent int    `json:"percent"`
 	Copied  uint64 `json:"copied"`
 	Total   uint64 `json:"total"`
@@ -558,7 +578,7 @@ func MigrationStatus(ctx *context.Context, lvl *Level) {
 		return
 	}
 	ctx.JSON(http.StatusOK, migrationStatus{
-		State: m.StateName, Label: ctx.Locale.TrString(m.StateKey), Active: m.Active, Percent: m.Percent,
+		State: m.StateName, Label: ctx.Locale.TrString(m.StateKey), Active: m.Active, Paused: m.Paused, Percent: m.Percent,
 		Copied: m.Copied, Total: m.Total, Error: m.Error,
 	})
 }
