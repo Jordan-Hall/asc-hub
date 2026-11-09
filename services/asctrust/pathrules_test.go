@@ -61,6 +61,9 @@ func (c *answerConn) Invoke(_ context.Context, _ string, _, reply any, _ ...grpc
 	case *ascv1.CheckPathAccessResponse:
 		a := c.answer.(*ascv1.CheckPathAccessResponse)
 		r.Access, r.Teams = a.GetAccess(), a.GetTeams()
+	case *ascv1.ListTeamsResponse:
+		r.Teams = c.answer.(*ascv1.ListTeamsResponse).GetTeams()
+	case *ascv1.SetTeamMembersResponse:
 	default:
 		return errors.New("unexpected call")
 	}

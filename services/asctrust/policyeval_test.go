@@ -79,6 +79,30 @@ func TestSubjectsMatchByKindAndNameAndRolesExpand(t *testing.T) {
 	assert.True(t, r.subjectMatches(Who{}, "*"))
 }
 
+func TestATeamSubjectAdmitsItsMembers(t *testing.T) {
+	r := &Rules{
+		Roles: map[string][]string{"maintainer": {"user:alice", "team:Leads"}, "docs": {"agent:docs-*"}},
+		Paths: []PathRule{
+			{Glob: "payments/**", Write: []string{"team:payments"}},
+			{Glob: "infra/**", Write: []string{"role:maintainer"}},
+			{Glob: "docs/**", Write: []string{"*"}},
+		},
+	}
+	carol := Who{Kind: "user", Name: "carol"}
+	ok, _ := r.CheckWrite(carol, "payments/ledger.rs")
+	assert.False(t, ok)
+	carol.Teams = []string{"Payments"}
+	ok, _ = r.CheckWrite(carol, "payments/ledger.rs")
+	assert.True(t, ok, "case is ignored")
+	assert.True(t, r.IsMaintainer(Who{Kind: "user", Name: "dan", Teams: []string{"leads"}}))
+	assert.False(t, r.IsMaintainer(Who{Kind: "user", Name: "dan", Teams: []string{"leadsx"}}))
+
+	assert.Equal(t, TeamOwnership{Roles: []string{"maintainer"}, Globs: []string{"infra/**"}}, r.OwnershipOf("LEADS"))
+	assert.Equal(t, TeamOwnership{Globs: []string{"payments/**"}}, r.OwnershipOf("payments"))
+	assert.Equal(t, TeamOwnership{}, r.OwnershipOf("other"), "`*` does not name a team")
+	assert.Equal(t, "the payments team", describeSubject("team:payments"))
+}
+
 func TestWritesFollowEveryMatchingRule(t *testing.T) {
 	r := testRules()
 	alice := Who{Kind: "user", Name: "alice"}

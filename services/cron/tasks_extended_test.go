@@ -60,4 +60,5 @@ func Test_AscTasksHaveTranslations(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(raw), "\ndashboard.cleanup_asc_device_codes = ")
 	assert.Contains(t, string(raw), "\ndashboard.mail_asc_exports = ")
+	assert.Contains(t, string(raw), "\ndashboard.sync_asc_teams = ")
 }
