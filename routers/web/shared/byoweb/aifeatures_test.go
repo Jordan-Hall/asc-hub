@@ -178,7 +178,7 @@ func TestAIReplace(t *testing.T) {
 		require.Equal(t, http.StatusUnprocessableEntity, r.resp.Code, r.body())
 		d := dialogOf(r.body(), "asc-replace-"+k.GetId())
 		assert.Contains(t, d, "data-asc-open")
-		assert.Contains(t, d, tr(t, "ascbyo.ai.replace.rejected.unauthorized"))
+		assert.Contains(t, d, tr(t, "ascbyo.ai.replace.rejected.unauthorized", tr(t, "ascbyo.ai.provider.anthropic")), "the refusal names the provider")
 		assert.Contains(t, d, `aria-invalid="true"`)
 		assert.NotContains(t, r.body(), "NEWSECRET")
 		assert.Empty(t, r.ctx.Flash.SuccessMsg)
