@@ -14,6 +14,24 @@
 						{{ctx.Locale.Tr "packages.published_by" $timeStr .PackageDescriptor.Creator.HomeLink .PackageDescriptor.Creator.GetDisplayName}}
 					{{end}}
 				</p>
+				{{with .AscPackageProvenance}}
+					<p class="ds-c-2 wk-pkg-prov" data-testid="package-provenance">
+						{{if .Landed}}
+							{{if .StackLink}}
+								{{ctx.Locale.Tr "packages.asc_published_from_stack" .Repo.Link .Repo.FullName .StackLink}}
+							{{else}}
+								{{ctx.Locale.Tr "packages.asc_published_from_stack_plain" .Repo.Link .Repo.FullName}}
+							{{end}}
+						{{else if .RunLink}}
+							{{ctx.Locale.Tr "packages.asc_published_from_run" .Repo.Link .Repo.FullName .RunLink .RunIndex}}
+						{{else}}
+							{{ctx.Locale.Tr "packages.asc_published_from_commit" .Repo.Link .Repo.FullName .CommitLink .Commit}}
+						{{end}}
+						{{if .Signed}}
+							<a class="ds-chip ds-chip-ok wk-pkg-signed" href="{{.ReleaseURL}}" data-testid="package-signed" data-tooltip-content="{{ctx.Locale.Tr "packages.asc_signed_tip" .SignedBy .ReleaseTag .SigningKey}}">{{ctx.Locale.Tr "packages.asc_signed"}}</a>
+						{{end}}
+					</p>
+				{{end}}
 			</div>
 		</div>
 		{{template "package/tabs" .}}

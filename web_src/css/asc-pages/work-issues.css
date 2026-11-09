@@ -713,6 +713,14 @@ a.wk-pv-menu-item {
   overflow-wrap: anywhere;
 }
 
+.wk-pkg-prov {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block-start: 4px;
+}
+
 .wk-dash-list-header {
   display: flex;
   flex-direction: column;

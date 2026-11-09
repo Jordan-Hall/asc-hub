@@ -283,6 +283,7 @@ func ViewPackageVersion(ctx *context.Context) {
 		hasRepositoryAccess = permission.HasAccess()
 	}
 	ctx.Data["HasRepositoryAccess"] = hasRepositoryAccess
+	ctx.Data["AscPackageProvenance"] = ascPackageProvenance(ctx, ctx.Doer, pd.Version)
 
 	deps := packageDepGroups(pd)
 	ctx.Data["PackageDeps"] = deps

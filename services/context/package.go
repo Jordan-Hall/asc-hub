@@ -70,6 +70,7 @@ func packageAssignment(ctx *packageAssignmentCtx, errCb func(int, string, any)) 
 	}
 	var err error
 	if hasTask, taskID := ctx.taskID(); hasTask {
+		ctx.Base.AppendContextValue(packages_service.PublishTaskKey, taskID)
 		pkg.AccessMode, err = packages_service.DeterminePackageAccessModeForTask(ctx.Base, pkg.Owner, ctx.Doer, taskID)
 	} else {
 		pkg.AccessMode, err = packages_service.DeterminePackageAccessMode(ctx.Base, pkg.Owner, ctx.Doer)

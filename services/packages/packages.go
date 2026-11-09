@@ -206,6 +206,7 @@ func createPackageAndVersion(ctx context.Context, pvci *PackageCreationInfo, all
 				return nil, false, err
 			}
 		}
+		recordAscProvenance(ctx, pv)
 	}
 
 	return pv, versionCreated, nil
