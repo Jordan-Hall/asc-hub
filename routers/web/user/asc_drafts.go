@@ -4,12 +4,14 @@
 package user
 
 import (
+	"bytes"
 	gocontext "context"
 	"encoding/hex"
 	"errors"
 	"net/http"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,9 +26,12 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // The "Your drafts" page (SPEC 21, PLAN unit B23, v1.x).
@@ -70,6 +75,8 @@ type AscDraft struct {
 	Labels []string
 	Added  time.Time
 	Hidden bool
+	// HiddenAt is when the draft was discarded (zero for a draft that is not).
+	HiddenAt time.Time
 	// OnHub is false for a draft only a device holds; Devices then has that one device.
 	OnHub   bool
 	Devices []string
@@ -108,10 +115,12 @@ func ascDraftsDevices(in []string) []string {
 
 // AscDraftsRepo is the drafts of one repository, or the reason they are missing.
 type AscDraftsRepo struct {
-	Repo    *repo_model.Repository
-	Drafts  []AscDraft
-	Omitted int
-	Failed  bool
+	Repo   *repo_model.Repository
+	Drafts []AscDraft
+	// Discarded are the drafts the person discarded, which asc keeps for ascDraftsUndoDays.
+	Discarded []AscDraft
+	Omitted   int
+	Failed    bool
 }
 
 var (
@@ -167,6 +176,9 @@ func ascDraftsBuild(resp *ascv1.GetWorkspaceResponse) ([]AscDraft, int) {
 			continue
 		}
 		d := AscDraft{Commit: hex.EncodeToString(h.GetCs()), Hidden: h.GetHiddenAt() != 0}
+		if h.GetHiddenAt() > 0 {
+			d.HiddenAt = time.Unix(h.GetHiddenAt(), 0).UTC()
+		}
 		if c := h.GetChange(); len(c) > 0 && len(c) <= ascDraftsMaxIDBytes {
 			d.Change = hex.EncodeToString(c)
 		}
@@ -235,7 +247,8 @@ func AscDrafts(ctx *context.Context) {
 	client := ascv1.NewCloudClient(conn)
 
 	var rows []AscDraftsRepo
-	failed := false
+	failed, anyDiscarded := false, false
+	banner := ascDraftsParseDiscarded(ctx.FormString("discarded"))
 	for _, repo := range repos {
 		if len(rows) >= ascDraftsMaxRepos {
 			break
@@ -252,6 +265,7 @@ func AscDrafts(ctx *context.Context) {
 			Repo:           &ascv1.RepoRef{Name: name, IdMode: ascv1.IdMode_ID_MODE_GIT},
 			Owner:          ctx.Doer.Name, // always the signed-in user
 			IncludeDevices: true,
+			IncludeHidden:  true,
 		})
 		if err != nil {
 			if ctx.Req.Context().Err() != nil {
@@ -261,8 +275,20 @@ func AscDrafts(ctx *context.Context) {
 			row.Failed = true
 			failed = true
 		} else {
-			row.Drafts, row.Omitted = ascDraftsBuild(resp)
-			if len(row.Drafts) == 0 && row.Omitted == 0 {
+			all, omitted := ascDraftsBuild(resp)
+			row.Omitted = omitted
+			for _, d := range all {
+				if !d.Hidden {
+					row.Drafts = append(row.Drafts, d)
+					continue
+				}
+				row.Discarded = append(row.Discarded, d)
+				anyDiscarded = true
+				if banner.repo == repo.ID && banner.cs == d.Commit {
+					ctx.Data["AscDraftsJustDiscarded"] = AscDraftsJust{Repo: repo, Draft: d}
+				}
+			}
+			if len(all) == 0 && row.Omitted == 0 {
 				continue
 			}
 		}
@@ -270,5 +296,165 @@ func AscDrafts(ctx *context.Context) {
 	}
 	ctx.Data["AscDraftsRepos"] = rows
 	ctx.Data["AscDraftsAnyFailed"] = failed
+	ctx.Data["AscDraftsAnyDiscarded"] = anyDiscarded
+	ctx.Data["AscDraftsAnyVisible"] = slices.ContainsFunc(rows, func(r AscDraftsRepo) bool {
+		return r.Failed || r.Omitted > 0 || len(r.Drafts) > 0
+	})
+	ctx.Data["AscDraftsUndoDays"] = ascDraftsUndoDays
 	ctx.HTML(http.StatusOK, tplAscDrafts)
+}
+
+// Discard and undo (design board "Drafts": "Discard asks nothing ... can be undone for 30 days").
+//
+// `POST /-/asc/drafts/discard` hides one draft of the signed-in person's workspace in one repository and
+// `POST /-/asc/drafts/undo` shows it again (Cloud.UpdateWorkspace hide and unhide). asc deletes a draft that has been
+// hidden for its hidden_grace_days (30 by default, ascDraftsUndoDays here); until then the page lists it under Discarded
+// with an Undo button. Nothing is asked before a discard: the undo is the safety.
+//
+// Trust: the calls carry the hub's signed claim about the signed-in person (asctrust.UserCall, read on the repository,
+// decided again by the hub's permission model at the moment of the call), so asc acts as that person and changes only
+// their own workspace. The form names the repository by id and the draft by its hex commit id; neither can name another
+// person. The draft must be in the workspace (read first): a draft that is gone, or only on a device, is refused.
+
+// ascDraftsUndoDays is how long a discarded draft can be restored: asc's default hidden_grace_days.
+const ascDraftsUndoDays = 30
+
+// ascDraftsStaleTries bounds the attempts when another device changes the workspace between the read and the write.
+const ascDraftsStaleTries = 3
+
+// AscDraftsJust is the draft just discarded, for the banner with its Undo button.
+type AscDraftsJust struct {
+	Repo  *repo_model.Repository
+	Draft AscDraft
+}
+
+type ascDraftsRef struct {
+	repo int64
+	cs   string
+}
+
+// ascDraftsParseDiscarded reads the "<repo id>.<hex commit id>" the discard redirects with. A bad value is no banner.
+func ascDraftsParseDiscarded(s string) ascDraftsRef {
+	id, cs, ok := strings.Cut(s, ".")
+	if !ok {
+		return ascDraftsRef{}
+	}
+	n, err := strconv.ParseInt(id, 10, 64)
+	if err != nil || n <= 0 || ascDraftsCommit(cs) == nil {
+		return ascDraftsRef{}
+	}
+	return ascDraftsRef{repo: n, cs: cs}
+}
+
+// ascDraftsCommit decodes a lower-case hex commit id of 1 to ascDraftsMaxIDBytes bytes; anything else is nil.
+func ascDraftsCommit(s string) []byte {
+	if s == "" || len(s) > 2*ascDraftsMaxIDBytes || strings.ToLower(s) != s {
+		return nil
+	}
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+// errAscDraftGone says the draft is not in the person's workspace on the hub.
+var errAscDraftGone = errors.New("the draft is not on the hub")
+
+// ascDraftsSetHidden hides or shows draft cs of owner's workspace in repository name. It reads the workspace for its
+// version and the draft's state, then writes; a write that lost a race with another device is tried again.
+func ascDraftsSetHidden(ctx gocontext.Context, conn grpc.ClientConnInterface, name, owner string, cs []byte, hide bool) error {
+	client := ascv1.NewCloudClient(conn)
+	ref := &ascv1.RepoRef{Name: name, IdMode: ascv1.IdMode_ID_MODE_GIT}
+	for try := 1; ; try++ {
+		ws, err := client.GetWorkspace(ctx, &ascv1.GetWorkspaceRequest{Repo: ref, Owner: owner, IncludeHidden: true})
+		if err != nil {
+			return err
+		}
+		var head *ascv1.CloudHead
+		for _, h := range ws.GetHeads() {
+			if bytes.Equal(h.GetCs(), cs) {
+				head = h
+				break
+			}
+		}
+		if head == nil {
+			return errAscDraftGone
+		}
+		if (head.GetHiddenAt() != 0) == hide {
+			return nil // already as asked: a second click or another tab
+		}
+		req := &ascv1.UpdateWorkspaceRequest{Repo: ref, BaseVersion: ws.GetVersion()}
+		if hide {
+			req.Hide = [][]byte{cs}
+		} else {
+			req.Unhide = [][]byte{cs}
+		}
+		_, err = client.UpdateWorkspace(ctx, req)
+		if status.Code(err) == codes.Aborted && try < ascDraftsStaleTries {
+			continue
+		}
+		return err
+	}
+}
+
+// AscDraftsDiscard serves `POST /-/asc/drafts/discard`.
+func AscDraftsDiscard(ctx *context.Context) { ascDraftsAct(ctx, true) }
+
+// AscDraftsUndo serves `POST /-/asc/drafts/undo`.
+func AscDraftsUndo(ctx *context.Context) { ascDraftsAct(ctx, false) }
+
+func ascDraftsAct(ctx *context.Context, hide bool) {
+	if !setting.Asc.Enabled || ctx.Doer == nil {
+		ctx.NotFound("AscDraftsAct", nil)
+		return
+	}
+	back := setting.AppSubURL + "/-/asc/drafts"
+	gone := func() {
+		ctx.Flash.Error(ctx.Tr("asc_work.drafts_act_gone"))
+		ctx.Redirect(back)
+	}
+	cs := ascDraftsCommit(ctx.FormString("cs"))
+	if cs == nil {
+		gone()
+		return
+	}
+	repo, err := repo_model.GetRepositoryByID(ctx, ctx.FormInt64("repo"))
+	if err != nil {
+		gone()
+		return
+	}
+	name, err := asctrust.RepoName(repo)
+	if err != nil {
+		gone()
+		return
+	}
+	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallRepoRead, repo)
+	if err != nil {
+		if !errors.Is(err, asctrust.ErrForbidden) {
+			log.Error("asc drafts: the claim for repository %d: %v", repo.ID, err)
+		}
+		gone()
+		return
+	}
+	defer release()
+	conn, err := ascDraftsConn()
+	if err == nil {
+		c, cancel := gocontext.WithTimeout(callCtx, ascDraftsTimeout)
+		err = ascDraftsSetHidden(c, conn, name, ctx.Doer.Name, cs, hide)
+		cancel()
+	}
+	switch {
+	case errors.Is(err, errAscDraftGone):
+		gone()
+	case err != nil:
+		log.Error("asc drafts: changing a draft of repository %d failed: %s", repo.ID, status.Code(err))
+		ctx.Flash.Error(ctx.Tr("asc_work.drafts_act_failed"))
+		ctx.Redirect(back)
+	case hide:
+		ctx.Redirect(back + "?discarded=" + strconv.FormatInt(repo.ID, 10) + "." + hex.EncodeToString(cs))
+	default:
+		ctx.Flash.Success(ctx.Tr("asc_work.drafts_restored"))
+		ctx.Redirect(back)
+	}
 }

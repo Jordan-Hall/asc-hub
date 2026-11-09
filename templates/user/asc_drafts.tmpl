@@ -1,13 +1,26 @@
 {{/*
 Your drafts (design boards "Drafts" and "Mobile-Drafts"). routers/web/user/asc_drafts.go builds .AscDraftsRepos; an unreachable
 asc serve sets .AscDraftsError, a repository that could not be read is a row with Failed. The meta line says where each
-draft is: on the hub and which devices, or only on one device and why.
+draft is: on the hub and which devices, or only on one device and why. Continue shows the asc command that resumes the
+draft; Discard (a draft on the hub) posts to /-/asc/drafts/discard without asking, and the banner and the Discarded list
+offer Undo (/-/asc/drafts/undo) for .AscDraftsUndoDays.
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-drafts">
 	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "asc_work.drafts_title") "BackHref" (print AppSubUrl "/") "BackLabel" (ctx.Locale.Tr "asc_work.dashboard"))}}
 	<div class="ds-container ds-container-wide">
 		{{template "base/alert" .}}
+		{{with .AscDraftsJustDiscarded}}
+			<div class="ds-banner ds-banner-ok wk-drafts-banner" role="status" data-testid="drafts-discarded">
+				<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_work.drafts_discarded_banner"}}</b> {{ctx.Locale.Tr "asc_work.drafts_discarded_undo" $.AscDraftsUndoDays}}</div>
+				<form method="post" action="{{AppSubUrl}}/-/asc/drafts/undo">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="repo" value="{{.Repo.ID}}">
+					<input type="hidden" name="cs" value="{{.Draft.Commit}}">
+					<button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "asc_work.drafts_undo"}}</button>
+				</form>
+			</div>
+		{{end}}
 		<div class="wk-page-head">
 			<div class="ds-min0">
 				<p class="ds-t-eyebrow wk-eyebrow-kicker">{{ctx.Locale.Tr "asc_work.drafts_yours"}}</p>
@@ -34,7 +47,7 @@ draft is: on the hub and which devices, or only on one device and why.
 			{{end}}
 			<div class="ds-split wk-drafts-split">
 				<div class="ds-min0">
-					{{if .AscDraftsRepos}}
+					{{if .AscDraftsAnyVisible}}
 						<section class="ds-card" aria-label="{{ctx.Locale.Tr "user.asc_drafts"}}">
 							<ul class="wk-drafts-list">
 								{{range .AscDraftsRepos}}
@@ -62,7 +75,22 @@ draft is: on the hub and which devices, or only on one device and why.
 													<div class="wk-draft-meta">{{if not .Added.IsZero}}{{ctx.Locale.Tr "asc_work.drafts_saved" (DateUtils.TimeSince .Added)}} &middot; {{end}}<span class="wk-draft-where">{{if .OnHub}}{{if .Devices}}{{ctx.Locale.Tr "asc_work.drafts_on_devices_and_hub" (StringUtils.Join .Devices ", ")}}{{else}}{{ctx.Locale.Tr "asc_work.drafts_on_hub"}}{{end}}{{else}}{{ctx.Locale.Tr "asc_work.drafts_only_on" (index .Devices 0)}}{{if .Reason}} &middot; {{ctx.Locale.Tr .Reason}}{{end}}{{end}}</span></div>
 												</div>
 												<div class="wk-draft-acts">
-													<button type="button" class="ds-btn ds-btn-primary ds-btn-sm" data-clipboard-text="asc stack resume {{if .Change}}{{.Change}}{{else}}{{.Commit}}{{end}}" aria-label="{{ctx.Locale.Tr "asc_work.drafts_continue_label" $name}}">{{ctx.Locale.Tr "asc_work.drafts_continue"}}</button>
+													{{$resume := print "asc stack resume " (or .Change .Commit)}}
+													<details class="wk-draft-resume">
+														<summary class="ds-btn ds-btn-primary ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_work.drafts_continue_label" $name}}">{{ctx.Locale.Tr "asc_work.drafts_continue"}}</summary>
+														<div class="wk-draft-resume-cmd">
+															<p>{{ctx.Locale.Tr "asc_work.drafts_resume_hint"}}</p>
+															<span class="wk-cmdchip"><code>{{$resume}}</code><button type="button" class="wk-cmdchip-copy" data-clipboard-text="{{$resume}}" aria-label="{{ctx.Locale.Tr "copy"}}">{{svg "dsi-copy" 16}}</button></span>
+														</div>
+													</details>
+													{{if and .OnHub .Commit}}
+														<form method="post" action="{{AppSubUrl}}/-/asc/drafts/discard">
+															{{$.CsrfTokenHtml}}
+															<input type="hidden" name="repo" value="{{$repo.ID}}">
+															<input type="hidden" name="cs" value="{{.Commit}}">
+															<button type="submit" class="ds-btn ds-btn-ghost ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_work.drafts_discard_label" $name}}">{{ctx.Locale.Tr "asc_work.drafts_discard"}}</button>
+														</form>
+													{{end}}
 												</div>
 											</li>
 										{{end}}
@@ -78,6 +106,36 @@ draft is: on the hub and which devices, or only on one device and why.
 								<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_work.drafts_empty_title"}}</h2>
 								<p>{{ctx.Locale.Tr "asc_work.drafts_empty_body"}}</p>
 							</div>
+						</section>
+					{{end}}
+					{{if .AscDraftsAnyDiscarded}}
+						<section class="ds-card wk-drafts-gone" aria-labelledby="wk-drafts-gone" data-testid="drafts-discarded-list">
+							<div class="ds-card-h"><h2 id="wk-drafts-gone">{{ctx.Locale.Tr "asc_work.drafts_discarded_title"}}</h2></div>
+							<p class="wk-drafts-gone-lead">{{ctx.Locale.Tr "asc_work.drafts_discarded_lead" .AscDraftsUndoDays}}</p>
+							<ul class="wk-drafts-list">
+								{{range .AscDraftsRepos}}
+									{{$repo := .Repo}}
+									{{range .Discarded}}
+										{{$name := .Commit}}{{if .Change}}{{$name = .Change}}{{end}}{{if .Labels}}{{$name = index .Labels 0}}{{end}}
+										<li class="wk-draft">
+											<span class="ds-dot wk-draft-dot" aria-hidden="true"></span>
+											<div class="wk-draft-main">
+												<div class="wk-draft-title"><span class="wk-draft-name">{{$name}}</span></div>
+												<div class="wk-draft-sub"><a class="ds-mono" href="{{$repo.Link}}">{{$repo.FullName}}</a></div>
+												{{if not .HiddenAt.IsZero}}<div class="wk-draft-meta">{{ctx.Locale.Tr "asc_work.drafts_discarded_at" (DateUtils.TimeSince .HiddenAt)}}</div>{{end}}
+											</div>
+											<div class="wk-draft-acts">
+												<form method="post" action="{{AppSubUrl}}/-/asc/drafts/undo">
+													{{$.CsrfTokenHtml}}
+													<input type="hidden" name="repo" value="{{$repo.ID}}">
+													<input type="hidden" name="cs" value="{{.Commit}}">
+													<button type="submit" class="ds-btn ds-btn-secondary ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_work.drafts_undo_label" $name}}">{{ctx.Locale.Tr "asc_work.drafts_undo"}}</button>
+												</form>
+											</div>
+										</li>
+									{{end}}
+								{{end}}
+							</ul>
 						</section>
 					{{end}}
 				</div>

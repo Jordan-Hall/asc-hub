@@ -711,6 +711,8 @@ func registerRoutes(m *web.Route) {
 	m.Get("/pulls", reqSignIn, user.Pulls)
 	m.Get("/milestones", reqSignIn, reqMilestonesDashboardPageEnabled, user.Milestones)
 	m.Get("/-/asc/drafts", reqSignIn, user.AscDrafts)
+	m.Post("/-/asc/drafts/discard", reqSignIn, user.AscDraftsDiscard)
+	m.Post("/-/asc/drafts/undo", reqSignIn, user.AscDraftsUndo)
 	m.Get("/-/asc/inbox", reqSignIn, user.AscInbox)
 	registerAscAgentsUserRoutes(m, reqSignIn)
 	m.Post("/-/asc/inbox/state", reqSignIn, user.AscInboxStatePost)

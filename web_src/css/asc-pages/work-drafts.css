@@ -92,6 +92,8 @@
 .wk-draft-acts {
   grid-area: acts;
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .wk-draft-acts .ds-btn {
@@ -151,4 +153,50 @@
 
 .wk-cmdchip-copy:hover {
   color: var(--text);
+}
+
+/* Continue: the summary is the button; opened, it shows the command that resumes the draft. */
+.wk-draft-acts form {
+  display: flex;
+}
+
+.wk-draft-resume > summary {
+  list-style: none;
+}
+
+.wk-draft-resume > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wk-draft-resume-cmd {
+  margin-block-start: 8px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.wk-draft-resume-cmd p {
+  margin-block-end: 6px;
+}
+
+.wk-drafts-banner {
+  align-items: center;
+  margin-block-end: 16px;
+}
+
+.wk-drafts-banner .ds-banner-body {
+  flex: 1;
+}
+
+.wk-drafts-gone {
+  margin-block-start: 16px;
+}
+
+.wk-drafts-gone-lead {
+  padding-inline: 18px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.wk-drafts-gone .wk-draft-dot {
+  background: var(--text-3);
 }
