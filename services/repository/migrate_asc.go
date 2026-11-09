@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/log"
+	base "forgejo.org/modules/migration"
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/repostore"
 	"forgejo.org/modules/setting"
@@ -196,7 +198,10 @@ func importMigratedIntoAsc(ctx context.Context, repo *repo_model.Repository, def
 	if err != nil {
 		return err
 	}
-	if err := ascsync.ImportHistory(ascsync.WithBulkImport(ctx), repo, refs); err != nil {
+	stop := reportImportProgress(ctx, repo)
+	err = ascsync.ImportHistory(ascsync.WithBulkImport(ctx), repo, refs)
+	stop(err == nil)
+	if err != nil {
 		if msg, ok := ascsync.RejectMessage(err); ok {
 			return fmt.Errorf("asc refused the imported history: %s", msg)
 		}
@@ -221,6 +226,82 @@ func importMigratedIntoAsc(ctx context.Context, repo *repo_model.Repository, def
 	// Only now is the default branch the trunk asc protects: until here the import went in as history, and from
 	// here every push is judged by the policy, secret scan included.
 	return setAscTrunk(ctx, repo, defaultBranch)
+}
+
+// ImportProgressFormat is the message of a migration while asc imports the history: done and total history entries.
+const ImportProgressFormat = "repo.migrate.asc_import_progress"
+
+// importProgressEvery is how often a migration asks asc how far the history import is; tests shorten it.
+var importProgressEvery = 2 * time.Second
+
+// reportImportProgress tells the person who started the migration how far asc's import of the history is, through
+// the messenger of the migration (base.MessengerOf): the history entries asc has imported of all those in the clone.
+// The total is the hub's own count of the clone; only the count done is asc's. stop ends the reports and waits for
+// the last one; stop(true) reports the whole history as done (a retry does not count what asc already held).
+// Without a messenger, or with a history that cannot be counted, it reports nothing.
+func reportImportProgress(ctx context.Context, repo *repo_model.Repository) (stop func(done bool)) {
+	messenger := base.MessengerOf(ctx)
+	if messenger == nil {
+		return func(bool) {}
+	}
+	total, err := countHistory(ctx, repo.RepoPath())
+	if err != nil || total <= 0 {
+		if err != nil {
+			log.Debug("migration of %-v: the history is not counted: %v", repo, err)
+		}
+		return func(bool) {}
+	}
+	messenger(ImportProgressFormat, int64(0), total)
+	pctx, cancel := context.WithCancel(ctx)
+	ended := make(chan struct{})
+	go func() {
+		defer close(ended)
+		tick := time.NewTicker(importProgressEvery)
+		defer tick.Stop()
+		// Each batch of refs is an import of its own that counts from zero: what earlier batches imported stays done.
+		var earlier, batch, started, last uint64
+		for {
+			select {
+			case <-pctx.Done():
+				return
+			case <-tick.C:
+			}
+			p, err := ascsync.ImportProgress(pctx, repo)
+			if err != nil {
+				log.Debug("migration of %-v: the progress of the import: %v", repo, err)
+				continue
+			}
+			if !p.Running {
+				continue
+			}
+			if s := uint64(max(p.Started, 0)); s != started || p.Commits < batch {
+				earlier += batch
+				started = s
+			}
+			batch = p.Commits
+			done := min(earlier+batch, uint64(total))
+			if done > last {
+				last = done
+				messenger(ImportProgressFormat, int64(done), total)
+			}
+		}
+	}()
+	return func(done bool) {
+		cancel()
+		<-ended
+		if done {
+			messenger(ImportProgressFormat, total, total)
+		}
+	}
+}
+
+// countHistory counts the commits reachable from the refs of the clone.
+func countHistory(ctx context.Context, repoPath string) (int64, error) {
+	out, _, err := git.NewCommand(ctx, "rev-list", "--count", "--all").RunStdString(&git.RunOpts{Dir: repoPath})
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(strings.TrimSpace(out), 10, 64)
 }
 
 // ensureAscRepo is ensureAscRepository; tests replace it.

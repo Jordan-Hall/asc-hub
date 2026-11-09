@@ -47,6 +47,8 @@ func MigrateRepository(ctx context.Context, doer *user_model.User, ownerName str
 		return nil, err
 	}
 
+	// The git data import reports its own progress (the history entries asc has imported) through the messenger.
+	ctx = base.WithMessenger(ctx, messenger)
 	uploader := NewGiteaLocalUploader(ctx, doer, ownerName, opts.RepoName)
 	uploader.gitServiceType = opts.GitServiceType
 

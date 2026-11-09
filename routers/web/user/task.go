@@ -11,6 +11,8 @@ import (
 	"forgejo.org/modules/json"
 	"forgejo.org/services/context"
 	repo_service "forgejo.org/services/repository"
+
+	"github.com/dustin/go-humanize"
 )
 
 // TaskStatus returns task's status
@@ -30,6 +32,7 @@ func TaskStatus(ctx *context.Context) {
 	}
 
 	message := task.Message
+	var done, total int64
 
 	if task.Message != "" && task.Message[0] == '{' {
 		// assume message is actually a translatable string
@@ -48,7 +51,19 @@ func TaskStatus(ctx *context.Context) {
 			}
 		}
 
-		message = ctx.Locale.TrString(translatableMessage.Format, translatableMessage.Args...)
+		args := translatableMessage.Args
+		// The history import of an asc repository: the counts drive the progress bar, the text groups their digits.
+		if translatableMessage.Format == repo_service.ImportProgressFormat && len(args) == 2 {
+			d, dok := args[0].(int64)
+			n, nok := args[1].(int64)
+			if dok && nok {
+				args = []any{humanize.Comma(d), humanize.Comma(n)}
+				if n > 0 && d >= 0 && d <= n {
+					done, total = d, n
+				}
+			}
+		}
+		message = ctx.Locale.TrString(translatableMessage.Format, args...)
 	}
 
 	ctx.JSON(http.StatusOK, map[string]any{
@@ -59,5 +74,8 @@ func TaskStatus(ctx *context.Context) {
 		"repo-name": opts.RepoName,
 		"start":     task.StartTime,
 		"end":       task.EndTime,
+		// How far the history import is, when the migration says; total 0 when it does not.
+		"done":  done,
+		"total": total,
 	})
 }

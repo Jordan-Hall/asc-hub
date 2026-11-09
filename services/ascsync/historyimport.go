@@ -71,6 +71,34 @@ func ImportHistory(ctx context.Context, repo *repo_model.Repository, want []Push
 	return nil
 }
 
+// Progress is how far the import of a repository that runs in asc now is.
+type Progress struct {
+	Running bool
+	// Commits is the number of commits the import has turned into changesets so far; commits asc already held are
+	// not counted.
+	Commits uint64
+	// Started is when the import started (unix seconds). ImportHistory runs one import per batch of refs, each with
+	// its own start and count, and between two batches nothing may be running for a moment.
+	Started int64
+}
+
+// ImportProgress asks asc how far the import of repo that runs now is.
+func ImportProgress(ctx context.Context, repo *repo_model.Repository) (Progress, error) {
+	h, err := open(repo)
+	if err != nil {
+		return Progress{}, err
+	}
+	cctx, cancel := system(ctx, CallTimeout)
+	defer cancel()
+	resp, err := h.api.ImportProgress(cctx, &ascv1.ImportProgressRequest{
+		Repo: &ascv1.RepoRef{Name: h.name, IdMode: ascv1.IdMode_ID_MODE_ASC},
+	})
+	if err != nil {
+		return Progress{}, callError("import progress", err)
+	}
+	return Progress{Running: resp.GetRunning(), Commits: resp.GetCommits(), Started: resp.GetStarted()}, nil
+}
+
 // gitRefs lists the branches and tags of the repository in asc with the git id each points at. A ref whose
 // target has no git id yet (an annotated tag asc has not mapped) is left out, so an import brings it over.
 func (h *ascRepo) gitRefs(ctx context.Context) (map[string]string, error) {

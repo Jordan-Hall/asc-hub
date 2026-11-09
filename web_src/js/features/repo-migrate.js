@@ -23,6 +23,14 @@ export function initRepoMigrationStatusChecker() {
     if (data.message) {
       document.getElementById('repo_migrating_progress_message').textContent = data.message;
     }
+    // The history import says how far it is; otherwise the bar shows that something runs.
+    const bar = document.querySelector('#repo_migrating_progress .rp-migrating-bar');
+    if (bar && data.total > 0) {
+      bar.max = data.total;
+      bar.value = data.done;
+    } else if (bar) {
+      bar.removeAttribute('value');
+    }
 
     // TaskStatusFinished
     if (data.status === 4) {

@@ -19,43 +19,44 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Repo_Version_FullMethodName       = "/asc.v1.Repo/Version"
-	Repo_HasObjects_FullMethodName    = "/asc.v1.Repo/HasObjects"
-	Repo_GetObjects_FullMethodName    = "/asc.v1.Repo/GetObjects"
-	Repo_PutObjects_FullMethodName    = "/asc.v1.Repo/PutObjects"
-	Repo_ListRefs_FullMethodName      = "/asc.v1.Repo/ListRefs"
-	Repo_UpdateRefs_FullMethodName    = "/asc.v1.Repo/UpdateRefs"
-	Repo_Resolve_FullMethodName       = "/asc.v1.Repo/Resolve"
-	Repo_GitMap_FullMethodName        = "/asc.v1.Repo/GitMap"
-	Repo_Log_FullMethodName           = "/asc.v1.Repo/Log"
-	Repo_MergeBase_FullMethodName     = "/asc.v1.Repo/MergeBase"
-	Repo_IsAncestor_FullMethodName    = "/asc.v1.Repo/IsAncestor"
-	Repo_Diff_FullMethodName          = "/asc.v1.Repo/Diff"
-	Repo_Blame_FullMethodName         = "/asc.v1.Repo/Blame"
-	Repo_LastCommits_FullMethodName   = "/asc.v1.Repo/LastCommits"
-	Repo_ReadChangeset_FullMethodName = "/asc.v1.Repo/ReadChangeset"
-	Repo_ReadTree_FullMethodName      = "/asc.v1.Repo/ReadTree"
-	Repo_ReadFile_FullMethodName      = "/asc.v1.Repo/ReadFile"
-	Repo_Stat_FullMethodName          = "/asc.v1.Repo/Stat"
-	Repo_CheckAttr_FullMethodName     = "/asc.v1.Repo/CheckAttr"
-	Repo_Grep_FullMethodName          = "/asc.v1.Repo/Grep"
-	Repo_Archive_FullMethodName       = "/asc.v1.Repo/Archive"
-	Repo_Commit_FullMethodName        = "/asc.v1.Repo/Commit"
-	Repo_Merge_FullMethodName         = "/asc.v1.Repo/Merge"
-	Repo_Apply_FullMethodName         = "/asc.v1.Repo/Apply"
-	Repo_CopyClosure_FullMethodName   = "/asc.v1.Repo/CopyClosure"
-	Repo_RepoAdmin_FullMethodName     = "/asc.v1.Repo/RepoAdmin"
-	Repo_ImportGitPush_FullMethodName = "/asc.v1.Repo/ImportGitPush"
-	Repo_Ingest_FullMethodName        = "/asc.v1.Repo/Ingest"
-	Repo_FindLanding_FullMethodName   = "/asc.v1.Repo/FindLanding"
-	Repo_Classify_FullMethodName      = "/asc.v1.Repo/Classify"
-	Repo_Rebase_FullMethodName        = "/asc.v1.Repo/Rebase"
-	Repo_CommitGraph_FullMethodName   = "/asc.v1.Repo/CommitGraph"
-	Repo_LineHistory_FullMethodName   = "/asc.v1.Repo/LineHistory"
-	Repo_Compare_FullMethodName       = "/asc.v1.Repo/Compare"
-	Repo_RepoConfig_FullMethodName    = "/asc.v1.Repo/RepoConfig"
-	Repo_GetPolicy_FullMethodName     = "/asc.v1.Repo/GetPolicy"
-	Repo_WatchRefs_FullMethodName     = "/asc.v1.Repo/WatchRefs"
+	Repo_Version_FullMethodName        = "/asc.v1.Repo/Version"
+	Repo_HasObjects_FullMethodName     = "/asc.v1.Repo/HasObjects"
+	Repo_GetObjects_FullMethodName     = "/asc.v1.Repo/GetObjects"
+	Repo_PutObjects_FullMethodName     = "/asc.v1.Repo/PutObjects"
+	Repo_ListRefs_FullMethodName       = "/asc.v1.Repo/ListRefs"
+	Repo_UpdateRefs_FullMethodName     = "/asc.v1.Repo/UpdateRefs"
+	Repo_Resolve_FullMethodName        = "/asc.v1.Repo/Resolve"
+	Repo_GitMap_FullMethodName         = "/asc.v1.Repo/GitMap"
+	Repo_Log_FullMethodName            = "/asc.v1.Repo/Log"
+	Repo_MergeBase_FullMethodName      = "/asc.v1.Repo/MergeBase"
+	Repo_IsAncestor_FullMethodName     = "/asc.v1.Repo/IsAncestor"
+	Repo_Diff_FullMethodName           = "/asc.v1.Repo/Diff"
+	Repo_Blame_FullMethodName          = "/asc.v1.Repo/Blame"
+	Repo_LastCommits_FullMethodName    = "/asc.v1.Repo/LastCommits"
+	Repo_ReadChangeset_FullMethodName  = "/asc.v1.Repo/ReadChangeset"
+	Repo_ReadTree_FullMethodName       = "/asc.v1.Repo/ReadTree"
+	Repo_ReadFile_FullMethodName       = "/asc.v1.Repo/ReadFile"
+	Repo_Stat_FullMethodName           = "/asc.v1.Repo/Stat"
+	Repo_CheckAttr_FullMethodName      = "/asc.v1.Repo/CheckAttr"
+	Repo_Grep_FullMethodName           = "/asc.v1.Repo/Grep"
+	Repo_Archive_FullMethodName        = "/asc.v1.Repo/Archive"
+	Repo_Commit_FullMethodName         = "/asc.v1.Repo/Commit"
+	Repo_Merge_FullMethodName          = "/asc.v1.Repo/Merge"
+	Repo_Apply_FullMethodName          = "/asc.v1.Repo/Apply"
+	Repo_CopyClosure_FullMethodName    = "/asc.v1.Repo/CopyClosure"
+	Repo_RepoAdmin_FullMethodName      = "/asc.v1.Repo/RepoAdmin"
+	Repo_ImportGitPush_FullMethodName  = "/asc.v1.Repo/ImportGitPush"
+	Repo_ImportProgress_FullMethodName = "/asc.v1.Repo/ImportProgress"
+	Repo_Ingest_FullMethodName         = "/asc.v1.Repo/Ingest"
+	Repo_FindLanding_FullMethodName    = "/asc.v1.Repo/FindLanding"
+	Repo_Classify_FullMethodName       = "/asc.v1.Repo/Classify"
+	Repo_Rebase_FullMethodName         = "/asc.v1.Repo/Rebase"
+	Repo_CommitGraph_FullMethodName    = "/asc.v1.Repo/CommitGraph"
+	Repo_LineHistory_FullMethodName    = "/asc.v1.Repo/LineHistory"
+	Repo_Compare_FullMethodName        = "/asc.v1.Repo/Compare"
+	Repo_RepoConfig_FullMethodName     = "/asc.v1.Repo/RepoConfig"
+	Repo_GetPolicy_FullMethodName      = "/asc.v1.Repo/GetPolicy"
+	Repo_WatchRefs_FullMethodName      = "/asc.v1.Repo/WatchRefs"
 )
 
 // RepoClient is the client API for Repo service.
@@ -89,6 +90,7 @@ type RepoClient interface {
 	CopyClosure(ctx context.Context, in *CopyClosureRequest, opts ...grpc.CallOption) (*CopyClosureResponse, error)
 	RepoAdmin(ctx context.Context, in *RepoAdminRequest, opts ...grpc.CallOption) (*RepoAdminResponse, error)
 	ImportGitPush(ctx context.Context, in *ImportGitPushRequest, opts ...grpc.CallOption) (*ImportGitPushResponse, error)
+	ImportProgress(ctx context.Context, in *ImportProgressRequest, opts ...grpc.CallOption) (*ImportProgressResponse, error)
 	Ingest(ctx context.Context, in *IngestRequest, opts ...grpc.CallOption) (*IngestResponse, error)
 	FindLanding(ctx context.Context, in *FindLandingRequest, opts ...grpc.CallOption) (*FindLandingResponse, error)
 	Classify(ctx context.Context, in *ClassifyRequest, opts ...grpc.CallOption) (*ClassifyResponse, error)
@@ -448,6 +450,16 @@ func (c *repoClient) ImportGitPush(ctx context.Context, in *ImportGitPushRequest
 	return out, nil
 }
 
+func (c *repoClient) ImportProgress(ctx context.Context, in *ImportProgressRequest, opts ...grpc.CallOption) (*ImportProgressResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportProgressResponse)
+	err := c.cc.Invoke(ctx, Repo_ImportProgress_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *repoClient) Ingest(ctx context.Context, in *IngestRequest, opts ...grpc.CallOption) (*IngestResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(IngestResponse)
@@ -606,6 +618,7 @@ type RepoServer interface {
 	CopyClosure(context.Context, *CopyClosureRequest) (*CopyClosureResponse, error)
 	RepoAdmin(context.Context, *RepoAdminRequest) (*RepoAdminResponse, error)
 	ImportGitPush(context.Context, *ImportGitPushRequest) (*ImportGitPushResponse, error)
+	ImportProgress(context.Context, *ImportProgressRequest) (*ImportProgressResponse, error)
 	Ingest(context.Context, *IngestRequest) (*IngestResponse, error)
 	FindLanding(context.Context, *FindLandingRequest) (*FindLandingResponse, error)
 	Classify(context.Context, *ClassifyRequest) (*ClassifyResponse, error)
@@ -705,6 +718,9 @@ func (UnimplementedRepoServer) RepoAdmin(context.Context, *RepoAdminRequest) (*R
 }
 func (UnimplementedRepoServer) ImportGitPush(context.Context, *ImportGitPushRequest) (*ImportGitPushResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ImportGitPush not implemented")
+}
+func (UnimplementedRepoServer) ImportProgress(context.Context, *ImportProgressRequest) (*ImportProgressResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportProgress not implemented")
 }
 func (UnimplementedRepoServer) Ingest(context.Context, *IngestRequest) (*IngestResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Ingest not implemented")
@@ -1171,6 +1187,24 @@ func _Repo_ImportGitPush_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Repo_ImportProgress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportProgressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RepoServer).ImportProgress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Repo_ImportProgress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RepoServer).ImportProgress(ctx, req.(*ImportProgressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Repo_Ingest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IngestRequest)
 	if err := dec(in); err != nil {
@@ -1408,6 +1442,10 @@ var Repo_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ImportGitPush",
 			Handler:    _Repo_ImportGitPush_Handler,
+		},
+		{
+			MethodName: "ImportProgress",
+			Handler:    _Repo_ImportProgress_Handler,
 		},
 		{
 			MethodName: "Ingest",
