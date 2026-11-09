@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 179 |
+| done | 182 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 16 |
+| needs-both | 13 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 18, L 13.
+Open rows by size: S 0, M 18, L 10.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -164,13 +164,13 @@ Open rows by size: S 0, M 18, L 13.
 | ExploreUsers | "People and agents" header and Invite people button | done | `explore/navbar.tmpl` title `explore.users_title`; Invite people from `inviteHref` in `routers/web/explore/user.go`: Add account for an administrator, a mailto with the sign-up link for others where sign-up is open, none when signed out or sign-up is closed | - |
 | ExploreUsers | Search by name, handle or role | done | `explore/users.tmpl` (role not searchable until roles exist) | - |
 | ExploreUsers | Show filter (People and agents / People / Agents), Organization filter, Sort "Most active" | done | `templates/explore/search.tmpl` has Show, Organization (any organization the viewer may see, with suggestions) and Most active; `models/user/asc_search.go` (`AscUserFilter`, `AscMostActiveOrder`) | M |
-| ExploreUsers | Chips All, People, Agents, Maintainers, Online now | needs-both | None present. Agents are not hub users (they are tokens and runs in `proto/asc/v1/agents.proto`); Maintainers needs a role; Online now needs presence | L |
+| ExploreUsers | Chips All, People, Agents, Maintainers, Online now | done | `templates/explore/search.tmpl` `explore-users-chips`, `peopleChips` in `routers/web/explore/user_agents.go`; Maintainers `user_model.AscMaintainersCond`, Online now `ascpresence.OnlineCond` (TestTheExplorePeopleHaveChipsAgentRowsAndWhoIsActive) | - |
 | ExploreUsers | Role chip (Owner, Maintainer, Member, Agent) and "Roles on this hub" card | done | `models/user/asc_roles.go` reads the role (Owner = site admin, Maintainer = write to a repository of someone else, Agent = bot account, Member) and counts the accounts the viewer may see; chips and the rail card in `user_list.tmpl` and `users.tmpl`, for signed-in viewers only | M |
-| ExploreUsers | Agent rows: violet square avatar, `@org/name`, owner, scope, View runs | needs-both | asc has repo-scoped `ListTokens` and `ListRuns`; no hub-wide agent directory. asc: `ListAgents(owner)` RPC; hub: row type in `user_list.tmpl`, links to `/-/asc/agents` | L |
+| ExploreUsers | Agent rows: violet square avatar, `@org/name`, owner, scope, View runs | done | `templates/explore/users.tmpl` `data-asc-explore-agents` from `services/ascagentdir` (asc `SummarizeAgents`); `loadExploreAgentsAndActive` | - |
 | ExploreUsers | Meta row: location, joined, organizations, public email as own labelled item | done | `user_list.tmpl` meta row with icons; organizations from `loadExploreUserRows` in `routers/web/explore/user.go` | - |
 | ExploreUsers | Activity sparkline (12 weeks, text equivalent), counts "changesets, reviews" | done | `models/activities/asc_weekly.go` counts the public actions per week (public repositories of public owners, one count per action), the pull requests opened and the reviews given; `templates/explore/asc_activity.tmpl` draws the line with the same fact as its label; a person who keeps activity private shows none | M |
 | ExploreUsers | Hover action Follow; View runs for agents | done | Row Follow/Unfollow form in `user_list.tmpl` posting to the profile action with `redirect_to`; View runs for agents moves with the agent rows (row 169) | - |
-| ExploreUsers | Rail "Who is active now" with presence and current activity | needs-both | No presence model. Hub: last-seen heartbeat (`models/user`); asc: run state for agents (`GetRun`) | L |
+| ExploreUsers | Rail "Who is active now" with presence and current activity | done | `activeNow` in `routers/web/explore/user_agents.go`: people online (`ascpresence.OnlineCond`) with their last public action of the hour, agents with runs going; `data-asc-active-now` in `users.tmpl` | - |
 | ExploreUsers | Grid layout | done | With the layout toggle (Explore) | M |
 | ExploreUsers | States: loading, no people match, filter chips, error | done | Error, no-match with chips and empty states in `user_list.tmpl`; loading not shown, server rendered | - |
 | Mobile-ExploreUsers | Chips filter People, Agents, Maintainers, Online now; Follow inside the row at 44 px | needs-both | As above | M |
