@@ -33,6 +33,7 @@ func Privacy(ctx *context.Context) {
 	ctx.Data["ShowActivity"] = !ctx.Doer.KeepActivityPrivate
 	ctx.Data["HideEmail"] = ctx.Doer.KeepEmailPrivate
 	ctx.Data["ShowOnline"] = ascpresence.ShowOnline(ctx, ctx.Doer.ID)
+	ctx.Data["ShowLocalTime"] = ascpresence.ShowLocalTime(ctx, ctx.Doer.ID)
 	ctx.Data["AgentsReadProfile"] = user_model.AscAgentsMayReadProfile(ctx, ctx.Doer.ID)
 	ctx.Data["NoreplyEmail"] = ctx.Doer.GetPlaceholderEmail()
 
@@ -57,6 +58,14 @@ func PrivacyPost(ctx *context.Context) {
 	case "show_online":
 		if err := ascpresence.SetShowOnline(ctx, ctx.Doer.ID, on); err != nil {
 			ctx.ServerError("SetShowOnline", err)
+			return
+		}
+		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
+		ctx.Redirect(privacyLink())
+		return
+	case "show_local_time":
+		if err := ascpresence.SetShowLocalTime(ctx, ctx.Doer.ID, on); err != nil {
+			ctx.ServerError("SetShowLocalTime", err)
 			return
 		}
 		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))

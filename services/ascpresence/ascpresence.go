@@ -18,6 +18,7 @@ import (
 const (
 	lastSeenKey = "asc.last_seen"
 	showKey     = "asc.show_online"
+	localKey    = "asc.show_local_time"
 
 	// WriteEvery is the least time between two stored updates of one person: the granularity of "last seen".
 	WriteEvery = 5 * time.Minute
@@ -62,6 +63,18 @@ func ShowOnline(ctx context.Context, userID int64) bool {
 	return err != nil || v != "false"
 }
 
+// SetShowLocalTime stores the choice "Show my local time on my profile".
+func SetShowLocalTime(ctx context.Context, userID int64, show bool) error {
+	return user_model.SetUserSetting(ctx, userID, localKey, strconv.FormatBool(show))
+}
+
+// ShowLocalTime reports the choice of the person; the default is not to show, because the time tells others the time
+// zone of the person.
+func ShowLocalTime(ctx context.Context, userID int64) bool {
+	v, err := user_model.GetUserSetting(ctx, userID, localKey, "false")
+	return err == nil && v == "true"
+}
+
 // Online reports whether the dot shows for the person: they allow it and made a request lately. The viewer's right to
 // see the profile at all is checked by the page that asks.
 func Online(ctx context.Context, userID int64) bool {
@@ -77,7 +90,7 @@ func Online(ctx context.Context, userID int64) bool {
 }
 
 // Presence is what the presence pill of a profile says: whether the person is online and the time where they are
-// ("15:04" in the zone of their profile, "" when they chose none).
+// ("15:04" in the zone of their profile, "" when they chose none or do not show it).
 type Presence struct {
 	Online    bool
 	LocalTime string
@@ -85,13 +98,14 @@ type Presence struct {
 
 // Of gives the pill of the person, whose time zone is tz (an IANA name, "" for none). ok is false when the pill does
 // not show: the person switched "Show when I am online" off, which hides their local time too, or there is nothing
-// to say (offline and no zone). The viewer's right to see the profile is checked by the page that asks.
+// to say (offline, and no zone or "Show my local time on my profile" off, the default). The viewer's right to see
+// the profile is checked by the page that asks.
 func Of(ctx context.Context, userID int64, tz string) (p Presence, ok bool) {
 	if !ShowOnline(ctx, userID) {
 		return p, false
 	}
 	p.Online = Online(ctx, userID)
-	if tz != "" {
+	if tz != "" && ShowLocalTime(ctx, userID) {
 		if loc, err := time.LoadLocation(tz); err == nil {
 			p.LocalTime = now().In(loc).Format("15:04")
 		}
