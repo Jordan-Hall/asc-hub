@@ -373,3 +373,27 @@ would be listed in them. To keep a package private, publish it from a private or
 The chip is `VisibilityOf` in `routers/web/shared/packages/asc_list.go`, which follows the access check of the
 registries (`DeterminePackageAccessMode`). Tests: TestAPackageIsAsVisibleAsItsOwner,
 TestThePackageListShowsTheVisibilityOfEachPackage.
+
+## Requests for access
+
+A signed-in person who is refused on a page of a repository (the 403 page) can ask its admins for more access with
+**Request access** and an optional message of up to 500 characters. A reader asks for write access, a writer asks to
+be an admin, and an admin is not offered the form. A restricted account is never offered it. The page then says the
+request was sent and when, and the person can withdraw it. A person the owner has blocked is told the same and nothing
+is stored, so the request does not tell them about the block.
+
+The admins of the repository see the requests at the top of **Settings > Collaborators**, oldest first, with the role
+asked for, the message and the date. **Grant** adds the person as a collaborator with that role (or raises the role of
+a collaborator) and mails them; a person who is no longer active, an owner of the organization or blocked is not
+added, and the request stays so it can be dismissed. **Dismiss** removes the request without a change. A person has at
+most one request per repository; a second one replaces the first. Requests go with the repository or the account when
+either is deleted.
+
+**Switch account**, on every 403 page for a signed-in person, signs out and opens the sign-in page, which comes back to
+the refused page once another account is signed in. Only a path of this hub is kept as the way back.
+
+The requests are the table `asc_access_request` (`models/repo/asc_access_request.go`); the 403 page data is
+`ascForbiddenActions` in `services/context/context_response.go`, the handlers are
+`routers/web/repo/asc_access_request.go`, `routers/web/repo/setting/asc_access_request.go` and
+`routers/web/auth/asc_switch_account.go`. Tests: TestAscAccessRequests, Test_addAscAccessRequest,
+TestAscAccessRequestFromTheForbiddenPage, TestAscSwitchAccount.

@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 213, partial 23, missing 81. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 214, partial 23, missing 80. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -387,7 +387,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Errors (ASC Hub error and status pages)
 
-Area shell/settings. Rows 8: done 5, partial 1, missing 2. Copy found in the hub: 61% of 38 copy strings (mobile twin 82%). Template(s): 404.tmpl, 413.tmpl, 500.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 8: done 6, partial 1, missing 1. Copy found in the hub: 61% of 38 copy strings (mobile twin 82%). Template(s): 404.tmpl, 413.tmpl, 500.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Error and system pages; When something goes wrong, say what and what next.; Each page keeps the header and footer, uses the same illustration language, off...; Switch account; Learn about artifact storage; Nothing you did caused this, and nothing was changed. Our team has been told..
 
@@ -396,7 +396,7 @@ Board copy not found word for word in locale, templates or scripts: Error and sy
 | 404, 403, 413, 500, 503, offline cards with header and footer | done | templates/status/*.tmpl (not found in tree) | the where-cell cites templates/status/*.tmpl, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Request id ("Request id 7f3a91c2 - date UTC", selectable) | done | templates/status/500.tmpl (file) | - |
 | 500 actions: Try again (same request id) and Status page | done | templates/status/500.tmpl, templates/asc/status.tmpl (/-/status) | - |
-| 403 actions: Request access and Switch account | missing (hub) | logged as not built (not re-probed) | 403.tmpl has Sign in, Dashboard, Search. Request access needs an access-request flow to the owners of the org |
+| 403 actions: Request access and Switch account | done | templates/status/403.tmpl, routers/web/repo/asc_access_request.go, routers/web/auth/asc_switch_account.go | - |
 | 404 actions: dashboard, search the hub | done | templates/status/404.tmpl (file) | - |
 | 413 card with limit, artifact storage link and Back | done | templates/status/413.tmpl (file) | - |
 | 503 maintenance: version being upgraded, reads continue through the CLI, window, expected back... | done | routers/web/admin/asc_maintenance.go, routers/web/asc_maintenance.go, templates/status/503.tmpl; asc Maintenance service (maintenance.v1) | - |

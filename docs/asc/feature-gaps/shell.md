@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 167 |
+| done | 168 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 5 |
+| needs-hub-backend | 4 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -213,7 +213,7 @@ Open rows by size: S 0, M 21, L 14.
 | Errors | 404, 403, 413, 500, 503, offline cards with header and footer | done | `templates/status/*.tmpl` | - |
 | Errors | Request id ("Request id 7f3a91c2 · date UTC", selectable) | done | No id in any status template. Generate per request in `services/context`, log it, show in `500.tmpl`, `503.tmpl`, error JSON | M |
 | Errors | 500 actions: Try again (same request id) and Status page | done | `500.tmpl` offers Try again and Status page; the status page is /-/status (`AscStatus`, `asc/status.tmpl`, the probe of the footer in `services/asctrust/status.go`), linked from the footer, 500, 503 in maintenance and the package list error | S |
-| Errors | 403 actions: Request access and Switch account | needs-hub-backend | `403.tmpl` has Sign in, Dashboard, Search. Request access needs an access-request flow to the owners of the org | L |
+| Errors | 403 actions: Request access and Switch account | done | `403.tmpl` offers Request access (reader to write, writer to admin, with a message) and Switch account; the admins grant or dismiss on Settings > Collaborators (`asc_access_request`, OPERATIONS.md "Requests for access") | L |
 | Errors | 404 actions: dashboard, search the hub | done | `404.tmpl` | - |
 | Errors | 413 card with limit, artifact storage link and Back | done | `413.tmpl` | - |
 | Errors | 503 maintenance: version being upgraded, reads continue through the CLI, window, expected back, status link | done | Hub: Site administration, Maintenance (`routers/web/admin/asc_maintenance.go`, `templates/admin/asc_maintenance.tmpl`) keeps message, window, expected back, status page and the version; `ascMaintenanceGuard` (`routers/web/asc_maintenance.go`) answers browser writes with 503 (`templates/status/503.tmpl` shows "Upgrading to", window, expected back, reads go on, status link) and `/-/status` shows the banner. asc: the Maintenance service (`maintenance.v1`, SPEC §14.5) makes every node read-only; when asc has it the hub switches asc first and changes nothing if asc refuses, so pushes from the command line are refused with the same message; the page shows the state of asc serve and a staged restore; tests TestAscMaintenanceBoard, TestAscMaintenanceSwitchesAscFirst, TestAscMaintenanceRefusesBeforeCallingAsc, TestAscMaintenanceNotLinked, TestMaintenancePageShowsTheVersion | - |
