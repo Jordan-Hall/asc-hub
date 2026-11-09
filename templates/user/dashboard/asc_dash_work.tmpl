@@ -68,16 +68,24 @@ includes it, and GET /-/asc/dash/work renders it alone so the page refreshes it 
 		{{end}}
 	</section>
 
-	{{if $d.Queue}}
-		<section class="ds-card wk-card" aria-labelledby="wk-queue-title">
-			<div class="ds-card-h"><h2 id="wk-queue-title">{{ctx.Locale.Tr "asc_work.dash_queue"}}</h2><span class="ds-chip">{{len $d.Queue}}</span></div>
+	{{if $d.Queue.Rows}}
+		<section class="ds-card wk-card" aria-labelledby="wk-queue-title" data-asc-dash-queue>
+			<div class="ds-card-h">
+				<h2 id="wk-queue-title">{{ctx.Locale.Tr "asc_work.dash_queue"}}</h2>
+				<span class="ds-chip">{{len $d.Queue.Rows}}</span>
+				{{if $d.Queue.Running}}<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_work.dash_queue_running"}}</span>{{end}}
+				{{if $d.Queue.Median}}<span class="ds-ml-auto ds-t-small ds-sub">{{ctx.Locale.Tr "asc_work.dash_queue_median" $d.Queue.Median}}</span>{{end}}
+			</div>
 			<ul class="wk-needs">
-				{{range $d.Queue}}
+				{{range $d.Queue.Rows}}
 					<li class="wk-need">
 						<span class="ds-dot ds-dot-{{if eq .State "blocked"}}err{{else if eq .State "landing"}}ok{{else}}warn{{end}} wk-need-dot" aria-hidden="true"></span>
 						<div class="wk-need-main">
 							<div class="wk-need-title"><a href="{{.Link}}">{{.Title}}</a></div>
-							<div class="wk-need-where">{{.Where}} &middot; {{.Label}}</div>
+							<div class="wk-need-where">{{.Where}} &middot; {{.Label}}{{if .Checks}} &middot; {{.Checks}}{{end}}{{if .ETA}} &middot; {{.ETA}}{{end}}</div>
+						</div>
+						<div class="wk-need-acts">
+							<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Open}}" aria-label="{{ctx.Locale.Tr "asc_work.dash_queue_open_for" .Title}}">{{ctx.Locale.Tr "asc_work.dash_queue_open"}}</a>
 						</div>
 					</li>
 				{{end}}

@@ -136,7 +136,7 @@ type AscDash struct {
 	Repos        []AscDashRepo
 	Teams        []AscDashTeam
 	Scopes       []AscDashScope
-	Queue        []AscDashQueueRow
+	Queue        AscDashQueueCard
 	Scope        string
 	Queued       *AscInboxEntry // the change just added to the merge queue (?queued=), for the toast that can undo it
 }
