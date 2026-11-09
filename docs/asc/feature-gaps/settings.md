@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 165 |
+| done | 166 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 8 |
+| needs-both | 7 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -170,7 +170,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminUser | Single page with account facts, emails, repos, orgs, delete | done | templates/admin/user/view.tmpl | - |
 | AdminUser | Tabs Overview/Emails/Keys/Sessions/Activity | done | `routers/web/admin/user_tabs.go` (?tab= per tab), view.tmpl | - |
 | AdminUser | Reset 2FA and Suspend as separate buttons that ask for a reason written to the audit log (today checkboxes inside the edit form) | done | `routers/web/admin/user_tabs.go` UserReset2FA and UserSuspend: separate actions that ask for a reason, which is appended to asc's audit log (host.user.2fa_reset, host.user.suspended, host.user.unsuspended) (found built during the audit of 2026-10-31) | - |
-| AdminUser | Usage block (storage, agent minutes) and agents owned | needs-both | asc usage RPC (see UserSettingsUsage); view.tmpl | M |
+| AdminUser | Usage block (storage, agent minutes) and agents owned | done | asc: Usage.GetUsage for the person (asked as site administrator, audited) and Agents.SummarizeAgents over the asc repositories the person can see, created_by the person. Hub: routers/web/admin/user_tabs.go loadUserUsage and loadUserAgents (at most five agents, then And N more); templates/admin/user/view.tmpl Usage and Agents cards | M |
 | AdminUser | Sessions tab (devices, revoke) | done | browsers from `models/auth/browser_session.go` with Sign out per browser and Sign out everywhere (reason, notice, host.user.sessions_revoked in asc's audit log); asc credentials with Revoke; TestAdminSignsAPersonOutOfTheirBrowsers | - |
 | AdminOrgs | Organizations table | done | templates/admin/org/list.tmpl | - |
 | AdminOrgs | Storage column (garage-eu / Server default) and Open button | done | templates/admin/org/list.tmpl and storage.tmpl: Storage column in place of Teams, the enabled storage targets of the organization from asc Storage.ListTargets (8 asked at a time), "Server default" without one or without asc, "Not known" when asc cannot be asked; Open goes to the organization page (routers/web/admin/asc_org_storage.go); tests TestLoadOrgStorage, TestAdminOrgsStorageColumn | - |
