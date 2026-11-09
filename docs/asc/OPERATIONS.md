@@ -237,6 +237,11 @@ administrators manage the schedule, the history, checks and restores on **Site a
 backups are overdue (no success within one and a half intervals) or the last one failed, the dashboard's **Needs
 attention** card lists them with the date of the newest good backup and a **Back up now** button, which starts a
 backup to the schedule's target and opens the Backups page (while a backup runs, the row offers **Open** instead).
+Check on a row is a restore test that asc serve runs: the backup (an S3 one downloaded first, into a private scratch
+directory) is restored into a scratch area, its database opened and checked, and the scratch area removed; the row's note
+then reads "Restore test passed" or names what failed. Retention is shown as a sentence ("Kept 14 days, then weekly for
+8 weeks"). Restore needs the word RESTORE typed; the page warns that the server is read-only while the restore is
+applied, and the restore is staged for the next start of asc serve.
 The dashboard asks asc only for site administrators, waits at most three seconds and shows no row when asc does not
 answer. Code: `routers/web/admin/overview.go` (backupAttention), `routers/web/admin/asc_backups.go`. Tests:
 TestTheDashboardOffersABackupWhenBackupsAreOverdue, TestAscBackups*.
