@@ -13,11 +13,10 @@
 				<button type="button" hidden id="repo-clone-https" data-link="{{$.CloneButtonOriginLink.HTTPS}}">HTTPS</button>
 			{{end}}
 			{{if $isAsc}}
-				{{if AscDownloadAvailable}}<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "repo.clone_signin_help" (print AppSubUrl "/user/settings/applications")}}</p>{{end}}
+				<p class="ds-t-small ds-c-2" data-testid="clone-signin-help">{{ctx.Locale.Tr "repo.clone_signin_help"}}</p>
 				<div class="ds-term">
 					<div class="ds-term-hd"><span>{{ctx.Locale.Tr "asc_rp.terminal"}}</span><button type="button" class="ds-copy" data-clipboard-target="#repo-clone-url">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
-					<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> asc auth login --host {{AscHubHost}}
-<span class="ds-pr">$</span> asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></div>
+					<div class="ds-term-bd" tabindex="0" role="region" aria-label="{{ctx.Locale.Tr "asc_rp.terminal"}}"><span class="ds-pr">$</span> asc clone <span class="js-clone-url">{{$.CloneButtonOriginLink.HTTPS}}</span></div>
 				</div>
 				<input type="text" class="js-clone-url ds-sr" id="repo-clone-url" data-clone-prefix="asc clone " value="asc clone {{$.CloneButtonOriginLink.HTTPS}}" readonly tabindex="-1" aria-hidden="true">
 				<div class="ds-grid ds-grid-2 rp-clone-btns">
