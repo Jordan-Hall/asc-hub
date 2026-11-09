@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 265, partial 12, missing 40. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 266, partial 11, missing 40. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -189,15 +189,15 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### AdminMonitor (ASC Hub admin: monitor)
 
-Area shell/settings. Rows 2: done 1, partial 1, missing 0. Copy found in the hub: 80% of 64 copy strings (mobile twin 84%). Template(s): queue.tmpl, stacktrace.tmpl, stats.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 2: done 2, partial 0, missing 0 (the board note row is not counted). Copy found in the hub: 80% of 64 copy strings (mobile twin 84%). Template(s): queue.tmpl, stacktrace.tmpl, stats.tmpl. Mobile twin: yes.
 
-Board copy not found word for word in locale, templates or scripts: Skip to content; Queues, scheduled tasks and stack traces.; Work waiting to be done. Flushing deletes waiting items.; Cron-style jobs.; Clean old sessions; Verify audit chain.
+Board copy not found word for word in locale, templates or scripts: Skip to content; Queues, scheduled tasks and stack traces.; Work waiting to be done. Flushing deletes waiting items.; Cron-style jobs.; Clean old sessions.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Queues table with Flush, cron table with Run now, stack traces | done | templates/admin/queue.tmpl (file) | - |
-| Flush confirmation with count; Run now streams output; "Verify audit chain" cron task | partial (hub+asc) | logged as not built (not re-probed) | hub: queue.tmpl modal and streaming; asc: scheduled audit verify (Audit.VerifyChain exists, no schedule) |
-| Board note: Flush asks for confirmation and counts what will be removed | unverified | not tracked in the gap files | needs a row and a test |
+| Flush confirmation with count; Run now streams output; "Verify audit chain" cron task | done | templates/admin/queue_manage.tmpl, routers/web/admin/queue.go, templates/admin/queue.tmpl (cron-run), web_src/js/features/admin/cronrun.js, modules/taskout, services/asctrust/auditcheck.go (cron verify_asc_audit_chain); tests TestRunNowShowsTheOutputOfTheRun, TestRunAuditCheckFailsOnABrokenChain, cronrun.test.js | - |
+| Board note: Flush asks for confirmation and counts what will be removed | done | templates/admin/queue_manage.tmpl (confirm names the waiting count), QueueRemoveAllItems flash counts the removed items; test TestQueueFlushNamesTheCount | - |
 | Board note: Run now runs a task immediately and streams its output | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Default, backed-up queue, failed cron task, empty queue, flush confirmation | unverified | not tracked in the gap files | needs a row and a test |
 

@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 169 |
+| done | 170 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 4 |
+| needs-both | 3 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -185,7 +185,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminConfig | Allow agents on this server; Default agent budget | done | `templates/admin/config_runtime.tmpl` switch and budget field over asc OrgSettings InstanceAgents (`routers/web/admin/asc_config.go` loadAscRuntime, changeAscConfig); tests: TestChangeConfigAscSettings, TestLoadAscRuntime (found built during the audit of 2026-11-03) | M |
 | AdminConfig | Restart-required banner, invalid value error, file and line shown, Copy key/value | done | `modules/setting/asc_config_file.go` (the file read with lines, keys changed since start); `templates/admin/config.tmpl` restart banner; `config_curated.tmpl` file and line per key, Changed chip, Copy; `web_src/js/features/admin/config.js` unsaved and invalid value states; tests: TestReadConfigFile, TestChangedConfigKeys, TestPlaceConfigFile, TestAdminConfigFileAndRestart, config.test.js | S |
 | AdminMonitor | Queues table with Flush, cron table with Run now, stack traces | done | templates/admin/queue.tmpl, cron_result.tmpl, stacktrace.tmpl | - |
-| AdminMonitor | Flush confirmation with count; Run now streams output; "Verify audit chain" cron task | needs-both | hub: queue.tmpl modal and streaming; asc: scheduled audit verify (Audit.VerifyChain exists, no schedule) | M |
+| AdminMonitor | Flush confirmation with count; Run now streams output; "Verify audit chain" cron task | done | Hub only (asc already verifies the chain for the hub's own credential). Flush: the confirmation in templates/admin/queue_manage.tmpl names the waiting count, and QueueRemoveAllItems (routers/web/admin/queue.go) says how many it removed. Run now: modules/taskout keeps the lines a run writes; the monitor page opens a run panel (templates/admin/queue.tmpl, cron-run) that web_src/js/features/admin/cronrun.js updates from GET /admin/monitor/cron/{name}/output. Verify audit chain: cron verify_asc_audit_chain (services/cron/tasks_extended.go, services/asctrust/auditcheck.go), nightly, in slices to the head; a broken chain fails the task and leaves a notice. Tests TestQueueFlushNamesTheCount, TestRunNowShowsTheOutputOfTheRun, TestRunWithUserKeepsTheOutputOfTheRun, TestVerifyInstanceChain*, TestRunAuditCheckFailsOnABrokenChain, modules/taskout, cronrun.test.js | - |
 | AdminAudit | Hash-chain banner, filters, details, export, verify | done | routers/web/admin/asc_audit.go, templates/admin/asc_audit.tmpl, routers/web/shared/trustweb | - |
 | AdminAudit | Signed export file for the range | done | asc: Audit.Export ends with an SSHSIG over the file in the namespace asc-audit-export when `[signing] server_key_file` is set (crates/asc-serve/src/audit/rpc.rs, proto/asc/v1/audit.proto fields 6 and 7); hub: services/asctrust/audit.go checks the signature against the file and routers/web/shared/trustweb/audit.go serves a zip of the file, its .sig, allowed_signers and VERIFY.txt with the ssh-keygen -Y verify command; an unsigned export is the plain file; tests an_export_ends_with_the_server_signature_over_the_file, TestCopyExportKeepsTheSignatureAndItVerifies, TestWriteSignedExport, TestAscAuditExportIsSignedWhenTheServerSignsIt | S |
 | AdminBackups | Page with how to run backups (read-only text) | done | templates/admin/backups.tmpl | - |
