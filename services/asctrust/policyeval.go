@@ -4,6 +4,7 @@
 package asctrust
 
 import (
+	"slices"
 	"strings"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -20,6 +21,8 @@ const policyPath = ".asc/policy.toml"
 type Who struct {
 	Kind string
 	Name string
+	// Teams are the teams of the repository's organization that list the principal.
+	Teams []string
 }
 
 func (w Who) isAgent() bool { return w.Kind == "agent" }
@@ -169,7 +172,8 @@ func globAny(globs []string, path string) bool {
 	return false
 }
 
-// subjectMatches reports whether subject s names who. A subject is `*`, `<kind>:<glob>` or `role:<name>`.
+// subjectMatches reports whether subject s names who. A subject is `*`, `<kind>:<glob>`, `team:<name>` (matched
+// ignoring ASCII case) or `role:<name>`.
 func (r *Rules) subjectMatches(who Who, s string) bool {
 	if s == "*" {
 		return true
@@ -180,6 +184,14 @@ func (r *Rules) subjectMatches(who Who, s string) bool {
 	}
 	if head == "role" {
 		return r.IsMember(who, rest)
+	}
+	if head == "team" {
+		for _, t := range who.Teams {
+			if strings.EqualFold(t, rest) {
+				return true
+			}
+		}
+		return false
 	}
 	return who.Kind != "" && head == who.Kind && nameGlob(rest, who.Name)
 }
@@ -192,6 +204,43 @@ func (r *Rules) IsMember(who Who, role string) bool {
 		}
 	}
 	return false
+}
+
+// TeamOwnership is what a policy gives one team by name: the roles that list `team:<name>` and the `[paths]` globs
+// whose writers name the team or one of those roles. `*` is not counted: it names everyone, not the team.
+type TeamOwnership struct {
+	Roles []string
+	Globs []string
+}
+
+// OwnershipOf reports what the rules give the team called team.
+func (r *Rules) OwnershipOf(team string) TeamOwnership {
+	var out TeamOwnership
+	names := func(s string) bool {
+		head, rest, ok := strings.Cut(s, ":")
+		return ok && head == "team" && strings.EqualFold(rest, team)
+	}
+	held := map[string]bool{}
+	roles := make([]string, 0, len(r.Roles))
+	for role := range r.Roles {
+		roles = append(roles, role)
+	}
+	slices.Sort(roles)
+	for _, role := range roles {
+		if slices.ContainsFunc(r.Roles[role], names) {
+			held[role] = true
+			out.Roles = append(out.Roles, role)
+		}
+	}
+	for _, rule := range r.Paths {
+		if slices.ContainsFunc(rule.Write, func(s string) bool {
+			role, isRole := strings.CutPrefix(s, "role:")
+			return names(s) || (isRole && held[role])
+		}) {
+			out.Globs = append(out.Globs, rule.Glob)
+		}
+	}
+	return out
 }
 
 // IsMaintainer reports whether who holds the role `maintainer`.

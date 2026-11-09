@@ -169,6 +169,14 @@ func removeAllRepositories(ctx context.Context, t *organization.Team) (err error
 	return nil
 }
 
+// TeamsChanged is told the organization whose teams or team members changed, after the change commits. The asc
+// team sync (services/ascteams) sets it, so a path rule or policy naming `team:<name>` follows the hub's teams.
+var TeamsChanged = func(orgID int64) {}
+
+func teamsChangedAfter(ctx context.Context, orgID int64) {
+	db.AfterTx(ctx, func() { TeamsChanged(orgID) })
+}
+
 // NewTeam creates a record of new team.
 // It's caller's responsibility to assign organization ID.
 func NewTeam(ctx context.Context, t *organization.Team) (err error) {
@@ -232,6 +240,7 @@ func NewTeam(ctx context.Context, t *organization.Team) (err error) {
 	if _, err = db.Exec(ctx, "UPDATE `user` SET num_teams=num_teams+1 WHERE id = ?", t.OrgID); err != nil {
 		return err
 	}
+	teamsChangedAfter(ctx, t.OrgID)
 	return committer.Commit()
 }
 
@@ -306,6 +315,7 @@ func UpdateTeam(ctx context.Context, t *organization.Team, authChanged, includeA
 		}
 	}
 
+	teamsChangedAfter(ctx, t.OrgID)
 	return committer.Commit()
 }
 
@@ -367,6 +377,7 @@ func DeleteTeam(ctx context.Context, t *organization.Team) error {
 		return err
 	}
 
+	teamsChangedAfter(ctx, t.OrgID)
 	return committer.Commit()
 }
 
@@ -426,6 +437,7 @@ func InsertTeamMember(ctx context.Context, team *organization.Team, userID int64
 	if err != nil {
 		return nil, err
 	}
+	teamsChangedAfter(ctx, team.OrgID)
 
 	// this behaviour may spend much time so run it in a goroutine
 	// FIXME: Update watch repos batchly
@@ -495,6 +507,7 @@ func removeTeamMember(ctx context.Context, team *organization.Team, userID int64
 		}
 	}
 
+	teamsChangedAfter(ctx, team.OrgID)
 	return removeInvalidOrgUser(ctx, userID, team.OrgID)
 }
 

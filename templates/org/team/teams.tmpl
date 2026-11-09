@@ -83,6 +83,25 @@
 						</ul>
 					</div>
 				</div>
+				{{with $.TeamPolicyOwner}}
+					<div class="ds-card-b wk-team-owner" data-testid="org-team-policy-owner">
+						<h3 class="wk-team-sub">{{ctx.Locale.Tr "asc_work.org_team_policy_owner"}}</h3>
+						<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_work.org_team_policy_owner_desc" $sel.Name}}</p>
+						<ul class="wk-team-rows">
+							{{range .Repos}}
+								<li>
+									<a class="wk-team-row-main" href="{{.Repo.Link}}{{if .Repo.DefaultBranch}}/src/branch/{{PathEscapeSegments .Repo.DefaultBranch}}/.asc/policy.toml{{end}}"><b>{{.Repo.FullName}}</b></a>
+									<span class="wk-team-owns">
+										{{range .Roles}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_work.org_team_policy_role" .}}</span>{{end}}
+										{{range .Globs}}<code class="wk-team-glob">{{.}}</code>{{end}}
+									</span>
+								</li>
+							{{end}}
+						</ul>
+						{{if .Unread}}<p class="ds-t-small ds-c-2">{{ctx.Locale.TrN .Unread "asc_work.org_team_policy_unread_one" "asc_work.org_team_policy_unread_n" .Unread}}</p>{{end}}
+						{{if .More}}<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_work.org_team_policy_more"}}</p>{{end}}
+					</div>
+				{{end}}
 			</section>
 			{{end}}
 		{{else}}

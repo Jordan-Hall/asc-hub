@@ -40,6 +40,7 @@ import (
 	"forgejo.org/services/ascbridge"
 	"forgejo.org/services/ascdownloadsync"
 	"forgejo.org/services/ascforward"
+	"forgejo.org/services/ascteams"
 	"forgejo.org/services/asctrust"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/auth/source/oauth2"
@@ -119,6 +120,7 @@ func InitWebInstalled(ctx context.Context) {
 	mustInitCtx(ctx, ascwriter.Init)
 	mustInitCtx(ctx, ascbridge.Init)
 	mustInitCtx(ctx, ascdownloadsync.Init)
+	mustInitCtx(ctx, ascteams.Init)
 
 	// Setup i18n
 	translation.InitLocales(ctx)

@@ -365,6 +365,8 @@ func describeSubject(s string) string {
 		return "CI " + rest
 	case "host":
 		return "the host"
+	case "team":
+		return "the " + rest + " team"
 	}
 	return s
 }

@@ -5,6 +5,7 @@ package cron
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	activities_model "forgejo.org/models/activities"
@@ -20,6 +21,7 @@ import (
 	"forgejo.org/services/ascdigest"
 	"forgejo.org/services/ascexportmail"
 	"forgejo.org/services/ascorgverify"
+	"forgejo.org/services/ascteams"
 	moderation_service "forgejo.org/services/moderation"
 	repo_service "forgejo.org/services/repository"
 	archiver_service "forgejo.org/services/repository/archiver"
@@ -259,6 +261,7 @@ func initExtendedTasks() {
 	registerSendAscDigest()
 	registerRecheckAscOrgDomains()
 	registerMailAscExports()
+	registerSyncAscTeams()
 	if setting.Moderation.Enabled {
 		registerRemoveResolvedReports()
 	}
@@ -324,6 +327,25 @@ func registerMailAscExports() {
 		Schedule:   "@every 1m",
 	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
 		_, err := ascexportmail.Run(ctx, time.Now())
+		return err
+	})
+}
+
+// registerSyncAscTeams copies the teams of every organization with asc repositories to asc, so path rules and
+// policies naming `team:<name>` follow renamed and deleted accounts and any change a live sync missed.
+func registerSyncAscTeams() {
+	RegisterTaskFatal("sync_asc_teams", &BaseConfig{
+		Enabled:    true,
+		RunAtStart: true,
+		Schedule:   "@every 10m",
+	}, func(ctx context.Context, _ *user_model.User, _ Config) error {
+		if !setting.Asc.Enabled {
+			return nil
+		}
+		_, _, err := ascteams.ReconcileAll(ctx)
+		if errors.Is(err, ascteams.ErrUnavailable) {
+			return nil
+		}
 		return err
 	})
 }

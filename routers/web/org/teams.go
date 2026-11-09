@@ -25,6 +25,7 @@ import (
 	"forgejo.org/modules/validation"
 	"forgejo.org/modules/web"
 	shared_user "forgejo.org/routers/web/shared/user"
+	"forgejo.org/services/ascteams"
 	"forgejo.org/services/context"
 	"forgejo.org/services/convert"
 	"forgejo.org/services/forms"
@@ -75,6 +76,12 @@ func Teams(ctx *context.Context) {
 			return
 		}
 		ctx.Data["SelectedTeam"] = selected
+		// What the policies of the organization's asc repositories give the team (team:<name> subjects).
+		if own, err := ascteams.OwnershipOf(ctx, ctx.Org.Organization.ID, selected.LowerName, ctx.Doer); err != nil {
+			log.Warn("team policy ownership of %s/%s: %v", ctx.Org.Organization.Name, selected.LowerName, err)
+		} else if len(own.Repos) > 0 || own.Unread > 0 {
+			ctx.Data["TeamPolicyOwner"] = own
+		}
 	}
 
 	err := shared_user.LoadHeaderCount(ctx)

@@ -681,6 +681,27 @@
   border-top: 1px solid var(--line-2);
 }
 
+.wk-team-owner {
+  border-block-start: 1px solid var(--line-2);
+}
+
+.wk-team-owns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wk-team-glob {
+  padding-block: 2px;
+  padding-inline: 6px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .wk-team-row-main {
   display: flex;
   align-items: center;
