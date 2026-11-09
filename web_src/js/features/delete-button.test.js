@@ -1,4 +1,4 @@
-import {dialogKeydown} from './delete-button.js';
+import {bindConfirmName, dialogKeydown} from './delete-button.js';
 
 let dialog, close, outside;
 beforeEach(() => {
@@ -44,4 +44,34 @@ test('Tab between the buttons is left to the browser, and focus outside comes ba
   outside.focus();
   dialogKeydown(key('Tab'), dialog, close);
   expect(document.activeElement.id).toBe('cancel');
+});
+
+test('a dialog that asks for the name keeps approve off until the name is typed', () => {
+  document.body.innerHTML = `
+    <div id="named">
+      <input data-confirm-name value="left over">
+      <div class="actions"><button class="cancel button">Cancel</button><button class="ok button">Delete</button></div>
+    </div>`;
+  const named = document.querySelector('#named');
+  const ok = named.querySelector('.ok.button');
+  const input = bindConfirmName(named, 'alice/Widgets');
+  expect(input.value).toBe('');
+  expect(ok.disabled).toBe(true);
+
+  input.value = 'alice/widget';
+  input.dispatchEvent(new Event('input'));
+  expect(ok.disabled).toBe(true);
+
+  input.value = ' Alice/widgets ';
+  input.dispatchEvent(new Event('input'));
+  expect(ok.disabled).toBe(false);
+
+  bindConfirmName(named, 'bob/other');
+  expect(input.value).toBe('');
+  expect(ok.disabled).toBe(true);
+});
+
+test('a dialog that does not ask for the name is left alone', () => {
+  expect(bindConfirmName(dialog, 'alice/widgets')).toBeNull();
+  expect(document.querySelector('#ok').disabled).toBe(false);
 });
