@@ -77,6 +77,10 @@
 		</div>
 	{{else if .PageIsExploreUsers}}
 		{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_shell.nopeople_title") "Body" (ctx.Locale.Tr "asc_shell.nopeople_text"))}}
+	{{else if and .PageIsExploreOrganizations .ExploreOrgsFiltered}}
+		<div data-asc-orgs-filtered-none>
+		{{template "shared/ds/empty" (dict "Icon" "search" "Title" (ctx.Locale.Tr "explore.orgs_filtered_none_title") "Body" (ctx.Locale.Tr "explore.orgs_filtered_none_text") "PrimaryHref" (print "?sort=" (QueryEscape .SortType)) "PrimaryLabel" (ctx.Locale.Tr "asc_shell.filters_clear"))}}
+		</div>
 	{{else if .PageIsExploreOrganizations}}
 		<div data-asc-orgs-empty>
 		{{if and .IsSigned .SignedUser.CanCreateOrganization}}

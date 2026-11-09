@@ -72,6 +72,9 @@ func RenderUserSearchWith(ctx *context.Context, opts *user_model.SearchUserOptio
 	ctx.Data["SortType"] = sortOrder
 
 	orderBy := MapSortOrder(sortOrder)
+	if sortOrder == "mostactive" && opts.Type == user_model.UserTypeOrganization {
+		orderBy = user_model.AscMostActiveOrgOrder(time.Now())
+	}
 
 	if orderBy == "" {
 		// In case the `sortType` is not valid, we set it to `recentupdate`.

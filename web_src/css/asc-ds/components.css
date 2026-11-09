@@ -3644,3 +3644,8 @@ a.ds-stat:hover {
 .ds-li-activity[data-total="0"] {
   color: var(--text-3);
 }
+
+/* the chips of the organization directory, under the filter bar */
+.ds-filterbar-chips {
+  margin-top: 12px;
+}

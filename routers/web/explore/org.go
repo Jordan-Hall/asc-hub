@@ -4,6 +4,8 @@
 package explore
 
 import (
+	"net/url"
+
 	"forgejo.org/models/db"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/container"
@@ -36,6 +38,7 @@ func Organizations(ctx *context.Context) {
 		"oldest",
 		"alphabetically",
 		"reversealphabetically",
+		"mostactive",
 	)
 	sortOrder := ctx.FormString("sort")
 	if sortOrder == "" {
@@ -47,12 +50,79 @@ func Organizations(ctx *context.Context) {
 		ctx.SetFormString("sort", sortOrder)
 	}
 
-	RenderUserSearch(ctx, &user_model.SearchUserOptions{
+	opts := &user_model.SearchUserOptions{
 		Actor:       ctx.Doer,
 		Type:        user_model.UserTypeOrganization,
 		ListOptions: db.ListOptions{PageSize: setting.UI.ExplorePagingNum},
 		Visible:     visibleTypes,
 
 		SupportedSortOrders: supportedSortOrders,
-	}, tplExploreUsers)
+		ExtraParamStrings:   map[string]string{},
+	}
+	readOrgFilters(ctx, opts)
+	RenderUserSearch(ctx, opts, tplExploreUsers)
+}
+
+// ExploreOrgChip is a chip of the organization directory: a link to the list with that one filter.
+type ExploreOrgChip struct {
+	Key     string
+	Href    string
+	Current bool
+}
+
+// exploreOrgOnly is the chips of the organization directory, in order. "member" is for a signed-in viewer only.
+var exploreOrgOnly = []string{"all", "verified", "agents", "member"}
+
+// readOrgFilters reads the chips (only=all|verified|agents|member) and the Size (size=small|medium|large) of the
+// organization directory into the search, and puts what the filter bar shows into the page data. An unknown value is
+// All or Any.
+func readOrgFilters(ctx *context.Context, opts *user_model.SearchUserOptions) {
+	only := ctx.FormTrim("only")
+	if only == "member" && ctx.Doer == nil {
+		only = ""
+	}
+	switch only {
+	case "verified":
+		opts.AscOrg.Verified = true
+	case "agents":
+		opts.AscOrg.WithAgents = true
+	case "member":
+		opts.AscOrg.ViewerMember = true
+	default:
+		only = "all"
+	}
+	opts.AscOrg.Viewer = ctx.Doer
+	opts.AscOrg.Size = user_model.ParseAscOrgSize(ctx.FormTrim("size"))
+	if only != "all" {
+		opts.ExtraParamStrings["only"] = only
+	}
+	if opts.AscOrg.Size != user_model.AscOrgSizeAny {
+		opts.ExtraParamStrings["size"] = string(opts.AscOrg.Size)
+	}
+
+	chips := make([]ExploreOrgChip, 0, len(exploreOrgOnly))
+	for _, key := range exploreOrgOnly {
+		if key == "member" && ctx.Doer == nil {
+			continue
+		}
+		q := url.Values{}
+		if key != "all" {
+			q.Set("only", key)
+		}
+		for _, name := range []string{"q", "sort", "size"} {
+			if v := ctx.FormTrim(name); v != "" {
+				q.Set(name, v)
+			}
+		}
+		href := "?"
+		if len(q) > 0 {
+			href += q.Encode()
+		}
+		chips = append(chips, ExploreOrgChip{Key: key, Href: href, Current: key == only})
+	}
+	ctx.Data["ExploreOrgOnly"] = only
+	ctx.Data["ExploreOrgChips"] = chips
+	ctx.Data["ExploreOrgSize"] = string(opts.AscOrg.Size)
+	ctx.Data["ExploreOrgSizes"] = user_model.AscOrgSizes
+	ctx.Data["ExploreOrgsFiltered"] = only != "all" || opts.AscOrg.Size != user_model.AscOrgSizeAny
 }

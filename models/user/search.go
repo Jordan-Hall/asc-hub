@@ -46,6 +46,8 @@ type SearchUserOptions struct {
 
 	// Asc holds the filters of the people directory (board ExploreUsers).
 	Asc AscUserFilter
+	// AscOrg is the filters of the organization directory.
+	AscOrg AscOrgFilter
 }
 
 func (opts *SearchUserOptions) toSearchQueryBase(ctx context.Context) *xorm.Session {
@@ -94,6 +96,9 @@ func (opts *SearchUserOptions) toSearchQueryBase(ctx context.Context) *xorm.Sess
 	}
 
 	cond = opts.Asc.cond(opts.Type, cond)
+	if opts.Type == UserTypeOrganization {
+		cond = opts.AscOrg.cond(cond)
+	}
 
 	// If visibility filtered
 	if len(opts.Visible) > 0 {

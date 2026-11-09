@@ -1,5 +1,6 @@
 {{/* The filter bar of the people and organizations lists: a search field and the order; on the people list also Show
-(people and agents, people, agents) and Organization. GET form. */}}
+(people and agents, people, agents) and Organization; on the organization list also Size, and the chips All, Verified,
+Has agents and I am a member (links that keep the search, order and size). GET form. */}}
 {{$placeholder := ctx.Locale.Tr "search.org_kind"}}
 {{if .PageIsExploreUsers}}{{$placeholder = ctx.Locale.Tr "search.user_kind"}}{{end}}
 <div class="ds-filterbar">
@@ -26,6 +27,16 @@
 					<input type="search" name="org" value="{{.ExploreOrg}}" list="explore-users-orgs" maxlength="255" spellcheck="false" autocomplete="off" placeholder="{{ctx.Locale.Tr "explore.org_any"}}" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "explore.org_aria"}}" data-testid="explore-users-org">
 					<datalist id="explore-users-orgs">{{range .ExploreOrgChoices}}<option value="{{.Name}}"></option>{{end}}</datalist>
 				</label>
+				{{else if .PageIsExploreOrganizations}}
+				{{if ne .ExploreOrgOnly "all"}}<input type="hidden" name="only" value="{{.ExploreOrgOnly}}">{{end}}
+				<label class="ds-selectpill ds-hide-sm">
+					<span>{{ctx.Locale.Tr "explore.size_label"}}</span>
+					<select name="size" data-asc-autosubmit aria-label="{{ctx.Locale.Tr "explore.size_aria"}}" data-testid="explore-orgs-size">
+						<option value=""{{if not .ExploreOrgSize}} selected{{end}}>{{ctx.Locale.Tr "explore.size_any"}}</option>
+						{{range .ExploreOrgSizes}}<option value="{{.}}"{{if eq (print .) $.ExploreOrgSize}} selected{{end}}>{{ctx.Locale.Tr (print "explore.size_" .)}}</option>{{end}}
+					</select>
+					{{svg "dsi-chevron-down" 16}}
+				</label>
 				{{end}}
 				<label class="ds-selectpill ds-hide-sm">
 					<span>{{ctx.Locale.Tr "explore.sort_label"}}</span>
@@ -34,12 +45,17 @@
 						<option value="oldest"{{if eq .SortType "oldest"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.filter_sort.oldest"}}</option>
 						<option value="alphabetically"{{if eq .SortType "alphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.alphabetically"}}</option>
 						<option value="reversealphabetically"{{if eq .SortType "reversealphabetically"}} selected{{end}}>{{ctx.Locale.Tr "repo.issues.label.filter_sort.reverse_alphabetically"}}</option>
-						{{if .PageIsExploreUsers}}<option value="mostactive"{{if eq .SortType "mostactive"}} selected{{end}}>{{ctx.Locale.Tr "explore.sort_most_active"}}</option>{{end}}
+						{{if or .PageIsExploreUsers .PageIsExploreOrganizations}}<option value="mostactive"{{if eq .SortType "mostactive"}} selected{{end}}>{{ctx.Locale.Tr "explore.sort_most_active"}}</option>{{end}}
 					</select>
 					{{svg "dsi-chevron-down" 16}}
 				</label>
 				<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "search.search"}}</button>
 			</form>
 		</div>
+		{{if and .PageIsExploreOrganizations .ExploreOrgChips}}
+		<div class="ds-seg ds-filterbar-chips" role="group" aria-label="{{ctx.Locale.Tr "explore.orgs_only_aria"}}" data-testid="explore-orgs-only">
+			{{range .ExploreOrgChips}}<a class="ds-chip-btn" href="{{.Href}}" data-chip="{{.Key}}"{{if .Current}} aria-current="true"{{end}}>{{ctx.Locale.Tr (print "explore.orgs_only_" .Key)}}</a>{{end}}
+		</div>
+		{{end}}
 	</div>
 </div>
