@@ -678,3 +678,25 @@ and an unknown `pull` a 400. The server logs each request and mention (`asc audi
 `GET` and `POST /{username}/-/ask/{review|mention}` (`routers/web/user/asc_profile_ask.go`) and the picker is
 `templates/user/asc_profile_ask.tmpl`. Tests: TestAscProfileAskPicker, TestAscProfileAskReview,
 TestAscProfileAskMention, TestAscMentions, TestAscProfileAsk.
+
+## Contributions on a profile
+
+The Contributions card on a profile (the overview and the Activity tab) draws a square per day. Above the grid a year
+switch offers **Last 12 months** and each calendar year from this year back to the year the person joined, at most ten;
+the choice is `?year=` and stays on the tab. A year that is not offered shows the last twelve months. The card header
+gives the total of the range.
+
+Everything is counted from the hub's own data, for the viewer: the person's activity (as the dashboard grid), the pull
+requests they opened, the pull requests the hub opened for agent runs the person started (`pull_request_asc_run`,
+matched on `started_by`) and the reviews they gave (approve, comment, request changes). A pull request counts only
+when the viewer may read the pull requests of its repository, and nothing is shown when the person keeps their
+activity private from the viewer. A day where agent runs made most of the changes is violet, and its tooltip says how
+many came from agents; a run's pull request that the person posted counts once.
+
+Under the grid the summary gives changes (agent runs left out), changes by agents, reviews and the median review
+turnaround: for each pull request of someone else the person reviewed, the time from its opening to their first
+review. A day with activity opens the Activity tab for that day (`?tab=activity&date=YYYY-MM-DD`). **Show as a table**
+lists the days with activity, newest first, with links: the way to reach the days with a keyboard or a screen reader,
+since the grid itself is one image to them. Code: `routers/web/user/asc_profile_contrib.go`,
+`models/activities/asc_user_heatmap.go`, `templates/user/asc_heatmap.tmpl`. Tests: TestAscHeatLayout,
+TestAscContribYears, TestAscTurnaround, TestAscContribCounts, TestAscProfileContributions.
