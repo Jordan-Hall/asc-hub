@@ -6,10 +6,14 @@ package admin
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
+	"forgejo.org/models/db"
 	"forgejo.org/models/moderation"
+	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/templates"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/contexttest"
@@ -72,4 +76,66 @@ func TestPerformActionNeedsAReasonToRemoveAndRecordsWhatItDid(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Len(t, f.appends, 2)
 	assert.Equal(t, "Checked: not abuse", f.appends[1].GetDetails()["reason"])
+}
+
+func TestAnswerAppealNeedsAReasonAndOverturningASuspensionLetsTheAccountIn(t *testing.T) {
+	f := startInstanceAgents(t, asctrust.FeatureAuditAppend)
+	ctx0 := t.Context()
+	_, err := db.GetEngine(ctx0).Exec("UPDATE `user` SET prohibit_login = ? WHERE id = 4", true)
+	require.NoError(t, err)
+	d := &moderation.Decision{ContentType: moderation.ReportedContentTypeUser, ContentID: 4, ContentRef: "@user4", OwnerID: 4, Action: int(moderation_service.ContentActionSuspendAccount), Reason: "Spam.", ModeratorID: 1}
+	require.NoError(t, moderation.RecordDecision(ctx0, d))
+	require.NoError(t, moderation.Appeal(ctx0, d.ID, 4, "Not spam."))
+
+	answer := func(form url.Values) (int, string) {
+		ctx, rec := contexttest.MockContext(t, "POST /admin/moderation/appeals/1")
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadUser(t, ctx, 1)
+		ctx.IsSigned = true
+		ctx.SetParams(":id", strconv.FormatInt(d.ID, 10))
+		ctx.Req.Form, ctx.Req.PostForm = form, form
+		AnswerAppeal(ctx)
+		return rec.Code, rec.Body.String()
+	}
+
+	code, _ := answer(url.Values{"answer": {"sideways"}, "reason": {"x"}})
+	assert.Equal(t, http.StatusBadRequest, code)
+	code, body := answer(url.Values{"answer": {"overturn"}})
+	require.Equal(t, http.StatusOK, code, body)
+	still, err := moderation.GetDecision(ctx0, d.ID)
+	require.NoError(t, err)
+	assert.True(t, still.IsAppealOpen(), "no reason, no answer")
+	assert.Empty(t, f.appends)
+
+	code, body = answer(url.Values{"answer": {"overturn"}, "reason": {"The links were the person's own docs."}})
+	require.Equal(t, http.StatusOK, code, body)
+	got, err := moderation.GetDecision(ctx0, d.ID)
+	require.NoError(t, err)
+	assert.Equal(t, moderation.AppealOverturned, got.AppealStatus)
+	u := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	assert.False(t, u.ProhibitLogin, "the suspension is lifted")
+	require.Len(t, f.appends, 1)
+	assert.Equal(t, "overturned", f.appends[0].GetDetails()["appeal"])
+	assert.Equal(t, "user:4", f.appends[0].GetTarget())
+
+	// answered once: a second answer changes nothing
+	code, _ = answer(url.Values{"answer": {"uphold"}, "reason": {"no"}})
+	require.Equal(t, http.StatusOK, code)
+	got, err = moderation.GetDecision(ctx0, d.ID)
+	require.NoError(t, err)
+	assert.Equal(t, moderation.AppealOverturned, got.AppealStatus)
+	assert.Len(t, f.appends, 1)
+}
+
+func TestTheQueueListsOpenAppealsWithTheirOwner(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	d := &moderation.Decision{ContentType: moderation.ReportedContentTypeRepository, ContentID: 1, ContentRef: "user2/repo1", OwnerID: 2, Action: int(moderation_service.ContentActionDeleteRepo), Reason: "Phishing.", ModeratorID: 1}
+	require.NoError(t, moderation.RecordDecision(t.Context(), d))
+	require.NoError(t, moderation.Appeal(t.Context(), d.ID, 2, "It was a demo."))
+	ctx, _ := contexttest.MockContext(t, "GET /admin/moderation/reports")
+	require.True(t, loadAppeals(ctx))
+	appeals := ctx.Data["Appeals"].([]moderationAppeal)
+	require.Len(t, appeals, 1)
+	assert.Equal(t, "user2", appeals[0].OwnerName)
+	assert.Equal(t, "asc_admin.mod_action_delete_repo", appeals[0].ActionKey)
 }
