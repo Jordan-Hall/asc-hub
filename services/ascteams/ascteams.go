@@ -26,6 +26,8 @@ import (
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/asctrust"
+
+	"google.golang.org/grpc"
 )
 
 // Feature is the asc feature that carries teams.
@@ -109,6 +111,9 @@ func Reconcile(ctx context.Context, orgID int64) (Result, error) {
 	}
 	sctx, cancel := asctrust.SystemContext(ctx, 2*time.Minute)
 	defer cancel()
+	if err := addAgents(sctx, conn, org, want); err != nil {
+		log.Warn("ascteams: the agents of %s are not sent: %v", org.LowerName, err)
+	}
 	have, err := asctrust.ListTeams(sctx, conn, org.LowerName)
 	if err != nil {
 		return res, fmt.Errorf("ascteams: reading the teams of %s: %w", org.LowerName, err)
@@ -284,6 +289,46 @@ func ForgetPending(ctx context.Context) (int, error) {
 		done++
 	}
 	return done, errors.Join(errs...)
+}
+
+// addAgents adds to want the agent members of org's teams, as `agent:<name>`. Only agents asc still lists for the
+// organization are added, and memberships of agents it no longer has are removed, so an agent created later under
+// a deleted agent's name inherits none of its teams. When the agents cannot be read none are added: a team then
+// admits fewer, never more.
+func addAgents(ctx context.Context, conn grpc.ClientConnInterface, org *user_model.User, want map[string][]string) error {
+	byTeam, err := organization.OrgTeamAgents(ctx, org.ID)
+	if err != nil || len(byTeam) == 0 {
+		return err
+	}
+	if !asctrust.HasFeature(ctx, asctrust.FeatureOrgSettings) {
+		return errors.New("asc has no organization agents")
+	}
+	agents, err := asctrust.ListOrgAgents(ctx, conn, org.LowerName)
+	if err != nil {
+		return err
+	}
+	live := make([]string, 0, len(agents))
+	for _, a := range agents {
+		live = append(live, a.Name)
+	}
+	if n, err := organization.PruneTeamAgents(ctx, org.ID, live); err != nil {
+		return err
+	} else if n > 0 {
+		log.Info("ascteams: %d team memberships of agents %s no longer has were removed", n, org.LowerName)
+	}
+	teams, err := organization.FindOrgTeams(ctx, org.ID)
+	if err != nil {
+		return err
+	}
+	for _, t := range teams {
+		for _, a := range byTeam[t.ID] {
+			if slices.Contains(live, a) {
+				want[t.LowerName] = append(want[t.LowerName], "agent:"+a)
+			}
+		}
+		slices.Sort(want[t.LowerName])
+	}
+	return nil
 }
 
 // OrgsWithAscRepos lists the organizations that own a repository stored in asc.

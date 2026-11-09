@@ -83,6 +83,57 @@
 						</ul>
 					</div>
 				</div>
+				{{if $.TeamAgentsUnread}}
+					<div class="ds-card-b wk-team-owner" data-testid="org-team-agents">
+						<h3 class="wk-team-sub">{{ctx.Locale.Tr "asc_work.org_team_agents"}}</h3>
+						<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_work.org_team_agents_unread"}}</p>
+					</div>
+				{{else}}{{with $.TeamAgents}}
+					<div class="ds-card-b wk-team-owner" data-testid="org-team-agents">
+						<h3 class="wk-team-sub">{{ctx.Locale.Tr "asc_work.org_team_agents"}}</h3>
+						<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_work.org_team_agents_desc" $sel.Name}}</p>
+						<ul class="wk-team-rows">
+							{{range .Members}}
+								<li data-agent="{{.Name}}">
+									<span class="wk-team-row-main">{{svg "dsi-agent" 16}}<b>{{.Label}}</b>{{if ne .Label .Name}} <span class="ds-c-2">agent:{{.Name}}</span>{{end}}</span>
+									<span class="wk-team-owns">
+										{{if .Paused}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_work.org_team_agent_paused"}}</span>{{end}}
+										{{range .Paths}}<code class="wk-team-glob">{{.}}</code>{{else}}<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_work.org_team_agent_any_path"}}</span>{{end}}
+									</span>
+									{{if $.IsOrganizationOwner}}
+										<form class="wk-inline-form" method="post" action="{{$.OrgLink}}/teams/{{$sel.LowerName | PathEscape}}/action/agent_remove">
+											{{$.CsrfTokenHtml}}
+											<button type="submit" class="ds-btn ds-btn-ghost ds-btn-sm" name="agent" value="{{.Name}}">{{ctx.Locale.Tr "asc_work.org_team_agent_remove"}}</button>
+										</form>
+									{{end}}
+								</li>
+							{{end}}
+							{{range .Gone}}
+								<li data-agent="{{.}}">
+									<span class="wk-team-row-main">{{svg "dsi-agent" 16}}<b>{{.}}</b></span>
+									<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_work.org_team_agent_gone"}}</span>
+									{{if $.IsOrganizationOwner}}
+										<form class="wk-inline-form" method="post" action="{{$.OrgLink}}/teams/{{$sel.LowerName | PathEscape}}/action/agent_remove">
+											{{$.CsrfTokenHtml}}
+											<button type="submit" class="ds-btn ds-btn-ghost ds-btn-sm" name="agent" value="{{.}}">{{ctx.Locale.Tr "asc_work.org_team_agent_remove"}}</button>
+										</form>
+									{{end}}
+								</li>
+							{{end}}
+							{{if not (or .Members .Gone)}}<li class="ds-c-2">{{ctx.Locale.Tr "asc_work.org_team_agents_none"}}</li>{{end}}
+						</ul>
+						{{if and $.IsOrganizationOwner .Others}}
+							<form class="wk-inline-form wk-team-agent-add" method="post" action="{{$.OrgLink}}/teams/{{$sel.LowerName | PathEscape}}/action/agent_add">
+								{{$.CsrfTokenHtml}}
+								<label class="tw-sr-only" for="wk-team-agent">{{ctx.Locale.Tr "asc_work.org_team_agent_pick"}}</label>
+								<select id="wk-team-agent" class="ds-input" name="agent" required>
+									{{range .Others}}<option value="{{.Name}}">{{.Label}}</option>{{end}}
+								</select>
+								<button type="submit" class="ds-btn ds-btn-secondary">{{svg "dsi-plus" 16}} {{ctx.Locale.Tr "asc_work.org_team_agent_add"}}</button>
+							</form>
+						{{end}}
+					</div>
+				{{end}}{{end}}
 				{{with $.TeamPolicyOwner}}
 					<div class="ds-card-b wk-team-owner" data-testid="org-team-policy-owner">
 						<h3 class="wk-team-sub">{{ctx.Locale.Tr "asc_work.org_team_policy_owner"}}</h3>

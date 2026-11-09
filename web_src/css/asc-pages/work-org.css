@@ -851,3 +851,16 @@
     display: grid;
   }
 }
+
+.wk-team-agent-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block-start: 12px;
+}
+
+.wk-team-agent-add .ds-input {
+  inline-size: auto;
+  min-inline-size: 12rem;
+}

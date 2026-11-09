@@ -5,6 +5,7 @@
 package org
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -81,6 +82,15 @@ func Teams(ctx *context.Context) {
 			log.Warn("team policy ownership of %s/%s: %v", ctx.Org.Organization.Name, selected.LowerName, err)
 		} else if len(own.Repos) > 0 || own.Unread > 0 {
 			ctx.Data["TeamPolicyOwner"] = own
+		}
+		// The organization's agents that are members of the team, with the path scope asc gives each.
+		if agents, err := ascteams.AgentsOf(ctx, ctx.Org.Organization.LowerName, selected); err == nil {
+			if agents.Shown() {
+				ctx.Data["TeamAgents"] = agents
+			}
+		} else if !errors.Is(err, ascteams.ErrUnavailable) {
+			log.Warn("team agents of %s/%s: %v", ctx.Org.Organization.Name, selected.LowerName, err)
+			ctx.Data["TeamAgentsUnread"] = true
 		}
 	}
 
@@ -199,6 +209,13 @@ func TeamsAction(ctx *context.Context) {
 		}
 
 		page = "team"
+	case "agent_add", "agent_remove":
+		if !ctx.Org.IsOwner {
+			ctx.Error(http.StatusNotFound)
+			return
+		}
+		teamAgentAction(ctx, ctx.Params(":action") == "agent_add", ctx.FormString("agent"))
+		return
 	case "remove_invite":
 		if !ctx.Org.IsOwner {
 			ctx.Error(http.StatusNotFound)
@@ -241,6 +258,40 @@ func TeamsAction(ctx *context.Context) {
 	default:
 		ctx.Redirect(ctx.Org.OrgLink + "/teams")
 	}
+}
+
+// teamAgentAction adds the organization's agent to the selected team, or removes it, and returns to the team's
+// detail on the Teams page.
+func teamAgentAction(ctx *context.Context, add bool, agent string) {
+	team := ctx.Org.Team
+	back := ctx.Org.OrgLink + "/teams?team=" + url.QueryEscape(team.LowerName) + "#team-detail"
+	if add {
+		added, err := ascteams.AddAgent(ctx, ctx.Org.Organization.LowerName, team, agent)
+		switch {
+		case errors.Is(err, ascteams.ErrUnknownAgent):
+			ctx.Flash.Error(ctx.Tr("asc_work.org_team_agent_unknown"))
+		case errors.Is(err, ascteams.ErrTooManyAgents):
+			ctx.Flash.Error(ctx.Tr("asc_work.org_team_agent_too_many", org_model.MaxTeamAgents))
+		case errors.Is(err, ascteams.ErrUnavailable):
+			ctx.Flash.Error(ctx.Tr("asc_work.org_team_agents_unread"))
+		case err != nil:
+			ctx.ServerError("AddAgent", err)
+			return
+		case added:
+			ctx.Flash.Success(ctx.Tr("asc_work.org_team_agent_added", agent, team.Name))
+		}
+		ctx.Redirect(back)
+		return
+	}
+	removed, err := ascteams.RemoveAgent(ctx, team, agent)
+	if err != nil {
+		ctx.ServerError("RemoveAgent", err)
+		return
+	}
+	if removed {
+		ctx.Flash.Success(ctx.Tr("asc_work.org_team_agent_removed", agent, team.Name))
+	}
+	ctx.Redirect(back)
 }
 
 func checkIsOrgMemberAndRedirect(ctx *context.Context, defaultRedirect string) {
