@@ -585,6 +585,15 @@ a.adm-who-name:hover {
   min-width: 0;
 }
 
+/* the agent runners of asc serve, under the Actions runners */
+.adm-agentrunners {
+  margin-block-start: 16px;
+}
+
+.adm-agentrunners .ds-li-sub a + a::before {
+  content: ", ";
+}
+
 .adm-copyline {
   display: flex;
   flex-wrap: wrap;

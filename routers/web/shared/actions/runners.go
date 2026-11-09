@@ -167,6 +167,9 @@ func RunnersList(ctx *context.Context) {
 		ctx.Data["RegistrationToken"] = token.Token
 		ctx.Data["RegistrationTokenExpires"] = token.ExpiresUnix.AsTime()
 	}
+	if rCtx.IsAdmin {
+		loadAgentRunners(ctx)
+	}
 	ctx.Data["PageIsSharedSettingsRunners"] = true
 	ctx.Data["Title"] = ctx.Tr("actions.actions")
 	ctx.Data["PageType"] = "runners"

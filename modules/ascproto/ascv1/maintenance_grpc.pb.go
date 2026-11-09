@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Maintenance_GetMaintenance_FullMethodName = "/asc.v1.Maintenance/GetMaintenance"
-	Maintenance_SetMaintenance_FullMethodName = "/asc.v1.Maintenance/SetMaintenance"
-	Maintenance_CheckHealth_FullMethodName    = "/asc.v1.Maintenance/CheckHealth"
+	Maintenance_GetMaintenance_FullMethodName   = "/asc.v1.Maintenance/GetMaintenance"
+	Maintenance_SetMaintenance_FullMethodName   = "/asc.v1.Maintenance/SetMaintenance"
+	Maintenance_CheckHealth_FullMethodName      = "/asc.v1.Maintenance/CheckHealth"
+	Maintenance_ListAgentRunners_FullMethodName = "/asc.v1.Maintenance/ListAgentRunners"
 )
 
 // MaintenanceClient is the client API for Maintenance service.
@@ -48,6 +49,7 @@ type MaintenanceClient interface {
 	GetMaintenance(ctx context.Context, in *GetMaintenanceRequest, opts ...grpc.CallOption) (*GetMaintenanceResponse, error)
 	SetMaintenance(ctx context.Context, in *SetMaintenanceRequest, opts ...grpc.CallOption) (*SetMaintenanceResponse, error)
 	CheckHealth(ctx context.Context, in *CheckHealthRequest, opts ...grpc.CallOption) (*CheckHealthResponse, error)
+	ListAgentRunners(ctx context.Context, in *ListAgentRunnersRequest, opts ...grpc.CallOption) (*ListAgentRunnersResponse, error)
 }
 
 type maintenanceClient struct {
@@ -88,6 +90,16 @@ func (c *maintenanceClient) CheckHealth(ctx context.Context, in *CheckHealthRequ
 	return out, nil
 }
 
+func (c *maintenanceClient) ListAgentRunners(ctx context.Context, in *ListAgentRunnersRequest, opts ...grpc.CallOption) (*ListAgentRunnersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentRunnersResponse)
+	err := c.cc.Invoke(ctx, Maintenance_ListAgentRunners_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MaintenanceServer is the server API for Maintenance service.
 // All implementations should embed UnimplementedMaintenanceServer
 // for forward compatibility.
@@ -112,6 +124,7 @@ type MaintenanceServer interface {
 	GetMaintenance(context.Context, *GetMaintenanceRequest) (*GetMaintenanceResponse, error)
 	SetMaintenance(context.Context, *SetMaintenanceRequest) (*SetMaintenanceResponse, error)
 	CheckHealth(context.Context, *CheckHealthRequest) (*CheckHealthResponse, error)
+	ListAgentRunners(context.Context, *ListAgentRunnersRequest) (*ListAgentRunnersResponse, error)
 }
 
 // UnimplementedMaintenanceServer should be embedded to have
@@ -129,6 +142,9 @@ func (UnimplementedMaintenanceServer) SetMaintenance(context.Context, *SetMainte
 }
 func (UnimplementedMaintenanceServer) CheckHealth(context.Context, *CheckHealthRequest) (*CheckHealthResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckHealth not implemented")
+}
+func (UnimplementedMaintenanceServer) ListAgentRunners(context.Context, *ListAgentRunnersRequest) (*ListAgentRunnersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentRunners not implemented")
 }
 func (UnimplementedMaintenanceServer) testEmbeddedByValue() {}
 
@@ -204,6 +220,24 @@ func _Maintenance_CheckHealth_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Maintenance_ListAgentRunners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentRunnersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MaintenanceServer).ListAgentRunners(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Maintenance_ListAgentRunners_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MaintenanceServer).ListAgentRunners(ctx, req.(*ListAgentRunnersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Maintenance_ServiceDesc is the grpc.ServiceDesc for Maintenance service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -222,6 +256,10 @@ var Maintenance_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckHealth",
 			Handler:    _Maintenance_CheckHealth_Handler,
+		},
+		{
+			MethodName: "ListAgentRunners",
+			Handler:    _Maintenance_ListAgentRunners_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

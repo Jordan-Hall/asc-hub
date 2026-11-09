@@ -73,6 +73,271 @@ func (HealthState) EnumDescriptor() ([]byte, []int) {
 	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{0}
 }
 
+// The server processes that execute agent runs (every process with [agents] enabled is one).
+type ListAgentRunnersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentRunnersRequest) Reset() {
+	*x = ListAgentRunnersRequest{}
+	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentRunnersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentRunnersRequest) ProtoMessage() {}
+
+func (x *ListAgentRunnersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentRunnersRequest.ProtoReflect.Descriptor instead.
+func (*ListAgentRunnersRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{0}
+}
+
+type AgentRunnerRun struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Repo          string                 `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"` // owner/name
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Agent         string                 `protobuf:"bytes,4,opt,name=agent,proto3" json:"agent,omitempty"`
+	Started       int64                  `protobuf:"varint,5,opt,name=started,proto3" json:"started,omitempty"` // unix seconds
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentRunnerRun) Reset() {
+	*x = AgentRunnerRun{}
+	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentRunnerRun) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentRunnerRun) ProtoMessage() {}
+
+func (x *AgentRunnerRun) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentRunnerRun.ProtoReflect.Descriptor instead.
+func (*AgentRunnerRun) Descriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AgentRunnerRun) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AgentRunnerRun) GetRepo() string {
+	if x != nil {
+		return x.Repo
+	}
+	return ""
+}
+
+func (x *AgentRunnerRun) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *AgentRunnerRun) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *AgentRunnerRun) GetStarted() int64 {
+	if x != nil {
+		return x.Started
+	}
+	return 0
+}
+
+type AgentRunner struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                          // agents.runner_name, default the host name
+	Slots         uint32                 `protobuf:"varint,2,opt,name=slots,proto3" json:"slots,omitempty"`                       // agents.max_concurrent_runs
+	Vcpu          uint32                 `protobuf:"varint,3,opt,name=vcpu,proto3" json:"vcpu,omitempty"`                         // the CPUs the process may use
+	Version       string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`                    // asc serve's version
+	Started       int64                  `protobuf:"varint,5,opt,name=started,proto3" json:"started,omitempty"`                   // unix seconds the process started
+	LastSeen      int64                  `protobuf:"varint,6,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"` // unix seconds of its last heartbeat (every 10 seconds)
+	Online        bool                   `protobuf:"varint,7,opt,name=online,proto3" json:"online,omitempty"`                     // the heartbeat is at most 90 seconds old
+	Runs          []*AgentRunnerRun      `protobuf:"bytes,8,rep,name=runs,proto3" json:"runs,omitempty"`                          // running or waiting for input, oldest first
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentRunner) Reset() {
+	*x = AgentRunner{}
+	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentRunner) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentRunner) ProtoMessage() {}
+
+func (x *AgentRunner) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentRunner.ProtoReflect.Descriptor instead.
+func (*AgentRunner) Descriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AgentRunner) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AgentRunner) GetSlots() uint32 {
+	if x != nil {
+		return x.Slots
+	}
+	return 0
+}
+
+func (x *AgentRunner) GetVcpu() uint32 {
+	if x != nil {
+		return x.Vcpu
+	}
+	return 0
+}
+
+func (x *AgentRunner) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *AgentRunner) GetStarted() int64 {
+	if x != nil {
+		return x.Started
+	}
+	return 0
+}
+
+func (x *AgentRunner) GetLastSeen() int64 {
+	if x != nil {
+		return x.LastSeen
+	}
+	return 0
+}
+
+func (x *AgentRunner) GetOnline() bool {
+	if x != nil {
+		return x.Online
+	}
+	return false
+}
+
+func (x *AgentRunner) GetRuns() []*AgentRunnerRun {
+	if x != nil {
+		return x.Runs
+	}
+	return nil
+}
+
+type ListAgentRunnersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Runners       []*AgentRunner         `protobuf:"bytes,1,rep,name=runners,proto3" json:"runners,omitempty"` // online first, then by name; offline ones for 7 days
+	Now           int64                  `protobuf:"varint,2,opt,name=now,proto3" json:"now,omitempty"`        // the server's clock, unix seconds
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentRunnersResponse) Reset() {
+	*x = ListAgentRunnersResponse{}
+	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentRunnersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentRunnersResponse) ProtoMessage() {}
+
+func (x *ListAgentRunnersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentRunnersResponse.ProtoReflect.Descriptor instead.
+func (*ListAgentRunnersResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListAgentRunnersResponse) GetRunners() []*AgentRunner {
+	if x != nil {
+		return x.Runners
+	}
+	return nil
+}
+
+func (x *ListAgentRunnersResponse) GetNow() int64 {
+	if x != nil {
+		return x.Now
+	}
+	return 0
+}
+
 type HealthProbe struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	State         HealthState            `protobuf:"varint,1,opt,name=state,proto3,enum=asc.v1.HealthState" json:"state,omitempty"`
@@ -84,7 +349,7 @@ type HealthProbe struct {
 
 func (x *HealthProbe) Reset() {
 	*x = HealthProbe{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -96,7 +361,7 @@ func (x *HealthProbe) String() string {
 func (*HealthProbe) ProtoMessage() {}
 
 func (x *HealthProbe) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[0]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -109,7 +374,7 @@ func (x *HealthProbe) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthProbe.ProtoReflect.Descriptor instead.
 func (*HealthProbe) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{0}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *HealthProbe) GetState() HealthState {
@@ -141,7 +406,7 @@ type CheckHealthRequest struct {
 
 func (x *CheckHealthRequest) Reset() {
 	*x = CheckHealthRequest{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -153,7 +418,7 @@ func (x *CheckHealthRequest) String() string {
 func (*CheckHealthRequest) ProtoMessage() {}
 
 func (x *CheckHealthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[1]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -166,7 +431,7 @@ func (x *CheckHealthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckHealthRequest.ProtoReflect.Descriptor instead.
 func (*CheckHealthRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{1}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{5}
 }
 
 type CheckHealthResponse struct {
@@ -182,7 +447,7 @@ type CheckHealthResponse struct {
 
 func (x *CheckHealthResponse) Reset() {
 	*x = CheckHealthResponse{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -194,7 +459,7 @@ func (x *CheckHealthResponse) String() string {
 func (*CheckHealthResponse) ProtoMessage() {}
 
 func (x *CheckHealthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[2]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -207,7 +472,7 @@ func (x *CheckHealthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckHealthResponse.ProtoReflect.Descriptor instead.
 func (*CheckHealthResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{2}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CheckHealthResponse) GetObjectStore() *HealthProbe {
@@ -260,7 +525,7 @@ type MaintenanceState struct {
 
 func (x *MaintenanceState) Reset() {
 	*x = MaintenanceState{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -272,7 +537,7 @@ func (x *MaintenanceState) String() string {
 func (*MaintenanceState) ProtoMessage() {}
 
 func (x *MaintenanceState) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[3]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -285,7 +550,7 @@ func (x *MaintenanceState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MaintenanceState.ProtoReflect.Descriptor instead.
 func (*MaintenanceState) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{3}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *MaintenanceState) GetOn() bool {
@@ -345,7 +610,7 @@ type GetMaintenanceRequest struct {
 
 func (x *GetMaintenanceRequest) Reset() {
 	*x = GetMaintenanceRequest{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -357,7 +622,7 @@ func (x *GetMaintenanceRequest) String() string {
 func (*GetMaintenanceRequest) ProtoMessage() {}
 
 func (x *GetMaintenanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[4]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -370,7 +635,7 @@ func (x *GetMaintenanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMaintenanceRequest.ProtoReflect.Descriptor instead.
 func (*GetMaintenanceRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{4}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{8}
 }
 
 type GetMaintenanceResponse struct {
@@ -382,7 +647,7 @@ type GetMaintenanceResponse struct {
 
 func (x *GetMaintenanceResponse) Reset() {
 	*x = GetMaintenanceResponse{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[5]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -394,7 +659,7 @@ func (x *GetMaintenanceResponse) String() string {
 func (*GetMaintenanceResponse) ProtoMessage() {}
 
 func (x *GetMaintenanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[5]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -407,7 +672,7 @@ func (x *GetMaintenanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMaintenanceResponse.ProtoReflect.Descriptor instead.
 func (*GetMaintenanceResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{5}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetMaintenanceResponse) GetState() *MaintenanceState {
@@ -430,7 +695,7 @@ type SetMaintenanceRequest struct {
 
 func (x *SetMaintenanceRequest) Reset() {
 	*x = SetMaintenanceRequest{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[6]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -442,7 +707,7 @@ func (x *SetMaintenanceRequest) String() string {
 func (*SetMaintenanceRequest) ProtoMessage() {}
 
 func (x *SetMaintenanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[6]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -455,7 +720,7 @@ func (x *SetMaintenanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMaintenanceRequest.ProtoReflect.Descriptor instead.
 func (*SetMaintenanceRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{6}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SetMaintenanceRequest) GetOn() bool {
@@ -495,7 +760,7 @@ type SetMaintenanceResponse struct {
 
 func (x *SetMaintenanceResponse) Reset() {
 	*x = SetMaintenanceResponse{}
-	mi := &file_asc_v1_maintenance_proto_msgTypes[7]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -507,7 +772,7 @@ func (x *SetMaintenanceResponse) String() string {
 func (*SetMaintenanceResponse) ProtoMessage() {}
 
 func (x *SetMaintenanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_maintenance_proto_msgTypes[7]
+	mi := &file_asc_v1_maintenance_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -520,7 +785,7 @@ func (x *SetMaintenanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMaintenanceResponse.ProtoReflect.Descriptor instead.
 func (*SetMaintenanceResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{7}
+	return file_asc_v1_maintenance_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SetMaintenanceResponse) GetState() *MaintenanceState {
@@ -534,7 +799,26 @@ var File_asc_v1_maintenance_proto protoreflect.FileDescriptor
 
 const file_asc_v1_maintenance_proto_rawDesc = "" +
 	"\n" +
-	"\x18asc/v1/maintenance.proto\x12\x06asc.v1\"h\n" +
+	"\x18asc/v1/maintenance.proto\x12\x06asc.v1\"\x19\n" +
+	"\x17ListAgentRunnersRequest\"z\n" +
+	"\x0eAgentRunnerRun\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
+	"\x04repo\x18\x02 \x01(\tR\x04repo\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x14\n" +
+	"\x05agent\x18\x04 \x01(\tR\x05agent\x12\x18\n" +
+	"\astarted\x18\x05 \x01(\x03R\astarted\"\xe0\x01\n" +
+	"\vAgentRunner\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05slots\x18\x02 \x01(\rR\x05slots\x12\x12\n" +
+	"\x04vcpu\x18\x03 \x01(\rR\x04vcpu\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\tR\aversion\x12\x18\n" +
+	"\astarted\x18\x05 \x01(\x03R\astarted\x12\x1b\n" +
+	"\tlast_seen\x18\x06 \x01(\x03R\blastSeen\x12\x16\n" +
+	"\x06online\x18\a \x01(\bR\x06online\x12*\n" +
+	"\x04runs\x18\b \x03(\v2\x16.asc.v1.AgentRunnerRunR\x04runs\"[\n" +
+	"\x18ListAgentRunnersResponse\x12-\n" +
+	"\arunners\x18\x01 \x03(\v2\x13.asc.v1.AgentRunnerR\arunners\x12\x10\n" +
+	"\x03now\x18\x02 \x01(\x03R\x03now\"h\n" +
 	"\vHealthProbe\x12)\n" +
 	"\x05state\x18\x01 \x01(\x0e2\x13.asc.v1.HealthStateR\x05state\x12\x16\n" +
 	"\x06millis\x18\x02 \x01(\rR\x06millis\x12\x16\n" +
@@ -570,11 +854,12 @@ const file_asc_v1_maintenance_proto_rawDesc = "" +
 	"\x18HEALTH_STATE_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fHEALTH_STATE_OK\x10\x01\x12\x17\n" +
 	"\x13HEALTH_STATE_FAILED\x10\x02\x12\x1f\n" +
-	"\x1bHEALTH_STATE_NOT_CONFIGURED\x10\x032\xf7\x01\n" +
+	"\x1bHEALTH_STATE_NOT_CONFIGURED\x10\x032\xce\x02\n" +
 	"\vMaintenance\x12O\n" +
 	"\x0eGetMaintenance\x12\x1d.asc.v1.GetMaintenanceRequest\x1a\x1e.asc.v1.GetMaintenanceResponse\x12O\n" +
 	"\x0eSetMaintenance\x12\x1d.asc.v1.SetMaintenanceRequest\x1a\x1e.asc.v1.SetMaintenanceResponse\x12F\n" +
-	"\vCheckHealth\x12\x1a.asc.v1.CheckHealthRequest\x1a\x1b.asc.v1.CheckHealthResponseB{\n" +
+	"\vCheckHealth\x12\x1a.asc.v1.CheckHealthRequest\x1a\x1b.asc.v1.CheckHealthResponse\x12U\n" +
+	"\x10ListAgentRunners\x12\x1f.asc.v1.ListAgentRunnersRequest\x1a .asc.v1.ListAgentRunnersResponseB{\n" +
 	"\n" +
 	"com.asc.v1B\x10MaintenanceProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -591,35 +876,43 @@ func file_asc_v1_maintenance_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_maintenance_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_asc_v1_maintenance_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_asc_v1_maintenance_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_asc_v1_maintenance_proto_goTypes = []any{
-	(HealthState)(0),               // 0: asc.v1.HealthState
-	(*HealthProbe)(nil),            // 1: asc.v1.HealthProbe
-	(*CheckHealthRequest)(nil),     // 2: asc.v1.CheckHealthRequest
-	(*CheckHealthResponse)(nil),    // 3: asc.v1.CheckHealthResponse
-	(*MaintenanceState)(nil),       // 4: asc.v1.MaintenanceState
-	(*GetMaintenanceRequest)(nil),  // 5: asc.v1.GetMaintenanceRequest
-	(*GetMaintenanceResponse)(nil), // 6: asc.v1.GetMaintenanceResponse
-	(*SetMaintenanceRequest)(nil),  // 7: asc.v1.SetMaintenanceRequest
-	(*SetMaintenanceResponse)(nil), // 8: asc.v1.SetMaintenanceResponse
+	(HealthState)(0),                 // 0: asc.v1.HealthState
+	(*ListAgentRunnersRequest)(nil),  // 1: asc.v1.ListAgentRunnersRequest
+	(*AgentRunnerRun)(nil),           // 2: asc.v1.AgentRunnerRun
+	(*AgentRunner)(nil),              // 3: asc.v1.AgentRunner
+	(*ListAgentRunnersResponse)(nil), // 4: asc.v1.ListAgentRunnersResponse
+	(*HealthProbe)(nil),              // 5: asc.v1.HealthProbe
+	(*CheckHealthRequest)(nil),       // 6: asc.v1.CheckHealthRequest
+	(*CheckHealthResponse)(nil),      // 7: asc.v1.CheckHealthResponse
+	(*MaintenanceState)(nil),         // 8: asc.v1.MaintenanceState
+	(*GetMaintenanceRequest)(nil),    // 9: asc.v1.GetMaintenanceRequest
+	(*GetMaintenanceResponse)(nil),   // 10: asc.v1.GetMaintenanceResponse
+	(*SetMaintenanceRequest)(nil),    // 11: asc.v1.SetMaintenanceRequest
+	(*SetMaintenanceResponse)(nil),   // 12: asc.v1.SetMaintenanceResponse
 }
 var file_asc_v1_maintenance_proto_depIdxs = []int32{
-	0, // 0: asc.v1.HealthProbe.state:type_name -> asc.v1.HealthState
-	1, // 1: asc.v1.CheckHealthResponse.object_store:type_name -> asc.v1.HealthProbe
-	1, // 2: asc.v1.CheckHealthResponse.server_key:type_name -> asc.v1.HealthProbe
-	4, // 3: asc.v1.GetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
-	4, // 4: asc.v1.SetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
-	5, // 5: asc.v1.Maintenance.GetMaintenance:input_type -> asc.v1.GetMaintenanceRequest
-	7, // 6: asc.v1.Maintenance.SetMaintenance:input_type -> asc.v1.SetMaintenanceRequest
-	2, // 7: asc.v1.Maintenance.CheckHealth:input_type -> asc.v1.CheckHealthRequest
-	6, // 8: asc.v1.Maintenance.GetMaintenance:output_type -> asc.v1.GetMaintenanceResponse
-	8, // 9: asc.v1.Maintenance.SetMaintenance:output_type -> asc.v1.SetMaintenanceResponse
-	3, // 10: asc.v1.Maintenance.CheckHealth:output_type -> asc.v1.CheckHealthResponse
-	8, // [8:11] is the sub-list for method output_type
-	5, // [5:8] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	2,  // 0: asc.v1.AgentRunner.runs:type_name -> asc.v1.AgentRunnerRun
+	3,  // 1: asc.v1.ListAgentRunnersResponse.runners:type_name -> asc.v1.AgentRunner
+	0,  // 2: asc.v1.HealthProbe.state:type_name -> asc.v1.HealthState
+	5,  // 3: asc.v1.CheckHealthResponse.object_store:type_name -> asc.v1.HealthProbe
+	5,  // 4: asc.v1.CheckHealthResponse.server_key:type_name -> asc.v1.HealthProbe
+	8,  // 5: asc.v1.GetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
+	8,  // 6: asc.v1.SetMaintenanceResponse.state:type_name -> asc.v1.MaintenanceState
+	9,  // 7: asc.v1.Maintenance.GetMaintenance:input_type -> asc.v1.GetMaintenanceRequest
+	11, // 8: asc.v1.Maintenance.SetMaintenance:input_type -> asc.v1.SetMaintenanceRequest
+	6,  // 9: asc.v1.Maintenance.CheckHealth:input_type -> asc.v1.CheckHealthRequest
+	1,  // 10: asc.v1.Maintenance.ListAgentRunners:input_type -> asc.v1.ListAgentRunnersRequest
+	10, // 11: asc.v1.Maintenance.GetMaintenance:output_type -> asc.v1.GetMaintenanceResponse
+	12, // 12: asc.v1.Maintenance.SetMaintenance:output_type -> asc.v1.SetMaintenanceResponse
+	7,  // 13: asc.v1.Maintenance.CheckHealth:output_type -> asc.v1.CheckHealthResponse
+	4,  // 14: asc.v1.Maintenance.ListAgentRunners:output_type -> asc.v1.ListAgentRunnersResponse
+	11, // [11:15] is the sub-list for method output_type
+	7,  // [7:11] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_maintenance_proto_init() }
@@ -633,7 +926,7 @@ func file_asc_v1_maintenance_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_maintenance_proto_rawDesc), len(file_asc_v1_maintenance_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

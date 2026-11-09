@@ -58,6 +58,47 @@
 				{{else}}
 					<div class="ds-card">{{template "shared/ds/empty" (dict "Icon" "cpu" "Title" (ctx.Locale.Tr "asc_admin.runners_none_title") "Body" (ctx.Locale.Tr "asc_admin.runners_none_text"))}}</div>
 				{{end}}
+
+				{{if .AgentRunnersShown}}
+					<section class="ds-card adm-agentrunners" aria-labelledby="adm-agentrunners-h" data-testid="agent-runners">
+						<div class="ds-card-h">
+							<h2 id="adm-agentrunners-h">{{ctx.Locale.Tr "asc_admin.agent_runners"}}</h2>
+							{{if .AgentRunners}}<span class="ds-chip">{{ctx.Locale.Tr "asc_admin.agent_runners_live" .AgentRunsLive}}</span>{{end}}
+						</div>
+						<div class="ds-card-b ds-stack ds-stack-12">
+							<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.agent_runners_lead"}}</p>
+							{{if .AgentRunnersUnread}}
+								<p class="ds-t-small" role="status" data-testid="agent-runners-unread">{{ctx.Locale.Tr "asc_admin.agent_runners_unread"}}</p>
+							{{else if .AgentRunners}}
+								<ul class="ds-list">
+									{{range .AgentRunners}}
+										<li class="ds-li ds-li-wrap" data-runner="{{.Name}}">
+											<span class="adm-tile {{if not .Online}}adm-tile-err{{else if .Busy}}adm-tile-info{{else}}adm-tile-ok{{end}}" aria-hidden="true">{{svg "dsi-cpu" 18}}</span>
+											<div class="ds-li-main">
+												<div class="ds-li-title"><span class="adm-mono">{{.Name}}</span>
+													{{if not .Online}}<span class="ds-chip ds-chip-err"><span class="ds-dot ds-dot-err" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_offline"}}</span>
+													{{else if .Busy}}<span class="ds-chip ds-chip-info"><span class="ds-dot ds-dot-info" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.agent_runner_busy"}}</span>
+													{{else}}<span class="ds-chip ds-chip-ok"><span class="ds-dot ds-dot-ok" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_idle"}}</span>{{end}}
+												</div>
+												{{if .Runs}}
+													<div class="ds-li-sub ds-break"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.agent_runner_runs"}}: </span>{{range .Runs}}<a class="ds-link" href="{{AppSubUrl}}/{{.Repo}}/asc/agents/runs/{{.ID}}" title="{{.Repo}}{{if .Title}}: {{.Title}}{{end}}">{{ctx.Locale.Tr "asc_admin.agent_runner_run" .ID}}</a>{{end}}</div>
+												{{end}}
+												<div class="ds-li-meta">
+													<span>{{ctx.Locale.Tr "asc_admin.agent_runner_slots" (len .Runs) .Slots}}</span>
+													<span>{{ctx.Locale.Tr "asc_admin.agent_runner_vcpu" .VCPU}}</span>
+													{{if .Version}}<span class="adm-mono">{{.Version}}</span>{{end}}
+													{{if .Online}}<span>{{ctx.Locale.Tr "asc_admin.agent_runner_started" (DateUtils.TimeSince .Started)}}</span>{{else}}<span>{{ctx.Locale.Tr "asc_admin.runners_last_seen" (DateUtils.TimeSince .LastSeen)}}</span>{{end}}
+												</div>
+											</div>
+										</li>
+									{{end}}
+								</ul>
+							{{else}}
+								{{template "shared/ds/empty" (dict "Icon" "cpu" "Title" (ctx.Locale.Tr "asc_admin.agent_runners_none_title") "Body" (ctx.Locale.Tr "asc_admin.agent_runners_none_text"))}}
+							{{end}}
+						</div>
+					</section>
+				{{end}}
 			</div>
 
 			<aside class="ds-card adm-reg" aria-labelledby="adm-reg-h">
