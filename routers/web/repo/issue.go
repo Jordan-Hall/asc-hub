@@ -371,6 +371,7 @@ func issues(ctx *context.Context, milestoneID, projectID int64, isPullOption opt
 
 	ctx.Data["Issues"] = issues
 	prepareAscIssueChips(ctx, issues)
+	prepareAscIssueQuarantine(ctx, issues)
 	ctx.Data["CommitLastStatus"] = lastStatus
 	ctx.Data["CommitStatuses"] = commitStatuses
 

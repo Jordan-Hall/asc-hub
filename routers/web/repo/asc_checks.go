@@ -7,6 +7,7 @@ import (
 	gocontext "context"
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -156,7 +157,7 @@ type ascGroupOpen struct {
 	More bool
 	// Act is the action the person chose on the row ("acknowledged", "quarantined"), shown first; "" for none.
 	Act        string
-	IssueQuery string
+	IssueQuery template.URL
 	// Op is the operation id of the form, the one of the row.
 	Op string
 }
@@ -663,7 +664,7 @@ func ascChecksRows(ctx *context.Context, repo *repo_model.Repository, callCtx go
 			if act == "quarantined" && !p.AllowQuarantine {
 				o.Act = ""
 			}
-			o.IssueQuery = "title=" + url.QueryEscape(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)))
+			o.IssueQuery = asctrust.GroupIssueQuery(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)), ascGroupIssueBody(ctx, repo.OwnerName, repo.Name, detail.Group.ID))
 		}
 		p.Open = o
 		return
@@ -703,7 +704,7 @@ type ascGroupPage struct {
 	// AllowQuarantine is the policy flag [ci] allow_quarantine; without it the quarantine button is not offered.
 	AllowQuarantine bool
 	Window          uint32
-	IssueQuery      string
+	IssueQuery      template.URL
 }
 
 type ascOccurrenceView struct {
@@ -771,7 +772,7 @@ func AscCheckGroup(ctx *context.Context) {
 	}
 	p.Detail, p.History = detail, hist
 	p.AllowQuarantine = p.CanWrite && asctrust.QuarantineAllowed(callCtx, conn, name)
-	p.IssueQuery = "title=" + url.QueryEscape(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)))
+	p.IssueQuery = asctrust.GroupIssueQuery(ctx.Locale.TrString("asc_trust.checks.issue_title", firstNonEmptyString(detail.Group.TestName, detail.Group.Title)), ascGroupIssueBody(ctx, repo.OwnerName, repo.Name, detail.Group.ID))
 	p.Occurrences = ascOccurrenceViews(ctx, repo, detail.Occurrences)
 	if detail.Next != "" {
 		p.NextURL = p.GroupURL + "?" + url.Values{"page": {detail.Next}}.Encode()
@@ -1156,8 +1157,9 @@ func AscPullChecks(ctx *context.Context) {
 			}
 		}
 	}
-	for _, card := range p.Checks.Flaky {
+	for i, card := range p.Checks.Flaky {
 		p.Ops[card.GroupID] = asctrust.NewOpID()
+		p.Checks.Flaky[i].IssueQuery = asctrust.GroupIssueQuery(ctx.Locale.TrString("asc_trust.pull.flaky_issue_title", card.Test), ascGroupIssueBody(ctx, repo.OwnerName, repo.Name, card.GroupID))
 	}
 	ctx.HTML(http.StatusOK, tplAscPullChecks)
 }

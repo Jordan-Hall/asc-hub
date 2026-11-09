@@ -3,7 +3,10 @@
 
 package asctrust
 
-import "strings"
+import (
+	"html/template"
+	"strings"
+)
 
 // pullMsg names a sentence of the pull request checks page by its locale key (under "asc_trust.pull.") and its
 // arguments.
@@ -44,7 +47,7 @@ func (pc *PullChecks) Localize(tr func(key string, args ...any) string) {
 		}
 	}
 	for i := range pc.Flaky {
-		pc.Flaky[i].IssueQuery = "title=" + queryEscape(tr("asc_trust.pull.flaky_issue_title", pc.Flaky[i].Test))
+		pc.Flaky[i].IssueQuery = template.URL("title=" + queryEscape(tr("asc_trust.pull.flaky_issue_title", pc.Flaky[i].Test)))
 	}
 }
 

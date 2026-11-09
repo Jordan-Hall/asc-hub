@@ -6,6 +6,7 @@ package asctrust
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"regexp"
 	"sort"
 	"strconv"
@@ -119,8 +120,8 @@ type FlakyCard struct {
 	Strip    []StripCell
 	StateKey string
 	State    string
-	// IssueQuery is the query string of the new-issue link: the title is filled in.
-	IssueQuery string
+	// IssueQuery is the query string of the new-issue link: the title is filled in. Its values are query-escaped.
+	IssueQuery template.URL
 }
 
 // PullChecks is the page.
@@ -259,7 +260,7 @@ func BuildPullChecks(in PullChecksIn) *PullChecks {
 			if c.History != nil {
 				card.Flips, card.Runs, card.Strip = c.History.Flips, c.History.Runs, c.History.Cells
 			}
-			card.IssueQuery = "title=" + queryEscape("Flaky test: "+card.Test)
+			card.IssueQuery = template.URL("title=" + queryEscape("Flaky test: "+card.Test))
 			pc.Flaky = append(pc.Flaky, card)
 			continue
 		}

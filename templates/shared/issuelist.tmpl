@@ -21,6 +21,7 @@ Props: Issues, listType ("repo", "milestone", "dashboard"), the page data of the
 						{{end}}
 					{{end}}
 					{{if $.AscIssueChips}}{{with index $.AscIssueChips .ID}}<a class="ds-chip {{if .Done}}ds-chip-ok{{else}}ds-chip-outline{{end}}" href="{{.Top.Link}}" data-testid="issue-stack-chip">{{if .Closes}}{{ctx.Locale.Tr "repo.issues.asc_chip_fixed" .Top.Index}}{{else}}{{ctx.Locale.Tr "repo.issues.asc_chip_open" .Top.Index}}{{end}} &middot; {{ctx.Locale.Tr "repo.issues.asc_stack_landed" .Landed (len .Entries)}}</a>{{end}}{{end}}
+					{{if $.AscIssueQuarantine}}{{with index $.AscIssueQuarantine .ID}}<a class="ds-chip ds-chip-warn" href="{{.Link}}" title="{{if .Note}}{{.Note}}{{else}}{{ctx.Locale.Tr "repo.issues.asc_chip_quarantined_title"}}{{end}}" data-testid="issue-quarantine-chip">{{ctx.Locale.Tr "repo.issues.asc_chip_quarantined" .Test}}</a>{{end}}{{end}}
 					{{if .Labels}}
 					<span class="labels-list wk-labels">
 						{{range .Labels}}
