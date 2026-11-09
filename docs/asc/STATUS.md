@@ -155,9 +155,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Checks for disk fill rate, object storage probe, signing key validity, outgoing mail queue, ti... | done | asc_health_more.go; asc Maintenance.CheckHealth; TestTheAscChecksAskAscServeToProbeItself, TestTheDiskCheckSaysHowSoonTheVolumeFills | - |
 | Gauges CPU, Memory, Disk, Object storage with percent text (hub shows uptime, memory, goroutin... | done | asc_gauges.go (CPU, Disk), self_check.tmpl; TestLoadPercent, TestDiskPercent | - |
 | Running state (steps appear one by one), could-not-run state | done | self_check.tmpl data-health-steps, SelfCheckStep; TestAscHealthSteps | - |
-| Board note: Run again re-runs every check and keeps the old result until it finishes | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Fix links to the page that solves it: Backups, Runners, Configuration | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: All passed, warnings, failed, running (steps appear one by one), check could not run | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Run again re-runs every check and keeps the old result until it finishes | done | health.js markPending; health.test.js 'a row keeps its old result, its label and its fix link while its step runs' | - |
+| Board note: Fix links to the page that solves it: Backups, Runners, Configuration | done | cache/mail -> /admin/config, runners -> /admin/actions/runners, checkBackups -> /admin/asc/backups; TestTheBackupsCheckLinksAProblemToTheBackupsPage | - |
+| Board note: All passed, warnings, failed, running (steps appear one by one), check could not run | done | checksTone, self_check_row.tmpl; TestAscHealthStates, TestAscHealthNoRun, health.test.js | - |
 
 #### AdminHooks (ASC Hub admin: hooks and applications)
 
