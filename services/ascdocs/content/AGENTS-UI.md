@@ -53,6 +53,23 @@ The instance and the repository policy have their own switches (`[agents] enable
 
 The task form and the token form send limits, never the hub's own defaults: an empty field is 0, which asc reads as the policy default. Numbers are digits only with upper bounds; cost is dollars with up to six decimals, converted to micro-USD without floating point. The meters show use against the limit with the words ("116k of 200k") and a native `<progress>` element. asc enforces the budgets on every update and every provider call.
 
+## Agent activity in the repository lists
+
+The repository lists (Explore, an organization, a profile, Watching) have quick chips above the list: All, Has open
+stacks, Agent activity, Starred, Templates and Archived.
+
+- **Agent activity** keeps the repositories where an agent acted in the last 7 days. An agent acts on the hub as its
+  bot account (`agent-<name>`, a user of type bot that cannot sign in), so this is any action of a bot account in the
+  activity log.
+- **Has open stacks** keeps the repositories with an open pull request.
+- **Starred** keeps what the viewer starred. It shows only to people who are signed in, on a hub with stars.
+
+A chip adds to the search text, the sort and the language. A search and the pager keep it. With no result, the empty
+state names the chip with a link that removes it. Forks and Mirrors stay in the Sort and filter sheet.
+
+The chips are read by `routers/web/shared/repoquick` and filtered by `AscQuickFilter` in
+`models/repo/asc_quick_filter.go`. Tests: TestTheQuickChipsOfTheRepositoryLists, TestTheQuickChipsOfExplore.
+
 ## Files
 
 - `routers/web/repo/asc_agents*.go`, `asc_workflows.go`: handlers. `routers/web/user/asc_agent_tokens.go`: "Your agents".
