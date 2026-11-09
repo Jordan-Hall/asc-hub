@@ -806,6 +806,22 @@ page (`Storage.ListRepoPlacements`, a site administrator's call).
 Deleting a repository from this page asks for its full name (owner/name, case ignored); the delete button stays off
 until it matches, and the server refuses a delete whose typed name differs.
 
+## Your repositories in settings
+
+**Settings > Repositories** lists the repositories you own. Each row shows whether it is public or private, its
+description, how many open stacks it has and the storage target its objects go to ("Server default" when none is
+assigned; the same warnings as the site administration list). The stack count is the number the repository's Stacks
+page lists: every open pull request is in one stack, named by its top change. The hub counts it from its own records;
+only the storage line asks asc (`Storage.ListRepoPlacements`, once per hundred repositories on the page).
+
+**Transfer** asks for the new owner and the repository's full name, then starts the same transfer as the repository's
+own settings. A transfer to another user waits for them to accept; until then the row says "Transfer pending" and
+links to the repository settings, where it can be cancelled.
+
+When you may adopt or delete repositories (site administrators, or when the server allows it), an **Unadopted** card
+lists directories under your name in the repository root that have no repository record, up to 100 at a time; adopt or
+delete them to see more.
+
 ## Following a storage migration
 
 Under the progress bar the storage page shows the objects copied, the bytes moved once asc has counted them (for example

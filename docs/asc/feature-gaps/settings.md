@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 157 |
+| done | 158 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 16 |
+| needs-both | 15 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -109,7 +109,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsOrgs | Pending invitations with Accept and Decline | done | `models/organization/team_invite_pending.go` (GetPendingInvitesForUser: invitations made for the account or for an address of theirs that they confirmed, not for an unconfirmed one; DeclineInviteForUser answers "not found" for an invitation that is not theirs), `routers/web/user/setting/asc_org_invites.go`, Invitations card with Accept (the existing invitation page) and Decline (`POST /user/settings/organization/decline`) in `templates/user/settings/organization.tmpl`; tests: TestPendingInvitesForUser | - |
 | UserSettingsOrgs | Last owner cannot leave (explains transfer first) | done | an owner has no Leave on this page: they leave from the organization's People page, which refuses the last owner (routers/web/org/people.go); a member leaves through the leave-organization modal of organization.tmpl | S |
 | UserSettingsRepos | Owned repositories list, unadopted adopt/delete | done | templates/user/settings/repos.tmpl | - |
-| UserSettingsRepos | Stack count and storage target per row; Transfer dialog (new owner + repository name) | needs-both | hub: repos.tmpl (repo transfer exists in repo settings); asc: stack counts (Stacks service) and Storage.AssignRepo target | M |
+| UserSettingsRepos | Stack count and storage target per row; Transfer dialog (new owner + repository name) | done | hub: models/issues/pull_asc_stack_count.go (stack counts from hub data, no asc call), routers/web/shared/byoweb/repo_storage.go (asc Storage.ListRepoPlacements), templates/user/settings/repos.tmpl | - |
 | UserSettingsStorage | Targets list and state chips, add form (name, region, endpoint, bucket, prefix, addressing, keys), enable, disable, delete | done | routers/web/shared/byoweb/storage.go, templates/shared/asc/byo_storage*.tmpl | - |
 | UserSettingsStorage | Verify handshake: five steps with latency, failure message in words | done | byo_storage_target.tmpl (checks from Storage.VerifyTarget) | - |
 | UserSettingsStorage | Per repository assignment ("where new objects go") | done | byoweb StorageAssign, byo_storage_repo.tmpl | - |

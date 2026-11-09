@@ -18,12 +18,12 @@ After this audit:
 
 | Area | Boards | Rows | Done | Partial | Missing | Done % |
 |---|---|---|---|---|---|---|
-| shell/settings | 47 | 317 | 157 | 33 | 127 | 50% |
+| shell/settings | 47 | 317 | 158 | 32 | 127 | 50% |
 | repo | 24 | 274 | 154 | 23 | 97 | 56% |
 | review | 5 | 88 | 35 | 15 | 38 | 40% |
 | agents-ops | 12 | 126 | 96 | 7 | 23 | 76% |
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
-| **all** | 94 | 845 | 444 | 86 | 315 | 53% |
+| **all** | 94 | 845 | 445 | 85 | 315 | 53% |
 
 Missing rows by kind of work: UI 141, hub 131, asc 14, hub+asc 83. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 246, partial 14, missing 57. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 247, partial 13, missing 57. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -836,17 +836,17 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsRepos (ASC Hub settings: repositories)
 
-Area shell/settings. Rows 2: done 1, partial 1, missing 0. Copy found in the hub: 74% of 53 copy strings (mobile twin 65%). Template(s): repos.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 2: done 2, partial 0, missing 0. Copy found in the hub: 74% of 53 copy strings (mobile twin 65%). Template(s): repos.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Repositories you own and ones that need adopting.; Move, rename or delete from each repository's own settings.; Shell and editor setup.; garage-eu.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Owned repositories list, unadopted adopt/delete | done | templates/user/settings/repos.tmpl:47 | - |
-| Stack count and storage target per row; Transfer dialog (new owner + repository name) | partial (hub+asc) | logged as not built (not re-probed) | hub: repos.tmpl (repo transfer exists in repo settings); asc: stack counts (Stacks service) and Storage.AssignRepo target |
-| Board note: Transfer asks for the new owner and the repository name | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, empty unadopted, transfer dialog | unverified | not tracked in the gap files | needs a row and a test |
+| Stack count and storage target per row; Transfer dialog (new owner + repository name) | done | hub: issues_model.CountAscOpenStacks (open pull requests that are not the stack parent of another open one, as the Stacks page counts), byoweb.LoadRepoStorage (asc Storage.ListRepoPlacements), templates/user/settings/repos.tmpl (letter tile, Public or Private, description, "N stacks", storage, Transfer dialog posting to the repository's own transfer; Transfer pending links to it); TestCountAscOpenStacks, TestUserSettingsReposOwned | - |
+| Board note: Transfer asks for the new owner and the repository name | done | TestUserSettingsReposOwned | - |
+| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | done | repos.tmpl has no tabs; the settings menu is the layout's | - |
+| Board note: Default, empty unadopted, transfer dialog | done | TestUserSettingsReposOwned (default and transfer), TestUserSettingsReposUnadopted (empty and one directory) | - |
 
 #### UserSettingsStorage (ASC Hub settings: storage)
 
