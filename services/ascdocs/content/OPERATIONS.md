@@ -477,6 +477,15 @@ TestRunNowShowsTheOutputOfTheRun, TestQueueFlushNamesTheCount, TestRunWithUserKe
 TestVerifyInstanceChainGoesInSlicesToTheHead, TestVerifyInstanceChainStopsAtTheFirstBadSlice,
 TestRunAuditCheckFailsOnABrokenChain, `cronrun.test.js`.
 
+**Reading an event.** Each row of Site administration > Audit log opens in place with **Details**: the event number
+and id, the exact time, the request id (to find the request in asc serve's log), the outcome, the coarse address, the
+client program, the other details and the event's hash. A change shows as a diff, the value before struck through and
+the value after (a setting, a ref, a rename, a default branch); the value of a setting whose name looks secret shows as
+hidden. While an export is being prepared the Export button spins and a screen reader hears that the file downloads
+when it is ready. Code: `services/asctrust/audit.go` (AuditRow, AuditChange), `templates/admin/asc_audit.tmpl`,
+`web_src/js/features/asc-audit.js`. Tests: TestAuditPageOfBuildsTheRecordAndTheDiff, TestAscAdminAuditBoardNotes,
+`asc-audit.test.js`.
+
 ## Usage and agents on a person's page
 
 The page of a person in site administration (Overview tab) has a **Usage** card (storage and agent minutes this
