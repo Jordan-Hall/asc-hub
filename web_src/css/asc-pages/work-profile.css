@@ -339,7 +339,7 @@
 
 .wk-hm-months {
   display: grid;
-  grid-template-columns: 28px repeat(53, 13px);
+  grid-template-columns: 28px repeat(54, 13px);
   gap: 3px;
   margin-bottom: 4px;
   color: var(--text-2);
@@ -391,6 +391,53 @@
 .wk-hm-cell.l2 { background: color-mix(in srgb, var(--fill) 50%, var(--surface)); }
 .wk-hm-cell.l3 { background: color-mix(in srgb, var(--fill) 75%, var(--surface)); }
 .wk-hm-cell.l4 { background: var(--fill); }
+.wk-hm-cell.is-agent.l1 { background: color-mix(in srgb, var(--agent-dot) 28%, var(--surface)); }
+.wk-hm-cell.is-agent.l2 { background: color-mix(in srgb, var(--agent-dot) 50%, var(--surface)); }
+.wk-hm-cell.is-agent.l3 { background: color-mix(in srgb, var(--agent-dot) 75%, var(--surface)); }
+.wk-hm-cell.is-agent.l4 { background: var(--agent); }
+a.wk-hm-cell:hover { outline: 1px solid var(--text-2); }
+
+.wk-hm-years {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.wk-hm-year {
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: var(--text-2);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.wk-hm-year:hover { color: var(--text); background: var(--line-2); }
+.wk-hm-year.is-current { color: var(--text); background: var(--line-2); font-weight: 600; }
+
+.wk-hm-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 10px 0 0;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.wk-hm-sum-agent { color: var(--agent); }
+
+.wk-hm-table {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.wk-hm-table summary {
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.wk-hm-table table { margin-top: 8px; }
+.wk-hm-table-none { margin: 8px 0 0; color: var(--text-2); }
 
 .wk-hm-legend {
   display: flex;
@@ -463,6 +510,7 @@
 .wk-hm-c51 { grid-column-start: 51; }
 .wk-hm-c52 { grid-column-start: 52; }
 .wk-hm-c53 { grid-column-start: 53; }
+.wk-hm-c54 { grid-column-start: 54; }
 
 /* the profile actions sheet */
 .wk-sheet-list {

@@ -3,17 +3,25 @@ The contribution grid: one square per day of the last year, a column per week, a
 "Profile"). Dot: *user.AscHeat. The grid is server drawn, so it needs no script. It is described as one image
 with the total, because 365 squares are noise for a screen reader; every square has its day and count as a
 tooltip for a mouse. The month labels sit on classes (wk-hm-cN) because the page forbids inline styles.
+On a profile (routers/web/user/asc_profile_contrib.go) the grid also has a year switch, a summary line, violet
+squares for the days that agent runs the person started mostly made, squares that open the activity of their day,
+and a table of the days with activity: the way to reach those days with a keyboard or a screen reader.
 */}}
 <div class="wk-hm">
-	<div class="wk-hm-scroll" tabindex="0" role="group" aria-label="{{ctx.Locale.TrN .Total "user.asc_profile.total_one" "user.asc_profile.total_n" .Total}}">
-		<div class="wk-hm-inner" role="img" aria-label="{{ctx.Locale.TrN .Total "user.asc_profile.total_one" "user.asc_profile.total_n" .Total}}">
+	{{if .Years}}
+		<nav class="wk-hm-years" aria-label="{{ctx.Locale.Tr "user.asc_profile.year_nav"}}">
+			{{range .Years}}<a class="wk-hm-year{{if .Current}} is-current{{end}}" href="{{.Link}}"{{if .Current}} aria-current="page"{{end}}>{{if .Year}}{{.Year}}{{else}}{{ctx.Locale.Tr "user.asc_profile.year_last"}}{{end}}</a>{{end}}
+		</nav>
+	{{end}}
+	<div class="wk-hm-scroll" tabindex="0" role="group" aria-label="{{if .Year}}{{ctx.Locale.TrN .Total "user.asc_profile.total_year_one" "user.asc_profile.total_year_n" .Total .Year}}{{else}}{{ctx.Locale.TrN .Total "user.asc_profile.total_one" "user.asc_profile.total_n" .Total}}{{end}}">
+		<div class="wk-hm-inner" role="img" aria-label="{{if .Year}}{{ctx.Locale.TrN .Total "user.asc_profile.total_year_one" "user.asc_profile.total_year_n" .Total .Year}}{{else}}{{ctx.Locale.TrN .Total "user.asc_profile.total_one" "user.asc_profile.total_n" .Total}}{{end}}">
 			<div class="wk-hm-months" aria-hidden="true">
 				{{range .Months}}<span class="wk-hm-c{{.Col}}">{{.Name}}</span>{{end}}
 			</div>
 			<div class="wk-hm-body">
 				<div class="wk-hm-days" aria-hidden="true"><span></span><span>{{ctx.Locale.Tr "user.asc_profile.mon"}}</span><span></span><span>{{ctx.Locale.Tr "user.asc_profile.wed"}}</span><span></span><span>{{ctx.Locale.Tr "user.asc_profile.fri"}}</span><span></span></div>
 				<div class="wk-hm-grid" aria-hidden="true">
-					{{range .Weeks}}{{range .}}<span class="wk-hm-cell{{if .Blank}} is-blank{{else}} l{{.Level}}{{end}}"{{if not .Blank}} title="{{.Label}}"{{end}}></span>{{end}}{{end}}
+					{{range .Weeks}}{{range .}}{{if .Link}}<a class="wk-hm-cell l{{.Level}}{{if .Agent}} is-agent{{end}}" href="{{.Link}}" tabindex="-1" title="{{.Label}}"></a>{{else}}<span class="wk-hm-cell{{if .Blank}} is-blank{{else}} l{{.Level}}{{if .Agent}} is-agent{{end}}{{end}}"{{if not .Blank}} title="{{.Label}}"{{end}}></span>{{end}}{{end}}{{end}}
 				</div>
 			</div>
 		</div>
@@ -22,5 +30,29 @@ tooltip for a mouse. The month labels sit on classes (wk-hm-cN) because the page
 		<span>{{ctx.Locale.Tr "heatmap.less"}}</span>
 		<span class="wk-hm-cell l0"></span><span class="wk-hm-cell l1"></span><span class="wk-hm-cell l2"></span><span class="wk-hm-cell l3"></span><span class="wk-hm-cell l4"></span>
 		<span>{{ctx.Locale.Tr "heatmap.more"}}</span>
+		{{if .Summary}}<span class="wk-hm-cell l4 is-agent"></span><span>{{ctx.Locale.Tr "user.asc_profile.legend_agent"}}</span>{{end}}
 	</div>
+	{{with .Summary}}
+		<p class="wk-hm-summary" data-asc-heat-summary>
+			<span>{{ctx.Locale.TrN .Changes "user.asc_profile.changes_one" "user.asc_profile.changes_n" .Changes}}</span>
+			{{if .AgentChanges}}<span class="wk-hm-sum-agent">{{ctx.Locale.Tr "user.asc_profile.sum_agent" .AgentChanges}}</span>{{end}}
+			<span>{{ctx.Locale.TrN .Reviews "user.asc_profile.reviews_one" "user.asc_profile.reviews_n" .Reviews}}</span>
+			{{if .Turnaround}}<span>{{ctx.Locale.Tr "user.asc_profile.turnaround" .Turnaround}}</span>{{end}}
+		</p>
+	{{end}}
+	{{if .Summary}}
+		<details class="wk-hm-table" data-asc-heat-table>
+			<summary>{{ctx.Locale.Tr "user.asc_profile.table_show"}}</summary>
+			{{if .Rows}}
+				<table class="ds-table">
+					<thead><tr><th scope="col">{{ctx.Locale.Tr "user.asc_profile.table_day"}}</th><th scope="col">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</th><th scope="col">{{ctx.Locale.Tr "user.asc_profile.legend_agent"}}</th></tr></thead>
+					<tbody>
+						{{range .Rows}}<tr><th scope="row">{{if .Link}}<a href="{{.Link}}">{{.Date}}</a>{{else}}{{.Date}}{{end}}</th><td>{{.Count}}</td><td>{{.Agents}}</td></tr>{{end}}
+					</tbody>
+				</table>
+			{{else}}
+				<p class="wk-hm-table-none">{{ctx.Locale.Tr "user.asc_profile.table_none"}}</p>
+			{{end}}
+		</details>
+	{{end}}
 </div>

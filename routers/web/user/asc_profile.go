@@ -54,7 +54,9 @@ const (
 type AscHeatDay struct {
 	Level int    // 0 for no activity, else 1 to ascHeatLevels
 	Label string // "3 contributions on Mon, 12 Oct 2026"
-	Blank bool   // a day after today: nothing is drawn
+	Blank bool   // a day outside the grid's range: nothing is drawn
+	Agent bool   // most of the day's changes came from agent runs the person started: a violet square
+	Link  string // the activity of that day, when the grid links its days
 }
 
 // AscHeatMonth is a month label above the grid, at the first column that starts in that month.
@@ -63,12 +65,40 @@ type AscHeatMonth struct {
 	Col  int // 1 based grid column
 }
 
+// AscHeatRow is a day with activity, for the table that is the alternative to the grid.
+type AscHeatRow struct {
+	Date   string // "Mon, 12 Oct 2026"
+	Link   string
+	Count  int64
+	Agents int64
+}
+
+// AscHeatYear is an entry of the year switch; Year 0 is the last twelve months.
+type AscHeatYear struct {
+	Year    int
+	Link    string
+	Current bool
+}
+
+// AscHeatSummary is the line under the grid: changes, agent changes, reviews and the median review turnaround.
+type AscHeatSummary struct {
+	Changes      int64
+	AgentChanges int64
+	Reviews      int64
+	Turnaround   string // empty when the person gave no review in the range
+}
+
 // AscHeat is the contribution grid: Weeks[column][row], row 0 is Sunday.
 type AscHeat struct {
-	Weeks  [][]AscHeatDay
-	Months []AscHeatMonth
-	Total  int64
-	Days   int // days that have activity
+	Weeks   [][]AscHeatDay
+	Months  []AscHeatMonth
+	Total   int64
+	Days    int   // days that have activity
+	Agents  int64 // of Total, the changes of agent runs the person started
+	Rows    []AscHeatRow
+	Year    int // 0 for the last twelve months
+	Years   []AscHeatYear
+	Summary *AscHeatSummary
 }
 
 // ascHeatLevel maps a day's count to a colour step relative to the busiest day, so a quiet profile still
@@ -87,63 +117,97 @@ func ascHeatLevel(count, max int64) int {
 	return lvl
 }
 
+// ascHeatDay is the day of t in loc, at midnight.
+func ascHeatDay(t time.Time, loc *time.Location) time.Time {
+	t = t.In(loc)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
+}
+
+// ascHeatSum sums the activity by day of loc ("2006-01-02"), keeping the days from first to last.
+func ascHeatSum(data []*activities_model.UserHeatmapData, first, last time.Time, loc *time.Location) map[string]int64 {
+	perDay := map[string]int64{}
+	for _, d := range data {
+		if d == nil || d.Contributions <= 0 {
+			continue
+		}
+		day := ascHeatDay(d.Timestamp.AsTime(), loc)
+		if day.Before(first) || day.After(last) {
+			continue
+		}
+		perDay[day.Format("2006-01-02")] += d.Contributions
+	}
+	return perDay
+}
+
 // ascHeatBuild lays the activity of the last year out as columns of weeks ending with the week of now. The
 // days are cut in loc. The data is grouped in 15 minutes; entries older than the grid are dropped.
 func ascHeatBuild(data []*activities_model.UserHeatmapData, now time.Time, loc *time.Location, l translation.Locale) *AscHeat {
 	if loc == nil {
 		loc = time.UTC
 	}
-	today := time.Date(now.In(loc).Year(), now.In(loc).Month(), now.In(loc).Day(), 0, 0, 0, 0, loc)
+	today := ascHeatDay(now, loc)
 	// the grid starts on the Sunday ascHeatWeeks-1 weeks before the Sunday of this week
-	thisSunday := today.AddDate(0, 0, -int(today.Weekday()))
-	start := thisSunday.AddDate(0, 0, -7*(ascHeatWeeks-1))
+	start := today.AddDate(0, 0, -int(today.Weekday())-7*(ascHeatWeeks-1))
+	return ascHeatLayout(ascHeatSum(data, start, today, loc), nil, start, today, l, nil)
+}
 
-	perDay := map[string]int64{}
-	var total int64
-	for _, d := range data {
-		if d == nil || d.Contributions <= 0 {
-			continue
-		}
-		t := d.Timestamp.AsTime().In(loc)
-		day := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
-		if day.Before(start) || day.After(today) {
-			continue
-		}
-		perDay[day.Format("2006-01-02")] += d.Contributions
-		total += d.Contributions
-	}
+// ascHeatLayout lays the days first to last (midnights of one location) out as columns of weeks, from the Sunday
+// of the week of first to the Saturday of the week of last; a day outside the range is blank. A day counts its
+// activity and the changes of agent runs (agents); link, when not nil, gives the address each day opens.
+func ascHeatLayout(perDay, agents map[string]int64, first, last time.Time, l translation.Locale, link func(day string) string) *AscHeat {
+	h := &AscHeat{}
 	var max int64
-	for _, c := range perDay {
-		if c > max {
-			max = c
+	count := func(key string) int64 { return perDay[key] + agents[key] }
+	for day := first; !day.After(last); day = day.AddDate(0, 0, 1) {
+		key := day.Format("2006-01-02")
+		c := count(key)
+		if c <= 0 {
+			continue
 		}
+		h.Total += c
+		h.Agents += agents[key]
+		h.Days++
+		max = max64(max, c)
 	}
-
-	h := &AscHeat{Total: total, Days: len(perDay)}
+	start := first.AddDate(0, 0, -int(first.Weekday()))
+	end := last.AddDate(0, 0, 6-int(last.Weekday()))
+	weeks := int(end.Sub(start).Hours()/24+0.5)/7 + 1
 	lastMonth := time.Month(0)
-	for w := 0; w < ascHeatWeeks; w++ {
+	for w := 0; w < weeks; w++ {
 		col := make([]AscHeatDay, 7)
 		for r := 0; r < 7; r++ {
 			day := start.AddDate(0, 0, w*7+r)
-			if day.After(today) {
+			if day.Before(first) || day.After(last) {
 				col[r] = AscHeatDay{Blank: true}
 				continue
 			}
-			c := perDay[day.Format("2006-01-02")]
-			label := l.TrString("user.asc_profile.no_contributions", day.Format("Mon, 2 Jan 2006"))
+			key := day.Format("2006-01-02")
+			c, a := count(key), agents[key]
+			when := day.Format("Mon, 2 Jan 2006")
+			label := l.TrString("user.asc_profile.no_contributions", when)
 			if c > 0 {
-				label = string(l.TrN(int(c), "user.asc_profile.contributions_one", "user.asc_profile.contributions_n", c, day.Format("Mon, 2 Jan 2006")))
+				label = string(l.TrN(int(c), "user.asc_profile.contributions_one", "user.asc_profile.contributions_n", c, when))
+				if a > 0 {
+					label = l.TrString("user.asc_profile.by_agents", label, a)
+				}
 			}
-			col[r] = AscHeatDay{Level: ascHeatLevel(c, max), Label: label}
+			cell := AscHeatDay{Level: ascHeatLevel(c, max), Label: label, Agent: a > 0 && a*2 >= c}
+			if link != nil && c > 0 {
+				cell.Link = link(key)
+			}
+			col[r] = cell
 		}
 		h.Weeks = append(h.Weeks, col)
 		// the label of a month goes above the first column that starts in it
-		first := start.AddDate(0, 0, w*7)
-		if first.Month() != lastMonth && !first.After(today) {
-			if w < ascHeatWeeks-1 || first.Day() <= 7 {
-				h.Months = append(h.Months, AscHeatMonth{Name: first.Format("Jan"), Col: w + 1})
+		top := start.AddDate(0, 0, w*7)
+		if top.Before(first) {
+			top = first
+		}
+		if top.Month() != lastMonth && !top.After(last) {
+			if w < weeks-1 || top.Day() <= 7 {
+				h.Months = append(h.Months, AscHeatMonth{Name: top.Format("Jan"), Col: w + 1})
 			}
-			lastMonth = first.Month()
+			lastMonth = top.Month()
 		}
 	}
 	// a label too close to the next one would overlap it: keep one per two columns at least
@@ -155,7 +219,25 @@ func ascHeatBuild(data []*activities_model.UserHeatmapData, now time.Time, loc *
 		kept = append(kept, m)
 	}
 	h.Months = kept
+	// the table: the days with activity, newest first
+	for day := last; !day.Before(first); day = day.AddDate(0, 0, -1) {
+		key := day.Format("2006-01-02")
+		if c := count(key); c > 0 {
+			row := AscHeatRow{Date: day.Format("Mon, 2 Jan 2006"), Count: c, Agents: agents[key]}
+			if link != nil {
+				row.Link = link(key)
+			}
+			h.Rows = append(h.Rows, row)
+		}
+	}
 	return h
+}
+
+func max64(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 // AscProfileWork is one pull request the person is working on.
@@ -345,12 +427,12 @@ func ascProfileOverview(ctx *context.Context) {
 		return
 	}
 	if setting.Service.EnableUserHeatmap {
-		data, err := activities_model.GetUserHeatmapDataByUser(ctx, person, ctx.Doer)
+		heat, err := ascProfileHeat(ctx, "")
 		if err != nil {
-			ctx.ServerError("GetUserHeatmapDataByUser", err)
+			ctx.ServerError("ascProfileHeat", err)
 			return
 		}
-		ctx.Data["AscHeat"] = ascHeatBuild(data, time.Now(), setting.DefaultUILocation, ctx.Locale)
+		ctx.Data["AscHeat"] = heat
 	}
 	showPrivate := ctx.IsSigned && (ctx.Doer.IsAdmin || ctx.Doer.ID == person.ID)
 	feeds, _, err := activities_model.GetFeeds(ctx, activities_model.GetFeedsOptions{

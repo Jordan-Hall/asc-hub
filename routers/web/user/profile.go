@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"path"
 	"strings"
-	"time"
 
 	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
@@ -242,7 +241,12 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 			}
 			ctx.Data["HeatmapData"] = data
 			ctx.Data["HeatmapTotalContributions"] = activities_model.GetTotalContributionsInHeatmap(data)
-			ctx.Data["AscHeat"] = ascHeatBuild(data, time.Now(), setting.DefaultUILocation, ctx.Locale)
+			heat, err := ascProfileHeat(ctx, "activity")
+			if err != nil {
+				ctx.ServerError("ascProfileHeat", err)
+				return
+			}
+			ctx.Data["AscHeat"] = heat
 		}
 
 		date := ctx.FormString("date")

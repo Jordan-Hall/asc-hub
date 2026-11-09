@@ -58,7 +58,8 @@
 							</ul>
 						</section>
 					{{end}}
-					{{$noHeat := or (not .AscHeat) (eq .AscHeat.Total 0)}}
+					{{/* an empty last year makes the bare overview; a chosen year keeps the grid, so its switch stays */}}
+					{{$noHeat := or (not .AscHeat) (and (eq .AscHeat.Total 0) (not .AscHeat.Year))}}
 					{{$bare := and (not .AscPins) $noHeat $activityVisible}}
 					{{if $bare}}
 						{{/* no pins and no contributions: one inline empty row, with its action for the person */}}
@@ -117,7 +118,7 @@
 							<section class="ds-card" aria-labelledby="wk-heat-title">
 								<div class="ds-card-h">
 									<h2 id="wk-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2>
-									<span class="ds-card-sub">{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}</span>
+									<span class="ds-card-sub">{{if .AscHeat.Year}}{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_year_one" "user.asc_profile.total_year_n" .AscHeat.Total .AscHeat.Year}}{{else}}{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}{{end}}</span>
 								</div>
 								<div class="ds-card-b">{{template "user/asc_heatmap" .AscHeat}}</div>
 							</section>
@@ -289,7 +290,7 @@
 					<section class="ds-card ds-mb-16" aria-labelledby="wk-heat-title">
 						<div class="ds-card-h">
 							<h2 id="wk-heat-title">{{ctx.Locale.Tr "user.asc_profile.contributions"}}</h2>
-							<span class="ds-card-sub">{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}</span>
+							<span class="ds-card-sub">{{if .AscHeat.Year}}{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_year_one" "user.asc_profile.total_year_n" .AscHeat.Total .AscHeat.Year}}{{else}}{{ctx.Locale.TrN .AscHeat.Total "user.asc_profile.total_one" "user.asc_profile.total_n" .AscHeat.Total}}{{end}}</span>
 						</div>
 						<div class="ds-card-b">{{template "user/asc_heatmap" .AscHeat}}</div>
 					</section>
