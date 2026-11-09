@@ -1,0 +1,38 @@
+{{/*
+One decision about the signed-in person's content, its reason, and the appeal (row 194, AdminModeration). The form shows
+while the owner may appeal: once, and not for an account that was deleted.
+*/}}
+{{template "base/head" .}}
+{{$d := .Decision}}
+<div role="main" aria-label="{{.Title}}" class="ds-main">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" .Title "BackHref" (print AppSubUrl "/-/moderation/decisions") "BackLabel" (ctx.Locale.Tr "asc_admin.mod_decisions_title"))}}
+	<div class="ds-container">
+		{{template "base/alert" .}}
+		<h1 class="ds-t-h1">{{ctx.Locale.Tr $d.ActionKey}}</h1>
+		<p class="ds-c-2">{{$d.ContentRef}} · {{DateUtils.TimeSince $d.CreatedUnix}} {{template "moderation/asc_appeal_state" (dict "D" $d)}}</p>
+		<section class="ds-card ds-mt-12" aria-labelledby="mod-why">
+			<h2 class="ds-t-h3" id="mod-why">{{ctx.Locale.Tr "asc_admin.mod_mail_reason"}}</h2>
+			<p class="ds-break">{{if $d.Reason}}{{$d.Reason}}{{else}}<em>{{ctx.Locale.Tr "asc_admin.mod_no_reason"}}</em>{{end}}</p>
+		</section>
+		{{if $d.AppealText}}
+			<section class="ds-card ds-mt-12" aria-labelledby="mod-appeal">
+				<h2 class="ds-t-h3" id="mod-appeal">{{ctx.Locale.Tr "asc_admin.mod_your_appeal"}}</h2>
+				<p class="ds-break">{{$d.AppealText}}</p>
+				{{if $d.AppealReason}}
+					<h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_admin.mod_appeal_answer"}}</h3>
+					<p class="ds-break">{{$d.AppealReason}}</p>
+				{{end}}
+			</section>
+		{{else if $d.Appealable}}
+			<form class="ds-card ds-mt-12" method="post" action="{{$d.Link}}/appeal">
+				{{.CsrfTokenHtml}}
+				<div class="ds-field">
+					<label class="ds-label" for="mod-appeal-text">{{ctx.Locale.Tr "asc_admin.mod_appeal_label"}}</label>
+					<textarea class="ds-textarea" id="mod-appeal-text" name="text" rows="5" maxlength="{{.MaxAppeal}}" required placeholder="{{ctx.Locale.Tr "asc_admin.mod_appeal_hint"}}"></textarea>
+				</div>
+				<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_admin.mod_appeal_submit"}}</button>
+			</form>
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

@@ -16,6 +16,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
+	web_moderation "forgejo.org/routers/web/moderation"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/context"
 	"forgejo.org/services/externalaccount"
@@ -95,6 +96,7 @@ func handleSignInError(ctx *context.Context, userName string, ptrForm any, tmpl 
 		ctx.Data["user_exists"] = true
 		log.Info("Failed authentication attempt for %s from %s: %v", userName, ctx.RemoteAddr(), err)
 		ctx.Data["Title"] = ctx.Tr("auth.prohibit_login")
+		web_moderation.SuspendedAppeal(ctx, err.(user_model.ErrUserProhibitLogin).UID)
 		ctx.HTML(http.StatusOK, "user/auth/prohibit_login")
 	} else {
 		ctx.ServerError(invoker, err)

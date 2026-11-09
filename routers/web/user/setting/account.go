@@ -6,6 +6,7 @@ package setting
 
 import (
 	"errors"
+	"forgejo.org/models/moderation"
 	"net/http"
 	"net/url"
 	"strings"
@@ -46,6 +47,14 @@ func Account(ctx *context.Context) {
 
 	loadAccountData(ctx)
 	loadSignInMethods(ctx)
+	if setting.Moderation.Enabled {
+		has, err := moderation.HasDecisions(ctx, ctx.Doer.ID)
+		if err != nil {
+			ctx.ServerError("HasDecisions", err)
+			return
+		}
+		ctx.Data["AscHasDecisions"] = has
+	}
 
 	ctx.HTML(http.StatusOK, tplSettingsAccount)
 }

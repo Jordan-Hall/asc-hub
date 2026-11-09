@@ -28,6 +28,7 @@ import (
 	"forgejo.org/modules/validation"
 	"forgejo.org/modules/web"
 	"forgejo.org/modules/web/middleware"
+	web_moderation "forgejo.org/routers/web/moderation"
 	auth_service "forgejo.org/services/auth"
 	auth_method "forgejo.org/services/auth/method"
 	"forgejo.org/services/auth/source/oauth2"
@@ -258,6 +259,7 @@ func SignInPost(ctx *context.Context) {
 		} else if user_model.IsErrUserProhibitLogin(err) {
 			log.Warn("Failed authentication attempt for %s from %s: %v", form.UserName, ctx.RemoteAddr(), err)
 			ctx.Data["Title"] = ctx.Tr("auth.prohibit_login")
+			web_moderation.SuspendedAppeal(ctx, err.(user_model.ErrUserProhibitLogin).UID)
 			ctx.HTML(http.StatusOK, "user/auth/prohibit_login")
 		} else {
 			ctx.ServerError("UserSignIn", err)

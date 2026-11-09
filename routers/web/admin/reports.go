@@ -55,6 +55,9 @@ func AbuseReports(ctx *context.Context) {
 	ctx.Data["ActionDeleteIssue"] = int(moderation_service.ContentActionDeleteIssue)
 	ctx.Data["ActionDeleteComment"] = int(moderation_service.ContentActionDeleteComment)
 
+	if !loadAppeals(ctx) {
+		return
+	}
 	ctx.HTML(http.StatusOK, tplModerationReports)
 }
 
@@ -223,7 +226,8 @@ func PerformAction(ctx *context.Context) {
 		ctx.HTML(http.StatusOK, tplAlert)
 		return
 	}
-	defer recordModeration(ctx, contentType, contentID, contentAction, reportAction, reason)
+	target := moderationTarget(ctx, contentType, contentID, contentAction)
+	defer recordModeration(ctx, contentType, contentID, contentAction, reportAction, reason, target)
 
 	switch contentAction {
 	case moderation_service.ContentActionNone:

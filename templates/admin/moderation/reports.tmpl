@@ -1,6 +1,33 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin")}}
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.moderation") "Desc" (ctx.Locale.Tr "asc_admin.mod_lead"))}}
 
+	{{if .Appeals}}
+		{{/* Appeals of earlier decisions wait first (row 194): the owner's words, the decision, Uphold or Overturn with a reason. */}}
+		<h2 class="ds-t-h3">{{ctx.Locale.Tr "asc_admin.mod_appeals_title" (len .Appeals)}}</h2>
+		<ul class="ds-list ds-mt-12">
+			{{range .Appeals}}
+				{{$id := print "appeal-" .ID}}
+				<li class="ds-li ds-li-wrap" id="{{$id}}" hx-target="#{{$id}}" hx-indicator="#{{$id}}" hx-include="#appeal-reason-{{.ID}}">
+					<span class="adm-tile adm-tile-warn" aria-hidden="true">{{svg "dsi-flag" 18}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title">{{ctx.Locale.Tr .ActionKey}} <span class="ds-c-2">{{.ContentRef}}</span></div>
+						<div class="ds-li-sub ds-break">{{ctx.Locale.Tr "asc_admin.mod_decision_reason"}}: <em>{{.Reason}}</em></div>
+						<div class="ds-li-sub ds-break">{{ctx.Locale.Tr "asc_admin.mod_appeal_by"}} {{if .OwnerName}}<a class="ds-link" href="{{AppSubUrl}}/{{.OwnerName}}">{{.OwnerName}}</a>{{else}}{{$.GhostUserName}}{{end}}: <em>{{.AppealText}}</em></div>
+						<div class="ds-li-meta"><span>{{DateUtils.TimeSince .AppealUnix}}</span></div>
+						<div class="ds-field">
+							<label class="ds-label" for="appeal-reason-{{.ID}}">{{ctx.Locale.Tr "asc_admin.mod_reason"}}</label>
+							<textarea class="ds-textarea" id="appeal-reason-{{.ID}}" name="reason" rows="2" maxlength="500" placeholder="{{ctx.Locale.Tr "asc_admin.mod_appeal_reason_hint"}}"></textarea>
+						</div>
+						<div class="ds-li-actions">
+							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" hx-post="{{AppSubUrl}}/admin/moderation/appeals/{{.ID}}" hx-vals='{"answer": "uphold"}'>{{ctx.Locale.Tr "asc_admin.mod_uphold"}}</button>
+							<button type="button" class="ds-btn ds-btn-primary ds-btn-sm" hx-post="{{AppSubUrl}}/admin/moderation/appeals/{{.ID}}" hx-vals='{"answer": "overturn"}'>{{ctx.Locale.Tr "asc_admin.mod_overturn"}}</button>
+						</div>
+					</div>
+				</li>
+			{{end}}
+		</ul>
+		<h2 class="ds-t-h3 ds-mt-12">{{ctx.Locale.Tr "asc_admin.mod_reports_title"}}</h2>
+	{{end}}
 	{{if .Reports}}
 		{{$postURL := print AppSubUrl "/admin/abuse_reports/act"}}
 		<ul class="ds-list">

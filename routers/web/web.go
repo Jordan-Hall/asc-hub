@@ -698,6 +698,12 @@ func registerRoutes(m *web.Route) {
 	if setting.Moderation.Enabled {
 		m.Get("/report_abuse", reqSignIn, moderation.NewReport)
 		m.Post("/report_abuse", reqSignIn, web.Bind(forms.ReportAbuseForm{}), moderation.CreatePost)
+		// the decisions about a person's content and their appeal (board AdminModeration); a suspended account appeals
+		// from the sign-in page, so that form needs no session
+		m.Get("/-/moderation/decisions", reqSignIn, moderation.Decisions)
+		m.Get("/-/moderation/decisions/{id}", reqSignIn, moderation.Decision)
+		m.Post("/-/moderation/decisions/{id}/appeal", reqSignIn, moderation.AppealPost)
+		m.Post("/-/moderation/appeal", moderation.AppealSignInPost)
 	}
 
 	m.Get("/pulls", reqSignIn, user.Pulls)
@@ -1094,6 +1100,7 @@ func registerRoutes(m *web.Route) {
 				m.Get("/type/{type:1|2|3|4}/id/{id}", admin.AbuseReportDetails)
 			})
 			m.Post("/abuse_reports/act", admin.PerformAction)
+			m.Post("/moderation/appeals/{id}", admin.AnswerAppeal)
 		}
 
 		if setting.Federation.Enabled {

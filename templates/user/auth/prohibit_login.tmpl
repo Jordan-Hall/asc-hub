@@ -1,5 +1,29 @@
 {{template "base/head" .}}
 {{template "user/auth/shell_start" (dict "Data" . "Hook" "user activate" "Title" (ctx.Locale.Tr "auth.prohibit_login"))}}
 	<div class="ds-banner ds-banner-warn">{{svg "dsi-lock" 18}}<div class="ds-banner-body">{{ctx.Locale.Tr "auth.prohibit_login_desc"}}</div></div>
+	{{/* A suspension an administrator recorded (row 194): its reason and, once, an appeal. routers/web/moderation SuspendedAppeal
+	fills these only after the password was checked; the code makes the form usable for an hour, once. */}}
+	{{with .AscSuspension}}
+		<section class="ds-card ds-mt-12" aria-labelledby="mod-why">
+			<h2 class="ds-t-h3" id="mod-why">{{ctx.Locale.Tr "asc_admin.mod_mail_reason"}} {{template "moderation/asc_appeal_state" (dict "D" .)}}</h2>
+			<p class="ds-break">{{if .Reason}}{{.Reason}}{{else}}<em>{{ctx.Locale.Tr "asc_admin.mod_no_reason"}}</em>{{end}}</p>
+			{{if .AppealReason}}
+				<h3 class="ds-t-h4">{{ctx.Locale.Tr "asc_admin.mod_appeal_answer"}}</h3>
+				<p class="ds-break">{{.AppealReason}}</p>
+			{{end}}
+			{{if $.AscAppealCode}}
+				<form method="post" action="{{AppSubUrl}}/-/moderation/appeal">
+					{{$.CsrfTokenHtml}}
+					<input type="hidden" name="decision" value="{{.ID}}">
+					<input type="hidden" name="code" value="{{$.AscAppealCode}}">
+					<div class="ds-field">
+						<label class="ds-label" for="mod-appeal-text">{{ctx.Locale.Tr "asc_admin.mod_appeal_label"}}</label>
+						<textarea class="ds-textarea" id="mod-appeal-text" name="text" rows="5" maxlength="{{$.AscAppealMax}}" required placeholder="{{ctx.Locale.Tr "asc_admin.mod_appeal_hint"}}"></textarea>
+					</div>
+					<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "asc_admin.mod_appeal_submit"}}</button>
+				</form>
+			{{end}}
+		</section>
+	{{end}}
 {{template "user/auth/shell_end" (dict "Data" .)}}
 {{template "base/footer" .}}

@@ -1,0 +1,33 @@
+{{/*
+The decisions administrators took about the signed-in person's content (row 194, AdminModeration).
+routers/web/moderation/asc_appeal.go Decisions builds .Decisions, the newest first.
+*/}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="ds-main">
+	{{template "shared/ds/subbar" (dict "Data" . "Title" .Title "BackHref" (print AppSubUrl "/user/settings") "BackLabel" (ctx.Locale.Tr "settings"))}}
+	<div class="ds-container">
+		{{template "base/alert" .}}
+		<h1 class="ds-t-h1">{{.Title}}</h1>
+		<p class="ds-c-2">{{ctx.Locale.Tr "asc_admin.mod_decisions_lead"}}</p>
+		{{if .Decisions}}
+			<ul class="ds-list ds-mt-12">
+				{{range .Decisions}}
+					<li class="ds-li">
+						<div class="ds-li-main">
+							<div class="ds-li-title"><a href="{{.Link}}">{{ctx.Locale.Tr .ActionKey}}</a> <span class="ds-c-2">{{.ContentRef}}</span></div>
+							<div class="ds-li-meta">
+								<span>{{DateUtils.TimeSince .CreatedUnix}}</span>
+								{{template "moderation/asc_appeal_state" (dict "D" .)}}
+							</div>
+						</div>
+					</li>
+				{{end}}
+			</ul>
+		{{else}}
+			<div class="ds-card ds-mt-12">
+				{{template "shared/ds/empty" (dict "Icon" "check-circle" "Title" (ctx.Locale.Tr "asc_admin.mod_decisions_none"))}}
+			</div>
+		{{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

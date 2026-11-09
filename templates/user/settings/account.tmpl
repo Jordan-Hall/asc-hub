@@ -130,6 +130,13 @@
 		{{end}}
 	</section>
 
+	{{if .AscHasDecisions}}
+	<section class="ds-card" aria-labelledby="sp-moderation">
+		<div class="ds-card-h"><h2 id="sp-moderation">{{ctx.Locale.Tr "asc_admin.mod_decisions_title"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_admin.mod_decisions_lead"}}</span></div>
+		<div class="ds-card-b"><a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/moderation/decisions">{{ctx.Locale.Tr "asc_admin.mod_decisions_open"}}</a></div>
+	</section>
+	{{end}}
+
 	{{if not ($.UserDisabledFeatures.Contains "deletion")}}
 	<section class="ds-card wk-danger" aria-labelledby="sp-delete">
 		<div class="ds-card-h"><h2 id="sp-delete">{{ctx.Locale.Tr "settings.delete_account"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_cannot_undo"}}</span></div>

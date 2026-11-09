@@ -1,0 +1,13 @@
+{{/*
+Where the appeal of one decision stands (row 194, AdminModeration): a chip and, once answered, the administrator's reason.
+Props: D, a decision row of routers/web/moderation/asc_appeal.go.
+*/}}
+{{if eq .D.AppealStatus 1}}
+	<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_admin.mod_appeal_state_open"}}</span>
+{{else if eq .D.AppealStatus 2}}
+	<span class="ds-chip">{{ctx.Locale.Tr "asc_admin.mod_appeal_state_upheld"}}</span>
+{{else if eq .D.AppealStatus 3}}
+	<span class="ds-chip ds-chip-ok">{{ctx.Locale.Tr "asc_admin.mod_appeal_state_overturned"}}</span>
+{{else if .D.Appealable}}
+	<span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr "asc_admin.mod_appeal_state_none"}}</span>
+{{end}}
