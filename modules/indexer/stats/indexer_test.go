@@ -47,3 +47,31 @@ func TestRepoStatsIndex(t *testing.T) {
 		assert.Equal(t, &repo_model.LanguageStat{ID: 1, RepoID: 1, CommitID: "65f1bf27bc3bf70f64657658635e66094edbcb4d", IsPrimary: true, Language: "Go", Percentage: 99.9, Size: 1023, Color: "#00ADD8", CreatedUnix: 1779733547}, langs[0])
 	}
 }
+
+// The indexer keeps the changeset count of the default branch head, and counts again only for a new head.
+func TestRepoStatsIndexCountsTheChangesets(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	const head = "65f1bf27bc3bf70f64657658635e66094edbcb4d"
+	idx := &DBIndexer{}
+	count := func() *repo_model.AscRepoChangesets {
+		got, err := repo_model.GetAscRepoChangesets(db.DefaultContext, []int64{1})
+		require.NoError(t, err)
+		return got[1]
+	}
+
+	require.NoError(t, idx.Index(1))
+	got := count()
+	require.NotNil(t, got)
+	assert.Equal(t, head, got.CommitSha)
+	assert.EqualValues(t, 1, got.Changesets, "the head of repo1 reaches one changeset")
+
+	require.NoError(t, repo_model.SetAscRepoChangesets(db.DefaultContext, 1, head, 42))
+	require.NoError(t, idx.Index(1))
+	assert.EqualValues(t, 42, count().Changesets, "the same head is not counted again")
+
+	require.NoError(t, repo_model.SetAscRepoChangesets(db.DefaultContext, 1, "an-older-head", 42))
+	require.NoError(t, idx.Index(1))
+	got = count()
+	assert.Equal(t, head, got.CommitSha)
+	assert.EqualValues(t, 1, got.Changesets, "a new head is counted")
+}
