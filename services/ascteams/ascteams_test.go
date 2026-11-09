@@ -7,6 +7,7 @@ import (
 	"context"
 	"net"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -26,7 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func TestMain(m *testing.M) { unittest.MainTest(m) }
@@ -43,6 +46,7 @@ type fakeAsc struct {
 	ops      []string
 	policies map[string]*ascv1.GetPolicyResponse
 	reads    int
+	fail     string // "org/team" whose SetTeamMembers fails
 }
 
 func (f *fakeAsc) Version(context.Context, *ascv1.VersionRequest) (*ascv1.VersionResponse, error) {
@@ -65,6 +69,9 @@ func (f *fakeAsc) SetTeamMembers(ctx context.Context, req *ascv1.SetTeamMembersR
 	defer f.mu.Unlock()
 	if v := md.Get("x-asc-op-id"); len(v) > 0 {
 		f.ops = append(f.ops, v[0])
+	}
+	if f.fail == req.GetOrg()+"/"+req.GetTeam() {
+		return nil, status.Error(codes.Unavailable, "down")
 	}
 	f.sets = append(f.sets, req.GetOrg()+"/"+req.GetTeam())
 	if f.teams[req.GetOrg()] == nil {
@@ -152,6 +159,60 @@ func TestReconcileCopiesTheTeamsOfAnOrganization(t *testing.T) {
 	setting.Asc.Enabled = false
 	_, err = Reconcile(ctx, 3)
 	require.ErrorIs(t, err, ErrUnavailable)
+}
+
+func TestReconcileGoesOnPastAFailingTeam(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	f := startFake(t)
+	f.teams["org3"] = map[string][]string{"gone": {"user9"}}
+	f.fail = "org3/team1"
+	ctx := context.Background()
+	_, err := db.GetEngine(ctx).Exec("UPDATE team SET name = ?, lower_name = ? WHERE id = 7", strings.Repeat("a", 129), strings.Repeat("a", 129))
+	require.NoError(t, err)
+
+	res, err := Reconcile(ctx, 3)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "org3/team1")
+	assert.Equal(t, Result{Set: 3, Cleared: 1}, res, "the other teams are sent and the gone team is cleared")
+	assert.Empty(t, f.members("org3", "gone"))
+	assert.Equal(t, []string{"user2"}, f.members("org3", "owners"))
+	assert.Equal(t, "org3/gone", f.sets[0], "removals go first")
+	for _, s := range f.sets {
+		assert.NotContains(t, s, "aaaa", "a name asc cannot take is not sent")
+	}
+}
+
+func TestARenamedOrDeletedAccountMovesItsTeams(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	defer test.MockVariableValue(&Debounce, 20*time.Millisecond)()
+	f := startFake(t)
+	ctx := context.Background()
+	require.NoError(t, Init(ctx))
+	f.teams["oldorg"] = map[string][]string{"team1": {"user2"}, "owners": {"user2"}}
+	f.teams["org3"] = map[string][]string{"team1": {"olduser4"}}
+
+	org := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 3})
+	Renamed(ctx, org, "OldOrg")
+	Wait()
+	assert.Empty(t, f.teams["oldorg"], "the old name keeps no teams")
+	assert.Equal(t, []string{"user2", "user4"}, f.members("org3", "team1"), "the organization is sent under its name")
+
+	f.teams["org3"]["team1"] = []string{"olduser4", "user2"}
+	person := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	Renamed(ctx, person, "olduser4")
+	Wait()
+	assert.Equal(t, []string{"user2", "user4"}, f.members("org3", "team1"), "a person's teams are sent again")
+
+	f.teams["deleted"] = map[string][]string{"team1": {"user2"}}
+	OrgDeleted("Deleted")
+	Wait()
+	assert.Empty(t, f.teams["deleted"])
+
+	n, err := Forget(ctx, "nobody")
+	require.NoError(t, err)
+	assert.Zero(t, n)
 }
 
 func TestReconcileAllCoversOrganizationsWithAscRepositories(t *testing.T) {
