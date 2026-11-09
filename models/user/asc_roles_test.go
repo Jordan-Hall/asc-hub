@@ -35,6 +35,26 @@ func TestTheRolesOfThePeopleDirectory(t *testing.T) {
 		assert.Equal(t, map[int64]string{1: "owner", 2: "maintainer", 5: "member", 30: "agent"}, roles)
 	})
 
+	t.Run("Write access to a private repository is not shown as a role", func(t *testing.T) {
+		// user5 gets write access to repo2, a private repository of user2: the role must not tell that it exists
+		_, err := e.Exec("INSERT INTO `access` (user_id, repo_id, mode) VALUES (5, 2, 2)")
+		require.NoError(t, err)
+		defer func() {
+			_, err := e.Exec("DELETE FROM `access` WHERE user_id = 5 AND repo_id = 2")
+			require.NoError(t, err)
+		}()
+		roles, err := user_model.AscRolesOf(ctx, load(5))
+		require.NoError(t, err)
+		assert.Equal(t, "member", roles[5])
+		counts, err := user_model.AscRoleCounts(ctx, nil)
+		require.NoError(t, err)
+		_, err = e.Exec("DELETE FROM `access` WHERE user_id = 5 AND repo_id = 2")
+		require.NoError(t, err)
+		before, err := user_model.AscRoleCounts(ctx, nil)
+		require.NoError(t, err)
+		assert.Equal(t, before, counts)
+	})
+
 	t.Run("The counts add up to the active accounts the viewer may see", func(t *testing.T) {
 		total := func(cond string, args ...any) int64 {
 			n, err := e.Table("user").Where("is_active = ? AND type IN (0, 4, 5)"+cond, append([]any{true}, args...)...).Count()
