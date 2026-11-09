@@ -711,6 +711,247 @@ func (x *ListContributorsResponse) GetTruncated() bool {
 	return false
 }
 
+// The contributors of several repositories of one owner, summed by person: the organisation People page. `repos` are
+// "owner/name" (1 to 64, all of `owner`). The host service with a forwarded claim for the organisation `owner` (read) names the
+// repositories its permission model lets that person read, and each one is counted; a claim that does not verify for the
+// organisation is PERMISSION_DENIED. Any other caller is asked about each repository in turn, and one it may not read (or that
+// does not exist) is left out without a word, so the answer never tells a private repository from a missing one.
+type ListOwnerContributorsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Owner         string                 `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	Repos         []string               `protobuf:"bytes,2,rep,name=repos,proto3" json:"repos,omitempty"`
+	Days          uint32                 `protobuf:"varint,3,opt,name=days,proto3" json:"days,omitempty"` // 1 to 366; 0 means 30
+	Kind          AuthorKind             `protobuf:"varint,4,opt,name=kind,proto3,enum=asc.v1.AuthorKind" json:"kind,omitempty"`
+	Until         int64                  `protobuf:"varint,5,opt,name=until,proto3" json:"until,omitempty"` // 0 means now
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOwnerContributorsRequest) Reset() {
+	*x = ListOwnerContributorsRequest{}
+	mi := &file_asc_v1_insights_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOwnerContributorsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOwnerContributorsRequest) ProtoMessage() {}
+
+func (x *ListOwnerContributorsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_insights_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOwnerContributorsRequest.ProtoReflect.Descriptor instead.
+func (*ListOwnerContributorsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_insights_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListOwnerContributorsRequest) GetOwner() string {
+	if x != nil {
+		return x.Owner
+	}
+	return ""
+}
+
+func (x *ListOwnerContributorsRequest) GetRepos() []string {
+	if x != nil {
+		return x.Repos
+	}
+	return nil
+}
+
+func (x *ListOwnerContributorsRequest) GetDays() uint32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+func (x *ListOwnerContributorsRequest) GetKind() AuthorKind {
+	if x != nil {
+		return x.Kind
+	}
+	return AuthorKind_AUTHOR_KIND_UNSPECIFIED
+}
+
+func (x *ListOwnerContributorsRequest) GetUntil() int64 {
+	if x != nil {
+		return x.Until
+	}
+	return 0
+}
+
+type OwnerContributor struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // the login of a person, the name of an agent
+	Kind          AuthorKind             `protobuf:"varint,2,opt,name=kind,proto3,enum=asc.v1.AuthorKind" json:"kind,omitempty"`
+	Landed        uint32                 `protobuf:"varint,3,opt,name=landed,proto3" json:"landed,omitempty"` // summed over the repositories counted
+	ReviewsGiven  uint32                 `protobuf:"varint,4,opt,name=reviews_given,json=reviewsGiven,proto3" json:"reviews_given,omitempty"`
+	Repos         uint32                 `protobuf:"varint,5,opt,name=repos,proto3" json:"repos,omitempty"`                                          // repositories counted where this one landed or reviewed in the window
+	WeeklyLanded  []uint32               `protobuf:"varint,6,rep,packed,name=weekly_landed,json=weeklyLanded,proto3" json:"weekly_landed,omitempty"` // the 12 weeks ending at `until`, oldest first
+	UserId        uint64                 `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                          // the hub's id of the person when a repository recorded one; 0 otherwise
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OwnerContributor) Reset() {
+	*x = OwnerContributor{}
+	mi := &file_asc_v1_insights_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OwnerContributor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OwnerContributor) ProtoMessage() {}
+
+func (x *OwnerContributor) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_insights_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OwnerContributor.ProtoReflect.Descriptor instead.
+func (*OwnerContributor) Descriptor() ([]byte, []int) {
+	return file_asc_v1_insights_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *OwnerContributor) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *OwnerContributor) GetKind() AuthorKind {
+	if x != nil {
+		return x.Kind
+	}
+	return AuthorKind_AUTHOR_KIND_UNSPECIFIED
+}
+
+func (x *OwnerContributor) GetLanded() uint32 {
+	if x != nil {
+		return x.Landed
+	}
+	return 0
+}
+
+func (x *OwnerContributor) GetReviewsGiven() uint32 {
+	if x != nil {
+		return x.ReviewsGiven
+	}
+	return 0
+}
+
+func (x *OwnerContributor) GetRepos() uint32 {
+	if x != nil {
+		return x.Repos
+	}
+	return 0
+}
+
+func (x *OwnerContributor) GetWeeklyLanded() []uint32 {
+	if x != nil {
+		return x.WeeklyLanded
+	}
+	return nil
+}
+
+func (x *OwnerContributor) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type ListOwnerContributorsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Contributors  []*OwnerContributor    `protobuf:"bytes,1,rep,name=contributors,proto3" json:"contributors,omitempty"`                      // landed first, then reviews given, then name; at most 200
+	Landed        uint32                 `protobuf:"varint,2,opt,name=landed,proto3" json:"landed,omitempty"`                                 // all landed changes of the window by the listed kinds
+	CountedRepos  uint32                 `protobuf:"varint,3,opt,name=counted_repos,json=countedRepos,proto3" json:"counted_repos,omitempty"` // repositories the caller may read that were counted
+	Truncated     bool                   `protobuf:"varint,4,opt,name=truncated,proto3" json:"truncated,omitempty"`                           // a bound cut the data of a repository: the numbers are lower bounds
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOwnerContributorsResponse) Reset() {
+	*x = ListOwnerContributorsResponse{}
+	mi := &file_asc_v1_insights_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOwnerContributorsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOwnerContributorsResponse) ProtoMessage() {}
+
+func (x *ListOwnerContributorsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_insights_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOwnerContributorsResponse.ProtoReflect.Descriptor instead.
+func (*ListOwnerContributorsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_insights_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListOwnerContributorsResponse) GetContributors() []*OwnerContributor {
+	if x != nil {
+		return x.Contributors
+	}
+	return nil
+}
+
+func (x *ListOwnerContributorsResponse) GetLanded() uint32 {
+	if x != nil {
+		return x.Landed
+	}
+	return 0
+}
+
+func (x *ListOwnerContributorsResponse) GetCountedRepos() uint32 {
+	if x != nil {
+		return x.CountedRepos
+	}
+	return 0
+}
+
+func (x *ListOwnerContributorsResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
 var File_asc_v1_insights_proto protoreflect.FileDescriptor
 
 const file_asc_v1_insights_proto_rawDesc = "" +
@@ -769,15 +1010,35 @@ const file_asc_v1_insights_proto_rawDesc = "" +
 	"\x18ListContributorsResponse\x127\n" +
 	"\fcontributors\x18\x01 \x03(\v2\x13.asc.v1.ContributorR\fcontributors\x12\x16\n" +
 	"\x06landed\x18\x02 \x01(\rR\x06landed\x12\x1c\n" +
-	"\ttruncated\x18\x03 \x01(\bR\ttruncated*X\n" +
+	"\ttruncated\x18\x03 \x01(\bR\ttruncated\"\x9c\x01\n" +
+	"\x1cListOwnerContributorsRequest\x12\x14\n" +
+	"\x05owner\x18\x01 \x01(\tR\x05owner\x12\x14\n" +
+	"\x05repos\x18\x02 \x03(\tR\x05repos\x12\x12\n" +
+	"\x04days\x18\x03 \x01(\rR\x04days\x12&\n" +
+	"\x04kind\x18\x04 \x01(\x0e2\x12.asc.v1.AuthorKindR\x04kind\x12\x14\n" +
+	"\x05until\x18\x05 \x01(\x03R\x05until\"\xdf\x01\n" +
+	"\x10OwnerContributor\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12&\n" +
+	"\x04kind\x18\x02 \x01(\x0e2\x12.asc.v1.AuthorKindR\x04kind\x12\x16\n" +
+	"\x06landed\x18\x03 \x01(\rR\x06landed\x12#\n" +
+	"\rreviews_given\x18\x04 \x01(\rR\freviewsGiven\x12\x14\n" +
+	"\x05repos\x18\x05 \x01(\rR\x05repos\x12#\n" +
+	"\rweekly_landed\x18\x06 \x03(\rR\fweeklyLanded\x12\x17\n" +
+	"\auser_id\x18\a \x01(\x04R\x06userId\"\xb8\x01\n" +
+	"\x1dListOwnerContributorsResponse\x12<\n" +
+	"\fcontributors\x18\x01 \x03(\v2\x18.asc.v1.OwnerContributorR\fcontributors\x12\x16\n" +
+	"\x06landed\x18\x02 \x01(\rR\x06landed\x12#\n" +
+	"\rcounted_repos\x18\x03 \x01(\rR\fcountedRepos\x12\x1c\n" +
+	"\ttruncated\x18\x04 \x01(\bR\ttruncated*X\n" +
 	"\n" +
 	"AuthorKind\x12\x1b\n" +
 	"\x17AUTHOR_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12AUTHOR_KIND_PERSON\x10\x01\x12\x15\n" +
-	"\x11AUTHOR_KIND_AGENT\x10\x022\xaa\x01\n" +
+	"\x11AUTHOR_KIND_AGENT\x10\x022\x90\x02\n" +
 	"\bInsights\x12G\n" +
 	"\bGetStats\x12\x1c.asc.v1.InsightsStatsRequest\x1a\x1d.asc.v1.InsightsStatsResponse\x12U\n" +
-	"\x10ListContributors\x12\x1f.asc.v1.ListContributorsRequest\x1a .asc.v1.ListContributorsResponseBx\n" +
+	"\x10ListContributors\x12\x1f.asc.v1.ListContributorsRequest\x1a .asc.v1.ListContributorsResponse\x12d\n" +
+	"\x15ListOwnerContributors\x12$.asc.v1.ListOwnerContributorsRequest\x1a%.asc.v1.ListOwnerContributorsResponseBx\n" +
 	"\n" +
 	"com.asc.v1B\rInsightsProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -794,38 +1055,46 @@ func file_asc_v1_insights_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_insights_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_asc_v1_insights_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_asc_v1_insights_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_asc_v1_insights_proto_goTypes = []any{
-	(AuthorKind)(0),                  // 0: asc.v1.AuthorKind
-	(*InsightsStatsRequest)(nil),     // 1: asc.v1.InsightsStatsRequest
-	(*InsightsDay)(nil),              // 2: asc.v1.InsightsDay
-	(*InsightsWeek)(nil),             // 3: asc.v1.InsightsWeek
-	(*InsightsSizeBucket)(nil),       // 4: asc.v1.InsightsSizeBucket
-	(*InsightsStatsResponse)(nil),    // 5: asc.v1.InsightsStatsResponse
-	(*ListContributorsRequest)(nil),  // 6: asc.v1.ListContributorsRequest
-	(*Contributor)(nil),              // 7: asc.v1.Contributor
-	(*ListContributorsResponse)(nil), // 8: asc.v1.ListContributorsResponse
-	(*RepoRef)(nil),                  // 9: asc.v1.RepoRef
+	(AuthorKind)(0),                       // 0: asc.v1.AuthorKind
+	(*InsightsStatsRequest)(nil),          // 1: asc.v1.InsightsStatsRequest
+	(*InsightsDay)(nil),                   // 2: asc.v1.InsightsDay
+	(*InsightsWeek)(nil),                  // 3: asc.v1.InsightsWeek
+	(*InsightsSizeBucket)(nil),            // 4: asc.v1.InsightsSizeBucket
+	(*InsightsStatsResponse)(nil),         // 5: asc.v1.InsightsStatsResponse
+	(*ListContributorsRequest)(nil),       // 6: asc.v1.ListContributorsRequest
+	(*Contributor)(nil),                   // 7: asc.v1.Contributor
+	(*ListContributorsResponse)(nil),      // 8: asc.v1.ListContributorsResponse
+	(*ListOwnerContributorsRequest)(nil),  // 9: asc.v1.ListOwnerContributorsRequest
+	(*OwnerContributor)(nil),              // 10: asc.v1.OwnerContributor
+	(*ListOwnerContributorsResponse)(nil), // 11: asc.v1.ListOwnerContributorsResponse
+	(*RepoRef)(nil),                       // 12: asc.v1.RepoRef
 }
 var file_asc_v1_insights_proto_depIdxs = []int32{
-	9,  // 0: asc.v1.InsightsStatsRequest.repo:type_name -> asc.v1.RepoRef
+	12, // 0: asc.v1.InsightsStatsRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 1: asc.v1.InsightsStatsRequest.kind:type_name -> asc.v1.AuthorKind
 	2,  // 2: asc.v1.InsightsStatsResponse.per_day:type_name -> asc.v1.InsightsDay
 	3,  // 3: asc.v1.InsightsStatsResponse.weekly:type_name -> asc.v1.InsightsWeek
 	4,  // 4: asc.v1.InsightsStatsResponse.by_size:type_name -> asc.v1.InsightsSizeBucket
-	9,  // 5: asc.v1.ListContributorsRequest.repo:type_name -> asc.v1.RepoRef
+	12, // 5: asc.v1.ListContributorsRequest.repo:type_name -> asc.v1.RepoRef
 	0,  // 6: asc.v1.ListContributorsRequest.kind:type_name -> asc.v1.AuthorKind
 	0,  // 7: asc.v1.Contributor.kind:type_name -> asc.v1.AuthorKind
 	7,  // 8: asc.v1.ListContributorsResponse.contributors:type_name -> asc.v1.Contributor
-	1,  // 9: asc.v1.Insights.GetStats:input_type -> asc.v1.InsightsStatsRequest
-	6,  // 10: asc.v1.Insights.ListContributors:input_type -> asc.v1.ListContributorsRequest
-	5,  // 11: asc.v1.Insights.GetStats:output_type -> asc.v1.InsightsStatsResponse
-	8,  // 12: asc.v1.Insights.ListContributors:output_type -> asc.v1.ListContributorsResponse
-	11, // [11:13] is the sub-list for method output_type
-	9,  // [9:11] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	0,  // 9: asc.v1.ListOwnerContributorsRequest.kind:type_name -> asc.v1.AuthorKind
+	0,  // 10: asc.v1.OwnerContributor.kind:type_name -> asc.v1.AuthorKind
+	10, // 11: asc.v1.ListOwnerContributorsResponse.contributors:type_name -> asc.v1.OwnerContributor
+	1,  // 12: asc.v1.Insights.GetStats:input_type -> asc.v1.InsightsStatsRequest
+	6,  // 13: asc.v1.Insights.ListContributors:input_type -> asc.v1.ListContributorsRequest
+	9,  // 14: asc.v1.Insights.ListOwnerContributors:input_type -> asc.v1.ListOwnerContributorsRequest
+	5,  // 15: asc.v1.Insights.GetStats:output_type -> asc.v1.InsightsStatsResponse
+	8,  // 16: asc.v1.Insights.ListContributors:output_type -> asc.v1.ListContributorsResponse
+	11, // 17: asc.v1.Insights.ListOwnerContributors:output_type -> asc.v1.ListOwnerContributorsResponse
+	15, // [15:18] is the sub-list for method output_type
+	12, // [12:15] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_insights_proto_init() }
@@ -840,7 +1109,7 @@ func file_asc_v1_insights_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_insights_proto_rawDesc), len(file_asc_v1_insights_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

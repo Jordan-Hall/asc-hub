@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Insights_GetStats_FullMethodName         = "/asc.v1.Insights/GetStats"
-	Insights_ListContributors_FullMethodName = "/asc.v1.Insights/ListContributors"
+	Insights_GetStats_FullMethodName              = "/asc.v1.Insights/GetStats"
+	Insights_ListContributors_FullMethodName      = "/asc.v1.Insights/ListContributors"
+	Insights_ListOwnerContributors_FullMethodName = "/asc.v1.Insights/ListOwnerContributors"
 )
 
 // InsightsClient is the client API for Insights service.
@@ -36,6 +37,8 @@ const (
 type InsightsClient interface {
 	GetStats(ctx context.Context, in *InsightsStatsRequest, opts ...grpc.CallOption) (*InsightsStatsResponse, error)
 	ListContributors(ctx context.Context, in *ListContributorsRequest, opts ...grpc.CallOption) (*ListContributorsResponse, error)
+	// Read on each repository counted (see ListOwnerContributorsRequest); expensive. Advertised as "insights-owner.v1".
+	ListOwnerContributors(ctx context.Context, in *ListOwnerContributorsRequest, opts ...grpc.CallOption) (*ListOwnerContributorsResponse, error)
 }
 
 type insightsClient struct {
@@ -66,6 +69,16 @@ func (c *insightsClient) ListContributors(ctx context.Context, in *ListContribut
 	return out, nil
 }
 
+func (c *insightsClient) ListOwnerContributors(ctx context.Context, in *ListOwnerContributorsRequest, opts ...grpc.CallOption) (*ListOwnerContributorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOwnerContributorsResponse)
+	err := c.cc.Invoke(ctx, Insights_ListOwnerContributors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InsightsServer is the server API for Insights service.
 // All implementations should embed UnimplementedInsightsServer
 // for forward compatibility.
@@ -79,6 +92,8 @@ func (c *insightsClient) ListContributors(ctx context.Context, in *ListContribut
 type InsightsServer interface {
 	GetStats(context.Context, *InsightsStatsRequest) (*InsightsStatsResponse, error)
 	ListContributors(context.Context, *ListContributorsRequest) (*ListContributorsResponse, error)
+	// Read on each repository counted (see ListOwnerContributorsRequest); expensive. Advertised as "insights-owner.v1".
+	ListOwnerContributors(context.Context, *ListOwnerContributorsRequest) (*ListOwnerContributorsResponse, error)
 }
 
 // UnimplementedInsightsServer should be embedded to have
@@ -93,6 +108,9 @@ func (UnimplementedInsightsServer) GetStats(context.Context, *InsightsStatsReque
 }
 func (UnimplementedInsightsServer) ListContributors(context.Context, *ListContributorsRequest) (*ListContributorsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListContributors not implemented")
+}
+func (UnimplementedInsightsServer) ListOwnerContributors(context.Context, *ListOwnerContributorsRequest) (*ListOwnerContributorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOwnerContributors not implemented")
 }
 func (UnimplementedInsightsServer) testEmbeddedByValue() {}
 
@@ -150,6 +168,24 @@ func _Insights_ListContributors_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Insights_ListOwnerContributors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOwnerContributorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InsightsServer).ListOwnerContributors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Insights_ListOwnerContributors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InsightsServer).ListOwnerContributors(ctx, req.(*ListOwnerContributorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Insights_ServiceDesc is the grpc.ServiceDesc for Insights service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -164,6 +200,10 @@ var Insights_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListContributors",
 			Handler:    _Insights_ListContributors_Handler,
+		},
+		{
+			MethodName: "ListOwnerContributors",
+			Handler:    _Insights_ListOwnerContributors_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

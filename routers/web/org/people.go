@@ -414,12 +414,16 @@ var (
 
 const (
 	peopleCacheTTL = time.Minute
-	// peopleMaxRepos bounds the repositories asked about: each answer is an expensive read in asc.
-	peopleMaxRepos = 24
+	// peopleMaxRepos bounds the repositories counted: asc sums up to 64 in one call (Insights.ListOwnerContributors).
+	peopleMaxRepos = asctrust.MaxOwnerRepos
+	// peopleMaxFanOut bounds the repositories asked one by one when asc cannot sum them: each is an expensive read.
+	peopleMaxFanOut = 24
 )
 
-// landedByPerson sums Insights.ListContributors of the organisation's asc repositories, as the viewer, by login. It returns
-// nil when asc has nothing to say (not enabled, no repository, every call failed). The numbers are cached for a minute.
+// landedByPerson is the changes each person landed in the organisation's asc repositories in the last 366 days, as the
+// viewer may see them, by login. asc sums the repositories in one call when it can (insights-owner.v1); otherwise each
+// repository's Insights.ListContributors is asked and summed here. It returns nil when asc has nothing to say (not
+// enabled, no repository, every call failed). The numbers are cached for a minute.
 func landedByPerson(ctx *context.Context, org *organization.Organization) map[string]int {
 	if !setting.Asc.Enabled || ctx.Doer == nil {
 		return nil
@@ -432,23 +436,61 @@ func landedByPerson(ctx *context.Context, org *organization.Organization) map[st
 	}
 	peopleMu.Unlock()
 
-	repos, _, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
+	found, _, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
 		ListOptions: db.ListOptions{PageSize: peopleMaxRepos, Page: 1},
 		OwnerID:     org.ID, Private: true, Actor: ctx.Doer,
 	})
 	if err != nil {
 		return nil
 	}
+	repos := make([]*repo_model.Repository, 0, len(found))
+	for _, repo := range found {
+		if repo.GetStorageBackend() == "asc" && repo.CanEnablePulls() {
+			repos = append(repos, repo)
+		}
+	}
 	conn, err := asctrust.Conn()
-	if err != nil {
+	if err != nil || len(repos) == 0 {
 		return nil
 	}
+	client := ascv1.NewInsightsClient(conn)
+	out, summed := ownerLanded(ctx, client, org, repos)
+	if !summed {
+		out = fanOutLanded(ctx, client, repos)
+	}
+	peopleMu.Lock()
+	peopleCacheMap[key] = peopleCache{at: time.Now(), landed: out}
+	peopleMu.Unlock()
+	return out
+}
+
+// ownerLanded is the one call of landedByPerson. summed is false when asc does not offer it or the call failed, and the
+// caller then asks the repositories one by one.
+func ownerLanded(ctx *context.Context, client ascv1.InsightsClient, org *organization.Organization, repos []*repo_model.Repository) (out map[string]int, summed bool) {
+	if !asctrust.HasFeature(ctx, asctrust.FeatureOwnerContributors) {
+		return nil, false
+	}
+	callCtx, release, names, err := asctrust.UserCallOrgRepos(ctx, ctx.Doer, org.AsUser(), repos)
+	if err != nil {
+		// Nothing the viewer may read: there is nothing to count, one by one either.
+		return nil, errors.Is(err, asctrust.ErrForbidden)
+	}
+	defer release()
+	cctx, cancel := gocontext.WithTimeout(callCtx, asctrust.CallTimeout)
+	defer cancel()
+	out, err = asctrust.OwnerLanded(cctx, client, org.Name, names)
+	if err != nil {
+		log.Debug("people: asc owner contributors of %s: %v", org.Name, err)
+		return nil, false
+	}
+	return out, true
+}
+
+// fanOutLanded sums Insights.ListContributors of each repository, as the viewer. It is nil when no call succeeded.
+func fanOutLanded(ctx *context.Context, client ascv1.InsightsClient, repos []*repo_model.Repository) map[string]int {
 	out := map[string]int{}
 	asked := 0
-	for _, repo := range repos {
-		if repo.GetStorageBackend() != "asc" || !repo.CanEnablePulls() {
-			continue
-		}
+	for _, repo := range repos[:min(len(repos), peopleMaxFanOut)] {
 		name, err := asctrust.RepoName(repo)
 		if err != nil {
 			continue
@@ -458,7 +500,7 @@ func landedByPerson(ctx *context.Context, org *organization.Organization) map[st
 			continue
 		}
 		cctx, cancel := gocontext.WithTimeout(callCtx, asctrust.CallTimeout)
-		resp, err := ascv1.NewInsightsClient(conn).ListContributors(cctx, &ascv1.ListContributorsRequest{Repo: asctrust.RepoRef(name), Days: 366, Kind: ascv1.AuthorKind_AUTHOR_KIND_PERSON})
+		resp, err := client.ListContributors(cctx, &ascv1.ListContributorsRequest{Repo: asctrust.RepoRef(name), Days: 366, Kind: ascv1.AuthorKind_AUTHOR_KIND_PERSON})
 		cancel()
 		release()
 		if err != nil {
@@ -471,11 +513,8 @@ func landedByPerson(ctx *context.Context, org *organization.Organization) map[st
 		}
 	}
 	if asked == 0 {
-		out = nil
+		return nil
 	}
-	peopleMu.Lock()
-	peopleCacheMap[key] = peopleCache{at: time.Now(), landed: out}
-	peopleMu.Unlock()
 	return out
 }
 
