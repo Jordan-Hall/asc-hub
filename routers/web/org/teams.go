@@ -83,14 +83,10 @@ func Teams(ctx *context.Context) {
 		} else if len(own.Repos) > 0 || own.Unread > 0 {
 			ctx.Data["TeamPolicyOwner"] = own
 		}
-		// The organization's agents that are members of the team, with the path scope asc gives each.
-		if agents, err := ascteams.AgentsOf(ctx, ctx.Org.Organization.LowerName, selected); err == nil {
-			if agents.Shown() {
-				ctx.Data["TeamAgents"] = agents
-			}
-		} else if !errors.Is(err, ascteams.ErrUnavailable) {
-			log.Warn("team agents of %s/%s: %v", ctx.Org.Organization.Name, selected.LowerName, err)
-			ctx.Data["TeamAgentsUnread"] = true
+		// The organization's agents that are members of the team, with the path scope asc gives each: for members of
+		// the organization only (asc gives its agents to organization readers), and the agents to add for owners only.
+		if ctx.Org.IsMember {
+			loadTeamAgents(ctx, selected)
 		}
 	}
 
@@ -101,6 +97,20 @@ func Teams(ctx *context.Context) {
 	}
 
 	ctx.HTML(http.StatusOK, tplTeams)
+}
+
+func loadTeamAgents(ctx *context.Context, selected *org_model.Team) {
+	if agents, err := ascteams.AgentsOf(ctx, ctx.Org.Organization.LowerName, selected); err == nil {
+		if !ctx.Org.IsOwner {
+			agents.Others = nil
+		}
+		if agents.Shown() {
+			ctx.Data["TeamAgents"] = agents
+		}
+	} else if !errors.Is(err, ascteams.ErrUnavailable) {
+		log.Warn("team agents of %s/%s: %v", ctx.Org.Organization.Name, selected.LowerName, err)
+		ctx.Data["TeamAgentsUnread"] = true
+	}
 }
 
 // TeamsAction response for join, leave, remove, add operations to team
