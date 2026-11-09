@@ -31,6 +31,8 @@ const (
 	Storage_GetMigration_FullMethodName    = "/asc.v1.Storage/GetMigration"
 	Storage_ListMigrations_FullMethodName  = "/asc.v1.Storage/ListMigrations"
 	Storage_CancelMigration_FullMethodName = "/asc.v1.Storage/CancelMigration"
+	Storage_PauseMigration_FullMethodName  = "/asc.v1.Storage/PauseMigration"
+	Storage_ResumeMigration_FullMethodName = "/asc.v1.Storage/ResumeMigration"
 	Storage_GetRepoUsage_FullMethodName    = "/asc.v1.Storage/GetRepoUsage"
 )
 
@@ -62,6 +64,8 @@ type StorageClient interface {
 	GetMigration(ctx context.Context, in *GetStorageMigrationRequest, opts ...grpc.CallOption) (*GetStorageMigrationResponse, error)
 	ListMigrations(ctx context.Context, in *ListStorageMigrationsRequest, opts ...grpc.CallOption) (*ListStorageMigrationsResponse, error)
 	CancelMigration(ctx context.Context, in *CancelStorageMigrationRequest, opts ...grpc.CallOption) (*CancelStorageMigrationResponse, error)
+	PauseMigration(ctx context.Context, in *PauseStorageMigrationRequest, opts ...grpc.CallOption) (*PauseStorageMigrationResponse, error)
+	ResumeMigration(ctx context.Context, in *ResumeStorageMigrationRequest, opts ...grpc.CallOption) (*ResumeStorageMigrationResponse, error)
 	GetRepoUsage(ctx context.Context, in *GetRepoStorageUsageRequest, opts ...grpc.CallOption) (*GetRepoStorageUsageResponse, error)
 }
 
@@ -193,6 +197,26 @@ func (c *storageClient) CancelMigration(ctx context.Context, in *CancelStorageMi
 	return out, nil
 }
 
+func (c *storageClient) PauseMigration(ctx context.Context, in *PauseStorageMigrationRequest, opts ...grpc.CallOption) (*PauseStorageMigrationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PauseStorageMigrationResponse)
+	err := c.cc.Invoke(ctx, Storage_PauseMigration_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) ResumeMigration(ctx context.Context, in *ResumeStorageMigrationRequest, opts ...grpc.CallOption) (*ResumeStorageMigrationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResumeStorageMigrationResponse)
+	err := c.cc.Invoke(ctx, Storage_ResumeMigration_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *storageClient) GetRepoUsage(ctx context.Context, in *GetRepoStorageUsageRequest, opts ...grpc.CallOption) (*GetRepoStorageUsageResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRepoStorageUsageResponse)
@@ -231,6 +255,8 @@ type StorageServer interface {
 	GetMigration(context.Context, *GetStorageMigrationRequest) (*GetStorageMigrationResponse, error)
 	ListMigrations(context.Context, *ListStorageMigrationsRequest) (*ListStorageMigrationsResponse, error)
 	CancelMigration(context.Context, *CancelStorageMigrationRequest) (*CancelStorageMigrationResponse, error)
+	PauseMigration(context.Context, *PauseStorageMigrationRequest) (*PauseStorageMigrationResponse, error)
+	ResumeMigration(context.Context, *ResumeStorageMigrationRequest) (*ResumeStorageMigrationResponse, error)
 	GetRepoUsage(context.Context, *GetRepoStorageUsageRequest) (*GetRepoStorageUsageResponse, error)
 }
 
@@ -276,6 +302,12 @@ func (UnimplementedStorageServer) ListMigrations(context.Context, *ListStorageMi
 }
 func (UnimplementedStorageServer) CancelMigration(context.Context, *CancelStorageMigrationRequest) (*CancelStorageMigrationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelMigration not implemented")
+}
+func (UnimplementedStorageServer) PauseMigration(context.Context, *PauseStorageMigrationRequest) (*PauseStorageMigrationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PauseMigration not implemented")
+}
+func (UnimplementedStorageServer) ResumeMigration(context.Context, *ResumeStorageMigrationRequest) (*ResumeStorageMigrationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResumeMigration not implemented")
 }
 func (UnimplementedStorageServer) GetRepoUsage(context.Context, *GetRepoStorageUsageRequest) (*GetRepoStorageUsageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRepoUsage not implemented")
@@ -516,6 +548,42 @@ func _Storage_CancelMigration_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Storage_PauseMigration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PauseStorageMigrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServer).PauseMigration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Storage_PauseMigration_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServer).PauseMigration(ctx, req.(*PauseStorageMigrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Storage_ResumeMigration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResumeStorageMigrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServer).ResumeMigration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Storage_ResumeMigration_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServer).ResumeMigration(ctx, req.(*ResumeStorageMigrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Storage_GetRepoUsage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRepoStorageUsageRequest)
 	if err := dec(in); err != nil {
@@ -588,6 +656,14 @@ var Storage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelMigration",
 			Handler:    _Storage_CancelMigration_Handler,
+		},
+		{
+			MethodName: "PauseMigration",
+			Handler:    _Storage_PauseMigration_Handler,
+		},
+		{
+			MethodName: "ResumeMigration",
+			Handler:    _Storage_ResumeMigration_Handler,
 		},
 		{
 			MethodName: "GetRepoUsage",
