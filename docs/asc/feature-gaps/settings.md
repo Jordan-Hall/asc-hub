@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 156 |
+| done | 157 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 17 |
+| needs-both | 16 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -175,7 +175,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | AdminOrgs | Organizations table | done | templates/admin/org/list.tmpl | - |
 | AdminOrgs | Storage column (garage-eu / Server default) and Open button | done | templates/admin/org/list.tmpl and storage.tmpl: Storage column in place of Teams, the enabled storage targets of the organization from asc Storage.ListTargets (8 asked at a time), "Server default" without one or without asc, "Not known" when asc cannot be asked; Open goes to the organization page (routers/web/admin/asc_org_storage.go); tests TestLoadOrgStorage, TestAdminOrgsStorageColumn | - |
 | AdminRepos | Repository table, unadopted list, delete | done | templates/admin/repo/list.tmpl, unadopted.tmpl | - |
-| AdminRepos | Storage column and "storage mismatch" warning; delete needs full name typed | needs-both | asc storage assignment per repo; list.tmpl; delete modal in admin/repo | M |
+| AdminRepos | Storage column and "storage mismatch" warning; delete needs full name typed | done | asc: Storage.ListRepoPlacements; hub: routers/web/admin/asc_repo_storage.go, templates/admin/repo/storage.tmpl, list.tmpl delete dialog, DeleteRepo name check | - |
 | AdminRunners | Runner list, status, labels, version, register, details | done | templates/admin/actions.tmpl, runners/*.tmpl | - |
 | AdminRunners | Drain action and draining state | done | `action_runner.draining` (migration `v18a_asc_runner_drain`), `CreateTaskForRunner` offers a draining runner nothing (`models/actions/task.go`), `POST .../runners/{id}/drain` (field drain 1 or 0) for every level that edits runners (`routers/web/shared/actions/runners.go` RunnerDrainPost), a Drain / Take jobs again button and a Draining chip on the runner page and in the list; a draining runner finishes the job it has; tests: TestDrainingRunnerIsGivenNoNewTask, TestRunnerDrainPostSetsAndClearsTheSwitchForAnAdministrator, TestRunnerDrainPostRefusesARunnerOfAnotherOwner | - |
 | AdminRunners | Agent runners (agent-box-1, "Agent run #214", vCPU) | needs-both | asc agent runs on runners; hub shows only Forgejo actions runners | L |

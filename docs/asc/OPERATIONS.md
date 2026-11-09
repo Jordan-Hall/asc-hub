@@ -786,6 +786,26 @@ repository admins, **Open storage**. Code: `services/ascbyo/searchindex.go`, `ro
 `templates/shared/asc/byo_storage_repo.tmpl`, `templates/repo/asc_search.tmpl`. Tests: TestSearchIndexOf,
 TestRepoStorageSearchIndexes, TestAscSearchMeaningIndexOff.
 
+## Where repositories keep their objects
+
+The Storage column of **Site administration > Repositories** names the storage target each repository on the page writes
+its objects to, or "Server default" when none is assigned. "Moving to this storage" means a migration is copying the
+objects there. A warning under the name means where the objects are and where they should be disagree:
+
+- "This storage no longer exists." The assigned target was deleted. Assign another target, or the server default, on the
+  repository's storage page.
+- "This storage is not enabled." The target was disabled or failed its check. Enable it again on the owner's storage
+  page, or move the repository.
+- "Some objects are still in an earlier place." The repository was given another target without a migration, so new
+  objects go to the new target and older ones are read from the earlier place. Start a migration on the repository's
+  storage page to move them.
+
+"Not known" means asc did not answer; the page itself still works. The hub asks asc once per hundred repositories on the
+page (`Storage.ListRepoPlacements`, a site administrator's call).
+
+Deleting a repository from this page asks for its full name (owner/name, case ignored); the delete button stays off
+until it matches, and the server refuses a delete whose typed name differs.
+
 ## Following a storage migration
 
 Under the progress bar the storage page shows the objects copied, the bytes moved once asc has counted them (for example
