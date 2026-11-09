@@ -41,6 +41,7 @@ type ascKeysPage struct {
 	AddOp       string
 	RevokeOps   map[string]string
 	RotateOps   map[string]string
+	DefaultOp   string
 	Problem     string
 	Unsupported bool
 	KeysURL     string
@@ -48,7 +49,7 @@ type ascKeysPage struct {
 }
 
 func ascKeysPageFor(ctx *context.Context) *ascKeysPage {
-	p := &ascKeysPage{AddOp: asctrust.NewOpID(), RevokeOps: map[string]string{}, RotateOps: map[string]string{}, KeysURL: setting.AppSubURL + "/user/settings/asc/keys", Namespace: asctrust.SigningNamespace}
+	p := &ascKeysPage{AddOp: asctrust.NewOpID(), DefaultOp: asctrust.NewOpID(), RevokeOps: map[string]string{}, RotateOps: map[string]string{}, KeysURL: setting.AppSubURL + "/user/settings/asc/keys", Namespace: asctrust.SigningNamespace}
 	ctx.Data["Title"] = ctx.Tr("asc_shell.sn_signing_keys")
 	ctx.Data["PageIsSettingsAscKeys"] = true
 	ctx.Data["AscKeys"] = p
@@ -239,4 +240,55 @@ func AscKeysRotate(ctx *context.Context) {
 		ctx.Flash.Success(ctx.Locale.TrString("asc_shell.key_rotated", key.Fingerprint))
 		ctx.Redirect(p.KeysURL)
 	}
+}
+
+// AscKeysDefault serves POST /user/settings/asc/keys/default with the fields value ("0", then "1" when the switch is
+// on) and op: it switches signing by default for the signed-in person (asctrust.SetSigningDefault).
+func AscKeysDefault(ctx *context.Context) {
+	if !ascKeysGuard(ctx) {
+		return
+	}
+	if !trustweb.ParseForm(ctx, maxAscKeysForm) {
+		return
+	}
+	p := ascKeysPageFor(ctx)
+	fail := func(msg string) {
+		ctx.Flash.Error(msg)
+		ctx.Redirect(p.KeysURL)
+	}
+	var on bool
+	switch values := ctx.Req.PostForm["value"]; {
+	case len(values) == 1 && values[0] == "0":
+	case len(values) == 2 && values[0] == "0" && values[1] == "1":
+		on = true
+	default:
+		fail(ctx.Locale.TrString("asc_shell.key_default_bad"))
+		return
+	}
+	if !asctrust.HasFeature(ctx, asctrust.FeatureSigning) {
+		fail(ctx.Locale.TrString("asc_shell.keys_unsupported"))
+		return
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		fail(ctx.Locale.TrString("asc_shell.acct_unreachable"))
+		return
+	}
+	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallAccount, nil)
+	if err != nil {
+		fail(trustweb.FailureOf("keys credential", err).Localized(ctx))
+		return
+	}
+	defer release()
+	d, err := asctrust.SetSigningDefault(callCtx, conn, on, ctx.Req.PostFormValue("op"))
+	if err != nil {
+		fail(trustweb.FailureOf("keys default", err).Localized(ctx))
+		return
+	}
+	if d.SignByDefault {
+		ctx.Flash.Success(ctx.Locale.TrString("asc_shell.key_default_on"))
+	} else {
+		ctx.Flash.Success(ctx.Locale.TrString("asc_shell.key_default_off"))
+	}
+	ctx.Redirect(p.KeysURL)
 }

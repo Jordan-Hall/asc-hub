@@ -44,6 +44,7 @@ func registerAscTrustUserRoutes(m *web.Route) {
 		m.Combo("").Get(user_setting.AscKeys).Post(user_setting.AscKeysAdd)
 		m.Post("/revoke", user_setting.AscKeysRevoke)
 		m.Post("/rotate", user_setting.AscKeysRotate)
+		m.Post("/default", user_setting.AscKeysDefault)
 	})
 }
 

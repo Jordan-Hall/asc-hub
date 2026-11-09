@@ -8,6 +8,25 @@
 	{{else}}
 		{{if .Problem}}<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-keys-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>{{end}}
 
+		{{if and .Page .Page.Defaults}}
+		<section class="ds-card" aria-labelledby="asc-keys-default" data-testid="asc-keys-default">
+			<form class="ui form ds-form ds-card-b ds-stack-12" method="post" action="{{.KeysURL}}/default">
+				{{$.CsrfTokenHtml}}
+				<input type="hidden" name="op" value="{{.DefaultOp}}">
+				<input type="hidden" name="value" value="0">
+				<div class="ds-row wk-key-default">
+					<div class="ds-stack-4">
+						<h2 id="asc-keys-default">{{ctx.Locale.Tr "asc_shell.key_default_title"}}</h2>
+						<p class="ds-hint" id="asc-keys-default-body">{{ctx.Locale.Tr "asc_shell.key_default_body"}}</p>
+					</div>
+					<label class="ds-switch"><input type="checkbox" role="switch" name="value" value="1" data-asc-autosubmit{{if .Page.Defaults.SignByDefault}} checked{{end}} aria-labelledby="asc-keys-default" aria-describedby="asc-keys-default-body"><span class="ds-switch-track"></span></label>
+				</div>
+				<p class="ds-hint">{{ctx.Locale.Tr "asc_shell.key_default_cli"}}</p>
+				<noscript><div class="ds-row"><button class="ds-btn ds-btn-secondary" type="submit">{{ctx.Locale.Tr "asc_shell.key_default_save"}}</button></div></noscript>
+			</form>
+		</section>
+		{{end}}
+
 		{{if .Page}}
 		<section class="ds-card" aria-labelledby="asc-keys-list">
 			<div class="ds-card-h"><h2 id="asc-keys-list">{{ctx.Locale.Tr "asc_work.sk_your_keys"}}</h2></div>

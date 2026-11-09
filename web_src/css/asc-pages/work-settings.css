@@ -286,3 +286,13 @@ form .wk-choice > input[type="checkbox"]:checked::after {
     color: #fff;
   }
 }
+
+/* Signing keys: the sign-by-default switch sits at the end of its heading row. */
+.wk-key-default {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.wk-key-default h2 {
+  margin-block: 0;
+}

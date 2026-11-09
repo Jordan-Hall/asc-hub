@@ -507,6 +507,22 @@ func ScanRev(ctx context.Context, conn grpc.ClientConnInterface, repoName, rev s
 type KeysPage struct {
 	Keys   []KeyRow
 	Server ServerKey
+	// Defaults is the owner's sign-by-default switch; nil when asc does not offer it.
+	Defaults *SigningDefaults
+}
+
+// SigningDefaults is whether every change the person authors is signed without a flag.
+type SigningDefaults struct {
+	SignByDefault bool
+	Updated       time.Time
+}
+
+func signingDefaultsOf(on bool, updated int64) *SigningDefaults {
+	d := &SigningDefaults{SignByDefault: on}
+	if updated > 0 {
+		d.Updated = time.Unix(updated, 0)
+	}
+	return d
 }
 
 // LoadKeys lists the keys of the credential's owner and reads the server key.
@@ -526,7 +542,25 @@ func LoadKeys(ctx context.Context, conn grpc.ClientConnInterface, now time.Time)
 	if sk, err := client.GetServerKey(cctx, &ascv1.GetServerKeyRequest{}); err == nil {
 		page.Server = ServerKeyOf(sk)
 	}
+	if d, err := client.GetSigningDefaults(cctx, &ascv1.GetSigningDefaultsRequest{}); err == nil {
+		page.Defaults = signingDefaultsOf(d.GetSignByDefault(), d.GetUpdated())
+	}
 	return page, nil
+}
+
+// SetSigningDefault switches signing by default on or off for the credential's owner.
+func SetSigningDefault(ctx context.Context, conn grpc.ClientConnInterface, on bool, op string) (*SigningDefaults, error) {
+	opID, err := uuid.Parse(op)
+	if err != nil {
+		return nil, fmt.Errorf("%w: operation id", ErrBadInput)
+	}
+	cctx, cancel := context.WithTimeout(ascclient.WithOpID(ctx, opID), CallTimeout)
+	defer cancel()
+	resp, err := ascv1.NewSigningClient(conn).SetSigningDefaults(cctx, &ascv1.SetSigningDefaultsRequest{SignByDefault: on})
+	if err != nil {
+		return nil, err
+	}
+	return signingDefaultsOf(resp.GetSignByDefault(), resp.GetUpdated()), nil
 }
 
 // AddKey registers a signing key.
