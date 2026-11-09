@@ -4,7 +4,9 @@
 package user
 
 import (
+	"bytes"
 	gocontext "context"
+	"encoding/hex"
 	"net"
 	"net/http"
 	"testing"
@@ -40,10 +42,29 @@ func (f *fakeProvenanceReleases) List(gocontext.Context, *ascv1.ListReleasesRequ
 	return &ascv1.ListReleasesResponse{Releases: f.releases}, nil
 }
 
+// fakeProvenanceRepo maps the changesets of the releases to git commits: changeset {n,...} is commit gits[n].
+type fakeProvenanceRepo struct {
+	ascv1.UnimplementedRepoServer
+}
+
+var prov225Gits = map[byte]string{1: prov225Tagged, 2: prov225Commit}
+
+func prov225Changeset(n byte) []byte { return bytes.Repeat([]byte{n}, 32) }
+
+func (fakeProvenanceRepo) GitMap(_ gocontext.Context, req *ascv1.GitMapRequest) (*ascv1.GitMapResponse, error) {
+	out := &ascv1.GitMapResponse{}
+	for _, cs := range req.GetAsc() {
+		raw, _ := hex.DecodeString(prov225Gits[cs[0]])
+		out.AscToGit = append(out.AscToGit, raw)
+	}
+	return out, nil
+}
+
 func useFakeProvenanceReleases(t *testing.T, releases ...*ascv1.Release) {
 	t.Helper()
 	srv := grpc.NewServer()
 	ascv1.RegisterReleasesServer(srv, &fakeProvenanceReleases{releases: releases})
+	ascv1.RegisterRepoServer(srv, fakeProvenanceRepo{})
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
@@ -56,8 +77,13 @@ func useFakeProvenanceReleases(t *testing.T, releases ...*ascv1.Release) {
 	t.Cleanup(test.MockVariableValue(&setting.Asc.Enabled, true))
 }
 
-func signedRelease(tag string, draft, valid bool) *ascv1.Release {
-	return &ascv1.Release{Tag: tag, Draft: draft, Provenance: &ascv1.ReleaseProvenance{SignedBy: "user2", SigningKey: "SHA256:k3y", SignatureValid: valid}}
+// signedRelease is a release cut from changeset {at,...} (prov225Gits); at 0 names no changeset.
+func signedRelease(tag string, at byte, draft, valid bool) *ascv1.Release {
+	r := &ascv1.Release{Tag: tag, Draft: draft, Provenance: &ascv1.ReleaseProvenance{SignedBy: "user2", SigningKey: "SHA256:k3y", SignatureValid: valid}}
+	if at > 0 {
+		r.Target = prov225Changeset(at)
+	}
+	return r
 }
 
 const (
@@ -105,11 +131,11 @@ func TestAscPackageProvenance(t *testing.T) {
 		assert.Equal(t, "/user2/repo1/pulls/2", p.StackLink)
 	})
 
-	t.Run("signed by the release of the version at the same commit, never by a draft or a bad signature", func(t *testing.T) {
+	t.Run("signed by the release of the version cut from the same commit, never by a draft or a bad signature", func(t *testing.T) {
 		setAscBackend(t, 1, "asc")
 		defer setAscBackend(t, 1, "git")
-		// Release v1.1 of repository 1 is at commit 65f1bf27bc (fixture); v1.2.0 has no release in the hub.
-		useFakeProvenanceReleases(t, signedRelease("1.1", true, true), signedRelease("v1.1", false, true), signedRelease("v1.2.0", false, true))
+		// v1.1 is cut from commit 65f1bf27bc; v1.2.0 names no changeset.
+		useFakeProvenanceReleases(t, signedRelease("1.1", 1, true, true), signedRelease("v1.1", 1, false, true), signedRelease("v1.2.0", 0, false, true))
 		require.NoError(t, packages_model.SetAscProvenance(ctx, 9403, &packages_model.AscProvenance{RepoID: 1, Commit: prov225Tagged}))
 		at := &packages_model.PackageVersion{ID: 9403, Version: "1.1"}
 		p := ascPackageProvenance(ctx, user2, at)
@@ -124,12 +150,16 @@ func TestAscPackageProvenance(t *testing.T) {
 		p = ascPackageProvenance(ctx, user2, &packages_model.PackageVersion{ID: 9406, Version: "1.1"})
 		require.NotNil(t, p)
 		assert.False(t, p.Signed, "a version published from another commit than the release's is not vouched for")
-		assert.False(t, ascPackageProvenance(ctx, user2, pv).Signed, "v1.2.0 has no release in the hub")
+		assert.False(t, ascPackageProvenance(ctx, user2, pv).Signed, "asc names no commit for v1.2.0")
 
-		useFakeProvenanceReleases(t, signedRelease("v1.1", false, false))
+		// The hub's tag v1.1 is at 65f1bf27bc, but asc cut the release from another commit: asc's record decides.
+		useFakeProvenanceReleases(t, signedRelease("v1.1", 2, false, true))
+		assert.False(t, ascPackageProvenance(ctx, user2, at).Signed, "the release was cut from another commit")
+
+		useFakeProvenanceReleases(t, signedRelease("v1.1", 1, false, false))
 		assert.False(t, ascPackageProvenance(ctx, user2, at).Signed, "the signature is not valid")
 
-		useFakeProvenanceReleases(t, signedRelease("v1.1", false, true))
+		useFakeProvenanceReleases(t, signedRelease("v1.1", 1, false, true))
 		_, err := db.GetEngine(db.DefaultContext).Where("repo_id = ? AND type = ?", 1, unit.TypeReleases).Delete(&repo_model.RepoUnit{})
 		require.NoError(t, err)
 		p = ascPackageProvenance(ctx, user2, at)
@@ -177,7 +207,7 @@ func TestPackageViewShowsProvenance(t *testing.T) {
 	require.NoError(t, packages_model.SetAscProvenance(db.DefaultContext, pv.ID, &packages_model.AscProvenance{RepoID: 1, RunID: 791, Commit: prov225Tagged}))
 	setAscBackend(t, 1, "asc")
 	defer setAscBackend(t, 1, "git")
-	useFakeProvenanceReleases(t, signedRelease("v1.1", false, true))
+	useFakeProvenanceReleases(t, signedRelease("v1.1", 1, false, true))
 	body := view(t)
 	assert.Contains(t, body, `data-testid="package-provenance"`)
 	assert.Contains(t, body, "packages.asc_published_from_commit")
