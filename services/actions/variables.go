@@ -10,11 +10,14 @@ import (
 
 	actions_model "forgejo.org/models/actions"
 	"forgejo.org/models/secret"
+	"forgejo.org/modules/ascscope"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/util"
 )
 
-func CreateVariable(ctx context.Context, ownerID, repoID int64, name, data string) (*actions_model.ActionVariable, error) {
+// CreateVariable adds the variable name and records doerID as the one who set it. scopes 0 gives it
+// ascscope.DefaultScope.
+func CreateVariable(ctx context.Context, doerID, ownerID, repoID int64, name, data string, scopes ascscope.Scope) (*actions_model.ActionVariable, error) {
 	if err := secret.ValidateName(name); err != nil {
 		return nil, err
 	}
@@ -27,11 +30,19 @@ func CreateVariable(ctx context.Context, ownerID, repoID int64, name, data strin
 	if err != nil {
 		return nil, err
 	}
-
+	if err := actions_model.SetVariableMeta(ctx, v.ID, doerID, scopes); err != nil {
+		return nil, err
+	}
+	v.UpdaterID = doerID
+	if scopes != 0 {
+		v.Scopes = scopes
+	}
 	return v, nil
 }
 
-func UpdateVariable(ctx context.Context, variableID, ownerID, repoID int64, name, data string) (bool, error) {
+// UpdateVariable changes the variable variableID and records doerID as the one who set it. scopes 0 keeps the
+// scopes it has.
+func UpdateVariable(ctx context.Context, doerID, variableID, ownerID, repoID int64, name, data string, scopes ascscope.Scope) (bool, error) {
 	if err := secret.ValidateName(name); err != nil {
 		return false, err
 	}
@@ -40,13 +51,17 @@ func UpdateVariable(ctx context.Context, variableID, ownerID, repoID int64, name
 		return false, err
 	}
 
-	return actions_model.UpdateVariable(ctx, &actions_model.ActionVariable{
+	ok, err := actions_model.UpdateVariable(ctx, &actions_model.ActionVariable{
 		ID:      variableID,
 		Name:    strings.ToUpper(name),
 		Data:    util.ReserveLineBreakForTextarea(data),
 		OwnerID: ownerID,
 		RepoID:  repoID,
 	})
+	if err != nil || !ok {
+		return ok, err
+	}
+	return true, actions_model.SetVariableMeta(ctx, variableID, doerID, scopes)
 }
 
 func DeleteVariableByName(ctx context.Context, ownerID, repoID int64, name string) error {

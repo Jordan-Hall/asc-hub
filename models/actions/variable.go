@@ -5,11 +5,14 @@ package actions
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/ascscope"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/modules/util"
 
 	"xorm.io/builder"
 )
@@ -34,6 +37,31 @@ type ActionVariable struct {
 	Data        string             `xorm:"LONGTEXT NOT NULL"`
 	CreatedUnix timeutil.TimeStamp `xorm:"created NOT NULL"`
 	UpdatedUnix timeutil.TimeStamp `xorm:"updated"`
+	// UpdaterID is who last created or changed the variable (0: not recorded).
+	UpdaterID int64 `xorm:"NOT NULL DEFAULT 0"`
+	// Scopes are the runs that receive the variable (Checks, Agent runs, Releases); see ascscope.Scope.
+	Scopes ascscope.Scope `xorm:"NOT NULL DEFAULT 3"`
+}
+
+// LastSet is when the variable was last changed: UpdatedUnix, else the creation time.
+func (v *ActionVariable) LastSet() timeutil.TimeStamp {
+	if v.UpdatedUnix != 0 {
+		return v.UpdatedUnix
+	}
+	return v.CreatedUnix
+}
+
+// SetVariableMeta records who set the variable id and which runs receive it; scopes 0 keeps the scopes it has.
+func SetVariableMeta(ctx context.Context, id, updaterID int64, scopes ascscope.Scope) error {
+	if scopes == 0 {
+		_, err := db.GetEngine(ctx).ID(id).Cols("updater_id").Update(&ActionVariable{UpdaterID: updaterID})
+		return err
+	}
+	if !scopes.Valid() {
+		return fmt.Errorf("%w: a variable needs at least one scope", util.ErrInvalidArgument)
+	}
+	_, err := db.GetEngine(ctx).ID(id).Cols("updater_id", "scopes").Update(&ActionVariable{UpdaterID: updaterID, Scopes: scopes})
+	return err
 }
 
 func init() {
@@ -52,6 +80,7 @@ func InsertVariable(ctx context.Context, ownerID, repoID int64, name, data strin
 		RepoID:  repoID,
 		Name:    strings.ToUpper(name),
 		Data:    data,
+		Scopes:  ascscope.DefaultScope,
 	}
 	return variable, db.Insert(ctx, variable)
 }
@@ -136,8 +165,18 @@ func GetVariablesOfRun(ctx context.Context, run *ActionRun) (map[string]string, 
 		return nil, err
 	}
 
-	// Level precedence: Repo > Org / User > Global
+	scope, err := run.AscScope(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Level precedence: Repo > Org / User > Global. A variable the run may not have hides one of the same name
+	// from a lower level too.
 	for _, v := range append(globalVariables, append(ownerVariables, repoVariables...)...) {
+		if !v.Scopes.Has(scope) {
+			delete(variables, v.Name)
+			continue
+		}
 		variables[v.Name] = v.Data
 	}
 

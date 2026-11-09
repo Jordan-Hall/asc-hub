@@ -165,7 +165,7 @@ func CreateVariable(ctx *context.APIContext) {
 		return
 	}
 
-	if _, err := actions_service.CreateVariable(ctx, ownerID, 0, variableName, opt.Value); err != nil {
+	if _, err := actions_service.CreateVariable(ctx, ctx.Doer().ID, ownerID, 0, variableName, opt.Value, 0); err != nil {
 		if errors.Is(err, util.ErrInvalidArgument) {
 			ctx.Error(http.StatusBadRequest, "CreateVariable", err)
 		} else {
@@ -228,7 +228,7 @@ func UpdateVariable(ctx *context.APIContext) {
 	if opt.Name == "" {
 		opt.Name = ctx.Params("variablename")
 	}
-	if _, err := actions_service.UpdateVariable(ctx, v.ID, ctx.Doer().ID, 0, opt.Name, opt.Value); err != nil {
+	if _, err := actions_service.UpdateVariable(ctx, ctx.Doer().ID, v.ID, ctx.Doer().ID, 0, opt.Name, opt.Value, 0); err != nil {
 		if errors.Is(err, util.ErrInvalidArgument) {
 			ctx.Error(http.StatusBadRequest, "UpdateVariable", err)
 		} else {

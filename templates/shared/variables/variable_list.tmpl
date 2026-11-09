@@ -7,6 +7,7 @@
 			data-modal-header="{{ctx.Locale.Tr "actions.variables.creation"}}"
 			data-modal-dialog-variable-name=""
 			data-modal-dialog-variable-data=""
+			{{range .AscScopes}}data-modal-dialog-variable-scope-{{.Word}}="{{$.AscDefaultScope.Has .}}" {{end}}
 		>
 			{{ctx.Locale.Tr "actions.variables.creation"}}
 		</button>
@@ -27,10 +28,16 @@
 				<div class="flex-item-body">
 					{{.Data}}
 				</div>
+				{{template "shared/secrets/scope_chips" .Scopes}}
 			</div>
 			<div class="flex-item-trailing">
-				<span class="color-text-light-2">
-					{{ctx.Locale.Tr "settings.added_on" (DateUtils.AbsoluteShort .CreatedUnix)}}
+				<span class="color-text-light-2" data-testid="variable-updated">
+					{{$by := index $.VariableUpdaters .UpdaterID}}
+					{{if $by}}
+						{{ctx.Locale.Tr "secrets.updated_by" $by.GetDisplayName (DateUtils.TimeSince .LastSet)}}
+					{{else}}
+						{{ctx.Locale.Tr "secrets.updated" (DateUtils.TimeSince .LastSet)}}
+					{{end}}
 				</span>
 				<button class="btn interact-bg tw-p-2 show-modal"
 					data-tooltip-content="{{ctx.Locale.Tr "actions.variables.edit"}}"
@@ -39,13 +46,14 @@
 					data-modal-header="{{ctx.Locale.Tr "actions.variables.edit"}}"
 					data-modal-dialog-variable-name="{{.Name}}"
 					data-modal-dialog-variable-data="{{.Data}}"
+					{{$scopes := .Scopes}}{{range $.AscScopes}}data-modal-dialog-variable-scope-{{.Word}}="{{$scopes.Has .}}" {{end}}
 				>
 					{{svg "octicon-pencil"}}
 				</button>
 				<button class="btn interact-bg tw-p-2 link-action"
 					data-tooltip-content="{{ctx.Locale.Tr "actions.variables.deletion"}}"
 					data-url="{{$.Link}}/{{.ID}}/delete"
-					data-modal-confirm="{{ctx.Locale.Tr "actions.variables.deletion.description"}}"
+					data-modal-confirm="{{ctx.Locale.Tr "actions.variables.deletion.named" .Name (index $.VariableScopeNames .ID)}}"
 				>
 					{{svg "octicon-trash"}}
 				</button>
@@ -85,6 +93,7 @@
 					></textarea>
 					<p id="data-description" class="help">{{ctx.Locale.Tr "actions.variables.mutation.value_description"}}</p>
 				</div>
+				{{template "shared/secrets/scope_boxes" (dict "Prefix" "dialog-variable" "Scopes" .AscScopes "Checked" .AscDefaultScope)}}
 			</fieldset>
 			{{template "base/modal_actions_confirm" (dict "ModalButtonTypes" "confirm")}}
 		</form>

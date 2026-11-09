@@ -474,6 +474,51 @@
   cursor: pointer;
 }
 
+/* ---- the runs a secret or variable is available to (board RepoSettingsSecrets, "Available to") ---- */
+.asc-scope-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asc-scope-chip {
+  padding: 0 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.asc-scope-boxes {
+  border: 0;
+  padding: 0;
+  margin-inline: 0;
+}
+
+.asc-scope-boxes legend {
+  padding: 0;
+  margin-block-end: 6px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.asc-scope-box-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.asc-scope-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 24px;
+}
+
 /* ---- the settings of a repository on a phone (boards Mobile-RepoSettings*) ----
    No repository header: a breadcrumb names the place. The page of /settings is the menu itself (the General page
    opens from its first entry, #settings-general, or from the danger zone entry); every other page shows its own

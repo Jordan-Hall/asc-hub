@@ -10,8 +10,9 @@ import {showModal} from '../modules/modal.ts';
 // as $TARGET and $ATTR. $TARGET will first be queried as an identifier, then as
 // a classname and then as an element tag name in the modal element. If $ATTR
 // exists then the target element will have attribute $ATTR set to value $VALUE,
-// otherwise if the element is of type input or textarea then the value is set
-// to $VALUE otherwise the textContent of that element is set to $VALUE.
+// otherwise a checkbox or radio input is checked when $VALUE is "true", an input
+// or textarea gets $VALUE as its value, and any other element gets $VALUE as
+// its textContent.
 export function initGlobalShowModal() {
   document.addEventListener('click', (e) => {
     if (!(e.target instanceof Element)) {
@@ -42,8 +43,10 @@ export function initGlobalShowModal() {
 
       if (attrTargetAttr) {
         attrTarget.setAttribute(attrTargetAttr, attrib.value);
+      } else if (attrTarget instanceof HTMLInputElement && (attrTarget.type === 'checkbox' || attrTarget.type === 'radio')) {
+        attrTarget.checked = attrib.value === 'true';
       } else if (attrTarget instanceof HTMLInputElement || attrTarget instanceof HTMLTextAreaElement) {
-        attrTarget.value = attrib.value; // FIXME: add more supports like checkbox
+        attrTarget.value = attrib.value;
       } else {
         attrTarget.textContent = attrib.value; // FIXME: it should be more strict here, only handle div/span/p
       }

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"forgejo.org/models/db"
+	"forgejo.org/modules/ascscope"
 	"forgejo.org/modules/keying"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/timeutil"
@@ -49,6 +50,17 @@ type Secret struct {
 	// UpdatedUnix is when the value was last set; UpdaterID who set it (0: not recorded).
 	UpdatedUnix timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"`
 	UpdaterID   int64              `xorm:"NOT NULL DEFAULT 0"`
+	// Scopes are the runs that receive the secret (Checks, Agent runs, Releases); see ascscope.Scope.
+	Scopes ascscope.Scope `xorm:"NOT NULL DEFAULT 3"`
+}
+
+// SetScopes sets which runs receive the secret id.
+func SetScopes(ctx context.Context, id int64, scopes ascscope.Scope) error {
+	if !scopes.Valid() {
+		return fmt.Errorf("%w: a secret needs at least one scope", util.ErrInvalidArgument)
+	}
+	_, err := db.GetEngine(ctx).ID(id).Cols("scopes").Update(&Secret{Scopes: scopes})
+	return err
 }
 
 // MarkUpdated records that doerID set the value of the secret id just now.
@@ -97,6 +109,7 @@ func InsertEncryptedSecret(ctx context.Context, ownerID, repoID int64, name, dat
 		OwnerID: ownerID,
 		RepoID:  repoID,
 		Name:    strings.ToUpper(name),
+		Scopes:  ascscope.DefaultScope,
 	}
 
 	return secret, db.WithTx(ctx, func(ctx context.Context) error {
@@ -198,7 +211,9 @@ func UpdateSecret(ctx context.Context, secret *Secret, columns ...string) error 
 	return err
 }
 
-func FetchActionSecrets(ctx context.Context, ownerID, repoID int64) (map[string]string, error) {
+// FetchActionSecrets is the secrets of the owner and the repository that a run of scope receives; a repository
+// secret wins over an owner secret of the same name.
+func FetchActionSecrets(ctx context.Context, ownerID, repoID int64, scope ascscope.Scope) (map[string]string, error) {
 	secrets := map[string]string{}
 
 	ownerSecrets, err := db.Find[Secret](ctx, FindSecretsOptions{OwnerID: ownerID})
@@ -213,6 +228,11 @@ func FetchActionSecrets(ctx context.Context, ownerID, repoID int64) (map[string]
 	}
 
 	for _, secret := range append(ownerSecrets, repoSecrets...) {
+		if !secret.Scopes.Has(scope) {
+			// a repository secret the run may not have hides an owner secret of the same name too
+			delete(secrets, secret.Name)
+			continue
+		}
 		decryptedData, err := secret.GetDecryptedData()
 		if err != nil {
 			log.Error("%v", err)

@@ -50,7 +50,12 @@ func getSecretsOfJob(ctx context.Context, job *actions_model.ActionRunJob) (map[
 		return nil, err
 	}
 
-	jobSecrets, err := secret_model.FetchActionSecrets(ctx, job.Run.Repo.OwnerID, job.Run.RepoID)
+	// A secret reaches only the runs its scopes name: an agent run receives none until Agent runs is ticked.
+	scope, err := job.Run.AscScope(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failure to find the scope of the run: %w", err)
+	}
+	jobSecrets, err := secret_model.FetchActionSecrets(ctx, job.Run.Repo.OwnerID, job.Run.RepoID, scope)
 	if err != nil {
 		// Don't return error details, just in case they contain confidential details and error reaches a user;
 		// FetchActionSecrets logs all errors to the server log.

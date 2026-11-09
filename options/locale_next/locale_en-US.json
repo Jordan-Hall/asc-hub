@@ -944,6 +944,7 @@
 	"actions.variables.deletion.description": "Removing a variable is permanent and cannot be undone. Continue?",
 	"actions.variables.deletion.failed": "Failed to remove variable.",
 	"actions.variables.deletion.success": "The variable has been removed.",
+	"actions.variables.deletion.named": "Delete %[1]s? %[2]s no longer receive it. This cannot be undone.",
 	"actions.variables.description": "Variables will be passed to certain actions and cannot be read otherwise.",
 	"actions.variables.edit": "Edit variable",
 	"actions.variables.not_found": "Failed to find the variable.",

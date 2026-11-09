@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/ascscope"
 	"forgejo.org/modules/keying"
 	"forgejo.org/modules/util"
 
@@ -90,7 +91,7 @@ func TestInsertEncryptedSecret(t *testing.T) {
 	})
 
 	t.Run("FetchActionSecrets", func(t *testing.T) {
-		secrets, err := FetchActionSecrets(t.Context(), 2, 1)
+		secrets, err := FetchActionSecrets(t.Context(), 2, 1, ascscope.ScopeChecks)
 		require.NoError(t, err)
 		assert.Equal(t, "some owner secret", secrets["OWNER_SECRET"])
 		assert.Equal(t, "some repository secret", secrets["REPO_SECRET"])
