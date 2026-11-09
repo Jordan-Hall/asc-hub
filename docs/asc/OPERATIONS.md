@@ -700,3 +700,20 @@ lists the days with activity, newest first, with links: the way to reach the day
 since the grid itself is one image to them. Code: `routers/web/user/asc_profile_contrib.go`,
 `models/activities/asc_user_heatmap.go`, `templates/user/asc_heatmap.tmpl`. Tests: TestAscHeatLayout,
 TestAscContribYears, TestAscTurnaround, TestAscContribCounts, TestAscProfileContributions.
+
+## Knows best on a profile
+
+The overview of a profile has a **Knows best** card at the top of its side column: the three directories the person
+changes and reviews most in the last six months, each with its share of all the files they changed or reviewed and
+a bar. A path is cut to its first two directories (`src/payments/`); a file at the root counts as `/`. The tooltip of
+a row gives the files changed and the files reviewed in it.
+
+It is worked out by the hub alone. Changes are the pull requests the person opened or that the hub opened for agent
+runs they started; reviews are the pull requests of others they approved, commented on or asked changes of. Each
+side reads at most 30 pull requests, the most recently updated, and only those whose repository's pull requests the
+viewer may read; nothing is shown when the person keeps their activity from the viewer or there is nothing to count.
+The files of a pull request are those changed between its merge base and its head, read from the repository and kept
+in `pull_request_asc_dirs` per head commit, so a page view reads the repository only for pull requests pushed since
+(at most ten per view; the rest are counted on a later view). Code: `routers/web/user/asc_profile_knows.go`,
+`models/issues/pull_asc_dirs.go`. Tests: TestAscKnowsDir, TestAscKnowsRank, TestPullRequestAscDirs,
+Test_addPullRequestAscDirs, TestAscProfileKnows.
