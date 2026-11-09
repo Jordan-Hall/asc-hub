@@ -4,6 +4,7 @@
 package stats
 
 import (
+	"context"
 	"fmt"
 
 	repo_model "forgejo.org/models/repo"
@@ -56,6 +57,11 @@ func (db *DBIndexer) Index(id int64) error {
 		return err
 	}
 
+	if err := indexChangesets(ctx, repo, gitRepo, commitID); err != nil {
+		log.Error("Unable to count the changesets of %s at %s: %v", repo.FullName(), commitID, err)
+		return err
+	}
+
 	// Do not recalculate stats if already calculated for this commit
 	if status.CommitSha == commitID {
 		return nil
@@ -81,4 +87,25 @@ func (db *DBIndexer) Index(id int64) error {
 
 // Close dummy function
 func (db *DBIndexer) Close() {
+}
+
+// indexChangesets stores how many changesets (commits) the head of the default branch reaches, the count of the
+// repository rows. It counts only when the stored count is of another head.
+func indexChangesets(ctx context.Context, repo *repo_model.Repository, gitRepo *git.Repository, commitID string) error {
+	stored, err := repo_model.GetAscRepoChangesets(ctx, []int64{repo.ID})
+	if err != nil {
+		return err
+	}
+	if r := stored[repo.ID]; r != nil && r.CommitSha == commitID {
+		return nil
+	}
+	commit, err := gitRepo.GetCommit(commitID)
+	if err != nil {
+		return err
+	}
+	n, err := commit.CommitsCount()
+	if err != nil {
+		return err
+	}
+	return repo_model.SetAscRepoChangesets(ctx, repo.ID, commitID, n)
 }
