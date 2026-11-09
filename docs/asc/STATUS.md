@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 236, partial 17, missing 64. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 237, partial 17, missing 63. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -307,7 +307,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Dashboard (ASC Hub dashboard)
 
-Area shell/settings. Rows 18: done 13, partial 1, missing 4. Copy found in the hub: 61% of 102 copy strings (mobile twin 60%). Template(s): asc_home.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 18: done 14, partial 1, missing 3. Copy found in the hub: 61% of 102 copy strings (mobile twin 60%). Template(s): asc_home.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; j/k to move - Enter to open - e to done; "Can we keep the old cursor format for one release? Mobile clients pin to it."; Agent asked a question: which currency table wins?; Blocking 2 changes; Ready to merge: Rate limit headers.
 
@@ -319,7 +319,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Scope chips Everything / org / Personal filter the whole page, remembered | done | templates/user/dashboard/asc_home.tmpl:48 (best match) | - |
 | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | done | routers/web/repo/asc_dash_act.go, templates/user/dashboard/asc_home.tmpl | Answer is the box of a waiting run in Agents working now |
-| Row kinds: reply from a person, agent question, ready to merge with queue position and estimat... | missing (hub+asc) | logged as not built (not re-probed) | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (mergequeue.proto List, stack... |
+| Row kinds: reply from a person, agent question, ready to merge with queue position and estimat... | done | routers/web/user/asc_dashboard_kinds.go, templates/user/dashboard/asc_dash_work.tmpl | Reply quote, queue place with the median wait, Trunk moved with "asc restacked 2 of 3", the question of a waiting run (asc_dashboard_kinds_test.go) |
 | Keys j k, Enter, e (done), g then i, / | done | `asc-keys.js` e on the focused row; `asc_dashboard_test.go` | - |
 | Agents working now with budget bar, paused state, All runs | done | templates/user/dashboard/asc_home.tmpl (file) | - |
 | Stack bars: click a segment opens the review at that segment | done | see where-cell | - |

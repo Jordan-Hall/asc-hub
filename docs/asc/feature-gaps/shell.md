@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 187 |
+| done | 188 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 8 |
+| needs-both | 7 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 16, L 7.
+Open rows by size: S 0, M 16, L 6.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -229,7 +229,7 @@ Open rows by size: S 0, M 16, L 7.
 | Dashboard | Scope chips Everything / org / Personal filter the whole page, remembered | done | None in the template. `?scope=` in `ascDashBuild` filtering inbox rows, agents, stacks; persist as a user setting | M |
 | Dashboard | Needs-you rows with chips (Agent, checks, Touches billing), diff size, age | done | `asc_home.tmpl`, `ascDashRowFor` | - |
 | Dashboard | Rows act in place: Approve, Reply, Answer (agent question), Add to merge queue, Resolve | done | `routers/web/repo/asc_dash_act.go` `AscDashAct` (`POST /-/asc/dash/act`: approve through `pull_service.SubmitReview`, queue and unqueue through `automerge`); Reply and Resolve are real links; the answer box of a waiting run posts to `AscAgentsInput` with `back=dash` (TestTheDashboardRowsActInPlace, TestAscDashPage) | - |
-| Dashboard | Row kinds: reply from a person, agent question, ready to merge with queue position and estimate, trunk moved with restack summary | needs-both | Kinds come from inbox sections; reply quote, "about 4 min" and "ASC restacked 2 of 3" need asc data (`mergequeue.proto` `List`, `stacks.proto` restack result); `services/ascinbox` | L |
+| Dashboard | Row kinds: reply from a person, agent question, ready to merge with queue position and estimate, trunk moved with restack summary | done | `routers/web/user/asc_dashboard_kinds.go` (reply from the reviews and comments; queue place from `AscQueueViewOf` and the median from `MergeQueue.List`; restack from one `ListRefLog` per change of the stack); `asc_dash_work.tmpl`; `asc_dashboard_kinds_test.go` | - |
 | Dashboard | Keys j k, Enter, e (done), g then i, `/` | done | `asc-keys.js`: j k, Enter on the row link, g i and `/`; e on the focused row sends its hidden state form (`user/asc_row_state.tmpl`, `asc-row-swipe.js`), back to the dashboard | - |
 | Dashboard | Agents working now with budget bar, paused state, All runs | done | `asc_home.tmpl`, `ascDashAgentsFromServe` | - |
 | Dashboard | Stack bars: click a segment opens the review at that segment | done | `wk-segs` items are not links; `ascDashStackFrom` has the pull link per segment | S |
