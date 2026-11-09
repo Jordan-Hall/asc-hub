@@ -26,6 +26,7 @@ routers/web/user/profile.go answers those actions with this same template.
 		<div class="wk-pf-line1">
 			<h1 class="wk-pf-name">{{if .ContextUser.FullName}}{{.ContextUser.FullName}}{{else}}{{.ContextUser.Name}}{{end}}</h1>
 			{{if .ContextUser.Visibility.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "org.settings.visibility.private_shortname"}}</span>{{end}}
+			{{with .AscPresence}}<span class="ds-chip wk-pf-presence" data-asc-presence="{{if .Online}}online{{else}}away{{end}}">{{if and .Online .LocalTime}}{{ctx.Locale.Tr "asc_work.pf_online_local" .LocalTime}}{{else if .Online}}{{ctx.Locale.Tr "asc_work.pf_online"}}{{else}}{{ctx.Locale.Tr "asc_work.pf_local" .LocalTime}}{{end}}</span>{{end}}
 		</div>
 		<div class="wk-pf-line2">
 			<span>@{{.ContextUser.Name}}</span>

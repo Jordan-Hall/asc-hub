@@ -2384,6 +2384,14 @@ body.ds-lock {
   position: relative;
 }
 
+.wk-pf-presence[data-asc-presence="online"]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
 .wk-pf-online {
   position: absolute;
   right: 2px;

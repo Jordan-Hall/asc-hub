@@ -75,3 +75,26 @@ func Online(ctx context.Context, userID int64) bool {
 	sec, err := strconv.ParseInt(v, 10, 64)
 	return err == nil && now().Sub(time.Unix(sec, 0)) <= OnlineWithin
 }
+
+// Presence is what the presence pill of a profile says: whether the person is online and the time where they are
+// ("15:04" in the zone of their profile, "" when they chose none).
+type Presence struct {
+	Online    bool
+	LocalTime string
+}
+
+// Of gives the pill of the person, whose time zone is tz (an IANA name, "" for none). ok is false when the pill does
+// not show: the person switched "Show when I am online" off, which hides their local time too, or there is nothing
+// to say (offline and no zone). The viewer's right to see the profile is checked by the page that asks.
+func Of(ctx context.Context, userID int64, tz string) (p Presence, ok bool) {
+	if !ShowOnline(ctx, userID) {
+		return p, false
+	}
+	p.Online = Online(ctx, userID)
+	if tz != "" {
+		if loc, err := time.LoadLocation(tz); err == nil {
+			p.LocalTime = now().In(loc).Format("15:04")
+		}
+	}
+	return p, p.Online || p.LocalTime != ""
+}

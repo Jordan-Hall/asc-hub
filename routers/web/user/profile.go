@@ -31,6 +31,7 @@ import (
 	"forgejo.org/routers/web/org"
 	"forgejo.org/routers/web/shared/repoquick"
 	shared_user "forgejo.org/routers/web/shared/user"
+	"forgejo.org/services/ascnotify"
 	"forgejo.org/services/ascpresence"
 	"forgejo.org/services/context"
 	user_service "forgejo.org/services/user"
@@ -183,7 +184,12 @@ func prepareUserProfileTabData(ctx *context.Context, showPrivate bool, profileDb
 	ascProfileCounts(ctx)
 	if ctx.ContextUser.IsIndividual() {
 		// being online is activity: it follows the same switch as the rest of the person's activity
-		ctx.Data["AscOnline"] = !shared_user.AscPrivateLimited(ctx) && activities_model.ActivityReadable(ctx.ContextUser, ctx.Doer) && ascpresence.Online(ctx, ctx.ContextUser.ID)
+		if !shared_user.AscPrivateLimited(ctx) && activities_model.ActivityReadable(ctx.ContextUser, ctx.Doer) {
+			if p, ok := ascpresence.Of(ctx, ctx.ContextUser.ID, ascnotify.TimeZoneName(ctx, ctx.ContextUser.ID)); ok {
+				ctx.Data["AscOnline"] = p.Online
+				ctx.Data["AscPresence"] = p
+			}
+		}
 	}
 	switch dataTab {
 	case "followers":
