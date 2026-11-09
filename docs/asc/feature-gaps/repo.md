@@ -302,7 +302,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsAccess | Combined search (people, teams, agents) with role chosen before adding | done | `/settings/collaboration/search` answers people, agents and teams with their kind; one add form takes a name and a role (read, write, maintain, admin) and adds a team when the name is a team; test `TestAscAccessList` | M |
 | RepoSettingsAccess | Role select changes access at once with an Undo toast | done (seen on a live hub (ui34): the role applies when picked, a toast reports it and Undo puts the old role back (checked: it persisted)) | JS handler on `collaboration.go` POST | M |
 | RepoSettingsAccess | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | done | policy lookup per agent identity;; Audit 2026-10-30 (was marked done, part missing): Marked done; the text Limited by policy to ... was not found. | M |
-| RepoSettingsAccess | Remove agent confirm that says the running run stops and open changes stay with the owner | needs-both | `Agents.CancelRun` on removal in `collaboration.go`; confirm dialog text | M |
+| RepoSettingsAccess | Remove agent confirm that says the running run stops and open changes stay with the owner | done | Re-judged 2026-11-09: no new asc RPC; the hub calls the existing `Agents.ListRuns` (agent, still-going states) and `Agents.CancelRun` as the person when an agent account is removed (`H:services/ascagentui/removeagent.go`, `collaboration.go`), with an agent confirm on the page (TestStopAgentRuns, TestAscAccessRemoveAgent) | M |
 | RepoSettingsAccess | Invite that already has access ("Priya Raman already has Maintain access") | done (seen on a live hub (ui26): the invite answers "rev already has Write access to this repository."; a maintainer is named with Maintain, test `TestAscAccessMaintain`) | `collaboration.go` error text | S |
 | RepoSettingsAccess | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used, Add dialog | done | `/settings/collaboration` and `/settings/keys` both render the access page; `H:templates/repo/settings/deploy_keys_section.tmpl` with the Add dialog (`asc-deploy-key-add.js`); `deploy_key.added_by_id` (migration v18k) set on web and API add | M |
 | RepoSettingsAccess | No deploy keys empty state | done | `settings.no_deploy_keys` | S |
@@ -409,12 +409,12 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 250 |
+| done | 251 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 13 |
+| needs-both | 12 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -437,7 +437,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Stacks | 13 | 0 | 0 | 0 | 0 |
 | RepoSettingsMenu | 2 | 0 | 0 | 0 | 0 |
 | RepoSettingsGeneral | 9 | 0 | 0 | 0 | 0 |
-| RepoSettingsAccess | 7 | 0 | 0 | 0 | 1 |
+| RepoSettingsAccess | 8 | 0 | 0 | 0 | 0 |
 | RepoSettingsPolicy | 10 | 0 | 0 | 0 | 2 |
 | RepoSettingsRules | 7 | 0 | 0 | 0 | 1 |
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |

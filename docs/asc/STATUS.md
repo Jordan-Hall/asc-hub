@@ -53,7 +53,7 @@ Other findings that cross boards:
 ## 3. Per-area counts and boards
 
 - **shell/settings**: 47 boards, 317 rows, done 244, partial 14, missing 59. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 143, partial 25, missing 106. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **repo**: 24 boards, 274 rows, done 144, partial 25, missing 105. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
 - **auth**: 6 boards, 40 rows, done 29, partial 4, missing 7. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
@@ -1205,7 +1205,7 @@ Board copy not found word for word in locale, templates or scripts: Your keys, y
 
 #### RepoSettingsAccess (ASC Hub repository settings: Access)
 
-Area repo. Rows 8: done 5, partial 1, missing 2. Copy found in the hub: 65% of 110 copy strings (mobile twin 54%). Template(s): collaboration.tmpl, deploy_keys.tmpl. Mobile twin: yes.
+Area repo. Rows 8: done 6, partial 1, missing 1. Copy found in the hub: 65% of 110 copy strings (mobile twin 54%). Template(s): collaboration.tmpl, deploy_keys.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Who and what can work in this repository: people, teams, agents and deploy keys.; People, teams and agents; Who can open stacks here. What an agent may change is limited again by the repo...; Search people, teams or agents; Add to repository; All repository settings.
 
@@ -1215,7 +1215,7 @@ Board copy not found word for word in locale, templates or scripts: Who and what
 | Combined search (people, teams, agents) with role chosen before adding | done | routers/web/repo/setting/asc_access_list.go (AscAccessSearch); collaboration.go CollaborationPost (role, kind) | - |
 | Role select changes access at once with an Undo toast | done | routers/web/repo/setting/collaboration.go:134 | - |
 | Agent rows: Agent chip, violet mark, "Limited by policy to src/ and tests/" | partial | templates/repo/settings/collaboration.tmpl | Marked done; the text Limited by policy to ... was not found. |
-| Remove agent confirm that says the running run stops and open changes stay with the owner | missing (hub+asc) | logged as not built (not re-probed) | Agents.CancelRun on removal in collaboration.go; confirm dialog text |
+| Remove agent confirm that says the running run stops and open changes stay with the owner | done | services/ascagentui/removeagent.go, routers/web/repo/setting/collaboration.go, templates/repo/settings/collaboration.tmpl | Existing Agents.ListRuns and CancelRun, no new RPC (TestAscAccessRemoveAgent) |
 | Invite that already has access ("Priya Raman already has Maintain access") | done | routers/web/repo/setting/collaboration.go:86 | - |
 | Deploy keys on the same page: title, fingerprint, read-only or read-write, added by, last used... | missing (UI) | logged as not built (not re-probed) | H:templates/repo/settings/deploy_keys.tmpl is its own page at /settings/keys; the board says both routes render one layout |
 | No deploy keys empty state | done | see where-cell | - |
