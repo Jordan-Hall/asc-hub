@@ -245,6 +245,12 @@ export function submitEventSubmitter(e) {
   return needSubmitEventPolyfill ? (e.target._submitter || null) : e.submitter;
 }
 
+// formSubmitAction is where the form posts when submitter submits it: a submit button with formaction sends the form
+// there, as the browser does, else to the action of the form.
+export function formSubmitAction(formEl, submitter) {
+  return submitter?.getAttribute('formaction') || formEl.getAttribute('action');
+}
+
 function submitEventPolyfillListener(e) {
   const form = e.target.closest('form');
   if (!form) return;

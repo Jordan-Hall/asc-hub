@@ -5,7 +5,7 @@ import {createDropzone} from './dropzone.js';
 import {showGlobalErrorMessage} from '../bootstrap.js';
 import {handleGlobalEnterQuickSubmit} from './comp/QuickSubmit.js';
 import {svg} from '../svg.js';
-import {hideElem, showElem, toggleElem, resetForms, initSubmitEventPolyfill, submitEventSubmitter} from '../utils/dom.js';
+import {hideElem, showElem, toggleElem, resetForms, initSubmitEventPolyfill, submitEventSubmitter, formSubmitAction} from '../utils/dom.js';
 import {htmlEscape} from 'escape-goat';
 import {showTemporaryTooltip} from '../modules/tippy.js';
 import {confirmModal} from './comp/ConfirmModal.js';
@@ -125,8 +125,7 @@ async function formFetchAction(e) {
   const formMethod = formEl.getAttribute('method') || 'get';
   const formData = new FormData(formEl);
   const formSubmitter = submitEventSubmitter(e);
-  // a button with formaction sends the form there, as the browser does
-  const formActionUrl = formSubmitter?.getAttribute('formaction') || formEl.getAttribute('action');
+  const formActionUrl = formSubmitAction(formEl, formSubmitter);
   const [submitterName, submitterValue] = [formSubmitter?.getAttribute('name'), formSubmitter?.getAttribute('value')];
   if (submitterName) {
     formData.append(submitterName, submitterValue || '');
