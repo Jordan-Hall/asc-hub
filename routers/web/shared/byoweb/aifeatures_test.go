@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
@@ -223,6 +224,15 @@ func TestUserAIPageShowsFeatures(t *testing.T) {
 	assert.Contains(t, body, tr(t, "ascbyo.ai.lead"), "a person's page keeps its list")
 	assert.Contains(t, body, `data-testid="asc-ai-features"`)
 	assert.Contains(t, body, `action="/user/settings/asc/ai/features/agent_runs"`)
+	// meaning search uses no key: its row says where it runs and has nothing to choose or cap
+	i := strings.Index(body, `data-testid="asc-feature-local"`)
+	require.GreaterOrEqual(t, i, 0)
+	row := body[i : i+strings.Index(body[i:], "</tr>")]
+	assert.Contains(t, row, tr(t, "ascbyo.ai.uses.meaning"))
+	assert.Contains(t, row, tr(t, "ascbyo.ai.uses.meaning_provider"))
+	assert.Contains(t, row, tr(t, "ascbyo.ai.uses.meaning_spend"))
+	assert.NotContains(t, row, "<select")
+	assert.NotContains(t, row, "<form")
 
 	f.SetFail("/asc.v1.AiProviders/ListFeatures", status.Error(codes.Unavailable, "down"))
 	defer f.SetFail("/asc.v1.AiProviders/ListFeatures", nil)
