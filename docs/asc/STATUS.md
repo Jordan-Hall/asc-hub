@@ -106,10 +106,10 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Page with how to run backups (read-only text) | done | templates/admin/backups.tmpl (file) | - |
 | Schedule, target, next backup, Back up now, history with Retry/Restore/Verify, in-progress met... | done | routers/web/admin/asc_backups.go:24 | - |
-| Board note: Restore needs RESTORE typed and puts the server read only | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Verify restores into a scratch area and checks the result | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Retention is shown in plain words | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Healthy, failed (banner + Retry), running (progress), restore confirmation, never run (se... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Restore needs RESTORE typed and puts the server read only | done | TestAscBackupsRestore, TestAscBackupsBoardNotes/restore_confirmation; asc-serve backups::tests staging sets read-only | - |
+| Board note: Verify restores into a scratch area and checks the result | done | asc-serve backup::restore_test; tests verify_restores_into_a_scratch_area_and_checks_the_result, the_restore_test_opens_a_scratch_copy_and_checks_it | - |
+| Board note: Retention is shown in plain words | done | templates/admin/asc_backups_board.tmpl bk_kept; TestAscBackupsBoardNotes/healthy | - |
+| Board note: Healthy, failed (banner + Retry), running (progress), restore confirmation, never run (se... | done | TestAscBackupsBoardNotes (healthy, failed, running, never run, restore confirmation) | - |
 
 #### AdminConfig (ASC Hub admin: configuration)
 
