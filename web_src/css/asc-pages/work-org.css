@@ -704,29 +704,53 @@
   text-decoration: none;
 }
 
-.wk-org-agents {
+.wk-org-agentlist {
+  display: grid;
+  gap: 12px;
+  margin: 0;
   padding: 0 16px 16px;
+  list-style: none;
 }
 
-.wk-org-sub {
-  margin: 8px 0;
+.wk-org-agentlist > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wk-org-agent-av {
+  border-radius: 8px;
+  background: var(--agent);
+}
+
+.wk-org-agent-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-org-agent-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wk-org-agent-meta {
+  overflow: hidden;
   color: var(--text-2);
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.wk-org-agents .wk-org-avatars {
-  padding: 0;
-}
-
-.wk-org-agents .wk-agent-av {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--agent);
-  color: #fff;
+.wk-org-policylist {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
 }
 
 .wk-org-policy .ds-card-b {

@@ -16,7 +16,7 @@
 					{{if .Org.Website}}<a class="ds-mono" target="_blank" rel="noopener noreferrer me" href="{{.Org.Website}}">{{.Org.Website}}</a>{{end}}
 					{{if .IsSigned}}{{if .Org.Email}}<a href="mailto:{{.Org.Email}}">{{.Org.Email}}</a>{{end}}{{end}}
 					{{if .NumMembers}}<a href="{{.OrgLink}}/members">{{ctx.Locale.TrN .NumMembers "asc_work.org_people_one" "asc_work.org_people_n" .NumMembers}}</a>{{end}}
-					{{if .AscOrgAgents}}<a href="{{.OrgLink}}/members#people-agents">{{ctx.Locale.TrN .AscOrgAgents "asc_work.org_agents_one" "asc_work.org_agents_n" .AscOrgAgents}}</a>{{end}}
+					{{if .AscOrgAgents}}<a href="{{if .IsOrganizationMember}}{{.OrgLink}}/members#people-agents{{else}}{{.Org.HomeLink}}#wk-org-agents{{end}}" data-asc-org-agents-count>{{ctx.Locale.TrN .AscOrgAgents "asc_work.org_agents_one" "asc_work.org_agents_n" .AscOrgAgents}}</a>{{end}}
 				</div>
 			</div>
 			<div class="wk-pf-actions">

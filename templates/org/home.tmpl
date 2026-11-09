@@ -57,14 +57,36 @@
 							{{end}}
 							{{if gt .NumMembers 5}}<a class="wk-org-more" href="{{.OrgLink}}/members" aria-label="{{ctx.Locale.Tr "asc_work.org_all_n" .NumMembers}}">+{{Eval .NumMembers "-" 5}}</a>{{end}}
 						</div>
-						{{if .OrgAgentList}}
-						<div class="wk-org-agents" data-testid="org-agents">
-							<h3 class="wk-org-sub">{{ctx.Locale.Tr "asc_work.org_agents_h"}}</h3>
-							<div class="wk-org-avatars">
-								{{range .OrgAgentList}}<a class="wk-agent-av" href="{{$.OrgLink}}/members#people-agents" title="{{.DisplayName}}" aria-label="{{.DisplayName}}">{{svg "dsi-agent" 20}}</a>{{end}}
-							</div>
+					</section>
+				{{end}}
+				{{if or .OrgAgentList .OrgRunAgents}}
+					<section class="ds-card wk-org-agentcard" aria-labelledby="wk-org-agents" data-testid="org-agents">
+						<div class="ds-card-h">
+							<h2 id="wk-org-agents">{{ctx.Locale.Tr "asc_work.org_agents_h"}}</h2>
+							{{if .OrgAgentList}}<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{.OrgLink}}/members#people-agents">{{ctx.Locale.Tr "asc_work.org_all_n" (len .OrgAgentList)}}</a>{{end}}
 						</div>
-						{{end}}
+						<ul class="wk-org-agentlist">
+							{{range $i, $a := .OrgAgentList}}{{if lt $i 5}}
+								<li>
+									<span class="ds-av ds-av-32 ds-av-agent wk-org-agent-av" aria-hidden="true">{{svg "dsi-agent" 16}}</span>
+									<span class="wk-org-agent-main">
+										<a class="wk-org-agent-name" href="{{$.OrgLink}}/members#people-agents">{{$a.DisplayName}}</a>
+										<span class="wk-org-agent-meta ds-mono">@{{$.Org.Name}}/{{$a.Name}}</span>
+									</span>
+									{{if $a.Paused}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_work.org_agent_paused"}}</span>{{end}}
+								</li>
+							{{end}}{{end}}
+							{{range .OrgRunAgents}}
+								<li>
+									<span class="ds-av ds-av-32 ds-av-agent wk-org-agent-av" aria-hidden="true">{{svg "dsi-agent" 16}}</span>
+									<span class="wk-org-agent-main">
+										<a class="wk-org-agent-name ds-mono" href="{{.RunsLink}}">{{.Handle}}</a>
+										<span class="wk-org-agent-meta">{{ctx.Locale.TrPluralString .Runs "explore.agent_runs_short_n" (ctx.Locale.PrettyNumber .Runs)}}</span>
+									</span>
+									{{if .Active}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_work.org_agent_active" (ctx.Locale.PrettyNumber .Active)}}</span>{{end}}
+								</li>
+							{{end}}
+						</ul>
 					</section>
 				{{end}}
 				{{if .IsOrganizationMember}}
@@ -87,7 +109,21 @@
 						<div class="ds-card-b">
 							<h2 id="wk-org-policy" class="ds-t-h4">{{ctx.Locale.Tr "asc_work.org_policy_h"}}</h2>
 							<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_rp.p_org_lead"}}</p>
-							<a class="ds-link ds-sb" href="{{.OrgLink}}/settings/asc/agents">{{ctx.Locale.Tr "asc_work.org_policy_read"}}</a>
+							{{with .OrgMergePolicy}}
+								{{if .Set}}
+								<ul class="wk-org-policylist" data-testid="org-merge-policy-rules">
+									<li>{{ctx.Locale.TrN .RequireApprovals "asc_work.org_policy_approvals_one" "asc_work.org_policy_approvals_n" .RequireApprovals}}</li>
+									{{if .RequireChecks}}<li>{{ctx.Locale.TrN (len .RequireChecks) "asc_work.org_policy_checks_one" "asc_work.org_policy_checks_n" (len .RequireChecks)}}</li>{{end}}
+									{{if .HumanApproval}}<li>{{ctx.Locale.Tr "asc_shell.om_human"}}</li>{{end}}
+									{{if .RequireSigned}}<li>{{ctx.Locale.Tr "asc_shell.om_signed"}}</li>{{end}}
+									{{if .Queue}}<li>{{ctx.Locale.Tr "asc_shell.om_queue"}}</li>{{end}}
+									{{if .Strategy}}<li>{{if eq .Strategy "rebase"}}{{ctx.Locale.Tr "asc_shell.om_strategy_rebase"}}{{else if eq .Strategy "rebase-disjoint"}}{{ctx.Locale.Tr "asc_shell.om_strategy_disjoint"}}{{else if eq .Strategy "fast-forward"}}{{ctx.Locale.Tr "asc_shell.om_strategy_ff"}}{{else}}{{ctx.Locale.Tr "asc_shell.om_strategy_squash"}}{{end}}</li>{{end}}
+								</ul>
+								{{else}}
+								<p class="ds-t-small" data-testid="org-merge-policy-unset">{{ctx.Locale.Tr "asc_shell.om_unset"}}</p>
+								{{end}}
+							{{end}}
+							<a class="ds-link ds-sb" href="{{.OrgLink}}/settings/asc/merge">{{ctx.Locale.Tr "asc_work.org_policy_read"}}</a>
 						</div>
 					</section>
 				{{end}}

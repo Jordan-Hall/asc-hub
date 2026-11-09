@@ -710,8 +710,13 @@ type agentCount struct {
 
 func init() {
 	context.OrgAgentCount = func(ctx *context.Context, org *organization.Organization) (int, bool) {
-		if !setting.Asc.Enabled || ctx.Doer == nil || !ctx.Org.IsMember {
+		if !setting.Asc.Enabled || ctx.Doer == nil {
 			return 0, false
+		}
+		if !ctx.Org.IsMember {
+			// the agents that ran in the repositories the viewer can read; kept by ascagentdir
+			agents, ok := orgRunAgents(ctx, org)
+			return len(agents), ok && len(agents) > 0
 		}
 		key := [2]int64{org.ID, ctx.Doer.ID}
 		agentCountMu.Lock()
