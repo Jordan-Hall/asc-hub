@@ -13,6 +13,7 @@ export function initAscByoMigration() {
   const label = box.querySelector('.asc-migration-label');
   const bar = box.querySelector('.asc-migration-bar');
   const count = box.querySelector('.asc-migration-count');
+  const redone = box.querySelector('.asc-migration-redone');
 
   const refresh = async () => {
     const res = await GET(url, {credentials: 'same-origin', cache: 'no-store'});
@@ -25,8 +26,10 @@ export function initAscByoMigration() {
       bar.value = data.percent;
       bar.textContent = `${data.percent}%`;
     }
-    if (count && Number.isFinite(data.copied) && Number.isFinite(data.total)) {
-      count.textContent = `${data.copied} / ${data.total}`;
+    if (count && typeof data.progress === 'string') count.textContent = data.progress;
+    if (redone && typeof data.redone === 'string') {
+      redone.textContent = data.redone;
+      redone.hidden = data.redone === '';
     }
     if (data.active === false) {
       window.location.reload();

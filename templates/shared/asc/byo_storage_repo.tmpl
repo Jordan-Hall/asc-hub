@@ -121,7 +121,9 @@
 		<div class="asc-byo-progress" role="status" data-testid="asc-migration-active" data-asc-migration-status-url="{{$a.StorageURL}}/migrations/{{.ID}}/status">
 			<p><strong class="asc-migration-label">{{ctx.Locale.Tr .StateKey}}</strong></p>
 			<progress class="asc-migration-bar" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr .StateKey}}">{{.Percent}}%</progress>
-			<p class="asc-byo-hint"><span class="asc-migration-count">{{ctx.Locale.Tr "ascbyo.storage.repo.progress" .Copied .Total}}</span></p>
+			<p class="asc-byo-hint"><span class="asc-migration-count" data-testid="asc-migration-progress">{{.ProgressLine ctx.Locale}}</span></p>
+			{{$redone := .RedoneLine ctx.Locale}}
+			<p class="asc-byo-hint asc-migration-redone" data-testid="asc-migration-redone"{{if not $redone}} hidden{{end}}>{{$redone}}</p>
 			{{if .Paused}}<p class="asc-byo-hint" data-testid="asc-migration-paused">{{ctx.Locale.Tr "ascbyo.storage.repo.paused_help"}}</p>{{end}}
 			{{if .Cancellable}}
 				<div class="asc-migration-actions">
@@ -190,6 +192,7 @@
 						<td data-label="{{ctx.Locale.Tr "ascbyo.storage.repo.history_state"}}">
 							{{ctx.Locale.Tr .StateKey}}{{if .Active}} ({{.Percent}}%){{end}}
 							{{if .Error}}<br><span class="asc-byo-error-line">{{.Error}}</span>{{end}}
+							{{with .RedoneLine ctx.Locale}}<br><span class="asc-byo-hint" data-testid="asc-history-redone">{{.}}</span>{{end}}
 						</td>
 						<td data-label="{{ctx.Locale.Tr "ascbyo.storage.repo.history_to"}}" class="asc-byo-mono">{{if .ToTarget}}{{.ToTarget}}{{else}}{{ctx.Locale.Tr "ascbyo.storage.repo.history_default"}}{{end}}</td>
 						<td data-label="{{ctx.Locale.Tr "ascbyo.storage.repo.history_started"}}">{{if .Created}}{{DateUtils.AbsoluteShort .Created}}{{end}}</td>

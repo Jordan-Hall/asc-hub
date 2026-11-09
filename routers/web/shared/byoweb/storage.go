@@ -547,7 +547,17 @@ type migrationStatus struct {
 	Percent int    `json:"percent"`
 	Copied  uint64 `json:"copied"`
 	Total   uint64 `json:"total"`
-	Error   string `json:"error,omitempty"`
+	// BytesCopied and BytesTotal are the bytes moved and to move; BytesTotal is 0 until asc counted them.
+	BytesCopied uint64 `json:"bytes_copied"`
+	BytesTotal  uint64 `json:"bytes_total"`
+	// ETASeconds is the estimated time left, 0 when there is none.
+	ETASeconds int64 `json:"eta_seconds"`
+	// Mismatched counts the copies the check copied again.
+	Mismatched uint64 `json:"mismatched"`
+	// Progress and Redone are the translated lines of the page, written as text by the script.
+	Progress string `json:"progress"`
+	Redone   string `json:"redone"`
+	Error    string `json:"error,omitempty"`
 }
 
 // MigrationStatus is GET .../asc/storage/migrations/{id}/status.
@@ -579,6 +589,7 @@ func MigrationStatus(ctx *context.Context, lvl *Level) {
 	}
 	ctx.JSON(http.StatusOK, migrationStatus{
 		State: m.StateName, Label: ctx.Locale.TrString(m.StateKey), Active: m.Active, Paused: m.Paused, Percent: m.Percent,
-		Copied: m.Copied, Total: m.Total, Error: m.Error,
+		Copied: m.Copied, Total: m.Total, BytesCopied: m.Bytes, BytesTotal: m.BytesTotal, ETASeconds: m.ETASeconds,
+		Mismatched: m.Mismatched, Progress: m.ProgressLine(ctx.Locale), Redone: m.RedoneLine(ctx.Locale), Error: m.Error,
 	})
 }

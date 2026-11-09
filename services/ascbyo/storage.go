@@ -5,11 +5,13 @@ package ascbyo
 
 import (
 	"context"
+	"math"
 	"slices"
 	"strings"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/timeutil"
+	"forgejo.org/modules/translation"
 )
 
 // ListTargets returns the storage targets of the scope, oldest first.
@@ -371,6 +373,85 @@ type Migration struct {
 	Paused    bool
 	Pausable  bool
 	Resumable bool
+	// BytesTotal is what asc counted before the copy, 0 until then.
+	BytesTotal uint64
+	// Mismatched counts the copies the last check found missing or different and copied again.
+	Mismatched uint64
+	// ETASeconds estimates how long the copy has left, from its pace between Created and Updated; 0 when there
+	// is no estimate (not copying, paused, nothing moved yet, or no time passed).
+	ETASeconds int64
+}
+
+// SizeCopied is the bytes moved, for ctx.Locale.TrSize.
+func (m *Migration) SizeCopied() int64 { return int64(min(m.Bytes, math.MaxInt64)) }
+
+// SizeTotal is the bytes to move, for ctx.Locale.TrSize.
+func (m *Migration) SizeTotal() int64 { return int64(min(m.BytesTotal, math.MaxInt64)) }
+
+// ProgressLine is the line under the progress bar: objects, then bytes once they are counted, then the time
+// left when there is an estimate.
+func (m *Migration) ProgressLine(l translation.Locale) string {
+	parts := []string{l.TrString("ascbyo.storage.repo.progress", m.Copied, m.Total)}
+	if m.BytesTotal > 0 {
+		parts = append(parts, l.TrString("ascbyo.storage.repo.progress_bytes", l.TrSize(m.SizeCopied()).String(), l.TrSize(m.SizeTotal()).String()))
+	}
+	if eta := m.ETALine(l); eta != "" {
+		parts = append(parts, eta)
+	}
+	return strings.Join(parts, " \u00b7 ")
+}
+
+// ETALine says roughly how long the copy has left, in the largest unit that fits; empty without an estimate.
+func (m *Migration) ETALine(l translation.Locale) string {
+	s := m.ETASeconds
+	switch {
+	case s <= 0:
+		return ""
+	case s < 60:
+		return l.TrString("ascbyo.storage.repo.eta_soon")
+	case s < 90*60:
+		n := (s + 59) / 60
+		return string(l.TrN(n, "ascbyo.storage.repo.eta_minutes_1", "ascbyo.storage.repo.eta_minutes_n", n))
+	case s < 48*3600:
+		n := (s + 3599) / 3600
+		return string(l.TrN(n, "ascbyo.storage.repo.eta_hours_1", "ascbyo.storage.repo.eta_hours_n", n))
+	default:
+		n := (s + 86399) / 86400
+		return string(l.TrN(n, "ascbyo.storage.repo.eta_days_1", "ascbyo.storage.repo.eta_days_n", n))
+	}
+}
+
+// RedoneLine says how many copies the check copied again; empty when none were.
+func (m *Migration) RedoneLine(l translation.Locale) string {
+	if m.Mismatched == 0 {
+		return ""
+	}
+	n := int64(min(m.Mismatched, math.MaxInt64)) // TrN picks the plural form only from signed counts
+	return string(l.TrN(n, "ascbyo.storage.repo.redone_1", "ascbyo.storage.repo.redone_n", n))
+}
+
+// maxETASeconds bounds an estimate; past a year the pace says nothing useful.
+const maxETASeconds = 365 * 24 * 3600
+
+// eta estimates the time the copy has left from its pace so far: the share moved between Created and Updated,
+// by bytes when asc counted them and by objects otherwise. Only a copy that runs and has moved something has a
+// pace.
+func (m *Migration) eta() int64 {
+	if m.State != ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_COPYING || m.Paused || m.Updated <= m.Created {
+		return 0
+	}
+	moved, all := m.Bytes, m.BytesTotal
+	if all == 0 {
+		moved, all = m.Copied, m.Total
+	}
+	if moved == 0 || moved >= all {
+		return 0
+	}
+	left := math.Ceil(float64(m.Updated-m.Created) * float64(all-moved) / float64(moved))
+	if left > maxETASeconds {
+		return maxETASeconds
+	}
+	return max(int64(left), 1)
 }
 
 // MigrationFrom converts the wire message; it returns nil when the message does not belong to repo.
@@ -381,6 +462,7 @@ func MigrationFrom(repo Scope, m *ascv1.StorageMigration) *Migration {
 	out := &Migration{
 		ID: m.GetId(), FromTarget: m.GetFromTargetId(), ToTarget: m.GetToTargetId(), State: m.GetState(),
 		Total: m.GetObjectsTotal(), Copied: m.GetObjectsCopied(), Bytes: m.GetBytesCopied(), DeleteSrc: m.GetDeleteSource(),
+		BytesTotal: m.GetBytesTotal(), Mismatched: m.GetMismatched(),
 		Created: timeutil.TimeStamp(m.GetCreated()), Updated: timeutil.TimeStamp(m.GetUpdated()), Error: CleanText(m.GetError(), 300),
 	}
 	if out.FromTarget != "" && !ValidTargetID(out.FromTarget) {
@@ -421,6 +503,7 @@ func MigrationFrom(repo Scope, m *ascv1.StorageMigration) *Migration {
 	case out.Total > 0:
 		out.Percent = int(min(out.Copied, out.Total) * 100 / out.Total)
 	}
+	out.ETASeconds = out.eta()
 	return out
 }
 
