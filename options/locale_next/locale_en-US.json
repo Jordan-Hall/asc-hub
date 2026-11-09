@@ -1021,6 +1021,14 @@
 		"one": "%s check failing",
 		"other": "%s checks failing"
 	},
+	"explore.agent_runs_n": {
+		"one": "%s agent run in the last %d days",
+		"other": "%s agent runs in the last %d days"
+	},
+	"explore.agent_runs_short_n": {
+		"one": "%s agent run",
+		"other": "%s agent runs"
+	},
 	"explore.contributors_n": {
 		"one": "%s contributor in the last %d days",
 		"other": "%s contributors in the last %d days"

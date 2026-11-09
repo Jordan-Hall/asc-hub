@@ -47,6 +47,10 @@
 					{{if $.AscRowChecks}}{{with index $.AscRowChecks .ID}}
 						<a class="ds-repo-check" href="{{$repo.Link}}/commits/branch/{{PathEscapeSegments $repo.DefaultBranch}}" data-check="{{.State}}">{{if eq .State "passing"}}{{svg "octicon-check" 14}}{{ctx.Locale.Tr "explore.check_passing"}}{{else if eq .State "failing"}}{{svg "octicon-x" 14}}{{ctx.Locale.TrPluralString .Failing "explore.check_failing_n" (ctx.Locale.PrettyNumber .Failing)}}{{else if eq .State "running"}}{{svg "octicon-dot-fill" 14}}{{ctx.Locale.Tr "explore.check_running"}}{{else}}{{ctx.Locale.Tr "explore.check_none"}}{{end}}</a>
 					{{end}}{{end}}
+					{{if $.AscRowAgentRuns}}{{with index $.AscRowAgentRuns .ID}}
+						{{$runs := ctx.Locale.TrPluralString . "explore.agent_runs_n" (ctx.Locale.PrettyNumber .) $.AscRowAgentDays}}
+						<a class="ds-chip ds-chip-agent ds-repo-agents" href="{{$repo.Link}}/asc/agents" title="{{$runs}}" aria-label="{{$runs}}" data-testid="repo-agent-runs">{{svg "dsi-agent" 14}}{{ctx.Locale.TrPluralString . "explore.agent_runs_short_n" (ctx.Locale.PrettyNumber .)}}</a>
+					{{end}}{{end}}
 					<span>{{ctx.Locale.Tr "org.repo_updated" (DateUtils.TimeSince .UpdatedUnix)}}</span>
 					{{if $.AscContributors}}{{with index $.AscContributors .ID}}
 						{{$label := ctx.Locale.TrPluralString .Total "explore.contributors_n" (ctx.Locale.PrettyNumber .Total) $.AscContributorDays}}
