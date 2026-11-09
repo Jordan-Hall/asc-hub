@@ -9,13 +9,12 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"forgejo.org/models/avatars"
 	"forgejo.org/models/db"
+	issues_model "forgejo.org/models/issues"
 	"forgejo.org/models/organization"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
@@ -27,10 +26,12 @@ import (
 	"forgejo.org/modules/util"
 	"forgejo.org/modules/web"
 	"forgejo.org/modules/web/middleware"
+	"forgejo.org/routers/web/shared/byoweb"
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/ascnotify"
 	"forgejo.org/services/context"
 	"forgejo.org/services/forms"
+	repo_service "forgejo.org/services/repository"
 	user_service "forgejo.org/services/user"
 )
 
@@ -272,107 +273,74 @@ func settingsOrgRows(ctx *context.Context, orgs []*organization.Organization, ui
 	return rows, nil
 }
 
-// Repos display a list of all repositories of the user
+// UnadoptedShown is the most unadopted directories the Repositories settings page lists.
+const UnadoptedShown = 100
+
+// Repos lists the repositories the user owns, with the open stacks of each and where it keeps its objects, and,
+// when the user may adopt or delete them, the directories on disk that have no repository record.
 func Repos(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings.repos")
 	ctx.Data["PageIsSettingsRepos"] = true
-	ctx.Data["allowAdopt"] = ctx.IsUserSiteAdmin() || setting.Repository.AllowAdoptionOfUnadoptedRepositories
-	ctx.Data["allowDelete"] = ctx.IsUserSiteAdmin() || setting.Repository.AllowDeleteOfUnadoptedRepositories
+	allowAdopt := ctx.IsUserSiteAdmin() || setting.Repository.AllowAdoptionOfUnadoptedRepositories
+	allowDelete := ctx.IsUserSiteAdmin() || setting.Repository.AllowDeleteOfUnadoptedRepositories
+	ctx.Data["allowAdopt"] = allowAdopt
+	ctx.Data["allowDelete"] = allowDelete
 
 	opts := db.ListOptions{
 		PageSize: setting.UI.Admin.UserPagingNum,
 		Page:     ctx.FormInt("page"),
 	}
-
 	if opts.Page <= 0 {
 		opts.Page = 1
 	}
-	start := (opts.Page - 1) * opts.PageSize
-	end := start + opts.PageSize
-
-	adoptOrDelete := ctx.IsUserSiteAdmin() || (setting.Repository.AllowAdoptionOfUnadoptedRepositories && setting.Repository.AllowDeleteOfUnadoptedRepositories)
 
 	ctxUser := ctx.Doer
-	count := 0
-
-	if adoptOrDelete {
-		repoNames := make([]string, 0, setting.UI.Admin.UserPagingNum)
-		repos := map[string]*repo_model.Repository{}
-		// We're going to iterate by pagesize.
-		root := user_model.UserPath(ctxUser.Name)
-		if err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-			if err != nil {
-				if os.IsNotExist(err) {
-					return nil
-				}
-				return err
-			}
-			if !d.IsDir() || path == root {
-				return nil
-			}
-			name := d.Name()
-			if !strings.HasSuffix(name, ".git") {
-				return filepath.SkipDir
-			}
-			name = name[:len(name)-4]
-			if repo_model.IsUsableRepoName(name) != nil || strings.ToLower(name) != name {
-				return filepath.SkipDir
-			}
-			if count >= start && count < end {
-				repoNames = append(repoNames, name)
-			}
-			count++
-			return filepath.SkipDir
-		}); err != nil {
-			ctx.ServerError("filepath.WalkDir", err)
-			return
-		}
-
-		userRepos, _, err := repo_model.GetUserRepositories(ctx, &repo_model.SearchRepoOptions{
-			Actor:   ctxUser,
-			Private: true,
-			ListOptions: db.ListOptions{
-				Page:     1,
-				PageSize: setting.UI.Admin.UserPagingNum,
-			},
-			LowerNames: repoNames,
-		})
-		if err != nil {
-			ctx.ServerError("GetUserRepositories", err)
-			return
-		}
-		for _, repo := range userRepos {
-			if repo.IsFork {
-				if err := repo.GetBaseRepo(ctx); err != nil {
-					ctx.ServerError("GetBaseRepo", err)
-					return
-				}
-			}
-			repos[repo.LowerName] = repo
-		}
-		ctx.Data["Dirs"] = repoNames
-		ctx.Data["ReposMap"] = repos
-	} else {
-		repos, count64, err := repo_model.GetUserRepositories(ctx, &repo_model.SearchRepoOptions{Actor: ctxUser, Private: true, ListOptions: opts})
-		if err != nil {
-			ctx.ServerError("GetUserRepositories", err)
-			return
-		}
-		count = int(count64)
-
-		for i := range repos {
-			if repos[i].IsFork {
-				if err := repos[i].GetBaseRepo(ctx); err != nil {
-					ctx.ServerError("GetBaseRepo", err)
-					return
-				}
-			}
-		}
-
-		ctx.Data["Repos"] = repos
+	repos, count, err := repo_model.GetUserRepositories(ctx, &repo_model.SearchRepoOptions{Actor: ctxUser, Private: true, ListOptions: opts})
+	if err != nil {
+		ctx.ServerError("GetUserRepositories", err)
+		return
 	}
+	ids := make([]int64, len(repos))
+	pending := make(map[int64]bool)
+	for i, r := range repos {
+		ids[i] = r.ID
+		pending[r.ID] = r.Status == repo_model.RepositoryPendingTransfer
+		if r.IsFork {
+			if err := r.GetBaseRepo(ctx); err != nil {
+				ctx.ServerError("GetBaseRepo", err)
+				return
+			}
+		}
+	}
+	stacks, err := issues_model.CountAscOpenStacks(ctx, ids)
+	if err != nil {
+		ctx.ServerError("CountAscOpenStacks", err)
+		return
+	}
+	ctx.Data["Repos"] = repos
+	ctx.Data["RepoStacks"] = stacks
+	ctx.Data["PendingTransfer"] = pending
+	// Every repository here is the user's own, so asking asc with the system credential shows nothing more.
+	ctx.Data["RepoStorage"] = byoweb.LoadRepoStorage(ctx, repos)
+
+	if allowAdopt || allowDelete {
+		names, total, err := repo_service.ListUnadoptedRepositories(ctx, ctxUser.LowerName+"/*", &db.ListOptions{Page: 1, PageSize: UnadoptedShown})
+		if err != nil {
+			ctx.ServerError("ListUnadoptedRepositories", err)
+			return
+		}
+		dirs := make([]string, 0, len(names))
+		for _, n := range names {
+			if _, name, ok := strings.Cut(n, "/"); ok {
+				dirs = append(dirs, name)
+			}
+		}
+		ctx.Data["Dirs"] = dirs
+		ctx.Data["DirsMore"] = total - len(dirs)
+	}
+
 	ctx.Data["ContextUser"] = ctxUser
-	pager := context.NewPagination(count, opts.PageSize, opts.Page, 5)
+	pager := context.NewPagination(int(count), opts.PageSize, opts.Page, 5)
 	pager.SetDefaultParams(ctx)
 	ctx.Data["Page"] = pager
 	ctx.HTML(http.StatusOK, tplSettingsRepositories)

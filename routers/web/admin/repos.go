@@ -16,6 +16,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/util"
 	"forgejo.org/routers/web/explore"
+	"forgejo.org/routers/web/shared/byoweb"
 	"forgejo.org/services/context"
 	repo_service "forgejo.org/services/repository"
 )
@@ -36,7 +37,7 @@ func Repos(ctx *context.Context) {
 		TplName:          tplRepos,
 		OnlyShowRelevant: false,
 		Loaded: func(repos []*repo_model.Repository) {
-			ctx.Data["RepoStorage"] = loadRepoStorage(ctx, repos)
+			ctx.Data["RepoStorage"] = byoweb.LoadRepoStorage(ctx, repos)
 		},
 	})
 }

@@ -1,97 +1,129 @@
 {{template "user/settings/layout_head" (dict "ctxData" . "pageClass" "ds-main user settings repos wk-settings")}}
 {{template "user/settings/page_head" (dict "Title" (ctx.Locale.Tr "settings.repos") "Lead" (ctx.Locale.Tr "asc_work.sp_repos_lead"))}}
 <div class="wk-sp">
-	<section class="ds-card" aria-labelledby="sp-repos">
-		<div class="ds-card-h"><h2 id="sp-repos">{{ctx.Locale.Tr "settings.repos"}}</h2></div>
-		{{if or .allowAdopt .allowDelete}}
-			{{if .Dirs}}
-			<ul class="ds-list wk-rows">
-				{{range $dirI, $dir := .Dirs}}
-					{{$repo := index $.ReposMap $dir}}
-					<li class="ds-li wk-row">
-						{{if $repo}}
-							<span class="ds-li-av" aria-hidden="true">{{if $repo.IsPrivate}}{{svg "dsi-lock" 20}}{{else}}{{svg "dsi-book" 20}}{{end}}</span>
-							<div class="ds-li-main">
-								<div class="ds-li-title"><a class="ds-break" href="{{$repo.Link}}">{{$repo.OwnerName}}/{{$repo.Name}}</a>
-									{{if $repo.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}
-								</div>
-								<div class="ds-li-meta">
-									<span {{if not (eq $repo.Size 0)}}data-tooltip-content="{{$repo.SizeDetailsString ctx.Locale}}"{{end}}>{{ctx.Locale.TrSize $repo.Size}}</span>
-									{{if $repo.IsFork}}<span>{{ctx.Locale.Tr "repo.forked_from"}} <a href="{{$repo.BaseRepo.Link}}">{{$repo.BaseRepo.OwnerName}}/{{$repo.BaseRepo.Name}}</a></span>{{end}}
-								</div>
-							</div>
-						{{else}}
-							<span class="ds-li-av" aria-hidden="true">{{svg "dsi-folder" 20}}</span>
-							<div class="ds-li-main">
-								<div class="ds-li-title"><span class="ds-break">{{$.ContextUser.Name}}/{{$dir}}</span><span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_work.sp_unadopted"}}</span></div>
-							</div>
-							<div class="wk-row-acts">
-								{{if $.allowAdopt}}
-									<button type="button" class="ds-btn ds-btn-primary ds-btn-sm show-modal" data-modal="#adopt-unadopted-modal-{{$dirI}}">{{ctx.Locale.Tr "repo.adopt_preexisting_label"}}</button>
-									<dialog id="adopt-unadopted-modal-{{$dirI}}">
-										<article>
-											<header>{{ctx.Locale.Tr "repo.adopt_preexisting"}}</header>
-											<div class="content">
-												<p>{{ctx.Locale.Tr "repo.adopt_preexisting_content" $dir}}</p>
-											</div>
-											<form class="ui form ds-form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
-												{{$.CsrfTokenHtml}}
-												<input type="hidden" name="id" value="{{$dir}}">
-												<input type="hidden" name="action" value="adopt">
-												{{template "base/modal_actions_confirm" $}}
-											</form>
-										</article>
-									</dialog>
-								{{end}}
-								{{if $.allowDelete}}
-									<button type="button" class="ds-btn ds-btn-danger ds-btn-sm show-modal" data-modal="#delete-unadopted-modal-{{$dirI}}">{{ctx.Locale.Tr "repo.delete_preexisting_label"}}</button>
-									<dialog id="delete-unadopted-modal-{{$dirI}}">
-										<article>
-											<header>{{ctx.Locale.Tr "repo.delete_preexisting"}}</header>
-											<div class="content">
-												<p>{{ctx.Locale.Tr "repo.delete_preexisting_content" $dir}}</p>
-											</div>
-											<form class="ui form ds-form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
-												{{$.CsrfTokenHtml}}
-												<input type="hidden" name="id" value="{{$dir}}">
-												<input type="hidden" name="action" value="delete">
-												{{template "base/modal_actions_confirm" $}}
-											</form>
-										</article>
-									</dialog>
-								{{end}}
-							</div>
-						{{end}}
-					</li>
-				{{end}}
-			</ul>
-			{{template "base/paginate" .}}
-			{{else}}
-				{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "settings.repos_none"))}}
-			{{end}}
-		{{else}}
-			{{if .Repos}}
-			<ul class="ds-list wk-rows">
-				{{range .Repos}}
-					<li class="ds-li wk-row">
-						<span class="ds-li-av" aria-hidden="true">{{if .IsPrivate}}{{svg "dsi-lock" 20}}{{else}}{{svg "dsi-book" 20}}{{end}}</span>
-						<div class="ds-li-main">
-							<div class="ds-li-title"><a class="ds-break" href="{{.Link}}">{{.OwnerName}}/{{.Name}}</a>
-								{{if .IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{end}}
-							</div>
-							<div class="ds-li-meta">
-								<span>{{ctx.Locale.TrSize .Size}}</span>
-								{{if .IsFork}}<span>{{ctx.Locale.Tr "repo.forked_from"}} <a href="{{.BaseRepo.Link}}">{{.BaseRepo.OwnerName}}/{{.BaseRepo.Name}}</a></span>{{end}}
-							</div>
+	<section class="ds-card" aria-labelledby="sp-repos" data-testid="sp-repos-owned">
+		<div class="ds-card-h">
+			<h2 id="sp-repos">{{ctx.Locale.Tr "asc_work.sp_repos_owned"}}</h2>
+			<p class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_repos_owned_sub"}}</p>
+		</div>
+		{{if .Repos}}
+		<ul class="ds-list wk-rows">
+			{{range $i, $repo := .Repos}}
+				<li class="ds-li wk-row" data-testid="sp-repo-row">
+					<span class="ds-li-av wk-repo-tile" aria-hidden="true">{{StringUtils.ToUpper (slice $repo.Name 0 1)}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><a class="ds-break" href="{{$repo.Link}}">{{$repo.OwnerName}}/{{$repo.Name}}</a>
+							{{if $repo.IsPrivate}}<span class="ds-chip">{{ctx.Locale.Tr "repo.desc.private"}}</span>{{else}}<span class="ds-chip">{{ctx.Locale.Tr "explore.public"}}</span>{{end}}
+							{{if index $.PendingTransfer $repo.ID}}<span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_work.sp_repo_transfer_pending"}}</span>{{end}}
 						</div>
-					</li>
-				{{end}}
-			</ul>
-			{{template "base/paginate" .}}
-			{{else}}
-				{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "settings.repos_none"))}}
+						{{if $repo.Description}}<div class="ds-li-sub">{{$repo.Description}}</div>{{end}}
+						<div class="ds-li-meta">
+							<span data-testid="sp-repo-stacks">{{ctx.Locale.TrN (index $.RepoStacks $repo.ID) "asc_work.sp_repo_stacks_1" "asc_work.sp_repo_stacks_n" (index $.RepoStacks $repo.ID)}}</span>
+							<span data-testid="repo-storage">{{template "admin/repo/storage" (index $.RepoStorage $repo.ID)}}</span>
+						</div>
+					</div>
+					<div class="wk-row-acts">
+						{{if index $.PendingTransfer $repo.ID}}
+							<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$repo.Link}}/settings" aria-label="{{ctx.Locale.Tr "asc_work.sp_repo_transfer_view"}}: {{$repo.FullName}}">{{ctx.Locale.Tr "asc_work.sp_repo_transfer_view"}}</a>
+						{{else}}
+							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm show-modal" data-modal="#transfer-repo-{{$i}}" aria-label="{{ctx.Locale.Tr "asc_work.sp_repo_transfer"}}: {{$repo.FullName}}" data-testid="sp-repo-transfer">{{ctx.Locale.Tr "asc_work.sp_repo_transfer"}}</button>
+							<dialog id="transfer-repo-{{$i}}">
+								<article>
+									<header>{{ctx.Locale.Tr "repo.settings.transfer.modal.title"}}</header>
+									<form class="ui form ds-form" method="post" action="{{$repo.Link}}/settings">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="action" value="transfer">
+										<div class="content">
+											<div class="ds-banner ds-banner-warn">
+												{{ctx.Locale.Tr "repo.settings.transfer_notices_1"}}<br>
+												{{ctx.Locale.Tr "repo.settings.transfer_notices_2"}}<br>
+												{{ctx.Locale.Tr "repo.settings.transfer_notices_3"}}
+											</div>
+											<div class="ds-required ds-field">
+												<label class="ds-label" for="transfer-owner-{{$i}}">{{ctx.Locale.Tr "repo.settings.transfer_owner"}}</label>
+												<input class="ds-input" id="transfer-owner-{{$i}}" name="new_owner_name" required autocomplete="off" spellcheck="false">
+											</div>
+											<div class="ds-required ds-field">
+												<label class="ds-label" for="transfer-name-{{$i}}">{{ctx.Locale.Tr "asc_admin.repo_delete_confirm_label" $repo.FullName}}</label>
+												<input class="ds-input" id="transfer-name-{{$i}}" name="repo_name" required autocomplete="off" autocapitalize="none" spellcheck="false">
+											</div>
+										</div>
+										<div class="actions">
+											<button type="button" class="ui cancel button">{{ctx.Locale.Tr "settings.cancel"}}</button>
+											<button type="submit" class="ds-btn ds-btn-danger">{{ctx.Locale.Tr "repo.settings.transfer_perform"}}</button>
+										</div>
+									</form>
+								</article>
+							</dialog>
+						{{end}}
+					</div>
+				</li>
 			{{end}}
+		</ul>
+		{{template "base/paginate" .}}
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "book" "Title" (ctx.Locale.Tr "settings.repos_none"))}}
 		{{end}}
 	</section>
+
+	{{if or .allowAdopt .allowDelete}}
+	<section class="ds-card" aria-labelledby="sp-unadopted" data-testid="sp-repos-unadopted">
+		<div class="ds-card-h">
+			<h2 id="sp-unadopted">{{ctx.Locale.Tr "asc_work.sp_unadopted_title"}}</h2>
+			<p class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_unadopted_sub"}}</p>
+		</div>
+		{{if .Dirs}}
+		<ul class="ds-list wk-rows">
+			{{range $dirI, $dir := .Dirs}}
+				<li class="ds-li wk-row" data-testid="sp-unadopted-row">
+					<span class="ds-li-av" aria-hidden="true">{{svg "dsi-folder" 20}}</span>
+					<div class="ds-li-main">
+						<div class="ds-li-title"><span class="ds-break">{{$.ContextUser.Name}}/{{$dir}}</span><span class="ds-chip ds-chip-warn">{{ctx.Locale.Tr "asc_work.sp_unadopted"}}</span></div>
+					</div>
+					<div class="wk-row-acts">
+						{{if $.allowAdopt}}
+							<button type="button" class="ds-btn ds-btn-primary ds-btn-sm show-modal" data-modal="#adopt-unadopted-modal-{{$dirI}}">{{ctx.Locale.Tr "repo.adopt_preexisting_label"}}</button>
+							<dialog id="adopt-unadopted-modal-{{$dirI}}">
+								<article>
+									<header>{{ctx.Locale.Tr "repo.adopt_preexisting"}}</header>
+									<div class="content">
+										<p>{{ctx.Locale.Tr "repo.adopt_preexisting_content" $dir}}</p>
+									</div>
+									<form class="ui form ds-form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="id" value="{{$dir}}">
+										<input type="hidden" name="action" value="adopt">
+										{{template "base/modal_actions_confirm" $}}
+									</form>
+								</article>
+							</dialog>
+						{{end}}
+						{{if $.allowDelete}}
+							<button type="button" class="ds-btn ds-btn-danger ds-btn-sm show-modal" data-modal="#delete-unadopted-modal-{{$dirI}}">{{ctx.Locale.Tr "repo.delete_preexisting_label"}}</button>
+							<dialog id="delete-unadopted-modal-{{$dirI}}">
+								<article>
+									<header>{{ctx.Locale.Tr "repo.delete_preexisting"}}</header>
+									<div class="content">
+										<p>{{ctx.Locale.Tr "repo.delete_preexisting_content" $dir}}</p>
+									</div>
+									<form class="ui form ds-form" method="post" action="{{AppSubUrl}}/user/settings/repos/unadopted">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="id" value="{{$dir}}">
+										<input type="hidden" name="action" value="delete">
+										{{template "base/modal_actions_confirm" $}}
+									</form>
+								</article>
+							</dialog>
+						{{end}}
+					</div>
+				</li>
+			{{end}}
+		</ul>
+		{{if gt .DirsMore 0}}<p class="ds-t-small ds-c-2" data-testid="sp-unadopted-more">{{ctx.Locale.Tr "asc_work.sp_unadopted_more" .DirsMore}}</p>{{end}}
+		{{else}}
+			{{template "shared/ds/empty" (dict "Icon" "folder" "Title" (ctx.Locale.Tr "asc_work.sp_unadopted_none_title") "Body" (ctx.Locale.Tr "asc_work.sp_unadopted_none_body"))}}
+		{{end}}
+	</section>
+	{{end}}
 </div>
 {{template "user/settings/layout_footer" .}}

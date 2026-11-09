@@ -1,7 +1,7 @@
 // Copyright 2026 The ASC Authors. All rights reserved.
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package admin
+package byoweb
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"forgejo.org/services/ascbyo"
 )
 
-// RepoStorage is what the Storage column of the repositories page says for one repository: the name of the storage
+// RepoStorage is what a storage column or line says for one repository: the name of the storage
 // target its objects go to (empty for the server default), Unknown when asc could not be asked, and Warning, the
 // locale key of what is wrong when where the objects are and where they should be disagree.
 type RepoStorage struct {
@@ -22,7 +22,7 @@ type RepoStorage struct {
 	Warning string
 }
 
-// repoStorageOf is the column for one placement.
+// repoStorageOf is what is said for one placement.
 func repoStorageOf(p ascbyo.Placement) RepoStorage {
 	s := RepoStorage{Name: p.TargetName, Moving: p.Migrating}
 	switch {
@@ -36,9 +36,10 @@ func repoStorageOf(p ascbyo.Placement) RepoStorage {
 	return s
 }
 
-// loadRepoStorage asks asc, in one call per hundred repositories, where each repository keeps its objects. Without asc
-// configured every repository uses the server default; when asc cannot answer, the column says it is not known.
-func loadRepoStorage(ctx context.Context, repos []*repo_model.Repository) map[int64]RepoStorage {
+// LoadRepoStorage asks asc, in one call per hundred repositories, where each repository keeps its objects. Without asc
+// configured every repository uses the server default; when asc cannot answer, it is not known. The caller restricts
+// repos to those the viewer may see: asc is asked with the system credential.
+func LoadRepoStorage(ctx context.Context, repos []*repo_model.Repository) map[int64]RepoStorage {
 	out := make(map[int64]RepoStorage, len(repos))
 	if len(repos) == 0 {
 		return out
