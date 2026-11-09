@@ -33,7 +33,12 @@ func accessRows() []*repo_model.Collaborator {
 
 func TestAccessAgentRows(t *testing.T) {
 	render := func(scope *asctrust.AgentScope) string {
-		data := map[string]any{"Collaborators": accessRows(), "PageIsSettingsCollaboration": true}
+		users := accessRows()
+		rows := []*AscAccessRow{
+			{Kind: ascAccessPerson, Collaborator: users[0], Role: "write"},
+			{Kind: ascAccessAgent, Collaborator: users[1], Role: "write"},
+		}
+		data := map[string]any{"Collaborators": users, "AccessRows": rows, "PageIsSettingsCollaboration": true}
 		if scope != nil {
 			data["AgentScope"] = scope
 		}
@@ -52,6 +57,15 @@ func TestAccessAgentRows(t *testing.T) {
 	t.Run("agents switched off by the policy", func(t *testing.T) {
 		page := render(&asctrust.AgentScope{Off: true})
 		assert.Contains(t, page, `<div class="flex-item-body rp-agent-scope">Switched off by policy</div>`)
+	})
+
+	t.Run("removing an agent asks with its own confirm", func(t *testing.T) {
+		page := render(nil)
+		assert.Contains(t, page, `data-modal-id="delete-agent" data-name="builder"`)
+		assert.Contains(t, page, `data-modal-id="delete-collaborator" data-name="user4"`)
+		assert.Contains(t, page, `id="delete-agent"`)
+		assert.Contains(t, page, "A run of this agent that is going now stops.")
+		assert.Contains(t, page, "Pull requests it already opened stay open, owned by the person who started each run.")
 	})
 
 	t.Run("no policy answer: the row says nothing more", func(t *testing.T) {
