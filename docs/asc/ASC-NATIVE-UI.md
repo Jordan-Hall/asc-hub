@@ -60,8 +60,9 @@ flag is dropped.
   note `repo.clone_with_git_help`). Shown on the empty-repository page and, under a `<details>` "Clone with asc or git"
   (`repo.clone_other_ways`), on the repository home page.
 - The URLs are the HTTPS clone links (they end in `.git`; asc accepts and strips that suffix); the SSH link exists only when `[asc] SSH_ENABLED` is true.
-- Connecting needs no SSH: the asc tab and the empty-repository page show `asc auth login --host <this hub> --prompt` (the
-  `AscHubHost` template function) before the clone or push, with a link to Settings, Applications for the token. The
+- Connecting needs no SSH and no sign-in step: the asc tab and the empty-repository page show only `asc clone` or
+  `asc push`; a private repository makes the command ask for a device code in the terminal (`repo.clone_signin_help`
+  says so), and a public one needs nothing. The
   git tab says that git over HTTPS takes the user name and the token (`repo.clone_https_only_help`, shown while SSH is off).
 - Settings: the SSH keys and principals sections are shown only when the `SSHEnabled` template function is true; otherwise
   the page is "GPG keys" (signing keys stay).
