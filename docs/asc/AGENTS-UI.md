@@ -107,6 +107,21 @@ of owners with a public profile, each action once. Agents act as their bot accou
   no public activity, so its row shows an empty line. The actions of people who keep their activity private are not
   counted for the organization either.
 
+## Agents in the organization directory
+
+The organization directory (Explore, Organizations) has chips under the filter bar:
+
+| Chip | Shows |
+| --- | --- |
+| All | Every organization the viewer may see. |
+| Verified | Organizations that proved a domain. |
+| Has agents | Organizations with an agent among their members. A private membership counts only for a member of that organization or a site administrator. |
+| I am a member | The organizations of the signed-in viewer. A visitor does not get this chip. |
+
+The Size select keeps organizations of 1 to 10, 11 to 100 or more than 100 people. The sort has Most active: most
+public actions in the last 90 days first, counted as for the activity line below. The chips keep the search, the
+sort and the size. When nothing matches, the list says so and offers to clear the filters.
+
 ## Who contributes, on each row
 
 Each row of the repository lists shows a stack of up to four avatars: the people and agents that acted in the
