@@ -39,8 +39,10 @@ type fakeAsc struct {
 	ascv1.UnimplementedRepoServer
 	ascv1.UnimplementedPathRulesServer
 	ascv1.UnimplementedPolicyServer
+	ascv1.UnimplementedOrgSettingsServer
 
 	mu       sync.Mutex
+	agents   []*ascv1.OrgAgent
 	teams    map[string]map[string][]string // org -> team -> members
 	sets     []string                       // "org/team" of every SetTeamMembers
 	ops      []string
@@ -50,7 +52,13 @@ type fakeAsc struct {
 }
 
 func (f *fakeAsc) Version(context.Context, *ascv1.VersionRequest) (*ascv1.VersionResponse, error) {
-	return &ascv1.VersionResponse{Features: []string{Feature, asctrust.FeaturePolicy}}, nil
+	return &ascv1.VersionResponse{Features: []string{Feature, asctrust.FeaturePolicy, asctrust.FeatureOrgSettings}}, nil
+}
+
+func (f *fakeAsc) ListAgents(context.Context, *ascv1.ListOrgAgentsRequest) (*ascv1.ListOrgAgentsResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return &ascv1.ListOrgAgentsResponse{Agents: f.agents}, nil
 }
 
 func (f *fakeAsc) ListTeams(_ context.Context, req *ascv1.ListTeamsRequest) (*ascv1.ListTeamsResponse, error) {
@@ -115,6 +123,7 @@ func startFake(t *testing.T) *fakeAsc {
 	ascv1.RegisterRepoServer(srv, f)
 	ascv1.RegisterPathRulesServer(srv, f)
 	ascv1.RegisterPolicyServer(srv, f)
+	ascv1.RegisterOrgSettingsServer(srv, f)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	go func() { _ = srv.Serve(l) }()
@@ -254,6 +263,71 @@ func TestAFailedForgetIsTriedAgainBySync(t *testing.T) {
 	_, _, err = ReconcileAll(ctx)
 	require.NoError(t, err)
 	assert.Empty(t, f.members("gone2", "t"))
+}
+
+func TestAgentsAreTeamMembers(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	defer test.MockVariableValue(&Debounce, 20*time.Millisecond)()
+	f := startFake(t)
+	ctx := context.Background()
+	require.NoError(t, Init(ctx))
+	f.agents = []*ascv1.OrgAgent{
+		{Name: "docs-bot", DisplayName: "Docs bot", Paths: []string{"docs/**"}},
+		{Name: "fixer", State: ascv1.OrgAgentState_ORG_AGENT_STATE_PAUSED},
+	}
+	team := unittest.AssertExistsAndLoadBean(t, &organization.Team{ID: 1}) // org3 owners
+
+	_, err := AddAgent(ctx, "org3", team, "stranger")
+	require.ErrorIs(t, err, ErrUnknownAgent)
+	added, err := AddAgent(ctx, "org3", team, "docs-bot")
+	require.NoError(t, err)
+	assert.True(t, added)
+	added, err = AddAgent(ctx, "org3", team, "docs-bot")
+	require.NoError(t, err)
+	assert.False(t, added, "already a member")
+	Wait()
+	assert.Equal(t, []string{"agent:docs-bot", "user2"}, f.members("org3", "owners"))
+
+	ta, err := AgentsOf(ctx, "org3", team)
+	require.NoError(t, err)
+	require.Len(t, ta.Members, 1)
+	assert.Equal(t, "Docs bot", ta.Members[0].Label())
+	assert.Equal(t, []string{"docs/**"}, ta.Members[0].Paths)
+	require.Len(t, ta.Others, 1)
+	assert.True(t, ta.Others[0].Paused)
+	assert.Empty(t, ta.Gone)
+
+	// An agent asc no longer has is not sent, and its membership goes on the next reconcile.
+	_, err = AddAgent(ctx, "org3", team, "fixer")
+	require.NoError(t, err)
+	Wait()
+	assert.Equal(t, []string{"agent:docs-bot", "agent:fixer", "user2"}, f.members("org3", "owners"))
+	f.mu.Lock()
+	f.agents = f.agents[:1]
+	f.mu.Unlock()
+	ta, err = AgentsOf(ctx, "org3", team)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"fixer"}, ta.Gone)
+	_, err = Reconcile(ctx, 3)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"agent:docs-bot", "user2"}, f.members("org3", "owners"))
+	names, err := organization.TeamAgents(ctx, team.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"docs-bot"}, names)
+
+	removed, err := RemoveAgent(ctx, team, "docs-bot")
+	require.NoError(t, err)
+	assert.True(t, removed)
+	Wait()
+	assert.Equal(t, []string{"user2"}, f.members("org3", "owners"))
+
+	// A deleted team takes its agents with it.
+	other := unittest.AssertExistsAndLoadBean(t, &organization.Team{ID: 7})
+	_, err = AddAgent(ctx, "org3", other, "docs-bot")
+	require.NoError(t, err)
+	require.NoError(t, models.DeleteTeam(ctx, other))
+	unittest.AssertNotExistsBean(t, &organization.AscTeamAgent{TeamID: 7})
 }
 
 func TestReconcileAllCoversOrganizationsWithAscRepositories(t *testing.T) {
