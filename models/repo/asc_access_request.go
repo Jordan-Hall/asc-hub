@@ -95,11 +95,6 @@ func ListAscAccessRequests(ctx context.Context, repoID int64) ([]*AscAccessReque
 	return out, db.GetEngine(ctx).Where("repo_id = ?", repoID).OrderBy("created_unix ASC, id ASC").Find(&out)
 }
 
-// CountAscAccessRequests counts the requests for the repository.
-func CountAscAccessRequests(ctx context.Context, repoID int64) (int64, error) {
-	return db.GetEngine(ctx).Where("repo_id = ?", repoID).Count(new(AscAccessRequest))
-}
-
 // DeleteAscAccessRequest removes the request of the user for the repository; none is not an error.
 func DeleteAscAccessRequest(ctx context.Context, repoID, userID int64) error {
 	_, err := db.GetEngine(ctx).Where("repo_id = ? AND user_id = ?", repoID, userID).Delete(new(AscAccessRequest))
