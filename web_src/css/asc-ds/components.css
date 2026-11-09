@@ -1640,7 +1640,7 @@ ul.ds-list {
   border: 0;
   border-radius: var(--r-btn);
   background: transparent;
-  color: var(--accent);
+  color: var(--link);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -2976,7 +2976,7 @@ a.ds-stat:hover {
 }
 
 .ds-auth-chips svg {
-  color: var(--accent);
+  color: var(--link);
 }
 
 /* the authorise-an-app card */
@@ -3632,4 +3632,15 @@ a.ds-stat:hover {
 
 .wk-feedbar {
   padding: 8px 16px 0;
+}
+
+/* the 12-week activity line in a row of the people and organization directories */
+.ds-li-activity {
+  display: flex;
+  align-items: center;
+  color: var(--link);
+}
+
+.ds-li-activity[data-total="0"] {
+  color: var(--text-3);
 }

@@ -5,11 +5,13 @@ package explore
 
 import (
 	"bytes"
+	gocontext "context"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
 	"forgejo.org/models/organization"
 	user_model "forgejo.org/models/user"
@@ -20,6 +22,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/sitemap"
 	"forgejo.org/modules/structs"
+	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
 
@@ -122,6 +125,9 @@ func RenderUserSearchWith(ctx *context.Context, opts *user_model.SearchUserOptio
 			ctx.Data["AscVerifiedOrgs"] = doms
 		}
 	}
+	if tplName == tplExploreUsers {
+		loadExploreActivity(ctx, users)
+	}
 	if opts.Load2FAStatus {
 		ctx.Data["UsersTwoFaStatus"] = user_model.UserList(users).GetTwoFaStatus(ctx)
 	}
@@ -173,6 +179,45 @@ func loadExploreUserRows(ctx *context.Context, users []*user_model.User) {
 		ctx.Data["ExploreFollowing"] = following // may be empty: the template offers Follow only when the map was made
 	}
 	loadExploreRoles(ctx, users)
+}
+
+// ExploreActivity is what a row of the people or organization directory shows of the public activity of the account.
+type ExploreActivity struct {
+	// Points draws the line of the actions per week (asctrust.Sparkline); empty when the window has no action.
+	Points string
+	activities_model.AscWeekly
+}
+
+// loadExploreActivity puts the public activity of the last weeks of each account into the page data. A person who keeps
+// their activity private shows none, unless the viewer may see it (themself, or a site admin). A lookup that fails
+// leaves the activity out of the rows.
+func loadExploreActivity(ctx *context.Context, users []*user_model.User) {
+	var people, orgs []int64
+	for _, u := range users {
+		switch {
+		case u.IsOrganization():
+			orgs = append(orgs, u.ID)
+		case activities_model.ActivityReadable(u, ctx.Doer):
+			people = append(people, u.ID)
+		}
+	}
+	now := time.Now()
+	out := make(map[int64]*ExploreActivity, len(users))
+	for _, part := range []struct {
+		ids  []int64
+		load func(gocontext.Context, []int64, time.Time) (map[int64]*activities_model.AscWeekly, error)
+	}{{people, activities_model.AscUserActivity}, {orgs, activities_model.AscOrgActivity}} {
+		got, err := part.load(ctx, part.ids, now)
+		if err != nil {
+			log.Error("explore: the activity of the directory (request %s): %v", ctx.RequestIDForLog(), err)
+			return
+		}
+		for id, w := range got {
+			out[id] = &ExploreActivity{Points: asctrust.Sparkline(w.Weeks, 80, 28), AscWeekly: *w}
+		}
+	}
+	ctx.Data["ExploreActivity"] = out
+	ctx.Data["ExploreActivityWeeks"] = activities_model.AscActivityWeeks
 }
 
 // loadExploreRoles puts the role of each person and the "Roles on this hub" counts into the page data. Roles tell who

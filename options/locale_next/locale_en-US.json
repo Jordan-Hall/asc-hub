@@ -1028,5 +1028,9 @@
 	"explore.count_users": {
 		"one": "%s account",
 		"other": "%s accounts"
+	},
+	"explore.activity_n": {
+		"one": "%s public action in the last %d weeks",
+		"other": "%s public actions in the last %d weeks"
 	}
 }

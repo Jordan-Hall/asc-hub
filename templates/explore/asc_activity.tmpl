@@ -1,0 +1,8 @@
+{{/* The public activity of an account over the last weeks, in a row of the people or organization directory: a line of
+the actions per week, with the same fact as text for a screen reader. Dot: dict "A" the ExploreActivity or nil (the
+activity is private or could not be loaded: nothing is shown) and "Weeks" the window. */}}
+{{with .A}}
+<div class="ds-li-activity" data-asc-activity data-total="{{.Total}}" role="img" aria-label="{{if .Total}}{{ctx.Locale.TrPluralString .Total "explore.activity_n" (ctx.Locale.PrettyNumber .Total) $.Weeks}}{{else}}{{ctx.Locale.Tr "explore.activity_none" $.Weeks}}{{end}}">
+	{{if .Points}}<svg viewBox="0 0 80 28" width="80" height="28" aria-hidden="true" focusable="false"><polyline points="{{.Points}}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>{{else}}<svg viewBox="0 0 80 28" width="80" height="28" aria-hidden="true" focusable="false"><line x1="0" y1="27" x2="80" y2="27" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 3"/></svg>{{end}}
+</div>
+{{end}}
