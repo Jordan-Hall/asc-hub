@@ -483,6 +483,19 @@ agents**: the agents that ran in the asc repositories of the organization the vi
 the organizations of the page are taken in page order, at most 50 for the whole page, so an organization far down a
 page with many repositories can show fewer agents than it has. A failed lookup leaves that part out of the row.
 
+## Agents and the merge policy on the organization page
+
+The head of an organization page counts its agents beside its people, and the side of the page has an **Agents** card.
+A member sees the agents the organization keeps in asc (its organization settings, with their names, `@org/name` and
+Paused), linked to the agents on the People page. Anyone else who is signed in with agent features on sees the agents
+that ran in the asc repositories of the organization they can read (see "The agent directory"), each linked to its runs
+with the number of runs and how many are active; the count in the head then links to the card. A visitor sees neither.
+
+A member also sees a **Merge policy** card with the merge defaults of the organization read from asc: the approvals
+required, the required checks, Only people approve, Changes must be signed, Land through the merge queue and the merge
+strategy, or "Not set yet". **Read the policy** opens the merge defaults in the organization settings, which a member
+who is not an owner reads without changing. When asc cannot be asked the card keeps its lead and the link.
+
 ## Checks and Watch on organization rows
 
 Each repository row of an organization page says how the checks of the head of its default branch went: **Checks
