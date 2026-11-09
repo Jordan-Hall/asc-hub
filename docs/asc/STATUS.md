@@ -169,9 +169,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | System and default webhooks, OAuth applications list | done | templates/admin/hooks.tmpl:5 | - |
 | Columns scope, events, last delivery with status text; Replay from the list; secret regenerate... | done | templates/admin/hooks.tmpl, templates/shared/webhook/rows.tmpl; routers/web/admin/asc_hooks_test.go; pixel 0.049 (mobile 0.269) | - |
-| Board note: Replay re-sends the last failed delivery | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Secrets are shown once | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, failing delivery, empty (no hooks), secret regenerated toast | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Replay re-sends the last failed delivery | done | templates/shared/webhook/rows.tmpl; tests/integration/asc_admin_hooks_test.go TestAscAdminHooksBoardNotes | - |
+| Board note: Secrets are shown once | done | routers/web/repo/setting/webhook.go WebhookRegenerateSecret, templates/webhook/kind_fields.tmpl; TestAscAdminHooksBoardNotes | - |
+| Board note: Default, failing delivery, empty (no hooks), secret regenerated toast | done | templates/admin/hooks.tmpl; TestAdminHooksOneList, TestAscAdminHooksBoardNotes | - |
 
 #### AdminModeration (ASC Hub admin: moderation)
 
