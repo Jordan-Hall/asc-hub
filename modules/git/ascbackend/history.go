@@ -158,10 +158,14 @@ func (b *Backend) logEntries(ctx context.Context, q git.LogQuery) iter.Seq2[*asc
 	}
 }
 
-// Count counts the commits q selects.
+// Count counts the commits q selects. A plain count (no merge filter, skip or limit) is counted by asc
+// (Log count_only), so no entry crosses the wire; the others walk the entries here.
 func (b *Backend) Count(ctx context.Context, q git.LogQuery) (int64, error) {
 	if q.Follow {
 		return 0, util.NewInvalidArgumentErrorf("follow needs exactly one plain path")
+	}
+	if !q.NoMerges && q.Skip == 0 && q.Limit == 0 {
+		return b.countOnly(ctx, q)
 	}
 	var n int64
 	for _, err := range b.logEntries(ctx, q) {
@@ -171,6 +175,59 @@ func (b *Backend) Count(ctx context.Context, q git.LogQuery) (int64, error) {
 		n++
 	}
 	return n, nil
+}
+
+// countOnly asks asc for the number of commits q selects. asc walks a bounded number of pages a call and answers
+// truncated with a page token past them; the count goes on from the token until it is whole or passes
+// maxLogCommits.
+func (b *Backend) countOnly(ctx context.Context, q git.LogQuery) (int64, error) {
+	ctx, cancel, err := b.stream(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer cancel()
+	req, ok, err := b.logRequest(ctx, q)
+	if err != nil || !ok {
+		return 0, err
+	}
+	req.CountOnly = true
+	var n uint64
+	for {
+		st, err := b.api.Log(ctx, req)
+		if err != nil {
+			return 0, callErr("Log", "", err)
+		}
+		next := ""
+		for {
+			msg, err := st.Recv()
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			if err != nil {
+				return 0, callErr("Log", "", err)
+			}
+			if len(msg.GetEntries()) > 0 {
+				return 0, badAnswer("Log sent entries for a count")
+			}
+			n += msg.GetCount()
+			if msg.GetTruncated() {
+				if msg.GetNextPageToken() == "" {
+					return 0, badAnswer("Log stopped a count without a page token")
+				}
+				next = msg.GetNextPageToken()
+			}
+		}
+		if n > maxLogCommits {
+			return 0, fmt.Errorf("%w: more than %d commits in a log", ErrTooLarge, maxLogCommits)
+		}
+		if next == "" {
+			return int64(n), nil
+		}
+		if next == req.GetPageToken() {
+			return 0, badAnswer("Log gave the same page token twice")
+		}
+		req.PageToken = next
+	}
 }
 
 // Log yields the commits q selects, newest first. Each commit is read in full (ReadChangeset) a few at a
