@@ -496,6 +496,16 @@ required, the required checks, Only people approve, Changes must be signed, Land
 strategy, or "Not set yet". **Read the policy** opens the merge defaults in the organization settings, which a member
 who is not an owner reads without changing. When asc cannot be asked the card keeps its lead and the link.
 
+## The merge queue card, on the dashboard
+
+**Merge queue** on the dashboard lists the person's changes that wait in a merge queue (the ones they queued or
+wrote, at most 5). Each row says its place ("Number 2 in the queue", "Landing now", "Waits for a new head"), the checks
+of its head while they run or fail ("2 of 3 checks"), the estimate asc gives ("lands in about 4 min") and **Open**,
+the queue page of its branch. The header shows **Running** while a queue of the rows is landing a change and the
+median wait asc measures for it ("Median wait 9 min"). The estimate and the median come from asc's merge queue (one
+`MergeQueue.List` for each queue, as the internal credential, after the inbox has checked that the person may read
+the pull requests); when asc does not answer they are left out and the rest of the card shows.
+
 ## Rows that act in place, on the dashboard
 
 Each row of **Needs you** on the dashboard has one button that does the next step without opening the pull request:
