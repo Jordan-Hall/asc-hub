@@ -954,6 +954,62 @@ func TestRepoAIKeysPage(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, r.resp.Code)
 }
 
+func TestRepoStorageSearchIndexes(t *testing.T) {
+	f := setup(t)
+	repo := repoLevel(t, true)
+	card := func(body string) string {
+		i := strings.Index(body, `data-testid="asc-storage-index"`)
+		require.GreaterOrEqual(t, i, 0, "the card is on the page")
+		return body[i : i+strings.Index(body[i:], "</section>")]
+	}
+
+	t.Run("meaning search off on the server", func(t *testing.T) {
+		f.Indexes = nil
+		r := run(t, StorageIndex, repo, http.MethodGet, nil, "")
+		require.Equal(t, http.StatusOK, r.resp.Code)
+		c := card(r.body())
+		assert.Contains(t, c, tr(t, "ascbyo.storage.index.covered", 100))
+		assert.Contains(t, c, `data-testid="asc-index-meaning-off"`)
+		assert.Contains(t, c, tr(t, "ascbyo.storage.index.meaning_off"))
+		assert.NotContains(t, c, `data-testid="asc-index-lag"`)
+		req := f.CallsTo("IndexStatus")[len(f.CallsTo("IndexStatus"))-1].Req.(*ascv1.IndexStatusRequest)
+		assert.Equal(t, "alice/widgets", req.GetScope().GetRepo().GetName())
+	})
+
+	t.Run("meaning search on", func(t *testing.T) {
+		f.Indexes = []*ascv1.IndexStatus{
+			{Index: "files", Coverage: 0.9, LagSeconds: 300},
+			{Index: "vectors", Coverage: 0.42, Version: "jina-embeddings-v2-base-code@ab12"},
+		}
+		defer func() { f.Indexes = nil }()
+		c := card(run(t, StorageIndex, repo, http.MethodGet, nil, "").body())
+		assert.Contains(t, c, `data-index="meaning" data-active`)
+		assert.Contains(t, c, tr(t, "ascbyo.storage.index.covered", 42))
+		assert.Contains(t, c, "jina-embeddings-v2-base-code@ab12")
+		assert.Contains(t, c, tr(t, "ascbyo.storage.index.lag", 5))
+	})
+
+	t.Run("switched off for the repository", func(t *testing.T) {
+		off := func(ctx *context.Context, lvl *Level) {
+			ctx.Data["AscMeaningOff"] = true
+			ctx.Data["RepoLink"] = "/alice/widgets"
+			StorageIndex(ctx, lvl)
+		}
+		c := card(run(t, off, repo, http.MethodGet, nil, "").body())
+		assert.Contains(t, c, tr(t, "ascbyo.storage.index.meaning_repo_off"))
+		assert.Contains(t, c, `href="/alice/widgets/settings"`)
+	})
+
+	t.Run("asc cannot answer: the rest of the page still works", func(t *testing.T) {
+		f.Fail["/asc.v1.CodeIntel/IndexStatus"] = status.Error(codes.Unavailable, "down")
+		defer delete(f.Fail, "/asc.v1.CodeIntel/IndexStatus")
+		r := run(t, StorageIndex, repo, http.MethodGet, nil, "")
+		require.Equal(t, http.StatusOK, r.resp.Code)
+		assert.Contains(t, card(r.body()), tr(t, "ascbyo.storage.index.failed"))
+		assert.Contains(t, r.body(), `data-testid="asc-storage-usage"`)
+	})
+}
+
 func TestRepoStorageUsage(t *testing.T) {
 	f := setup(t)
 	repo := repoLevel(t, true)
