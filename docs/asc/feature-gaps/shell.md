@@ -12,11 +12,11 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 173 |
+| done | 174 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 22 |
+| needs-both | 21 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -147,7 +147,7 @@ Open rows by size: S 0, M 21, L 14.
 | Explore | Quick chips All, Has open stacks, Agent activity, Starred, Templates, Archived | done | Built on every repository list that uses `shared/repo_search.tmpl` (Explore, organization, profile, Watching): `open_stacks`, `agents` and `starred` are read by `routers/web/shared/repoquick` and filtered by `AscQuickFilter` (`models/repo/asc_quick_filter.go`): an open pull request; an action of a bot account (an agent) in the last 7 days; starred by the viewer (signed in only). Search, pager and the phone sheet keep them; the no-result state names the chip with a remove link. Forks and Mirrors moved to the sheet only. Docs: AGENTS-UI.md "Agent activity in the repository lists"; tests: TestTheQuickChipsOfTheRepositoryLists, TestTheQuickChipsOfExplore | - |
 | Explore | List and Grid layout toggle; layout persists per person | done | No layout toggle anywhere (density exists in the account menu). Toggle, grid CSS, `localStorage` in `repo_search.tmpl`, `repo_list.tmpl` | M |
 | Explore | Row: owner avatar, name, visibility chip, description, topics, language, stars, updated, open-stacks chip | done | `explore/repo_list.tmpl` | - |
-| Explore | Agent activity chip on a row | needs-both | Not in `repo_list.tmpl`. Needs agent runs per repo over a recent window: asc `ListRuns` batched for a page, or a hub cache table fed by `services/ascsync` | M |
+| Explore | Agent activity chip on a row | done | asc `Agents.CountRuns` answers `per_repo` and counts `since` a time; `routers/web/shared/repoquick/agents.go` asks once per 50 rows for the asc repositories the viewer can read (agent features on), over the 7 days of the Agent activity quick chip, cached 60 s; `templates/explore/repo_list.tmpl` draws **N agent runs** linked to the runs of the repository | M |
 | Explore | Changeset count on a row ("3,812 changesets") | needs-both | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add `RepoStats` or cache in `services/ascsync` | M |
 | Explore | Contributor avatar stack on a row (people and agents) | done | `models/activities/asc_contributors.go` ranks who acted in each repository of the page in the last 90 days (one count per action, agents as their bot accounts); `routers/web/shared/repoquick` hides profiles the viewer may not see and keeps four; `templates/explore/repo_list.tmpl` draws the stack with an agent ring | M |
 | Explore | Row actions on hover or focus-within: Copy clone command, Star | done | Neither on the row. Buttons with `data-clipboard-text` (`asc clone host/owner/name`) and the existing star action | S |

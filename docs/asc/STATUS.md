@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 218, partial 23, missing 76. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 219, partial 23, missing 75. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -404,7 +404,7 @@ Board copy not found word for word in locale, templates or scripts: Error and sy
 
 #### Explore (ASC Hub explore repositories)
 
-Area shell/settings. Rows 15: done 11, partial 1, missing 3. Copy found in the hub: 68% of 144 copy strings (mobile twin 77%). Template(s): navbar.tmpl, repo_list.tmpl, repos.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 15: done 12, partial 1, missing 2. Copy found in the hub: 68% of 144 copy strings (mobile twin 77%). Template(s): navbar.tmpl, repo_list.tmpl, repos.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Filter repositories; Has open stacks; repositories, sorted by recent activity; The hosted checkout: cart, address, payment and confirmation, built for sub-sec...; Updated Yesterday; design-tokens.
 
@@ -416,7 +416,7 @@ Board copy not found word for word in locale, templates or scripts: Filter repos
 | Quick chips All, Has open stacks, Agent activity, Starred, Templates, Archived | done | templates/shared/repo_search.tmpl, models/repo/asc_quick_filter.go | - |
 | List and Grid layout toggle; layout persists per person | done | templates/shared/repo_search.tmpl (file) | - |
 | Row: owner avatar, name, visibility chip, description, topics, language, stars, updated, open-... | done | templates/explore/repo_list.tmpl (file) | - |
-| Agent activity chip on a row | missing (hub+asc) | logged as not built (not re-probed) | Not in repo_list.tmpl. Needs agent runs per repo over a recent window: asc ListRuns batched for a page, or a hub cache table fed... |
+| Agent activity chip on a row | done | routers/web/shared/repoquick/agents.go, templates/explore/repo_list.tmpl, asc Agents.CountRuns per_repo and since | - |
 | Changeset count on a row ("3,812 changesets") | missing (hub+asc) | logged as not built (not re-probed) | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add RepoStats or cache in services/ascsync |
 | Contributor avatar stack on a row (people and agents) | done | templates/explore/repo_list.tmpl, models/activities/asc_contributors.go | - |
 | Row actions on hover or focus-within: Copy clone command, Star | done | see where-cell | the where-cell cites asc clone host/owner/name, not in the tree (renamed or stale text); behaviour taken from the gap file |
