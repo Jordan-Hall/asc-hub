@@ -388,6 +388,36 @@ TestTheSystemCardShowsTheMailQueue, TestTheSystemCardShowsObjectStorage, TestThe
 
 Test: TestTheDashboardShowsTodaysActivity, TestTodaysActivityIsKeptForAMinute, TestNewPeopleThisWeek.
 
+## The health page of the site administration
+
+`/admin/self_check` runs its checks one after the other; "Run again" runs them again, each row changing when its own
+check is done. A check that does not apply to this hub has no row. Each row is passed, warning, failed, or could not run
+(the question could not be asked, so it neither passed nor failed).
+
+| Check | Answered by | Warning | Failed |
+|---|---|---|---|
+| Database connection, Database collation, Cache | the hub | slow cache, case-insensitive collation | no answer, wrong collation |
+| Disk usage | the hub: the file system of the data directory (`APP_DATA_PATH`) | 85% full, or full within 14 days | 95% full, or full within 2 days |
+| Outgoing mail | the hub's mail queue (only when mail is set up) | the oldest mail has waited over 5 minutes | the last mail could not be sent |
+| TLS certificate | the hub, only when it serves HTTPS itself: the first certificate in `CERT_FILE`; with ACME it is renewed automatically | expires within 14 days | expired, or the file cannot be read |
+| Clock | the host kernel (Linux: whether NTP keeps it in time) and asc serve's clock | not kept in time, or over 2 seconds from asc serve's | over 30 seconds from asc serve's: signed calls fail |
+| Object storage | asc serve (Maintenance.CheckHealth, `health.v1`): writes, reads back and deletes a probe object in its bucket | - | the object store refused or did not answer in 10 seconds |
+| Signing key | asc serve: its server key signs a fixed message and the signature verifies | no server key is set, so the commits it makes are not signed | the key cannot sign |
+| Runners (with Actions), System notices | the hub | no runner, notices | a runner offline |
+
+- **How soon the disk fills** is the rate the hub saw over the last day (at least an hour of it): it samples the used
+  bytes every 10 minutes from its start, so a hub that just started shows only how full the volume is.
+- **The clocks** are compared at the middle of the call, and a difference smaller than half the call's time is not
+  counted.
+- **asc serve's probes** need the site administrator and asc on. asc serve makes them at most once every 5 seconds, so
+  reloading the page does not write many objects; the probe object lives under `<root>/.asc-probe/` and is always
+  deleted. When asc serve does not answer, Object storage and Signing key could not run.
+- Behind a proxy that ends TLS there is no TLS certificate check: check the proxy's certificate there.
+
+Code: `routers/web/admin/asc_health.go`, `asc_health_more.go`, `services/asctrust/health.go`. Tests:
+TestTheDiskCheckSaysHowSoonTheVolumeFills, TestTheTLSCheckReadsTheCertificateTheHubServes, TestTheClockCheck,
+TestTheAscChecksAskAscServeToProbeItself, TestLoadHealthMeasuresTheClocks, TestAscHealthSteps.
+
 ## Usage and agents on a person's page
 
 The page of a person in site administration (Overview tab) has a **Usage** card (storage and agent minutes this
