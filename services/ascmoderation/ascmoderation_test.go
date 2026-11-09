@@ -4,6 +4,7 @@
 package ascmoderation
 
 import (
+	"net/url"
 	"strings"
 	"testing"
 
@@ -82,7 +83,7 @@ func TestRecordEmailsTheOwnerHowToAppeal(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, *mails, 2)
 	assert.True(t, IsSuspension(s))
-	assert.Contains(t, (*mails)[1].body, "/user/login", "a suspended account appeals from the sign-in page")
+	assert.Contains(t, (*mails)[1].body, "/-/moderation/appeal?decision=", "a suspended account appeals with the emailed link")
 
 	gone, err := Record(ctx, admin, moderation.ReportedContentTypeUser, 5, moderation_service.ContentActionDeleteAccount, "Bot.", Target{OwnerID: 5, Ref: "@user5"})
 	require.NoError(t, err)
@@ -129,4 +130,24 @@ func TestTheSignInAppealCodeIsUsedOnceForItsOwnSuspension(t *testing.T) {
 	code, err = AppealCode(ctx, other)
 	require.NoError(t, err)
 	require.ErrorIs(t, AppealWithCode(ctx, other.ID, code, "x"), moderation.ErrAppealNotAllowed)
+}
+
+func TestTheSuspensionEmailCarriesASingleUseAppealLink(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := t.Context()
+	mails := capture(t)
+	admin := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
+	s, err := Record(ctx, admin, moderation.ReportedContentTypeUser, 4, moderation_service.ContentActionSuspendAccount, "Spam.", Target{OwnerID: 4, Ref: "@user4"})
+	require.NoError(t, err)
+	require.Len(t, *mails, 1)
+	body := (*mails)[0].body
+	i := strings.Index(body, "/-/moderation/appeal?decision=")
+	require.Positive(t, i, body)
+	link, err := url.Parse(strings.TrimSpace(strings.SplitN(body[i:], "\n", 2)[0]))
+	require.NoError(t, err)
+	code := link.Query().Get("code")
+	require.NotNil(t, CodeOpens(ctx, s.ID, code))
+	require.NotNil(t, CodeOpens(ctx, s.ID, code), "opening does not use it up")
+	require.NoError(t, AppealWithCode(ctx, s.ID, code, "Not spam."))
+	assert.Nil(t, CodeOpens(ctx, s.ID, code), "sending does")
 }

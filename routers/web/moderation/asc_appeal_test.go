@@ -15,6 +15,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
 	"forgejo.org/modules/test"
+	"forgejo.org/services/ascmoderation"
 	"forgejo.org/services/context"
 	"forgejo.org/services/contexttest"
 	moderation_service "forgejo.org/services/moderation"
@@ -127,4 +128,39 @@ func TestTheSignInPageOffersTheSuspendedAccountItsAppeal(t *testing.T) {
 	SuspendedAppeal(ctx, 4)
 	require.NotNil(t, ctx.Data["AscSuspension"])
 	assert.Nil(t, ctx.Data["AscAppealCode"])
+}
+
+func TestAnAccountWithASecondFactorAppealsOnlyByTheEmailedLink(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	t.Cleanup(test.MockVariableValue(&setting.Moderation.Enabled, true))
+	// user24 has TOTP in the fixtures
+	_, err := db.GetEngine(t.Context()).Exec("UPDATE `user` SET prohibit_login = ? WHERE id = 24", true)
+	require.NoError(t, err)
+	d := decisionOf(t, 24, moderation_service.ContentActionSuspendAccount, moderation.ReportedContentTypeUser)
+
+	ctx, _ := contexttest.MockContext(t, "POST /user/login")
+	SuspendedAppeal(ctx, 24)
+	assert.Equal(t, true, ctx.Data["AscAppealByMail"])
+	assert.Nil(t, ctx.Data["AscSuspension"], "a password alone shows nothing of the decision")
+	assert.Nil(t, ctx.Data["AscAppealCode"])
+
+	link := func(id, code string) *context.Context {
+		ctx, rec := contexttest.MockContext(t, "GET /-/moderation/appeal")
+		ctx.Render = templates.HTMLRenderer()
+		ctx.Req.Form = url.Values{"decision": {id}, "code": {code}}
+		AppealLinkForm(ctx)
+		require.Equal(t, http.StatusOK, rec.Code)
+		return ctx
+	}
+	dead := link(strconv.FormatInt(d.ID, 10), "forged:code")
+	assert.Equal(t, true, dead.Data["AscAppealLinkDead"])
+	assert.Nil(t, dead.Data["AscSuspension"])
+
+	code, err := ascmoderation.AppealCode(t.Context(), d)
+	require.NoError(t, err)
+	open := link(strconv.FormatInt(d.ID, 10), code)
+	require.NotNil(t, open.Data["AscSuspension"])
+	assert.Equal(t, code, open.Data["AscAppealCode"])
+	again := link(strconv.FormatInt(d.ID, 10), code)
+	assert.Equal(t, code, again.Data["AscAppealCode"], "opening the form does not use the code up")
 }

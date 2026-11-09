@@ -139,3 +139,31 @@ func TestTheQueueListsOpenAppealsWithTheirOwner(t *testing.T) {
 	assert.Equal(t, "user2", appeals[0].OwnerName)
 	assert.Equal(t, "asc_admin.mod_action_delete_repo", appeals[0].ActionKey)
 }
+
+func TestOverturningAnOlderSuspensionLeavesTheNewerInForce(t *testing.T) {
+	startInstanceAgents(t, asctrust.FeatureAuditAppend)
+	ctx0 := t.Context()
+	_, err := db.GetEngine(ctx0).Exec("UPDATE `user` SET prohibit_login = ? WHERE id = 4", true)
+	require.NoError(t, err)
+	suspend := int(moderation_service.ContentActionSuspendAccount)
+	older := &moderation.Decision{ContentType: moderation.ReportedContentTypeUser, ContentID: 4, OwnerID: 4, Action: suspend, Reason: "first", ModeratorID: 1}
+	require.NoError(t, moderation.RecordDecision(ctx0, older))
+	require.NoError(t, moderation.Appeal(ctx0, older.ID, 4, "the first was wrong"))
+	newer := &moderation.Decision{ContentType: moderation.ReportedContentTypeUser, ContentID: 4, OwnerID: 4, Action: suspend, Reason: "second", ModeratorID: 1}
+	require.NoError(t, moderation.RecordDecision(ctx0, newer))
+
+	ctx, rec := contexttest.MockContext(t, "POST /admin/moderation/appeals/1")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, ctx, 1)
+	ctx.IsSigned = true
+	ctx.SetParams(":id", strconv.FormatInt(older.ID, 10))
+	form := url.Values{"answer": {"overturn"}, "reason": {"The first report was wrong."}}
+	ctx.Req.Form, ctx.Req.PostForm = form, form
+	AnswerAppeal(ctx)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	got, err := moderation.GetDecision(ctx0, older.ID)
+	require.NoError(t, err)
+	assert.Equal(t, moderation.AppealOverturned, got.AppealStatus)
+	u := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
+	assert.True(t, u.ProhibitLogin, "the newer suspension stays")
+}
