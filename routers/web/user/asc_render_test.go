@@ -132,12 +132,27 @@ func ascRenderEntries(t *testing.T) {
 	ascDashAgentsLoad = func(*context.Context, *user_model.User) ([]AscDashAgent, int, error) {
 		return []AscDashAgent{
 			{Title: "docs and metrics", Agent: "coder-2", Repo: "acme/payments", Link: "/user2/repo1/asc/agents/runs/214", State: ascagentui.State{Slug: "running", Key: "asc_review.run_state_running", Tone: "run", Active: true}, Percent: 58, Meter: "58% of time: 6m of 20m"},
-			{Title: "currency tables", Agent: "coder-1", Repo: "acme/payments", Link: "/user2/repo1/asc/agents/runs/213", State: ascagentui.State{Slug: "waiting", Key: "asc_review.run_state_waiting", Tone: "wait", Active: true}, Percent: 31, Meter: "31% of time: 4m of 30m", InputLink: "/user2/repo1/asc/agents/runs/213/input"},
+			{Title: "currency tables", Agent: "coder-1", Repo: "acme/payments", Link: "/user2/repo1/asc/agents/runs/213", State: ascagentui.State{Slug: "waiting", Key: "asc_review.run_state_waiting", Tone: "wait", Active: true}, Percent: 31, Meter: "31% of time: 4m of 30m", InputLink: "/user2/repo1/asc/agents/runs/213/input", Question: "Should refunds use the same retry policy?"},
 			{Title: "first pass on web-app #88", Agent: "reviewer-1", Repo: "acme/web-app", Link: "/user2/repo1/asc/agents/runs/212", State: ascagentui.State{Slug: "running", Key: "asc_review.run_state_running", Tone: "run", Active: true}, Percent: 82, Meter: "82% of time: 2m of 10m"},
 		}, 1, nil
 	}
+	oldReply, oldJoin, oldRestack := ascDashReplyLoad, ascDashJoinLoad, ascDashRestackLoad
+	ascDashReplyLoad = func(_ gocontext.Context, e *AscInboxEntry) *AscDashQuote {
+		if e.PullID == 9001 {
+			return &AscDashQuote{Who: "Dana Reyes", Text: "Can the cursor be opaque? Clients should not parse it."}
+		}
+		return nil
+	}
+	ascDashJoinLoad = func(gocontext.Context, *user_model.User, *AscInboxEntry) (int, string) { return 2, "9 min" }
+	ascDashRestackLoad = func(_ gocontext.Context, _ *user_model.User, e *AscInboxEntry, _ time.Time, _ map[int64]ascDashRestack) ascDashRestack {
+		if e.PullID == 8 {
+			return ascDashRestack{Done: 2, Total: 4}
+		}
+		return ascDashRestack{}
+	}
 	t.Cleanup(func() {
 		ascInboxLoad, ascInboxInfoLoad, ascDashAgentsLoad, ascDashQueueable = oldLoad, oldInfo, oldAgents, oldQueueable
+		ascDashReplyLoad, ascDashJoinLoad, ascDashRestackLoad = oldReply, oldJoin, oldRestack
 	})
 }
 

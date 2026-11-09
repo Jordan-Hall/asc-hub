@@ -6,6 +6,7 @@ package user
 import (
 	gocontext "context"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -165,6 +166,13 @@ func TestAscDashPage(t *testing.T) {
 	// a run that waits for the person is answered on the dashboard
 	assert.Contains(t, html, `action="/user2/repo1/asc/agents/runs/213/input" data-asc-dash-answer`)
 	assert.NotContains(t, html, `data-asc-dash-undo`, "no toast without ?queued=")
+	// each kind of row shows what it is about
+	assert.Contains(t, html, `<blockquote class="wk-need-quote" data-asc-dash-quote><span class="ds-sr">Dana Reyes replied: </span><b aria-hidden="true">Dana Reyes</b> Can the cursor be opaque? Clients should not parse it.</blockquote>`)
+	assert.Contains(t, html, "Joins the merge queue as number 2 · about 9 min")
+	assert.Contains(t, html, `<span class="ds-chip">Trunk moved</span>`)
+	assert.Contains(t, html, "asc restacked 2 of 4")
+	assert.Contains(t, html, `data-asc-dash-question><span class="ds-sr">coder-1 asks: </span>Should refunds use the same retry policy?</blockquote>`)
+	assert.Equal(t, 1, strings.Count(html, "data-asc-dash-quote"), "only the change that came back quotes a reply")
 
 	t.Run("after Add to merge queue the toast can undo", func(t *testing.T) {
 		old := ascInboxLoad
