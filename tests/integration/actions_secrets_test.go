@@ -438,7 +438,7 @@ func TestActionsSecretsPage(t *testing.T) {
 	assert.True(t, ok)
 	assert.Contains(t, confirm, "DEPLOY_TOKEN")
 	doc.AssertElement(t, `#dialog-secret-name[readonly]`, true)
-	doc.AssertElement(t, `#dialog-secret-data[required]`, true)
+	doc.AssertElement(t, `#dialog-secret-data[required]`, false)
 }
 
 // Board RepoSettingsSecrets: each row says who last set the value and when.

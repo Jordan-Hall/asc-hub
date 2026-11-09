@@ -7,8 +7,11 @@ import (
 	"testing"
 
 	actions_model "forgejo.org/models/actions"
+	"forgejo.org/models/db"
 	secret_model "forgejo.org/models/secret"
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
+	"forgejo.org/modules/ascscope"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -105,4 +108,34 @@ func TestGetSecretsOfJob(t *testing.T) {
 			assert.Equal(t, tt.secrets, actualSecrets)
 		})
 	}
+}
+
+// A job of a run an agent started receives only the secrets ticked for Agent runs.
+func TestGetSecretsOfJobForAgentRuns(t *testing.T) {
+	defer unittest.OverrideFixtures("services/actions/TestGetSecretsOfJob")()
+	require.NoError(t, unittest.PrepareTestDatabase())
+	ctx := t.Context()
+
+	plain, err := secret_model.InsertEncryptedSecret(ctx, 2, 0, "secret_1", "the sky is blue")
+	require.NoError(t, err)
+	forAgents, err := secret_model.InsertEncryptedSecret(ctx, 0, 63, "secret_2", "the ocean is also blue")
+	require.NoError(t, err)
+	_, err = db.GetEngine(ctx).ID(5).Cols("type").Update(&user_model.User{Type: user_model.UserTypeBot})
+	require.NoError(t, err)
+	_, err = db.GetEngine(ctx).ID(900).Cols("trigger_user_id").Update(&actions_model.ActionRun{TriggerUserID: 5})
+	require.NoError(t, err)
+
+	job := func() map[string]string {
+		runJob := unittest.AssertExistsAndLoadBean(t, &actions_model.ActionRunJob{ID: 600})
+		got, err := getSecretsOfJob(ctx, runJob)
+		require.NoError(t, err)
+		return got
+	}
+	assert.Empty(t, job(), "secrets made without Agent runs ticked")
+
+	require.NoError(t, secret_model.SetScopes(ctx, forAgents.ID, ascscope.AllScopes))
+	assert.Equal(t, map[string]string{"SECRET_2": "the ocean is also blue"}, job())
+
+	require.NoError(t, secret_model.SetScopes(ctx, plain.ID, ascscope.ScopeAgents))
+	assert.Equal(t, map[string]string{"SECRET_1": "the sky is blue", "SECRET_2": "the ocean is also blue"}, job())
 }
