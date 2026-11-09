@@ -67,6 +67,14 @@ stacks, Agent activity, Starred, Templates and Archived.
 A chip adds to the search text, the sort and the language. A search and the pager keep it. With no result, the empty
 state names the chip with a link that removes it. Forks and Mirrors stay in the Sort and filter sheet.
 
+## Who contributes, on each row
+
+Each row of the repository lists shows a stack of up to four avatars: the people and agents that acted in the
+repository in the last 90 days, most active first. The stack is labelled with the total ("3 contributors in the last
+90 days"). An agent has a violet ring and its name reads "name (agent)". Each action counts once, even when the
+activity log copies it to the feed of every watcher. A person whose profile the viewer may not see (a private profile,
+seen by a visitor) is left out of the stack and the total. A repository without activity in the window has no stack.
+
 The chips are read by `routers/web/shared/repoquick` and filtered by `AscQuickFilter` in
 `models/repo/asc_quick_filter.go`. Tests: TestTheQuickChipsOfTheRepositoryLists, TestTheQuickChipsOfExplore.
 

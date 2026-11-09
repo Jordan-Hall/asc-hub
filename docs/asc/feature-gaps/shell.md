@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 161 |
+| done | 162 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 11 |
+| needs-hub-backend | 10 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -149,7 +149,7 @@ Open rows by size: S 0, M 21, L 14.
 | Explore | Row: owner avatar, name, visibility chip, description, topics, language, stars, updated, open-stacks chip | done | `explore/repo_list.tmpl` | - |
 | Explore | Agent activity chip on a row | needs-both | Not in `repo_list.tmpl`. Needs agent runs per repo over a recent window: asc `ListRuns` batched for a page, or a hub cache table fed by `services/ascsync` | M |
 | Explore | Changeset count on a row ("3,812 changesets") | needs-both | Row shows stars and forks only. asc has per-repo change data but no batch stats RPC; add `RepoStats` or cache in `services/ascsync` | M |
-| Explore | Contributor avatar stack on a row (people and agents) | needs-hub-backend | Not present. Top contributors from `models/activities` or `repo_model.GetContributors`, cached per repo; agents depend on the agent directory below | M |
+| Explore | Contributor avatar stack on a row (people and agents) | done | `models/activities/asc_contributors.go` ranks who acted in each repository of the page in the last 90 days (one count per action, agents as their bot accounts); `routers/web/shared/repoquick` hides profiles the viewer may not see and keeps four; `templates/explore/repo_list.tmpl` draws the stack with an agent ring | M |
 | Explore | Row actions on hover or focus-within: Copy clone command, Star | done | Neither on the row. Buttons with `data-clipboard-text` (`asc clone host/owner/name`) and the existing star action | S |
 | Explore | Right rail: Trending this week (changesets this week), Popular topics, Clone anything you can see | done | `templates/explore/rail.tmpl` (Trending this week, Popular topics, clone card), `models/repo/asc_trending.go` (weekly count, refreshed by a cron task). Audit 2026-11-05: found built | - |
 | Explore | States: loading skeleton, empty hub (New repository, Import), no results with removable filter chips and Clear filters, error with request id and Try again | done | `explore/repo_list.tmpl`: "No repositories yet" with New repository and Import a project (signed in); "Nothing matches" with the count of active filters, the removable chips and Clear filters; a failed search keeps the page and shows "We could not load this list" with the request id, Try again and Status page (`routers/web/explore/repo.go`, status 500). No skeleton: the list is server rendered. Tests `TestAscExploreLoadFailed`, `TestAscExploreEmptyHub`, `TestAscExploreNoMatch` | - |
