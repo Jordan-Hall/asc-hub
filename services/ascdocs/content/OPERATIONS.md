@@ -1143,3 +1143,36 @@ repository they can read. A draft that is gone, a repository they cannot read or
 the hub any more"; asc failing says "The draft could not be changed". Clicking twice changes nothing. Code:
 `routers/web/user/asc_drafts.go` (ascDraftsAct, ascDraftsSetHidden), `templates/user/asc_drafts.tmpl`. Tests:
 TestAscDraftsDiscardAndUndo, TestAscDraftsRefs.
+
+## Which runs receive a secret or variable
+
+Each Actions secret and variable, at the repository, organization, user and instance level, says which runs receive
+it: **Checks**, **Agent runs** and **Releases**. A run has exactly one of the three:
+
+- **Agent runs**: an agent (a bot account, see "Agents do not approve or merge") started the run, or opened the pull
+  request it runs for. For `pull_request_target` and comment or review events, which run the default branch's
+  workflow, the pull request's author is read from the event payload, since such a workflow can check out the pull
+  request's code.
+- **Releases**: otherwise, a run for a release event or a pushed tag.
+- **Checks**: every other run, including schedules and pushes a person made. The default branch holds only what
+  landed through review, so its workflows count as checks even when an agent wrote the change.
+
+A run whose starter or pull request author no longer exists (or is recorded as the ghost) has no scope and receives
+no secret or variable, because nobody can tell whether an agent was behind it. A run receives a secret or variable
+only when its scopes include the run's. A repository value the run may not have hides an owner or instance value of
+the same name, so a narrower value never falls back to a wider one.
+
+**On upgrade** (migration v19e) every existing secret and variable gets Checks and Releases. Runs an agent started
+stop receiving them until someone ticks **Agent runs** on the value. Check the workflows your agents trigger after
+upgrading. A new value starts with Checks and Releases too.
+
+The add and update dialogs have the three boxes ("Agents only receive it when Agent runs is ticked."); at least one
+must be ticked. The update dialog starts from the value's scopes. For a secret, its value can be left empty to change
+only the scopes. Each row shows the scopes as chips and who set it last, and the delete confirmation names the runs
+that lose it. The REST API sets values only: a new secret or variable gets Checks and Releases, and a change keeps the
+scopes it has. A form without the boxes (`scopes_sent`) keeps them too. Code: `modules/ascscope/scope.go`,
+`models/actions/asc_run_scope.go` (AscScope), `models/secret/secret.go` (FetchActionSecrets, SetScopes),
+`models/actions/variable.go` (GetVariablesOfRun, SetVariableMeta), `routers/web/shared/secrets/secrets.go`,
+`routers/web/shared/actions/variables.go`, `templates/shared/secrets/`, `templates/shared/variables/variable_list.tmpl`.
+Tests: TestAscRunScope, TestFetchActionSecretsByScope, TestGetVariablesOfRunByScope, TestGetSecretsOfJobForAgentRuns,
+TestActionsSecretsScopes, TestActionsVariablesScopes, Test_addAscRunScopes.
