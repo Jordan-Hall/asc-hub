@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 203, partial 27, missing 87. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 204, partial 26, missing 87. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -1071,7 +1071,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Issues (ASC Hub issues)
 
-Area repo. Rows 6: done 2, partial 0, missing 4. Copy found in the hub: 59% of 71 copy strings (mobile twin 57%). Template(s): filters.tmpl, labels.tmpl, list.tmpl, milestones.tmpl, new.tmpl, search.tmpl. Mobile twin: yes.
+Area repo. Rows 6: done 3, partial 0, missing 3. Copy found in the hub: 59% of 71 copy strings (mobile twin 57%). Template(s): filters.tmpl, labels.tmpl, list.tmpl, milestones.tmpl, new.tmpl, search.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Retries stampede the provider after an outage; Document the failover order for card providers; - opened Yesterday by Hannah Weiss; Webhook retries should back off per receiver; Timeout in sandbox gateway test is flaky.
 
@@ -1079,7 +1079,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | List with filters, sort, open/closed counts, label rail, milestone rail | done | templates/repo/issue/list.tmpl:110 | - |
 | Search accepts label: and author: filters and chips apply the same | missing (hub) | logged as not built (not re-probed) | modules/indexer/issues + routers/web/repo/issue_list.go keyword parser |
-| Row chips "Fixed by stack X", linked stack with state, "Quarantined by" flaky chip | missing (hub) | logged as not built (not re-probed) | link table issue to PullRequestAscStack (models/issues/pull_asc_stack.go), list.tmpl, queue quarantine data in routers/web/repo/a... |
+| Row chips "Fixed by stack X", linked stack with state, "Quarantined by" flaky chip | done | routers/web/repo/asc_issue_stacks.go, routers/web/repo/asc_issue_quarantine.go, services/asctrust/issuegroups.go, templates/shared/issuelist.tmpl | - |
 | Linking a stack closes the issue when it lands, with undo | missing (hub) | logged as not built (not re-probed) | landing path in routers/private/asc_request_merge.go + services/issue close; reopen action |
 | New issue as a dialog that keeps a draft ("Save as draft") | missing (UI) | logged as not built (not re-probed) | templates/repo/issue/new.tmpl is a page; localStorage draft in repo-issue.js |
 | No results with "Clear filters", loading skeleton | done | templates/shared/issuelist.tmpl, web_src/js/features/issue-list-loading.js, TestIssueListNoResults | - |
