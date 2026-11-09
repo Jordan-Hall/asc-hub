@@ -28,6 +28,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascagentui"
+	"forgejo.org/services/automerge"
 	"forgejo.org/services/context"
 )
 
@@ -70,6 +71,10 @@ type AscDashRow struct {
 	Updated time.Time
 	Action  string // "Merge" on a row that is ready to land, else empty
 	PullID  int64  // the pull request of an inbox entry, which the row can mark done or snooze; 0 for an agent run
+	// Do is what the row's button does in place (POST /-/asc/dash/act): "approve" for a review asked of the person,
+	// "queue" for a change ready to land in a repository with the asc merge queue. Empty: the button is ActLink.
+	Do      string
+	ActLink string // where the button goes when Do is empty: the reply box, the conflicts or the pull request
 }
 
 // AscDashSeg is one change of a stack.
@@ -95,6 +100,8 @@ type AscDashAgent struct {
 	State   ascagentui.State
 	Percent int    // the fullest limited meter, 0 when nothing is limited
 	Meter   string // "58% budget - 6 of 20 min", empty when nothing is limited
+	// InputLink answers a run that waits for the person (POST, field text); empty for a run that does not wait.
+	InputLink string
 }
 
 // AscDashRepo is a repository of the sidebar.
@@ -130,6 +137,29 @@ type AscDash struct {
 	Scopes       []AscDashScope
 	Queue        []AscDashQueueRow
 	Scope        string
+	Queued       *AscInboxEntry // the change just added to the merge queue (?queued=), for the toast that can undo it
+}
+
+// ascDashQueueable reports whether the pull request of e lands through the asc merge queue, so its row can add it
+// there in place. Tests replace it.
+var ascDashQueueable = ascDashQueueableFromModels
+
+func ascDashQueueableFromModels(ctx gocontext.Context, e *AscInboxEntry) bool {
+	pr, err := issues_model.GetPullRequestByID(ctx, e.PullID)
+	if err != nil {
+		log.Warn("asc dashboard: pull request %d: %v", e.PullID, err)
+		return false
+	}
+	if err := pr.LoadBaseRepo(ctx); err != nil {
+		log.Warn("asc dashboard: repository of pull request %d: %v", e.PullID, err)
+		return false
+	}
+	ok, err := automerge.AscQueueBackedBy(pr.BaseRepo)
+	if err != nil {
+		log.Warn("asc dashboard: the queue of %s: %v", pr.BaseRepo.FullName(), err)
+		return false
+	}
+	return ok && !pr.BaseRepo.IsArchived
 }
 
 // ascDashAgentsLoad returns the agents working now. Tests replace it.
@@ -239,10 +269,15 @@ func ascDashRowFor(l translation.Locale, e *AscInboxEntry, info *AscInboxInfo) A
 	switch e.Section {
 	case issues_model.AscInboxNeedsReview:
 		row.Chips = append([]AscDashChip{{"amber", l.TrString("user.asc_dash.review_asked")}}, row.Chips...)
+		row.Do = "approve"
 	case issues_model.AscInboxReturned:
 		row.Chips = append([]AscDashChip{{"amber", l.TrString("user.asc_dash.changes_asked")}}, row.Chips...)
+		row.ActLink = e.Link + "#issue-comment-form"
 	case issues_model.AscInboxReady:
 		row.Action = l.TrString("user.asc_dash.merge")
+	}
+	if row.ActLink == "" {
+		row.ActLink = e.Link
 	}
 	return row
 }
@@ -308,6 +343,14 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 	}
 	d.NeedsCount = len(actionable)
 	d.Queue = ascDashQueue(ctx, doer, entries, ctx.Locale)
+	if q := ctx.FormInt64("queued"); q > 0 {
+		for _, e := range entries {
+			if e.PullID == q && e.Section == issues_model.AscInboxQueued {
+				d.Queued = e
+				break
+			}
+		}
+	}
 
 	if d.AgentsOn {
 		agents, waiting, err := ascDashAgentsLoad(ctx, doer)
@@ -326,7 +369,11 @@ func ascDashBuild(ctx *context.Context, now time.Time) *AscDash {
 		if i == ascDashMaxRows {
 			break
 		}
-		d.Rows = append(d.Rows, ascDashRowFor(ctx.Locale, e, ascInboxInfoLoad(ctx, e)))
+		row := ascDashRowFor(ctx.Locale, e, ascInboxInfoLoad(ctx, e))
+		if e.Section == issues_model.AscInboxReady && ascDashQueueable(ctx, e) {
+			row.Do = "queue"
+		}
+		d.Rows = append(d.Rows, row)
 	}
 	d.Stacks, d.StackCount = ascDashStacks(ctx, doer, ctx.Locale)
 	d.Stacks = slices.DeleteFunc(d.Stacks, func(s AscDashStack) bool { return !ascScopeKeep(scope, doer.Name, ascOwnerOf(s.Link)) })
@@ -623,6 +670,9 @@ func ascDashAgentFrom(l translation.Locale, repo *repo_model.Repository, run *as
 		Repo:  repo.FullName(),
 		Link:  repo.Link() + "/asc/agents/runs/" + strconv.FormatUint(run.GetId(), 10),
 		State: ascagentui.RunState(run.GetState()),
+	}
+	if a.State.Slug == "waiting" {
+		a.InputLink = a.Link + "/input"
 	}
 	var fullest *ascagentui.Meter
 	meters := ascagentui.Meters(run.GetLimits(), run.GetUsage())

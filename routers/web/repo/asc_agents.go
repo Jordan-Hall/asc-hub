@@ -18,6 +18,7 @@ import (
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/setting"
 	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/context"
@@ -984,6 +985,10 @@ func AscAgentsInput(ctx *context.Context) {
 	}
 	ascAgentsLimitBody(ctx)
 	back := env.runsLink() + "/runs/" + strconv.FormatUint(id, 10)
+	if ctx.FormString("back") == "dash" {
+		// the answer of a waiting run on the dashboard goes back there
+		back = setting.AppSubURL + "/"
+	}
 	text, ok := ascagentui.CheckFreeText(ctx.FormString("text"), ascagentui.MaxInputBytes)
 	if !ok {
 		ctx.Flash.Error(ctx.Locale.TrString("asc_agentui.form.message"))

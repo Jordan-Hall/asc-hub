@@ -310,6 +310,26 @@
   margin-top: 6px;
 }
 
+/* the answer to a run that waits for the person */
+.wk-agent-answer {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.wk-agent-answer-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-agent-answer-field .ds-input {
+  width: 100%;
+}
+
+.wk-need-acts form {
+  display: contents;
+}
+
 @media (min-width: 768px) {
   .wk-agents {
     grid-template-columns: repeat(3, minmax(0, 1fr));
