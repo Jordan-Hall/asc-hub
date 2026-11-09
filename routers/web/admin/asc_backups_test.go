@@ -37,6 +37,8 @@ type fakeBackups struct {
 	mu       sync.Mutex
 	features []string
 	reqs     []any
+	// list, when set, is what ListBackups answers instead of the default page.
+	list *ascv1.ListBackupsResponse
 }
 
 func (f *fakeBackups) note(r any) {
@@ -57,6 +59,12 @@ func (f *fakeBackups) Version(gocontext.Context, *ascv1.VersionRequest) (*ascv1.
 
 func (f *fakeBackups) ListBackups(_ gocontext.Context, r *ascv1.ListBackupsRequest) (*ascv1.ListBackupsResponse, error) {
 	f.note(r)
+	f.mu.Lock()
+	list := f.list
+	f.mu.Unlock()
+	if list != nil {
+		return list, nil
+	}
 	return &ascv1.ListBackupsResponse{
 		Backups: []*ascv1.Backup{
 			{Id: goodBackupID, State: ascv1.BackupState_BACKUP_STATE_SUCCEEDED, Trigger: ascv1.BackupTrigger_BACKUP_TRIGGER_SCHEDULE, Target: "nas", Started: 1790812800, Finished: 1790812900, SizeBytes: 5 << 20, Verify: ascv1.BackupVerify_BACKUP_VERIFY_VERIFIED, Restorable: true, Note: "Restore test <b>passed</b>"},
@@ -270,4 +278,65 @@ func TestTheDashboardOffersABackupWhenBackupsAreOverdue(t *testing.T) {
 	_, ok := backupAttention(ctx)
 	assert.False(t, ok)
 	assert.Equal(t, n, f.calls())
+}
+
+// Board AdminBackups notes: the healthy, failed (banner and Retry), running (progress), never-run (set up) and restore
+// confirmation states; retention in plain words; restore needs RESTORE typed and says the server is read-only.
+func TestAscBackupsBoardNotes(t *testing.T) {
+	f := startBackups(t, asctrust.FeatureBackups)
+	schedule := &ascv1.BackupSchedule{Enabled: true, IntervalHours: 24, MinuteOfDay: 120, Target: "nas", KeepDays: 14, KeepWeeks: 8}
+	board := func(t *testing.T, list *ascv1.ListBackupsResponse) string {
+		t.Helper()
+		f.mu.Lock()
+		f.list = list
+		f.mu.Unlock()
+		r := runBackups(t, "GET", 1, nil, "", Backups)
+		require.Equal(t, http.StatusOK, r.status, r.body)
+		return r.body
+	}
+	verified := &ascv1.Backup{Id: goodBackupID, State: ascv1.BackupState_BACKUP_STATE_SUCCEEDED, Target: "nas", Started: 1790812800, Finished: 1790812900, SizeBytes: 5 << 20, Verify: ascv1.BackupVerify_BACKUP_VERIFY_VERIFIED, Restorable: true, Note: "Restore test passed"}
+
+	t.Run("healthy", func(t *testing.T) {
+		body := board(t, &ascv1.ListBackupsResponse{Backups: []*ascv1.Backup{verified}, Schedule: schedule, Status: &ascv1.BackupStatus{Configured: true, LastSuccess: 1790812900}})
+		for _, gone := range []string{"asc-backups-overdue", "asc-backups-failing", "asc-backups-progress", "asc-backups-unconfigured", ">asc_shell.bk_retry<"} {
+			assert.NotContains(t, body, gone)
+		}
+		assert.Contains(t, body, `/admin/asc/backups/`+goodBackupID+`/restore`)
+		assert.Contains(t, body, "Restore test passed")
+		assert.Contains(t, body, `>asc_shell.bk_kept<`, "retention is a sentence (UTC. Kept 14 days, then weekly for 8 weeks.)")
+		assert.NotContains(t, body, `<details class="ds-card adm-bk-edit" open>`, "the schedule form stays closed once set up")
+	})
+
+	t.Run("failed: a banner with the note and Retry on the row", func(t *testing.T) {
+		failed := &ascv1.Backup{Id: "bk_zzzzzzzzzzzzzzzzzzzz", State: ascv1.BackupState_BACKUP_STATE_FAILED, Target: "nas", Started: 1790899200, Note: "Target unreachable"}
+		body := board(t, &ascv1.ListBackupsResponse{Backups: []*ascv1.Backup{failed, verified}, Schedule: schedule, Status: &ascv1.BackupStatus{Configured: true, LastSuccess: 1790812900, LastFailure: 1790899300}})
+		assert.Contains(t, body, `data-testid="asc-backups-failing"`)
+		assert.Contains(t, body, "asc_shell.bk_attention_text Target unreachable.")
+		assert.Contains(t, body, `>asc_shell.bk_retry<`)
+	})
+
+	t.Run("running: progress and Back up now off", func(t *testing.T) {
+		running := &ascv1.Backup{Id: "bk_rrrrrrrrrrrrrrrrrrrr", State: ascv1.BackupState_BACKUP_STATE_RUNNING, Target: "nas", Started: 1790899200, DoneBytes: 1 << 20, TotalBytes: 4 << 20}
+		body := board(t, &ascv1.ListBackupsResponse{Backups: []*ascv1.Backup{running, verified}, Schedule: schedule, Status: &ascv1.BackupStatus{Configured: true, Running: true, LastSuccess: 1790812900}})
+		assert.Contains(t, body, `data-testid="asc-backups-progress"`)
+		assert.Contains(t, body, `<progress class="ds-bar" max="100" value="25"`)
+		assert.Contains(t, body, `type="submit" disabled aria-disabled="true">`)
+	})
+
+	t.Run("never run: set up first, nothing in the history", func(t *testing.T) {
+		body := board(t, &ascv1.ListBackupsResponse{Schedule: &ascv1.BackupSchedule{}, Status: &ascv1.BackupStatus{}})
+		assert.Contains(t, body, `data-testid="asc-backups-unconfigured"`)
+		assert.Contains(t, body, `data-testid="asc-backups-empty"`)
+		assert.Contains(t, body, `<details class="ds-card adm-bk-edit" open>`, "the schedule form is open to set up")
+		assert.NotContains(t, body, `data-testid="asc-backups-history"`)
+	})
+
+	t.Run("restore confirmation", func(t *testing.T) {
+		r := runBackups(t, "GET", 1, nil, goodBackupID, AscBackupsRestoreForm)
+		require.Equal(t, http.StatusOK, r.status, r.body)
+		assert.Contains(t, r.body, "asc_shell.bk_restore_readonly", "the warning says the server is read-only")
+		assert.Contains(t, r.body, `required pattern="RESTORE"`, "the word must be typed")
+		assert.Contains(t, r.body, `>asc_shell.bk_restore_stage<`)
+		assert.NotContains(t, r.body, `data-testid="asc-restore-unverified"`)
+	})
 }
