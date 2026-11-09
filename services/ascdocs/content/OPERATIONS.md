@@ -794,7 +794,8 @@ your plan", with a meter (amber from 80%, red when full) and **Use my own bucket
 or to Add a target when the repository has none it may use. The plan is the hub's quota: the limit on repository data
 (`size:git:all`, or a rule on `size:all` that contains it) of the owner's quota groups, the group that leaves the
 most room, or `[quota.default] TOTAL` when the owner is in no group. Without a limit, or with quotas off, there is no
-plan line.
+plan line. The plan counts every repository of the owner, so only people who administer the owner (the user
+themselves, an organisation owner or a site admin) see it; other repository admins see the usage without it.
 
 asc says where the repository keeps its objects (the server's storage or a target, and an earlier place objects
 are still in until a migration moves them) and how much it keeps. Each time the page is shown, the hub records asc's
