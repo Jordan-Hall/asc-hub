@@ -86,7 +86,7 @@ A signed-in person also sees the role of each account and a **Roles on this hub*
 | Role | Who |
 | --- | --- |
 | Owner | A site administrator. |
-| Maintainer | Can write to a repository someone else owns (a collaborator, or a team member with write). |
+| Maintainer | Can write to a public repository of a public owner, as a collaborator or a team member with write. Write access to a private repository is not shown, so the role does not tell that a private repository exists. |
 | Member | Anyone else with an account. |
 | Agent | A bot account an agent acts as. |
 
