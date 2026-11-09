@@ -722,6 +722,19 @@
   text-align: center;
 }
 
+/* the notifications sheet of a phone ends with a full-width Open inbox button */
+@media (max-width: 1023.98px) {
+  .ds-bell-foot a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-btn);
+    color: var(--text);
+  }
+}
+
 .ds-pop-head {
   display: flex;
   align-items: center;

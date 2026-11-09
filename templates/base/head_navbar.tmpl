@@ -381,7 +381,8 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 {{/* the bottom navigation of a phone: Inbox, Changes, Explore, Search, Me */}}
 {{if and .IsSigned (not .HideNavbarLinks)}}
 <nav class="ds-bnav" aria-label="{{ctx.Locale.Tr "asc_shell.bottom_nav"}}">
-	<a href="{{$inboxHref}}"{{if or .PageIsAscInbox .PageIsNotifications}} aria-current="page"{{end}}>
+	{{/* on a phone the Inbox tab opens the notifications sheet (#ds-bell, Open inbox at its foot); without script, and on the inbox itself, it is a link */}}
+	<a href="{{$inboxHref}}"{{if or .PageIsAscInbox .PageIsNotifications}} aria-current="page"{{else if and .IsSigned AscEnabled}} data-ds-open="ds-bell" aria-haspopup="dialog" aria-controls="ds-bell" aria-expanded="false" data-testid="bnav-inbox-sheet"{{end}}>
 		{{svg "dsi-inbox" 22}}
 		<span>{{ctx.Locale.Tr "user.asc_inbox"}}</span>
 		{{if AscEnabled}}<span class="ds-pip tw-hidden" data-asc-count-url="{{AppSubUrl}}/-/asc/inbox/count" data-asc-count></span>{{end}}
