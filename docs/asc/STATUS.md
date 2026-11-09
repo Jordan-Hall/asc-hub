@@ -25,7 +25,7 @@ After this audit, as synced from the gap rows on 2026-11-09 (every element row w
 | auth | 6 | 40 | 40 | 0 | 0 | 100% |
 | **all** | 94 | 845 | 845 | 0 | 0 | 100% |
 
-Missing rows by kind of work: UI 140, hub 130, asc 14, hub+asc 79. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work at the audit: UI 140, hub 130, asc 14, hub+asc 79; all are done now. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -44,19 +44,19 @@ Copy match across all 95 desktop boards (copy-like strings found in the hub): Ne
 
 Other findings that cross boards:
 
-- Review threads never reach asc: the hub does not call `Review.ListThreads`, `AddComment`, `ResolveThread`, `RequestReview`, `SetBrief`, `CompareVersions`, `PrepareSuggestion`, `MarkSuggestionApplied`, `SuggestReviewers`, `DraftContext`, `HunkContext` (11 RPCs that exist in asc), so an `asc` client does not see hub comments and suggestions cannot be applied as a new version.
-- The hub has no client for the asc `Releases` service (`ascv1.NewReleasesClient` is never built); release notes, provenance and checksums on the Releases board are Forgejo data. Also never called: `Ci.JobLog`, `Ci.CompareWithMain`, `DepsService.SetConfig`, `DataExport.GetExport`, `Agents.GetPerson`, `MergeQueue.SetPaused` (the hub pauses through `services/automerge`; check it reaches asc).
+- Resolved since the audit (re-checked 2026-11-09): the hub calls every Review RPC the audit listed (`ListThreads`, `AddComment`, `ResolveThread`, `RequestReview`, `SetBrief`, `CompareVersions`, `PrepareSuggestion`, `MarkSuggestionApplied`, `SuggestReviewers`, `DraftContext`, `HunkContext`), the asc `Releases` service (services/asctrust/releases.go), `Ci.CompareWithMain` (services/asctrust/cistats.go) and `DataExport.GetExport` (services/asctrust/account.go).
+- Not called on purpose, because the hub owns the data: `Ci.JobLog` (checks run on the hub, which serves their logs and reports each run to asc with `Ci.ReportRun`), `MergeQueue.SetPaused` (the queue is the hub's, services/automerge/asc_stack_queue.go `AscQueueSetPaused`), `DepsService.SetConfig` (the settings are a file in the repository; the page shows its source) and `Agents.GetPerson` (asc serves it and asks the hub, routers/private/asc_agent_profile.go).
 - `UI-COVERAGE.md` claims 95 of 95 boards are design system and 0 partial. That measures class names. By behaviour and copy no board is complete (section 3).
 - `FEATURE-ROADMAP.md` counts table shows zeros and must be replaced by the table in section 1 (it is outside the files I may edit here).
 - `QA-REPORT.md` lists open defects O1 to O15 from an older tree; re-run the journeys (work unit WU-30).
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 266, partial 11, missing 40. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 157, partial 21, missing 96. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
-- **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
-- **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
-- **auth**: 6 boards, 40 rows, done 30, partial 4, missing 6. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
+- **shell/settings**: 47 boards, 317 rows, done 317, partial 0, missing 0. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **repo**: 24 boards, 274 rows, done 274, partial 0, missing 0. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **review**: 5 boards, 88 rows, done 88, partial 0, missing 0. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
+- **agents-ops**: 12 boards, 126 rows, done 126, partial 0, missing 0. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
+- **auth**: 6 boards, 40 rows, done 40, partial 0, missing 0. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
 
 Cross-cutting mobile rows (not tied to one board) are counted in the area they belong to and listed in section 6.
 
