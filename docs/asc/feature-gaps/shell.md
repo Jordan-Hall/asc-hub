@@ -12,11 +12,11 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 172 |
+| done | 173 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 23 |
+| needs-both | 22 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -32,7 +32,7 @@ Open rows by size: S 0, M 21, L 14.
 | Shell | Signed-in header: Changes, Agents, Explore, Download, search field with `/` and Ctrl K hints, Inbox, Create, Account | done | `head_navbar.tmpl` | - |
 | Shell | Active link: white label, 2px cyan marker, `aria-current=page` | done | `head_navbar.tmpl`, `web_src/css/asc-ds` | - |
 | Shell | Inbox amber count from `/-/asc/inbox/count`, cached 60 s | done | `asc-keys.js` `initAscInboxBadge` | - |
-| Shell | "N agents running" pill in the header (cyan dot, links to Agents) and in the mobile top bar | needs-both | Not in any template or locale. Hub: `GET /-/asc/agents/count` beside `AscInboxCount`, pill in `head_navbar.tmpl` (desktop and `.ds-topbar`), poll in `asc-keys.js`. `ascAgentsActive` fans out to 8 repos with a 4 s timeout: too heavy for every page, so asc needs a cheap per-user run count (`agents.proto`, `ListRuns` without repo or a `CountRuns`) | M |
+| Shell | "N agents running" pill in the header (cyan dot, links to Agents) and in the mobile top bar | done | `templates/base/head_navbar.tmpl` (desktop and `.ds-topbar`), `GET /-/asc/agents/count` (`routers/web/user/asc_agents_count.go`, one asc `Agents.CountRuns` call, cached 30 s), `initAscAgentsPill` in `asc-keys.js` | - |
 | Shell | Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo, age, Open inbox) | done | `routers/web/user/asc_bell.go` (`GET /-/asc/bell` fragment, `POST /-/asc/bell/read`, `GET /-/asc/bell/open/{id}`), `templates/user/notification/asc_bell.tmpl`, `#ds-bell` in `head_navbar.tmpl`, `web_src/js/features/asc-bell.js`. Agent, check, queue, restack and policy events from asc serve (`asc_notify_log`, read state added by migration) are listed with hub notifications and counted live by the event source | - |
 | Shell | Account menu: identity, profile, inbox with count, agents, settings, Appearance (Light, Dark, Auto), Density (Comfy, Compact), Documentation, Sign out | done | `head_navbar.tmpl` `#ds-account`, `head_style.tmpl` | - |
 | Shell | Theme and density persist per person: localStorage, then the account setting | done | `POST /-/asc/prefs` (`routers/web/user/asc_prefs.go`) saves the theme with the account and the density as the `asc.density` setting (`models/user/asc_prefs.go`); `head_style.tmpl` applies the values of the account before the first paint and copies them to `localStorage`; `web_src/js/features/asc-prefs.js` saves each change | - |

@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 217, partial 23, missing 77. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 218, partial 23, missing 76. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -684,7 +684,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Shell (ASC Hub shell: header, menus, palette, footer)
 
-Area shell/settings. Rows 23: done 19, partial 1, missing 3. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
+Area shell/settings. Rows 23: done 20, partial 1, missing 2. Copy found in the hub: 64% of 171 copy strings. Template(s): footer_content.tmpl, head_navbar.tmpl. Mobile twin: no.
 
 Board copy not found word for word in locale, templates or scripts: Four links, one clear way in; Search always one key away, Inbox always one click away; Account, create and notifications; New changeset; Mark all read; approved Backoff with jitter.
 
@@ -695,7 +695,7 @@ Board copy not found word for word in locale, templates or scripts: Four links, 
 | Signed-in header: Changes, Agents, Explore, Download, search field with / and Ctrl K hints, In... | done | templates/base/head_navbar.tmpl:3 | - |
 | Active link: white label, 2px cyan marker, aria-current=page | done | templates/base/head_navbar.tmpl:85 | the where-cell cites aria-current=page, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Inbox amber count from /-/asc/inbox/count, cached 60 s | done | web_src/js/features/asc-keys.js:196 | - |
-| "N agents running" pill in the header (cyan dot, links to Agents) and in the mobile top bar | missing (hub+asc) | absent: no agents-running text in templates/base, locale, asc-keys.js, routers/web/web.go | Not in any template or locale. Hub: GET /-/asc/agents/count beside AscInboxCount, pill in head_navbar.tmpl (desktop and .ds-topba... |
+| "N agents running" pill in the header (cyan dot, links to Agents) and in the mobile top bar | done | templates/base/head_navbar.tmpl, routers/web/user/asc_agents_count.go (Agents.CountRuns) | - |
 | Notifications bell opens a popover (unread count, Mark all read, items with avatar, text, repo... | done | routers/web/user/asc_bell.go, templates/user/notification/asc_bell.tmpl, web_src/js/features/asc-bell.js | - |
 | Account menu: identity, profile, inbox with count, agents, settings, Appearance (Light, Dark,... | done | templates/base/head_navbar.tmpl:97 | the where-cell cites #ds-account, not in the tree (renamed or stale text); behaviour taken from the gap file |
 | Theme and density persist per person: localStorage, then the account setting | done | routers/web/user/asc_prefs.go, models/user/asc_prefs.go, templates/base/head_style.tmpl, web_src/js/features/asc-prefs.js | - |
@@ -1592,7 +1592,7 @@ Board copy not found word for word in locale, templates or scripts: asks to writ
 | Sub-navigation Runs / Workflows / Access / Spend | done | templates/repo/asc_agents_nav.tmpl:2 | - |
 | Agent features off state with 'Turn on agent features' | done | templates/repo/asc_agents_notice.tmpl (file) | - |
 | Empty state; loading skeleton | missing (UI) | logged as not built (not re-probed) | templates/repo/asc_agents.tmpl (empty done; skeleton missing) |
-| Header pill 'N agents running' on every page | done | templates/repo/asc_agents_pill.tmpl (file) | - |
+| Header pill 'N agents running' on every page | done | templates/base/head_navbar.tmpl (`ds-agents-pill`; asc_agents_pill.tmpl is the run-state pill, not this) | - |
 
 #### Audit (ASC Hub audit log)
 
