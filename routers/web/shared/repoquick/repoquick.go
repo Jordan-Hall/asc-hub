@@ -75,8 +75,8 @@ type Contributors struct {
 
 // LoadContributors gives the rows of the list their contributor stack (ctx.Data["AscContributors"], keyed by
 // repository id): who acted in the repository in the last activities.AscContributorDays days, most active first,
-// agents (bot accounts) with people. A user whose profile the viewer may not see is left out. A failure is logged and
-// the rows show no stack.
+// agents (bot accounts) with people. A user who keeps their activity private, or whose profile the viewer may not
+// see, is left out (an admin and the user see them). A failure is logged and the rows show no stack.
 func LoadContributors(ctx *context.Context, repos repo_model.RepositoryList) {
 	if len(repos) == 0 {
 		return
@@ -95,7 +95,7 @@ func LoadContributors(ctx *context.Context, repos repo_model.RepositoryList) {
 	for repoID, users := range top {
 		c := &Contributors{}
 		for _, u := range users {
-			if !user_model.IsUserVisibleToViewer(ctx, u, ctx.Doer) {
+			if !activities_model.ActivityReadable(u, ctx.Doer) || !user_model.IsUserVisibleToViewer(ctx, u, ctx.Doer) {
 				continue
 			}
 			c.Total++
