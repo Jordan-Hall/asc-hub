@@ -463,6 +463,43 @@
   background: var(--hover);
 }
 
+.wk-snooze-menu button:disabled {
+  color: var(--text-3);
+  cursor: default;
+}
+
+.wk-snooze-menu button:disabled:hover {
+  background: transparent;
+}
+
+.wk-snooze-date {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 12px 4px;
+  border-top: 1px solid var(--line);
+}
+
+.wk-snooze-date-l {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.wk-snooze-date-row {
+  display: flex;
+  gap: 6px;
+}
+
+.wk-snooze-date-row .ds-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-snooze-menu .wk-snooze-date-row button {
+  width: auto;
+  min-height: 0;
+}
+
 .wk-inbox-first {
   padding: 0 var(--gutter);
 }

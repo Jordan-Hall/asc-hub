@@ -77,6 +77,9 @@ type Entry struct {
 	Conflicted    bool
 	ChecksFailing bool
 	Approved      bool
+	// HeadCommitID is the head commit of an open pull request; ChecksRunning is true while a check of it runs.
+	HeadCommitID  string
+	ChecksRunning bool
 }
 
 // Options selects what List returns.
@@ -197,6 +200,8 @@ func entryFor(ctx context.Context, doer *user_model.User, reducer authz.Authoriz
 		Conflicted:    facts.Conflicted,
 		ChecksFailing: facts.ChecksFailing,
 		Approved:      facts.Approved,
+		HeadCommitID:  facts.HeadCommitID,
+		ChecksRunning: ChecksRunning(ctx, pr.BaseRepoID, facts.HeadCommitID),
 	}, nil
 }
 
@@ -246,6 +251,23 @@ func Approved(ctx context.Context, pr *issues_model.PullRequest) bool {
 	return pull_service.HasEnoughApprovals(ctx, pb, pr)
 }
 
+// ChecksRunning reports whether a check of the commit sha runs (its latest status in the repository is pending).
+func ChecksRunning(ctx context.Context, repoID int64, sha string) bool {
+	if sha == "" {
+		return false
+	}
+	statuses, _, err := git_model.GetLatestCommitStatus(ctx, repoID, sha, db.ListOptionsAll)
+	if err != nil {
+		return false
+	}
+	for _, s := range statuses {
+		if s.State.IsPending() {
+			return true
+		}
+	}
+	return false
+}
+
 // queued reports whether pr sits in the merge queue (C39) and has not landed or been cancelled.
 func queued(ctx context.Context, pr *issues_model.PullRequest) bool {
 	n, err := db.GetEngine(ctx).
@@ -282,7 +304,7 @@ func Arrange(entries []*Entry, states map[int64]*issues_model.AscInboxState, now
 					continue
 				}
 				e.DoneAt = time.Unix(int64(st.DoneUnix), 0).UTC()
-			} else if st.IsSnoozed(now) {
+			} else if st.IsSnoozedFor(now, e.HeadCommitID, e.ChecksRunning) {
 				if !opts.IncludeSnoozed {
 					continue
 				}

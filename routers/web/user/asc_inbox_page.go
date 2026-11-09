@@ -104,9 +104,15 @@ type AscInboxDetail struct {
 	FilesURL  string
 	Pinned    bool
 	Snoozed   bool
-	Done      bool // the person marked it done: the pane offers Restore instead of Mark done
-	Info      *AscInboxInfo
-	Return    string // the tab, kept after a mark
+	// The snooze menu: Later today while it is before 17:00, When the checks finish while a check runs, and the
+	// days the date offers.
+	SnoozeToday  bool
+	SnoozeChecks bool
+	SnoozeFirst  string
+	SnoozeLast   string
+	Done         bool // the person marked it done: the pane offers Restore instead of Mark done
+	Info         *AscInboxInfo
+	Return       string // the tab, kept after a mark
 }
 
 // AscInboxPage is everything the template shows.
@@ -359,6 +365,10 @@ func ascAgentDashRow(l translation.Locale, a *AscDashAgent) AscDashRow {
 func ascInboxDetailFor(ctx *context.Context, row AscInboxRow, tab string) *AscInboxDetail {
 	e := row.Entry
 	d := &AscInboxDetail{Row: row, Return: tab, Pinned: e.Pinned, Done: !e.DoneAt.IsZero()}
+	now := time.Now()
+	_, d.SnoozeToday = ascInboxSnoozeUntil("today", "", now)
+	d.SnoozeChecks = e.ChecksRunning && e.HeadCommitID != ""
+	d.SnoozeFirst, d.SnoozeLast = ascInboxSnoozeDays(now)
 	d.Info = ascInboxInfoLoad(ctx, e)
 	d.Row.Dash = ascDashRowFor(ctx.Locale, e, d.Info)
 	if e.Section == issues_model.AscInboxNeedsReview {
@@ -480,20 +490,58 @@ func AscInboxRows(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, tplAscInboxLive)
 }
 
-// ascInboxSnoozeUntil turns the choice of the snooze menu into a time.
-func ascInboxSnoozeUntil(choice string, now time.Time) (time.Time, bool) {
+// The hours of the snooze menu, in the time zone of the hub: "Later today 17:00", and 09:00 for a day.
+const (
+	ascInboxSnoozeEvening = 17
+	ascInboxSnoozeMorning = 9
+)
+
+// ascInboxAt returns the day of t at hour, in the time zone of t.
+func ascInboxAt(t time.Time, hour int) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), hour, 0, 0, 0, t.Location())
+}
+
+// ascInboxSnoozeUntil turns the choice of the snooze menu into a time. on is the day of "date" (YYYY-MM-DD). A
+// choice that is not after now ("today" after 17:00, a day in the past) or beyond the longest snooze is refused.
+func ascInboxSnoozeUntil(choice, on string, now time.Time) (time.Time, bool) {
+	local := now.In(setting.DefaultUILocation)
+	var t time.Time
 	switch choice {
 	case "1h":
-		return now.Add(time.Hour), true
+		t = now.Add(time.Hour)
 	case "4h":
-		return now.Add(4 * time.Hour), true
+		t = now.Add(4 * time.Hour)
+	case "today":
+		t = ascInboxAt(local, ascInboxSnoozeEvening)
 	case "tomorrow":
-		t := now.In(setting.DefaultUILocation).AddDate(0, 0, 1)
-		return time.Date(t.Year(), t.Month(), t.Day(), 9, 0, 0, 0, t.Location()), true
+		t = ascInboxAt(local.AddDate(0, 0, 1), ascInboxSnoozeMorning)
+	case "monday":
+		days := (int(time.Monday) - int(local.Weekday()) + 7) % 7
+		if days == 0 {
+			days = 7
+		}
+		t = ascInboxAt(local.AddDate(0, 0, days), ascInboxSnoozeMorning)
 	case "week":
-		return now.AddDate(0, 0, 7), true
+		t = now.AddDate(0, 0, 7)
+	case "date":
+		d, err := time.ParseInLocation("2006-01-02", on, setting.DefaultUILocation)
+		if err != nil {
+			return time.Time{}, false
+		}
+		t = ascInboxAt(d, ascInboxSnoozeMorning)
+	default:
+		return time.Time{}, false
 	}
-	return time.Time{}, false
+	if !t.After(now) || t.After(now.Add(issues_model.AscInboxMaxSnooze)) {
+		return time.Time{}, false
+	}
+	return t, true
+}
+
+// ascInboxSnoozeDays returns the first and the last day the date of the snooze menu offers (YYYY-MM-DD).
+func ascInboxSnoozeDays(now time.Time) (first, last string) {
+	local := now.In(setting.DefaultUILocation)
+	return local.AddDate(0, 0, 1).Format("2006-01-02"), now.Add(issues_model.AscInboxMaxSnooze).In(setting.DefaultUILocation).Format("2006-01-02")
 }
 
 // AscInboxStatePost serves `POST /-/asc/inbox/state`: pin, unpin, snooze, wake, mark done, restore or unwatch one pull request of the
@@ -515,14 +563,14 @@ func AscInboxStatePost(ctx *context.Context) {
 		ctx.ServerError("ascInboxLoad", err)
 		return
 	}
-	found := false
+	var found *AscInboxEntry
 	for _, e := range entries {
 		if e.PullID == pullID {
-			found = true
+			found = e
 			break
 		}
 	}
-	if !found {
+	if found == nil {
 		ctx.NotFound("AscInboxStatePost", nil)
 		return
 	}
@@ -570,7 +618,18 @@ func AscInboxStatePost(ctx *context.Context) {
 		v := false
 		pinned = &v
 	case "snooze":
-		t, ok := ascInboxSnoozeUntil(ctx.FormString("for"), now)
+		if ctx.FormString("for") == "checks" {
+			// until the checks finish: when none runs any more the item stays where it is
+			if found.ChecksRunning && found.HeadCommitID != "" {
+				if _, err := issues_model.SetAscInboxSnoozeChecks(ctx, ctx.Doer.ID, pullID, found.HeadCommitID, now); err != nil {
+					ctx.ServerError("SetAscInboxSnoozeChecks", err)
+					return
+				}
+			}
+			ctx.Redirect(back)
+			return
+		}
+		t, ok := ascInboxSnoozeUntil(ctx.FormString("for"), ctx.FormString("on"), now)
 		if !ok {
 			ctx.Error(http.StatusBadRequest)
 			return

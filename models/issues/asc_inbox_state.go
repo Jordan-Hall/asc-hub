@@ -165,8 +165,11 @@ type AscInboxState struct {
 	PullID       int64              `xorm:"UNIQUE(user_pull) INDEX NOT NULL"`
 	Pinned       bool               `xorm:"NOT NULL DEFAULT false"`
 	SnoozedUntil timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"` // 0: not snoozed
-	DoneUnix     timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"` // when it was marked done; 0: not done
-	UpdatedUnix  timeutil.TimeStamp `xorm:"updated"`
+	// SnoozeHead, when set, is the head commit of the pull request at a snooze "when the checks finish": the
+	// snooze also ends once no check of the pull request runs, or the pull request has another head.
+	SnoozeHead  string             `xorm:"VARCHAR(64) NOT NULL DEFAULT ''"`
+	DoneUnix    timeutil.TimeStamp `xorm:"NOT NULL DEFAULT 0"` // when it was marked done; 0: not done
+	UpdatedUnix timeutil.TimeStamp `xorm:"updated"`
 }
 
 // TableName gives the table its name.
@@ -185,6 +188,18 @@ func (s *AscInboxState) IsSnoozed(now time.Time) bool {
 // request that changes again comes back to its section; the mark is then spent.
 func (s *AscInboxState) IsDone(updated time.Time) bool {
 	return s != nil && s.DoneUnix > 0 && updated.Unix() <= int64(s.DoneUnix)
+}
+
+// AscInboxChecksSnooze is the longest a snooze "when the checks finish" lasts when a check never finishes.
+const AscInboxChecksSnooze = 24 * time.Hour
+
+// IsSnoozedFor reports whether the snooze is still running at now for a pull request whose head is head and whose
+// checks run (running). A snooze "when the checks finish" ends as soon as no check runs or the head moved.
+func (s *AscInboxState) IsSnoozedFor(now time.Time, head string, running bool) bool {
+	if !s.IsSnoozed(now) {
+		return false
+	}
+	return s.SnoozeHead == "" || (running && head == s.SnoozeHead)
 }
 
 // ErrAscInboxBadSnooze is returned for a snooze time beyond AscInboxMaxSnooze.
@@ -229,12 +244,26 @@ func SetAscInboxState(ctx context.Context, userID, pullID int64, pinned *bool, s
 			next.Pinned = *pinned
 		}
 		if snoozedUntil != nil {
+			next.SnoozeHead = ""
 			if snoozedUntil.After(now) {
 				next.SnoozedUntil = timeutil.TimeStamp(snoozedUntil.Unix())
 			} else {
 				next.SnoozedUntil = 0
 			}
 		}
+	})
+}
+
+// SetAscInboxSnoozeChecks snoozes pullID for userID until no check of its head commit head runs, or it has another
+// head, at the latest AscInboxChecksSnooze after now. The caller has already checked that the user may see the pull
+// request and that its checks run.
+func SetAscInboxSnoozeChecks(ctx context.Context, userID, pullID int64, head string, now time.Time) (*AscInboxState, error) {
+	if head == "" || len(head) > 64 {
+		return nil, fmt.Errorf("bad head commit")
+	}
+	return changeAscInboxState(ctx, userID, pullID, func(next *AscInboxState) {
+		next.SnoozedUntil = timeutil.TimeStamp(now.Add(AscInboxChecksSnooze).Unix())
+		next.SnoozeHead = head
 	})
 }
 
@@ -246,6 +275,7 @@ func SetAscInboxDone(ctx context.Context, userID, pullID int64, done bool, now t
 		if done {
 			next.DoneUnix = timeutil.TimeStamp(now.Unix())
 			next.SnoozedUntil = 0
+			next.SnoozeHead = ""
 		}
 	})
 }
@@ -268,6 +298,9 @@ func changeAscInboxState(ctx context.Context, userID, pullID int64, change func(
 			*next = *cur
 		}
 		change(next)
+		if next.SnoozedUntil == 0 {
+			next.SnoozeHead = ""
+		}
 		empty := !next.Pinned && next.SnoozedUntil == 0 && next.DoneUnix == 0
 		switch {
 		case empty && cur != nil:
@@ -278,7 +311,7 @@ func changeAscInboxState(ctx context.Context, userID, pullID int64, change func(
 		case cur == nil:
 			_, err = e.Insert(next)
 		default:
-			_, err = e.ID(cur.ID).Cols("pinned", "snoozed_until", "done_unix").Update(next)
+			_, err = e.ID(cur.ID).Cols("pinned", "snoozed_until", "snooze_head", "done_unix").Update(next)
 		}
 		result = next
 		return err

@@ -168,16 +168,31 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 				<details class="wk-snooze" data-asc-snooze>
 					<summary class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "user.asc_inbox.snooze"}} <kbd class="ds-kbd ds-hide-md">s</kbd></summary>
 					<div class="wk-snooze-menu">
-						{{range $k := (StringUtils.Make "1h" "4h" "tomorrow" "week")}}
+						{{$d := $.AscInbox.Detail}}
+						{{range $k := (StringUtils.Make "today" "tomorrow" "monday" "checks")}}
+							{{$off := or (and (eq $k "today") (not $d.SnoozeToday)) (and (eq $k "checks") (not $d.SnoozeChecks))}}
 							<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
 								{{$.CsrfTokenHtml}}
-								<input type="hidden" name="pull" value="{{$.AscInbox.Detail.Row.Entry.PullID}}">
-								<input type="hidden" name="tab" value="{{$.AscInbox.Detail.Return}}">
+								<input type="hidden" name="pull" value="{{$d.Row.Entry.PullID}}">
+								<input type="hidden" name="tab" value="{{$d.Return}}">
 								<input type="hidden" name="do" value="snooze">
 								<input type="hidden" name="for" value="{{$k}}">
-								<button type="submit">{{ctx.Locale.Tr (printf "user.asc_inbox.snooze_%s" $k)}}</button>
+								<button type="submit" data-asc-snooze-for="{{$k}}"{{if $off}} disabled aria-describedby="wk-snooze-{{$k}}-off"{{end}}>{{ctx.Locale.Tr (printf "user.asc_inbox.snooze_%s" $k)}}</button>
+								{{if $off}}<span class="ds-sr" id="wk-snooze-{{$k}}-off">{{ctx.Locale.Tr (printf "user.asc_inbox.snooze_%s_off" $k)}}</span>{{end}}
 							</form>
 						{{end}}
+						<form class="wk-snooze-date" method="post" action="{{AppSubUrl}}/-/asc/inbox/state" data-asc-snooze-date>
+							{{$.CsrfTokenHtml}}
+							<input type="hidden" name="pull" value="{{$d.Row.Entry.PullID}}">
+							<input type="hidden" name="tab" value="{{$d.Return}}">
+							<input type="hidden" name="do" value="snooze">
+							<input type="hidden" name="for" value="date">
+							<label class="wk-snooze-date-l" for="wk-snooze-on">{{ctx.Locale.Tr "user.asc_inbox.snooze_date"}}</label>
+							<span class="wk-snooze-date-row">
+								<input class="ds-input" id="wk-snooze-on" type="date" name="on" required min="{{$d.SnoozeFirst}}" max="{{$d.SnoozeLast}}">
+								<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{ctx.Locale.Tr "user.asc_inbox.snooze_date_go"}}</button>
+							</span>
+						</form>
 					</div>
 				</details>
 				<form method="post" action="{{AppSubUrl}}/-/asc/inbox/state">
