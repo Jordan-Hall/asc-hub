@@ -11,6 +11,7 @@ import (
 
 	issues_model "forgejo.org/models/issues"
 	"forgejo.org/models/unittest"
+	"forgejo.org/modules/gitrepo"
 	"forgejo.org/modules/test"
 	"forgejo.org/services/automerge"
 	"forgejo.org/tests"
@@ -24,10 +25,21 @@ import (
 func TestTheDashboardRowsActInPlace(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
 	e := newAscQueueEnv(t)
-	act := func(s *TestSession, pull, do string, status int) *httptest.ResponseRecorder {
+	act := func(s *TestSession, pull, do string, status int, extra ...string) *httptest.ResponseRecorder {
 		t.Helper()
-		return s.MakeRequest(t, NewRequestWithValues(t, "POST", "/-/asc/dash/act", map[string]string{"pull": pull, "do": do}), status)
+		form := map[string]string{"pull": pull, "do": do}
+		for i := 0; i+1 < len(extra); i += 2 {
+			form[extra[i]] = extra[i+1]
+		}
+		return s.MakeRequest(t, NewRequestWithValues(t, "POST", "/-/asc/dash/act", form), status)
 	}
+	pr2 := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 2})
+	require.NoError(t, pr2.LoadBaseRepo(t.Context()))
+	g, err := gitrepo.OpenRepository(t.Context(), pr2.BaseRepo)
+	require.NoError(t, err)
+	head2, err := g.GetRefCommitID(pr2.GetGitRefName())
+	g.Close()
+	require.NoError(t, err)
 
 	t.Run("Add to merge queue, then Undo", func(t *testing.T) {
 		session := loginUser(t, "user2")
@@ -49,16 +61,28 @@ func TestTheDashboardRowsActInPlace(t *testing.T) {
 
 	t.Run("Approve", func(t *testing.T) {
 		session := loginUser(t, "user2")
-		resp := act(session, "2", "approve", http.StatusSeeOther)
+		resp := act(session, "2", "approve", http.StatusSeeOther, "head", head2)
 		assert.Equal(t, "/", test.RedirectURL(resp))
 		assert.Contains(t, ascFlash(t, session), "success=You approved user2/repo1#3.")
 		unittest.AssertExistsAndLoadBean(t, &issues_model.Review{IssueID: 3, ReviewerID: 2, Type: issues_model.ReviewTypeApprove})
 	})
 
+	t.Run("A head other than the one shown is not approved", func(t *testing.T) {
+		// user4 may read repo1; a push since the dashboard drew the row, or no head
+		// at all, leaves the pull request unapproved
+		session := loginUser(t, "user4")
+		before := unittest.GetCount(t, &issues_model.Review{IssueID: 3, ReviewerID: 4, Type: issues_model.ReviewTypeApprove})
+		for _, seen := range []string{"0000000000000000000000000000000000000000", ""} {
+			act(session, "2", "approve", http.StatusSeeOther, "head", seen)
+			assert.Contains(t, ascFlash(t, session), "error=This pull request changed since the dashboard showed it.")
+		}
+		assert.Equal(t, before, unittest.GetCount(t, &issues_model.Review{IssueID: 3, ReviewerID: 4, Type: issues_model.ReviewTypeApprove}))
+	})
+
 	t.Run("One's own pull request is not approved", func(t *testing.T) {
 		session := loginUser(t, "user1")
 		before := unittest.GetCount(t, &issues_model.Review{IssueID: 3, ReviewerID: 1, Type: issues_model.ReviewTypeApprove})
-		act(session, "2", "approve", http.StatusSeeOther)
+		act(session, "2", "approve", http.StatusSeeOther, "head", head2)
 		assert.Contains(t, ascFlash(t, session), "error=")
 		assert.Equal(t, before, unittest.GetCount(t, &issues_model.Review{IssueID: 3, ReviewerID: 1, Type: issues_model.ReviewTypeApprove}))
 	})

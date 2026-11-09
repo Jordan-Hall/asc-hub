@@ -68,12 +68,17 @@ func TestAscDashRows(t *testing.T) {
 	assert.Equal(t, "Conflicts with its base", blocked.Chips[0].Text)
 	assert.Equal(t, "1 check failing", blocked.Chips[1].Text)
 
-	review := ascDashRowFor(l, &AscInboxEntry{PullID: 9, Section: issues_model.AscInboxNeedsReview}, nil)
+	review := ascDashRowFor(l, &AscInboxEntry{PullID: 9, Section: issues_model.AscInboxNeedsReview}, &AscInboxInfo{Head: "abc123"})
 	assert.Equal(t, "amber", review.Tone)
 	assert.Equal(t, int64(9), review.PullID)
 	assert.Equal(t, "Review requested", review.Chips[0].Text)
-	assert.Empty(t, review.Meta)
 	assert.Equal(t, "approve", review.Do, "a review asked of the person is approved in place")
+	assert.Equal(t, "abc123", review.Head, "at the head the row shows")
+
+	unseen := ascDashRowFor(l, &AscInboxEntry{PullID: 9, Link: "/o/r/pulls/9", Section: issues_model.AscInboxNeedsReview}, nil)
+	assert.Empty(t, unseen.Meta)
+	assert.Empty(t, unseen.Do, "no head known: nothing is approved unseen")
+	assert.Equal(t, "/o/r/pulls/9", unseen.ActLink)
 
 	returned := ascDashRowFor(l, &AscInboxEntry{Link: "/o/r/pulls/4", Section: issues_model.AscInboxReturned}, nil)
 	assert.Empty(t, returned.Do)
@@ -150,6 +155,7 @@ func TestAscDashPage(t *testing.T) {
 	// the rows act in place: approve and queue are forms, the others are real links named for their row
 	assert.Contains(t, html, `data-asc-dash-act="approve"`)
 	assert.Contains(t, html, `aria-label="Approve: Wire retry policy into the client"`)
+	assert.Contains(t, html, `name="head" value="1234abcd"`, "Approve names the commit the row shows")
 	assert.Contains(t, html, `data-asc-dash-act="queue"`)
 	assert.Contains(t, html, `aria-label="Add to merge queue: Rate limit headers"`)
 	assert.Contains(t, html, `href="/user2/repo1/pulls/2#issue-comment-form" aria-label="Reply: Pagination cursor format"`)

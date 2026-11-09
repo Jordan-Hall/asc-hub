@@ -119,7 +119,7 @@ func ascRenderEntries(t *testing.T) {
 	ascInboxInfoLoad = func(_ gocontext.Context, e *AscInboxEntry) *AscInboxInfo {
 		switch e.PullID {
 		case 8:
-			return &AscInboxInfo{StackIndex: 3, StackTotal: 4, HasDiff: true, Files: 3, Additions: 84, Deletions: 12, ChecksPass: 42}
+			return &AscInboxInfo{StackIndex: 3, StackTotal: 4, HasDiff: true, Files: 3, Additions: 84, Deletions: 12, ChecksPass: 42, Head: "1234abcd"}
 		case 9001:
 			return &AscInboxInfo{HasDiff: true, Files: 2, Additions: 31, Deletions: 7, ChecksPass: 12}
 		case 9002:
