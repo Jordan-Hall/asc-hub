@@ -48,6 +48,13 @@ func ownActions(since, until int64) builder.Cond {
 		And(builder.In("`action`.repo_id", publicRepos()))
 }
 
+// orgActions is ownActions without the actions of people who keep their activity private: the activity of an
+// organization is shown to anyone, so it must not tell what such a person did.
+func orgActions(since, until int64) builder.Cond {
+	return ownActions(since, until).And(builder.NotIn("`action`.act_user_id",
+		builder.Select("`actor`.id").From("`user`", "actor").Where(builder.Eq{"`actor`.keep_activity_private": true})))
+}
+
 type ascKeyCount struct {
 	K int64
 	N int64
@@ -114,7 +121,8 @@ func AscUserActivity(ctx context.Context, userIDs []int64, now time.Time) (map[i
 }
 
 // AscOrgActivity gives the public activity of each of the organizations at now: the actions per week in its public
-// repositories (a private or limited organization has none anyone may see), and the time of the latest.
+// repositories (a private or limited organization has none anyone may see), and the time of the latest. The actions
+// of people who keep their activity private are left out.
 func AscOrgActivity(ctx context.Context, orgIDs []int64, now time.Time) (map[int64]*AscWeekly, error) {
 	out := newWeeklies(orgIDs)
 	if len(orgIDs) == 0 {
@@ -127,7 +135,7 @@ func AscOrgActivity(ctx context.Context, orgIDs []int64, now time.Time) (map[int
 		var rows []ascKeyCount
 		if err := e.Table("action").Join("INNER", "repository", "`repository`.id = `action`.repo_id").
 			Select("`repository`.owner_id AS k, COUNT(*) AS n").
-			Where(ownActions(from, from+int64(ascWeek/time.Second)).And(builder.In("`repository`.owner_id", orgIDs))).
+			Where(orgActions(from, from+int64(ascWeek/time.Second)).And(builder.In("`repository`.owner_id", orgIDs))).
 			GroupBy("`repository`.owner_id").Find(&rows); err != nil {
 			return nil, err
 		}
@@ -138,7 +146,7 @@ func AscOrgActivity(ctx context.Context, orgIDs []int64, now time.Time) (map[int
 	var last []ascKeyCount
 	if err := e.Table("action").Join("INNER", "repository", "`repository`.id = `action`.repo_id").
 		Select("`repository`.owner_id AS k, MAX(`action`.created_unix) AS n").
-		Where(ownActions(start.Unix(), now.Unix()+1).And(builder.In("`repository`.owner_id", orgIDs))).
+		Where(orgActions(start.Unix(), now.Unix()+1).And(builder.In("`repository`.owner_id", orgIDs))).
 		GroupBy("`repository`.owner_id").Find(&last); err != nil {
 		return nil, err
 	}
