@@ -243,3 +243,31 @@ func TestAscBackupsRestore(t *testing.T) {
 	r = runBackups(t, "GET", 1, nil, "../x", AscBackupsRestoreForm)
 	assert.Equal(t, http.StatusNotFound, r.status)
 }
+
+func TestTheDashboardOffersABackupWhenBackupsAreOverdue(t *testing.T) {
+	// The dashboard without the update check, which needs a running hub.
+	dashboard := func(ctx *context.Context) {
+		dashboardFacts(ctx)
+		ctx.HTML(http.StatusOK, tplDashboard)
+	}
+	f := startBackups(t, asctrust.FeatureBackups)
+	r := runBackups(t, "GET", 1, nil, "", dashboard)
+	require.Equal(t, http.StatusOK, r.status, r.body)
+	assert.Contains(t, r.body, "asc_admin.att_backup_overdue_title")
+	assert.Contains(t, r.body, `data-testid="adm-attention-post"`)
+	assert.Contains(t, r.body, `action="/admin/asc/backups/run"`)
+	assert.Contains(t, r.body, `name="op" value="`)
+
+	// Without the feature, or for someone who is not a site administrator, asc is not asked.
+	g := startBackups(t)
+	r = runBackups(t, "GET", 1, nil, "", dashboard)
+	require.Equal(t, http.StatusOK, r.status, r.body)
+	assert.NotContains(t, r.body, "asc_admin.att_backup_overdue_title")
+	assert.Zero(t, g.calls())
+	n := f.calls()
+	ctx, _ := contexttest.MockContext(t, "GET /admin")
+	contexttest.LoadUser(t, ctx, 2)
+	_, ok := backupAttention(ctx)
+	assert.False(t, ok)
+	assert.Equal(t, n, f.calls())
+}
