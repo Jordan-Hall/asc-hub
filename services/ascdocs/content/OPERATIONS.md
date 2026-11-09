@@ -669,6 +669,18 @@ its agent memberships. Code: `models/organization/asc_team_agent.go`, `services/
 `routers/web/org/teams.go`. Tests: TestAgentsAreTeamMembers, TestTheTeamPageManagesAgentMembers,
 Test_addAscTeamAgent.
 
+## Agents do not approve or merge
+
+An agent works on the hub as its bot account (`agent-<name>`). Wherever the account is named as an author (a pull
+request, a comment, a review, the timeline) and among the assignees of an issue or a pull request, and in the list to
+assign from, it carries the **Agent** chip. An agent can comment and ask for changes, but only a person approves or
+merges: an approval by an agent is refused ("An agent cannot approve a pull request. A person approves."; the API
+answers 422), and an agent is never allowed to merge, whatever its permission or the branch protection, so the merge
+box, the API merge, auto-merge and stack merges refuse it. The hub's own accounts (Ghost, Actions) are not agents. Code:
+`models/user/asc_agent.go` (IsAscAgent), `models/issues/review.go` (ErrAgentMayNotApprove), `services/pull/merge.go`
+(IsUserAllowedToMerge), `templates/repo/issue/view_content/sidebar/assignees.tmpl`. Tests: TestIsAscAgent,
+TestSubmitReviewRefusesAnAgentApproval, TestAnAgentIsNotAllowedToMerge, TestAssigneesMarkAgents.
+
 ## Agents and the merge policy on the organization page
 
 The head of an organization page counts its agents beside its people, and the side of the page has an **Agents** card.
