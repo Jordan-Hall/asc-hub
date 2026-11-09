@@ -397,7 +397,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | Mobile-Repo | Stack cards replacing the table; filter chips that snap; pull to refresh; sticky Clone and New stack | done | below 640 px `stack_row.tmpl` rows wrap into cards with the rail under the title; the `rp-stack-filter` chips scroll and snap (`repo-home.css`); pull to refresh by `data-asc-pull-refresh` and `asc-pull-refresh.js`; the `rp-sticky-m` bar holds Clone and New stack (New pull request in a git repository), which opens the compare page; tested by `TestAscRepoStickyNewStack` | - |
 | Mobile-Code | Avatar column for blame, tap opens the change sheet (swipe down closes), Files sheet, long-press range select with Share | done | `blame.tmpl` + `asc-blame-sheet.js` (row 103); drag-down close in `asc-sheet.js`; the Files sheet is the `rp-tree` panel | M |
 | Mobile-History | Rail-and-node list, chips open a bottom sheet, 44 px older-changes button | done | rows 130, 140 and 142 | M |
-| Mobile-Search | Sticky search, Filters bottom sheet, cards with reason first | done | as the Search mobile row; the reason line on each card comes with the Search "Why it matched" row (needs-asc-backend) | M |
+| Mobile-Search | Sticky search, Filters bottom sheet, cards with reason first | done | as the Search mobile row; the reason line on each card comes from the Search "Why it matched" row (done) | M |
 | Mobile-Releases | New release as a bottom sheet; channel chips | done (2026-11-05: the New release dialog is a bottom sheet below 1024 px; the channel chips scroll in one row, `rp-pills`) | see Releases rows | M |
 | Mobile-NewRepo | Name check after 300 ms, Start from keeps typed values, sticky primary | done (the phone form is the desktop form: `repo-new.js` checks the name 300 ms after the last key and keeps the typed values in the Start from links at every width; below 1024 px `.ds-sticky-actions` keeps Create above the bottom navigation and the primary button fills the row below 768 px; tests as the NewRepo rows) | `H:templates/repo/create.tmpl`, `web_src/js/features/repo-new.js`, `web_src/css/asc-ds/layout.css`, `asc-pages/repo-new.css` | M |
 | Mobile-RepoSettings* | Detail pages with back arrow and same title, one save bar | done | `ds-settings-nav` shell with `snav_bar` | S |
@@ -409,12 +409,12 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 260 |
+| done | 263 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 3 |
+| needs-both | 0 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -422,15 +422,15 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 | --- | --- | --- | --- | --- | --- |
 | Repo | 28 | 0 | 0 | 0 | 0 |
-| NewRepo | 13 | 0 | 0 | 0 | 1 |
+| NewRepo | 14 | 0 | 0 | 0 | 0 |
 | Code | 20 | 0 | 0 | 0 | 0 |
-| Changeset | 13 | 0 | 0 | 0 | 1 |
+| Changeset | 14 | 0 | 0 | 0 | 0 |
 | History | 15 | 0 | 0 | 0 | 0 |
 | Refs | 9 | 0 | 0 | 0 | 0 |
 | Compare | 6 | 0 | 0 | 0 | 0 |
 | Search | 20 | 0 | 0 | 0 | 0 |
 | Releases | 14 | 0 | 0 | 0 | 0 |
-| Dependencies | 13 | 0 | 0 | 1 | 0 |
+| Dependencies | 14 | 0 | 0 | 0 | 0 |
 | Insights | 7 | 0 | 0 | 0 | 0 |
 | InsightsPeople | 5 | 0 | 0 | 0 | 0 |
 | GitNote | 4 | 0 | 0 | 0 | 0 |
@@ -443,7 +443,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 9 | 0 | 0 | 0 | 0 |
 | RepoSettingsAI | 6 | 0 | 0 | 0 | 0 |
-| RepoSettingsStorage | 7 | 0 | 0 | 1 | 0 |
+| RepoSettingsStorage | 8 | 0 | 0 | 0 | 0 |
 | Mobile-Repo | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Code | 1 | 0 | 0 | 0 | 0 |
 | Mobile-History | 1 | 0 | 0 | 0 | 0 |
@@ -453,4 +453,4 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | Mobile-RepoSettings* | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Changeset, Compare, Refs, Dependencies, Insights, GitNote, Stacks | 1 | 0 | 0 | 0 | 0 |
 
-Open-size totals of the rows that are not done: S 73, M 82, L 29.
+Open-size totals of the rows that are not done: none; every row is done (recounted 2026-11-09).
