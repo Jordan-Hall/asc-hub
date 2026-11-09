@@ -741,3 +741,68 @@ a.wk-hm-cell:hover { outline: 1px solid var(--text-2); }
   margin: 0;
   color: var(--text-3);
 }
+
+/* Knows best */
+.wk-knows-h {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.wk-knows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 16px 16px;
+  list-style: none;
+}
+
+.wk-knows-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.wk-knows-row .ds-mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wk-knows-bar {
+  display: block;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--line-2);
+}
+
+.wk-knows-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--fill);
+}
+.wk-knows-0 { width: 0%; }
+.wk-knows-5 { width: 5%; }
+.wk-knows-10 { width: 10%; }
+.wk-knows-15 { width: 15%; }
+.wk-knows-20 { width: 20%; }
+.wk-knows-25 { width: 25%; }
+.wk-knows-30 { width: 30%; }
+.wk-knows-35 { width: 35%; }
+.wk-knows-40 { width: 40%; }
+.wk-knows-45 { width: 45%; }
+.wk-knows-50 { width: 50%; }
+.wk-knows-55 { width: 55%; }
+.wk-knows-60 { width: 60%; }
+.wk-knows-65 { width: 65%; }
+.wk-knows-70 { width: 70%; }
+.wk-knows-75 { width: 75%; }
+.wk-knows-80 { width: 80%; }
+.wk-knows-85 { width: 85%; }
+.wk-knows-90 { width: 90%; }
+.wk-knows-95 { width: 95%; }
+.wk-knows-100 { width: 100%; }

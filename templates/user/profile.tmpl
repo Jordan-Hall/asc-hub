@@ -145,6 +145,19 @@
 					{{end}}
 				</div>
 				<aside class="ds-rail" aria-label="{{ctx.Locale.Tr "user.asc_profile.about"}}">
+					{{if .AscProfileKnows}}
+						<section class="ds-card" aria-labelledby="wk-pknows-title" data-asc-pf-knows>
+							<div class="ds-card-h wk-knows-h"><h2 id="wk-pknows-title">{{ctx.Locale.Tr "user.asc_profile.knows"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "user.asc_profile.knows_sub"}}</span></div>
+							<ul class="wk-knows">
+								{{range .AscProfileKnows}}
+									<li title="{{ctx.Locale.Tr "user.asc_profile.knows_detail" .Changes .Reviews}}">
+										<span class="wk-knows-row"><span class="ds-mono">{{.Path}}</span><strong>{{.Share}}%</strong></span>
+										<span class="wk-knows-bar" aria-hidden="true"><span class="wk-knows-fill wk-knows-{{.Bar}}"></span></span>
+									</li>
+								{{end}}
+							</ul>
+						</section>
+					{{end}}
 					{{if .AscProfileRepos}}
 						<section class="ds-card" aria-labelledby="wk-prepos-title">
 							<div class="ds-card-h"><h2 id="wk-prepos-title">{{ctx.Locale.Tr "user.repositories"}}</h2></div>
