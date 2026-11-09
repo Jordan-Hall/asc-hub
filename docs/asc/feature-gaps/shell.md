@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 176 |
+| done | 178 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 19 |
+| needs-both | 17 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 20, L 14.
+Open rows by size: S 0, M 18, L 14.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -285,11 +285,11 @@ Open rows by size: S 0, M 20, L 14.
 | Board | Feature | Status | Where to implement | Size |
 | --- | --- | --- | --- | --- |
 | OrgProfile | Head: avatar, name, description, location, website, Follow, Org settings | done | `templates/org/header.tmpl`, `follow_unfollow.tmpl` | - |
-| OrgProfile | Verified badge; "38 people, 4 agents" counts | needs-both | See ExploreOrgs | M |
+| OrgProfile | Verified badge; "38 people, 4 agents" counts | done | `org/header.tmpl`: the verified chip (`AscOrgDomain`) and the agents count (`context.OrgAgentCount` in `routers/web/org/people.go`: the kept agents for a member, the agents that ran for anyone else with agent features on). Docs: OPERATIONS "Agents and the merge policy on the organization page"; test `TestTheOrgPageHasTheAgentsAndMergePolicyCards` | - |
 | OrgProfile | Tabs Repositories, People, Teams, Packages, Projects with counts | done | `org/menu.tmpl` | - |
 | OrgProfile | Repo rows with check status text (Passing, 1 failing, No checks) and a Watch toggle with count | done | `repoquick.LoadChecks` and `LoadWatching` (`routers/web/shared/repoquick/rowstate.go`) fill `explore/repo_list.tmpl` from `routers/web/org/home.go`; see OPERATIONS "Checks and Watch on organization rows" | M |
 | OrgProfile | Type and Sort menus land in the URL | done | `shared/repo_search.tmpl` | - |
-| OrgProfile | Side cards: People, Teams, Agents, Merge policy with "Read the policy" | needs-both | People and Teams exist (`org/home.tmpl`); Agents and Merge policy missing. Policy from asc `GetPolicy` (repo level) or an org policy; agents as above | M |
+| OrgProfile | Side cards: People, Teams, Agents, Merge policy with "Read the policy" | done | `org/home.tmpl` with `routers/web/org/asc_profile_cards.go`: Agents (asc `OrgSettings.ListAgents` for a member, `services/ascagentdir` for anyone else) and Merge policy (asc `OrgSettings.GetOrgSettings`, members only, linking to the merge defaults). Docs: OPERATIONS "Agents and the merge policy on the organization page"; test `TestTheOrgPageHasTheAgentsAndMergePolicyCards` | - |
 | OrgProfile | Member view shows Org settings; lock chip for private repositories | done | `org/header.tmpl` | - |
 | OrgProfile | Loading skeleton; mobile row menu | done | `org/home.tmpl` (`data-asc-list-main` with a hidden skeleton card; the search, a sort, a kind pill and the pager show it, `asc-list-loading.js`, `repo-search.js`); `explore/repo_list.tmpl` row menu under 768 when `AscRowMenu` is set (`asc-row-menu.js`: one open at a time, Escape and a tap outside close it) | - |
 
