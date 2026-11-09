@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 182 |
+| done | 183 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 13 |
+| needs-both | 12 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 18, L 10.
+Open rows by size: S 0, M 17, L 10.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -173,7 +173,7 @@ Open rows by size: S 0, M 18, L 10.
 | ExploreUsers | Rail "Who is active now" with presence and current activity | done | `activeNow` in `routers/web/explore/user_agents.go`: people online (`ascpresence.OnlineCond`) with their last public action of the hour, agents with runs going; `data-asc-active-now` in `users.tmpl` | - |
 | ExploreUsers | Grid layout | done | With the layout toggle (Explore) | M |
 | ExploreUsers | States: loading, no people match, filter chips, error | done | Error, no-match with chips and empty states in `user_list.tmpl`; loading not shown, server rendered | - |
-| Mobile-ExploreUsers | Chips filter People, Agents, Maintainers, Online now; Follow inside the row at 44 px | needs-both | As above | M |
+| Mobile-ExploreUsers | Chips filter People, Agents, Maintainers, Online now; Follow inside the row at 44 px | done | `explore-users-chips` in `templates/explore/search.tmpl` at every width; chips and `.ds-btn-sm` are 44 px in `web_src/css/asc-ds/touch.css` | - |
 
 ## Explore: organizations
 
