@@ -492,6 +492,11 @@ member is added or removed, and every 10 minutes for every organization with asc
 **Copy organization teams to asc for path rules and policies**, `sync_asc_teams`), which also catches renamed and
 deleted accounts. The hub is the authority: a team asc holds that the organization no longer has is cleared, and a
 team's members are replaced by the hub's list. Team and member names go lower case; asc compares them ignoring case.
+Removals are sent first, and one team failing does not stop the others (the run reports every failure). A team whose
+name is longer than asc takes (128 characters) is not sent and is logged; no rule can name it. asc keeps names, not
+account ids, so when an organization is renamed or deleted the hub clears every team asc holds under the old name,
+and when a person is renamed the teams of every organization they are in are sent again under the new login; a later
+owner of an old name inherits none of its teams.
 When asc is off, unreachable or has no `pathrules.v1`, nothing is sent and the next run repairs it; a rule naming a
 team then admits nobody through it, never more.
 
@@ -501,7 +506,7 @@ those roles (`*` is not counted). The repository links to its policy file. Only 
 code of are listed; at most the first 50 asc repositories of the organization are checked and policies are kept for a
 minute. A repository whose policy could not be read is counted under the list. Code: `services/ascteams`,
 `services/asctrust/teams.go`, `routers/web/org/teams.go`, `templates/org/team/teams.tmpl`. Tests: TestReconcile*,
-TestATeamChangeIsSentAfterItCommits, TestOwnershipShowsWhatPoliciesGiveATeam, TestTheTeamPageShowsWhatPoliciesGiveTheTeam.
+TestATeamChangeIsSentAfterItCommits, TestReconcileGoesOnPastAFailingTeam, TestARenamedOrDeletedAccountMovesItsTeams, TestOwnershipShowsWhatPoliciesGiveATeam, TestTheTeamPageShowsWhatPoliciesGiveTheTeam.
 
 ## Agents and the merge policy on the organization page
 
