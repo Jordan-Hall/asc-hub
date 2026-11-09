@@ -310,6 +310,11 @@
   margin-top: 6px;
 }
 
+/* the cards the page refreshes (asc_dash_work.tmpl) stay items of the column */
+.wk-dash-work {
+  display: contents;
+}
+
 /* the answer to a run that waits for the person */
 .wk-agent-answer {
   display: flex;

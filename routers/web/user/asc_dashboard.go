@@ -737,6 +737,21 @@ func AscDashTodayCard(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, tplAscDashToday)
 }
 
+const tplAscDashWork base.TplName = "user/dashboard/asc_dash_work"
+
+// AscDashWork serves `GET /-/asc/dash/work`: "Needs you", the merge queue and the agents working now of the dashboard
+// alone, for the scope the person last chose, so the page refreshes them while it is open (asc-dash-live.js, with the
+// Today card).
+func AscDashWork(ctx *context.Context) {
+	if !setting.Asc.Enabled {
+		ctx.NotFound("AscDashWork", nil)
+		return
+	}
+	ctx.Data["AscDash"] = ascDashBuild(ctx, time.Now())
+	ctx.Resp.Header().Set("Cache-Control", "private, no-store")
+	ctx.HTML(http.StatusOK, tplAscDashWork)
+}
+
 // AscDashCounts serves `GET /-/asc/dash/counts`: the numbers of the work switcher of the dashboard (Inbox, My stacks,
 // Review requests, Agent runs) for the scope the person last chose (the page without a scope query), so the left list
 // stays current while the page is open (asc-dash-live.js asks with the Today card, once a minute).

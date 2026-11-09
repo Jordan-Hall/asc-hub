@@ -1,5 +1,6 @@
 import {GET} from '../modules/fetch.js';
 import {initAscFeedFilter} from './asc-feed-filter.js';
+import {initAscRowSwipe} from './asc-row-swipe.js';
 
 export const REFRESH_MS = 60_000;
 const MAX_RETRY_S = 60;
@@ -30,11 +31,37 @@ export async function refreshCounts(doc, load) {
 }
 
 /**
+ * Loads "Needs you", the merge queue and the agents working now again (GET /-/asc/dash/work,
+ * templates/user/dashboard/asc_dash_work.tmpl) and puts them in place of [data-asc-dash-work]. Nothing changes while
+ * the person uses them: the focus in them, or an answer to an agent typed and not sent. A failed load keeps them as
+ * they are: the Today card states the offline state. Returns whether the cards were replaced.
+ */
+export async function refreshWork(doc, load) {
+  const box = doc.querySelector('[data-asc-dash-work]');
+  if (!box) return false;
+  const typed = Array.from(box.querySelectorAll('[data-asc-dash-answer] input[name="text"]')).some((el) => el.value !== '');
+  if (box.contains(doc.activeElement) || typed) return false;
+  try {
+    const resp = await load(box.getAttribute('data-asc-dash-work'), {cache: 'no-store'});
+    if (!resp.ok) return false;
+    const html = await resp.text();
+    const fresh = new DOMParser().parseFromString(html, 'text/html').querySelector('[data-asc-dash-work]');
+    if (!fresh || box.contains(doc.activeElement)) return false;
+    const node = doc.importNode(fresh, true);
+    box.replaceWith(node);
+    initAscRowSwipe(node);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The "Today" card of the dashboard (templates/user/dashboard/asc_today.tmpl, board Dashboard): it loads itself again
  * every minute while the page is in view and nobody uses the card (focus in it, or a filter other than All). When a
  * load fails it keeps its items and shows the offline state, with Try again and the seconds to the next try; each
  * next try waits longer, and the connection coming back tries at once. Each load also refreshes the counts of the work
- * switcher.
+ * switcher and the cards of the work (refreshWork).
  */
 export function initAscDashLive({doc = document, win = window, load = GET, refreshMs = REFRESH_MS} = {}) {
   let card = doc.querySelector('[data-asc-dash-today]');
@@ -105,6 +132,7 @@ export function initAscDashLive({doc = document, win = window, load = GET, refre
       initAscFeedFilter(card);
       failures = 0;
       await refreshCounts(doc, load);
+      await refreshWork(doc, load);
       if (byHand) {
         // Try again is gone with the old card: the focus goes to the heading of the new one
         const heading = card.querySelector('h2');

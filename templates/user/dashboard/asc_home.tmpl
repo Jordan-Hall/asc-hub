@@ -52,71 +52,6 @@ Template Attributes:
 			{{end}}
 
 			<div class="wk-list-main" data-asc-list-main>
-			<section class="ds-card wk-card" aria-labelledby="wk-needs-title">
-				<div class="ds-card-h">
-					<h2 id="wk-needs-title">{{ctx.Locale.Tr "user.asc_dash.needs_you"}}</h2>
-					<span class="ds-chip ds-chip-warn" data-asc-live-count="needs">{{$d.NeedsCount}}</span>
-					{{if $d.Rows}}<span class="ds-card-sub ds-ml-auto ds-hide-md">{{ctx.Locale.Tr "user.asc_dash.keys_hint"}}</span>{{end}}
-				</div>
-				{{if $d.Rows}}
-					<ul class="wk-needs" data-asc-list data-asc-swipe>
-						{{range $d.Rows}}
-							<li class="wk-need"{{if .PullID}} data-asc-swipe-row{{end}}>
-								{{if .PullID}}{{template "user/asc_row_state" (dict "PullID" .PullID "Back" "dash" "Csrf" $.CsrfTokenHtml)}}{{end}}
-								<span class="ds-dot ds-dot-{{if eq .Tone "amber"}}warn{{else if eq .Tone "red"}}err{{else if eq .Tone "green"}}ok{{end}} wk-need-dot" aria-hidden="true"></span>
-								<div class="wk-need-main">
-									<div class="wk-need-title">
-										<a class="wk-need-link" href="{{.Link}}" data-asc-row>{{if .Action}}{{ctx.Locale.Tr "user.asc_dash.ready_to_merge"}} {{end}}{{.Title}}</a>
-										<span class="wk-need-where">{{.Where}}</span>
-									</div>
-									{{if or .Chips .Meta}}
-										<div class="wk-need-meta">
-											{{range .Chips}}<span class="ds-chip{{if eq .Tone "amber"}} ds-chip-warn{{else if eq .Tone "green"}} ds-chip-ok{{else if eq .Tone "red"}} ds-chip-err{{else if eq .Tone "violet"}} ds-chip-agent{{end}}">{{.Text}}</span>{{end}}
-											{{if .Meta}}<span class="ds-c-2 ds-t-small">{{.Meta}}</span>{{end}}
-										</div>
-									{{end}}
-								</div>
-								{{if not .Updated.IsZero}}<span class="wk-when">{{DateUtils.TimeSince .Updated}}</span>{{end}}
-								<div class="wk-need-acts">
-									{{if .Do}}
-										{{$label := ctx.Locale.Tr (print "user.asc_dash.act_" .Do)}}
-										<form method="post" action="{{AppSubUrl}}/-/asc/dash/act" data-asc-dash-act="{{.Do}}">
-											{{$.CsrfTokenHtml}}
-											<input type="hidden" name="pull" value="{{.PullID}}">
-											<input type="hidden" name="do" value="{{.Do}}">
-											<button class="ds-btn ds-btn-primary ds-btn-sm" type="submit" aria-label="{{ctx.Locale.Tr "user.asc_dash.act_for" $label .Title}}">{{$label}}</button>
-										</form>
-									{{else}}
-										{{$label := ""}}
-										{{if .Action}}{{$label = .Action}}{{else if eq .Tone "amber"}}{{$label = ctx.Locale.Tr "user.asc_dash.act_reply"}}{{else if eq .Tone "red"}}{{$label = ctx.Locale.Tr "asc_work.dash_act_resolve"}}{{else}}{{$label = ctx.Locale.Tr "asc_work.dash_act_open"}}{{end}}
-										<a class="ds-btn {{if or .Action (eq .Tone "amber")}}ds-btn-primary{{else}}ds-btn-secondary{{end}} ds-btn-sm" href="{{.ActLink}}" aria-label="{{ctx.Locale.Tr "user.asc_dash.act_for" $label .Title}}" data-asc-dash-act-link>{{$label}}</a>
-									{{end}}
-								</div>
-							</li>
-						{{end}}
-					</ul>
-				{{else if not $d.Repos}}
-					<div class="ds-empty wk-empty-in">
-						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-book" 32}}</span>
-						<h3>{{ctx.Locale.Tr "asc_work.dash_new_title"}}</h3>
-						<p>{{ctx.Locale.Tr "asc_work.dash_new_text"}}</p>
-						<div class="ds-cmd ds-cmd-scroll"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">asc init</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="asc init">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
-						<div class="ds-empty-acts">
-							<a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a>
-							<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/repo/migrate">{{ctx.Locale.Tr "asc_work.dash_import"}}</a>
-							<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/-/get-started">{{ctx.Locale.Tr "asc_work.dash_get_started"}}</a>
-						</div>
-					</div>
-				{{else}}
-					<div class="ds-empty wk-empty-in">
-						<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-check-circle" 32}}</span>
-						<h3>{{ctx.Locale.Tr "asc_work.dash_needs_empty_title"}}</h3>
-						<p>{{ctx.Locale.Tr "user.asc_dash.needs_empty"}}</p>
-						<div class="ds-empty-acts"><a class="ds-btn ds-btn-primary" href="{{AppSubUrl}}/repo/create">{{ctx.Locale.Tr "user.asc_dash.new_repository"}}</a></div>
-					</div>
-				{{end}}
-			</section>
-
 			{{with $d.Queued}}
 				<div class="ds-toast wk-undo" role="status" data-asc-applied-toast data-ms="10000" data-asc-dash-undo>
 					{{svg "dsi-check" 16}}
@@ -129,55 +64,7 @@ Template Attributes:
 					</form>
 				</div>
 			{{end}}
-			{{if $d.Queue}}
-				<section class="ds-card wk-card" aria-labelledby="wk-queue-title">
-					<div class="ds-card-h"><h2 id="wk-queue-title">{{ctx.Locale.Tr "asc_work.dash_queue"}}</h2><span class="ds-chip">{{len $d.Queue}}</span></div>
-					<ul class="wk-needs">
-						{{range $d.Queue}}
-							<li class="wk-need">
-								<span class="ds-dot ds-dot-{{if eq .State "blocked"}}err{{else if eq .State "landing"}}ok{{else}}warn{{end}} wk-need-dot" aria-hidden="true"></span>
-								<div class="wk-need-main">
-									<div class="wk-need-title"><a href="{{.Link}}">{{.Title}}</a></div>
-									<div class="wk-need-where">{{.Where}} &middot; {{.Label}}</div>
-								</div>
-							</li>
-						{{end}}
-					</ul>
-				</section>
-			{{end}}
-			{{if and $d.AgentsOn $d.Agents}}
-				<section class="ds-card wk-card" aria-labelledby="wk-agents-title">
-					<div class="ds-card-h">
-						<h2 id="wk-agents-title">{{ctx.Locale.Tr "user.asc_dash.agents_now"}}</h2>
-						<span class="ds-chip ds-chip-agent">{{len $d.Agents}}</span>
-						<a class="ds-link ds-ml-auto ds-t-small ds-sb" href="{{AppSubUrl}}/-/asc/agents">{{ctx.Locale.Tr "user.asc_dash.all_runs"}}</a>
-					</div>
-					<ul class="wk-agents">
-						{{range $d.Agents}}
-							<li class="wk-agent">
-								<a class="wk-agent-name" href="{{.Link}}">{{.Agent}} &middot; {{.Title}}</a>
-								{{if eq .State.Slug "waiting"}}
-									<div class="wk-agent-state ds-c-err ds-sb">{{ctx.Locale.Tr "user.asc_dash.paused"}}</div>
-									{{if .InputLink}}
-										<form class="wk-agent-answer" method="post" action="{{.InputLink}}" data-asc-dash-answer>
-											{{$.CsrfTokenHtml}}
-											<input type="hidden" name="back" value="dash">
-											<label class="wk-agent-answer-field"><span class="ds-sr">{{ctx.Locale.Tr "user.asc_dash.answer_label" .Agent}}</span><input class="ds-input" name="text" required maxlength="16384" placeholder="{{ctx.Locale.Tr "user.asc_dash.answer_placeholder"}}" autocomplete="off"></label>
-											<button class="ds-btn ds-btn-primary ds-btn-sm" type="submit">{{ctx.Locale.Tr "user.asc_dash.answer_send"}}</button>
-										</form>
-									{{end}}
-								{{else}}
-									<div class="wk-agent-state ds-c-2">{{.Repo}}</div>
-								{{end}}
-								{{if .Meter}}
-									<progress class="wk-progress{{if eq .State.Slug "waiting"}} wk-progress-warn{{end}}" max="100" value="{{.Percent}}" aria-label="{{.Meter}}">{{.Percent}}%</progress>
-									<div class="ds-mono ds-t-small ds-c-2 wk-meter">{{.Meter}}</div>
-								{{end}}
-							</li>
-						{{end}}
-					</ul>
-				</section>
-			{{end}}
+			{{template "user/dashboard/asc_dash_work" .}}
 			{{/* while a scope chip loads the page (asc-list-loading.js) */}}
 			<div class="ds-card wk-list-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "loading"}}" data-asc-list-loading hidden>
 				<ul class="ds-list">
