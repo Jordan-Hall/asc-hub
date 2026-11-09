@@ -1486,8 +1486,10 @@ type StorageMigration struct {
 	DeleteSource  bool                   `protobuf:"varint,9,opt,name=delete_source,json=deleteSource,proto3" json:"delete_source,omitempty"`
 	Created       int64                  `protobuf:"varint,10,opt,name=created,proto3" json:"created,omitempty"`
 	Updated       int64                  `protobuf:"varint,11,opt,name=updated,proto3" json:"updated,omitempty"`
-	Error         string                 `protobuf:"bytes,12,opt,name=error,proto3" json:"error,omitempty"`    // sanitised
-	Paused        bool                   `protobuf:"varint,13,opt,name=paused,proto3" json:"paused,omitempty"` // held by PauseMigration; `state` is where it stopped
+	Error         string                 `protobuf:"bytes,12,opt,name=error,proto3" json:"error,omitempty"`                              // sanitised
+	Paused        bool                   `protobuf:"varint,13,opt,name=paused,proto3" json:"paused,omitempty"`                           // held by PauseMigration; `state` is where it stopped
+	BytesTotal    uint64                 `protobuf:"varint,14,opt,name=bytes_total,json=bytesTotal,proto3" json:"bytes_total,omitempty"` // counted before the copy; 0 until then
+	Mismatched    uint64                 `protobuf:"varint,15,opt,name=mismatched,proto3" json:"mismatched,omitempty"`                   // copies the last check found missing or different and copied again
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1611,6 +1613,20 @@ func (x *StorageMigration) GetPaused() bool {
 		return x.Paused
 	}
 	return false
+}
+
+func (x *StorageMigration) GetBytesTotal() uint64 {
+	if x != nil {
+		return x.BytesTotal
+	}
+	return 0
+}
+
+func (x *StorageMigration) GetMismatched() uint64 {
+	if x != nil {
+		return x.Mismatched
+	}
+	return 0
 }
 
 // Copy, verify, switch, and only then (with `delete_source`) delete from the source. Reads and writes keep working.
@@ -2503,7 +2519,7 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x1b\n" +
 	"\ttarget_id\x18\x02 \x01(\tR\btargetId\"8\n" +
 	"\x19AssignRepoStorageResponse\x12\x1b\n" +
-	"\ttarget_id\x18\x01 \x01(\tR\btargetId\"\xba\x03\n" +
+	"\ttarget_id\x18\x01 \x01(\tR\btargetId\"\xfb\x03\n" +
 	"\x10StorageMigration\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\x04repo\x18\x02 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12$\n" +
@@ -2519,7 +2535,12 @@ const file_asc_v1_storage_proto_rawDesc = "" +
 	" \x01(\x03R\acreated\x12\x18\n" +
 	"\aupdated\x18\v \x01(\x03R\aupdated\x12\x14\n" +
 	"\x05error\x18\f \x01(\tR\x05error\x12\x16\n" +
-	"\x06paused\x18\r \x01(\bR\x06paused\"\x8a\x01\n" +
+	"\x06paused\x18\r \x01(\bR\x06paused\x12\x1f\n" +
+	"\vbytes_total\x18\x0e \x01(\x04R\n" +
+	"bytesTotal\x12\x1e\n" +
+	"\n" +
+	"mismatched\x18\x0f \x01(\x04R\n" +
+	"mismatched\"\x8a\x01\n" +
 	"\x1cStartStorageMigrationRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12 \n" +
 	"\fto_target_id\x18\x02 \x01(\tR\n" +
