@@ -1268,7 +1268,7 @@ Board copy not found word for word in locale, templates or scripts: Which refs a
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Protected refs table: pattern, kind (Trunk, Release lines, Tags), can land (Merge queue, Maint... | done | templates/repo/settings/branches.tmpl:43 | - |
-| Add / Edit rule side panel with Who can land checkboxes (Merge queue, Maintainers, Release key... | missing (hub+asc) | logged as not built (not re-probed) | Forgejo rule has push whitelists; asc policy has allow_force/require_signed only, no per-ref kinds or agents (A:policy.rs Trunk) |
+| Add / Edit rule side panel with Who can land checkboxes (Merge queue, Maintainers, Release key... | done | routers/web/repo/setting/asc_refrules.go, templates/repo/settings/branches.tmpl (`[refs]` rules, proposed as policy changes) | - |
 | Pattern overlap error ("Rules cannot overlap") and "2 open stacks target a ref this pattern ma... | missing (hub) | logged as not built (not re-probed) | validate in H:routers/web/repo/setting/protected_branch.go; count pulls by base branch |
 | Rule removed with Undo for 30 minutes from the operation log | missing (hub) | logged as not built (not re-probed) | asc_ops entry for rule deletion; Forgejo rules are in the hub DB, not in asc ops |
 | Stack behaviour switches: restack when main moves, keep approvals when only the base changed,... | missing (hub+asc) | logged as not built (not re-probed) | no repo-level config in asc (Stacks.Restack is invoked on demand); store in policy or repo config and enforce in asc-serve |

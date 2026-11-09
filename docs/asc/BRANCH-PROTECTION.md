@@ -38,7 +38,8 @@ this mapping made. A path rule with other writers is never touched or removed.
 
 A setting with no asc equivalent is refused with `422` and a sentence naming it. It is never dropped silently:
 
-- a rule for a branch other than the default branch (asc protects trunk only);
+- a rule for a branch other than the default branch (the API maps the trunk rule only; protect other branches and
+  tags with the `[refs]` rules of the Rules page, below);
 - push, merge, approvals and force push whitelists of people, teams or deploy keys (asc decides who may land by
   roles in the policy, not by lists on a rule);
 - block on rejected reviews, block on official review requests, block on outdated branch, dismiss stale approvals;
@@ -47,6 +48,30 @@ A setting with no asc equivalent is refused with `422` and a sentence naming it.
 
 `apply_to_admins` is ignored: the asc policy applies to everyone, and only a maintainer of the policy may write a
 maintainer-only path.
+
+## Protected refs other than trunk
+
+The Rules page lists, under trunk, the `[refs."<pattern>"]` rules of the policy:
+
+```toml
+[refs."release/*"]
+land = ["queue", "maintainers", "release-key"]
+signed = true
+
+[refs."refs/tags/v*"]
+land = ["release-key"]
+```
+
+The pattern is a branch name glob (`*` within one part, `**` across parts, case counts) or `refs/tags/<glob>` for
+tags. `land` says who may move a matching ref: `queue` (the merge queue), `maintainers` (a maintainer pushing
+directly), `release-key` (CI and deploy keys), and `agents` (the queue may land changes an agent wrote). An empty
+list freezes the ref. `force` and `delete` allow a rewrite or a deletion, and `signed` needs every new change signed.
+A policy has at most 64 rules.
+
+Add rule and Edit open a side panel on the page; saving or Remove proposes the edited policy as a change under review,
+like a switch of the policy page, and the rule holds once that change lands. asc checks the text again before it can
+land. A host principal (the hub's own token) is neither a maintainer nor a release key: a ref whose rule leaves out
+the queue moves only for a maintainer or a key the rule names. Git repositories keep Forgejo's branch and tag rule pages.
 
 ## Enforcement
 
