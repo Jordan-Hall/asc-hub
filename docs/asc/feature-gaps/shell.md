@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 169 |
+| done | 170 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 3 |
+| needs-hub-backend | 2 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -287,7 +287,7 @@ Open rows by size: S 0, M 21, L 14.
 | OrgProfile | Head: avatar, name, description, location, website, Follow, Org settings | done | `templates/org/header.tmpl`, `follow_unfollow.tmpl` | - |
 | OrgProfile | Verified badge; "38 people, 4 agents" counts | needs-both | See ExploreOrgs | M |
 | OrgProfile | Tabs Repositories, People, Teams, Packages, Projects with counts | done | `org/menu.tmpl` | - |
-| OrgProfile | Repo rows with check status text (Passing, 1 failing, No checks) and a Watch toggle with count | needs-hub-backend | Rows are the shared `explore/repo_list.tmpl`. Default-branch check status (commit status or asc `ci.proto`) and a row watch toggle missing | M |
+| OrgProfile | Repo rows with check status text (Passing, 1 failing, No checks) and a Watch toggle with count | done | `repoquick.LoadChecks` and `LoadWatching` (`routers/web/shared/repoquick/rowstate.go`) fill `explore/repo_list.tmpl` from `routers/web/org/home.go`; see OPERATIONS "Checks and Watch on organization rows" | M |
 | OrgProfile | Type and Sort menus land in the URL | done | `shared/repo_search.tmpl` | - |
 | OrgProfile | Side cards: People, Teams, Agents, Merge policy with "Read the policy" | needs-both | People and Teams exist (`org/home.tmpl`); Agents and Merge policy missing. Policy from asc `GetPolicy` (repo level) or an org policy; agents as above | M |
 | OrgProfile | Member view shows Org settings; lock chip for private repositories | done | `org/header.tmpl` | - |

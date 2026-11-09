@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 215, partial 23, missing 79. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 216, partial 23, missing 78. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -577,7 +577,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### OrgProfile (ASC Hub organization profile)
 
-Area shell/settings. Rows 8: done 4, partial 1, missing 3. Copy found in the hub: 64% of 58 copy strings (mobile twin 62%). Template(s): header.tmpl, home.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 8: done 5, partial 1, missing 2. Copy found in the hub: 64% of 58 copy strings (mobile twin 62%). Template(s): header.tmpl, home.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Find a repository; Sort: Recently updated; Customer dashboard and checkout.; Terraform, queues and rate limits..
 
@@ -586,7 +586,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Head: avatar, name, description, location, website, Follow, Org settings | done | templates/org/header.tmpl:1 | - |
 | Verified badge; "38 people, 4 agents" counts | missing (hub+asc) | logged as not built (not re-probed) | See ExploreOrgs |
 | Tabs Repositories, People, Teams, Packages, Projects with counts | done | templates/org/menu.tmpl:1 | - |
-| Repo rows with check status text (Passing, 1 failing, No checks) and a Watch toggle with count | missing (hub) | logged as not built (not re-probed) | Rows are the shared explore/repo_list.tmpl. Default-branch check status (commit status or asc ci.proto) and a row watch toggle mi... |
+| Repo rows with check status text (Passing, 1 failing, No checks) and a Watch toggle with count | done | routers/web/shared/repoquick/rowstate.go:1 | - |
 | Type and Sort menus land in the URL | done | templates/shared/repo_search.tmpl (file) | - |
 | Side cards: People, Teams, Agents, Merge policy with "Read the policy" | partial (hub+asc) | logged as not built (not re-probed) | People and Teams exist (org/home.tmpl); Agents and Merge policy missing. Policy from asc GetPolicy (repo level) or an org policy;... |
 | Member view shows Org settings; lock chip for private repositories | done | templates/org/header.tmpl:11 | - |
