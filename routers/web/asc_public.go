@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	htmlpkg "html"
 	"html/template"
 	"net/http"
@@ -18,10 +19,12 @@ import (
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/ascdownload"
+	"forgejo.org/modules/log"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/markup/markdown"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascdocs"
+	"forgejo.org/services/ascsample"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
@@ -132,6 +135,7 @@ func AscGetStarted(ctx *context.Context) {
 	ctx.Data["GSTotal"] = 4
 	ctx.Data["GSPercent"] = done * 100 / 4
 	ctx.Data["GSMigrations"] = !setting.Repository.DisableMigrations
+	ctx.Data["GSSample"] = setting.Asc.SampleProject
 	ctx.Data["GSConnectCommand"] = ascdownload.ConnectCommand(setting.AppURL)
 	ctx.HTML(http.StatusOK, tplAscGetStarted)
 }
@@ -184,6 +188,21 @@ func AscGetStartedHide(ctx *context.Context) {
 		return
 	}
 	ctx.Redirect(setting.AppSubURL + "/")
+}
+
+// AscGetStartedSample serves POST /-/get-started/sample: it opens the read-only sample project, making it first when
+// it does not exist yet (services/ascsample). When it cannot, the person goes to the public projects with a flash.
+func AscGetStartedSample(ctx *context.Context) {
+	repo, err := ascsample.Ensure(ctx)
+	if err != nil {
+		if !errors.Is(err, ascsample.ErrOff) {
+			log.Error("get started: the sample project (request %s): %v", ctx.RequestIDForLog(), err)
+		}
+		ctx.Flash.Error(ctx.Tr("asc_site.started_sample_failed", ctx.RequestIDForLog()))
+		ctx.Redirect(setting.AppSubURL + "/explore/repos")
+		return
+	}
+	ctx.Redirect(repo.Link())
 }
 
 // AscDocs serves GET /-/docs: the start page of the documentation that ships inside the hub, and its search (?q=).

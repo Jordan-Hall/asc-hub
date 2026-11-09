@@ -156,8 +156,16 @@
 			</section>
 			<section class="ds-card gs-d">
 				<div class="ds-card-b">
+					{{if .GSSample}}
+					<p class="site-look"><strong>{{ctx.Locale.Tr "asc_site.started_look_h"}}</strong> {{ctx.Locale.Tr "asc_site.started_look_sample_t"}} <kbd class="ds-kbd">Ctrl</kbd> <kbd class="ds-kbd">K</kbd> {{ctx.Locale.Tr "asc_site.started_look_t2"}}</p>
+					<form class="site-look-l" action="{{AppSubUrl}}/-/get-started/sample" method="post" data-testid="open-sample">
+						{{.CsrfTokenHtml}}
+						<button type="submit" class="ds-link">{{ctx.Locale.Tr "asc_site.started_look_sample_link"}}</button>
+					</form>
+					{{else}}
 					<p class="site-look"><strong>{{ctx.Locale.Tr "asc_site.started_look_h"}}</strong> {{ctx.Locale.Tr "asc_site.started_look_t"}} <kbd class="ds-kbd">Ctrl</kbd> <kbd class="ds-kbd">K</kbd> {{ctx.Locale.Tr "asc_site.started_look_t2"}}</p>
 					<p class="site-look-l"><a class="ds-link" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "asc_site.started_look_link"}}</a></p>
+					{{end}}
 				</div>
 			</section>
 			<aside class="ds-callout gs-d">

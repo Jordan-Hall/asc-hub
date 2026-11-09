@@ -663,6 +663,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/-/status", ignSignIn, AscStatus)
 	m.Get("/-/get-started", reqSignIn, AscGetStarted)
 	m.Post("/-/get-started/hide", reqSignIn, AscGetStartedHide)
+	m.Post("/-/get-started/sample", reqSignIn, AscGetStartedSample)
 	m.Get("/-/get-started/status", reqSignIn, AscGetStartedStatus)
 	m.Post("/-/get-started/import", reqSignIn, AscGetStartedImport)
 	m.Get("/-/get-started/import/status", reqSignIn, AscGetStartedImportStatus)

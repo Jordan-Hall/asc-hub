@@ -71,6 +71,9 @@ var Asc = struct {
 	// AutoOpenRunPulls makes the hub open the changes of an agent run for review when asc says the run succeeded
 	// (the "Open for review" button of the run page stays). Default true.
 	AutoOpenRunPulls bool `ini:"AUTO_OPEN_RUN_PULLS"`
+	// SampleProject offers the read-only sample project on the get started page (services/ascsample): a public,
+	// archived repository asc-sample/sample-project, made by a bot account the first time someone opens it. Default true.
+	SampleProject bool `ini:"SAMPLE_PROJECT"`
 	// SSHEnabled allows the hub's SSH server and every SSH instruction in the UI. It is false by default:
 	// an ASC Hub works with HTTPS alone (asc and git both speak HTTPS to it). It only has an effect with
 	// [asc] ENABLED = true, where a false value forces [server] DISABLE_SSH = true. See SSHEnabled.
@@ -140,6 +143,7 @@ func loadAscFrom(rootCfg ConfigProvider) {
 	Asc.DownloadSyncInterval = time.Hour
 	Asc.SSHEnabled = false
 	Asc.AutoOpenRunPulls = true
+	Asc.SampleProject = true
 	Asc.ForwardedKey = nil
 	Asc.ContactEmail = ""
 	Asc.SecurityEmail = ""
