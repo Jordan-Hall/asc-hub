@@ -199,13 +199,14 @@ func OrgsOfUser(ctx context.Context, uid int64) ([]int64, error) {
 }
 
 // Renamed is called after the account u was renamed from oldName. asc keeps names, not ids: an organization's teams
-// move from the old name to the new one, and a person's teams are sent again under the new login.
+// move from the old name to the new one (the old name is recorded and cleared, see ForgetPending), and a person's
+// teams are sent again under the new login; the scheduled sync repairs a person's teams if that fails.
 func Renamed(ctx context.Context, u *user_model.User, oldName string) {
 	if !setting.Asc.Enabled {
 		return
 	}
 	if u.IsOrganization() {
-		forgetLater(strings.ToLower(oldName))
+		forgetLater(ctx, oldName)
 		Kick(u.ID)
 		return
 	}
@@ -220,23 +221,69 @@ func Renamed(ctx context.Context, u *user_model.User, oldName string) {
 }
 
 // OrgDeleted is called after the organization named orgName was deleted: asc forgets its teams.
-func OrgDeleted(orgName string) {
+func OrgDeleted(ctx context.Context, orgName string) {
 	if setting.Asc.Enabled {
-		forgetLater(strings.ToLower(orgName))
+		forgetLater(ctx, orgName)
 	}
 }
 
-func forgetLater(orgName string) {
+// forgetLater records orgName in asc_team_forget, so the clearing survives a failure or a restart, and tries it now.
+func forgetLater(ctx context.Context, orgName string) {
+	orgName = strings.ToLower(orgName)
+	if err := organization.AddAscTeamForget(ctx, orgName); err != nil {
+		log.Error("ascteams: recording %s to clear in asc: %v", orgName, err)
+	}
 	kickMu.Lock()
-	ctx := kickCtx
+	kctx := kickCtx
 	kickMu.Unlock()
 	inFlight.Add(1)
 	go func() {
 		defer inFlight.Done()
-		if _, err := Forget(ctx, orgName); err != nil && !errors.Is(err, ErrUnavailable) {
+		if err := forgetOne(kctx, orgName); err != nil && !errors.Is(err, ErrUnavailable) {
 			log.Warn("ascteams: %v", err)
 		}
 	}()
+}
+
+// forgetOne clears the teams asc holds under name and drops the record. When the name belongs to an organization
+// again, that organization's own teams are sent instead: Reconcile clears whatever else asc holds under the name.
+func forgetOne(ctx context.Context, name string) error {
+	owner, err := user_model.GetUserByName(ctx, name)
+	switch {
+	case err == nil && owner.IsOrganization():
+		if _, err := Reconcile(ctx, owner.ID); err != nil {
+			return err
+		}
+	case err == nil || user_model.IsErrUserNotExist(err):
+		if _, err := Forget(ctx, name); err != nil {
+			return err
+		}
+	default:
+		return err
+	}
+	return organization.DoneAscTeamForget(ctx, name)
+}
+
+// ForgetPending clears in asc every organization name still recorded in asc_team_forget. It returns how many were
+// done; it stops at the first ErrUnavailable and goes on past other failures, returning them joined.
+func ForgetPending(ctx context.Context) (int, error) {
+	names, err := organization.AscTeamForgets(ctx)
+	if err != nil {
+		return 0, err
+	}
+	done := 0
+	var errs []error
+	for _, name := range names {
+		if err := forgetOne(ctx, name); err != nil {
+			if errors.Is(err, ErrUnavailable) {
+				return done, err
+			}
+			errs = append(errs, err)
+			continue
+		}
+		done++
+	}
+	return done, errors.Join(errs...)
 }
 
 // OrgsWithAscRepos lists the organizations that own a repository stored in asc.
@@ -251,10 +298,16 @@ func OrgsWithAscRepos(ctx context.Context) ([]int64, error) {
 	return ids, err
 }
 
-// ReconcileAll reconciles every organization with asc repositories. One organization failing does not stop the
-// others; the first error is returned with the totals.
+// ReconcileAll first clears the old organization names still recorded (ForgetPending), then reconciles every
+// organization with asc repositories. One organization failing does not stop the others; the first error is
+// returned with the totals.
 func ReconcileAll(ctx context.Context) (Result, int, error) {
 	var total Result
+	if _, err := ForgetPending(ctx); errors.Is(err, ErrUnavailable) {
+		return total, 0, err
+	} else if err != nil {
+		log.Warn("ascteams: %v", err)
+	}
 	ids, err := OrgsWithAscRepos(ctx)
 	if err != nil {
 		return total, 0, err

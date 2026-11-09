@@ -56,7 +56,7 @@ func DeleteOrganization(ctx context.Context, org *org_model.Organization, purge 
 	if err := committer.Commit(); err != nil {
 		return err
 	}
-	ascteams.OrgDeleted(org.Name)
+	ascteams.OrgDeleted(ctx, org.Name)
 
 	// FIXME: system notice
 	// Note: There are something just cannot be roll back,
