@@ -451,6 +451,19 @@ credential, naming only the rows the viewer can read; asc checks read on each. T
 are kept 60 seconds in the hub cache. The number shown is at most 999. When `asc serve` cannot be asked the rows show
 no chip and the failure is logged with the request id (not cached).
 
+## The changeset count of a repository row
+
+Each row of Explore, a profile, an organization and Watching whose code the viewer can read shows **N changesets**: how
+many changesets the head of the default branch reaches. It has no icon and links to the changesets of the default
+branch. An empty repository and a private repository the viewer cannot read show no count.
+
+The count is kept in the table `asc_repo_changesets` (repository, head, count) by the stats indexer, the queue
+`repo_stats_update` that also keeps the language bar. The indexer counts on a push, a mirror sync, a migration and a
+change of the default branch, and only when the head moved. A git repository is counted with `git rev-list --count`;
+an asc repository with `History.Log` and `count_only`, one page after another, without loading a changeset. A row shows
+the stored count even when the head has moved since, and queues the repository to be counted again; a repository that
+was never counted shows no count until the indexer ran. The table row goes when the repository is deleted.
+
 ## Checks and Watch on organization rows
 
 Each repository row of an organization page says how the checks of the head of its default branch went: **Checks
