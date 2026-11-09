@@ -658,3 +658,23 @@ comes back to the page it was on now, not to Explore.
 The rows are `repoquick.LoadChecks` and `repoquick.LoadWatching` (`routers/web/shared/repoquick/rowstate.go`), called
 from `routers/web/org/home.go`, and drawn in `templates/explore/repo_list.tmpl`. Tests: TestTheRowCheckSumsUpTheChecks,
 TestTheOrgRowsShowChecksAndAWatchToggle.
+
+## Request a review and Mention, on a profile
+
+A signed-in person who looks at someone else's profile gets **Request a review** and **Mention** beside Follow (not on
+an organization, not on one's own profile, not on a private profile the viewer may not see). Each opens a dialog that
+loads, when it opens, a picker of the viewer's own open pull requests, the 20 most recently updated, keeping only those
+the person may read, in a repository that is not archived and not locked for the viewer. Request a review also keeps
+only those where the viewer may change the review requests and the person may review. A person who blocked the viewer
+gets an empty picker.
+
+**Request review** adds a review request, as the reviewer box of the pull request does: the person is told, it shows in
+their inbox and the hub passes it to asc as `RequestReview`. The page comes back to the profile with a note naming the
+pull request. **Post comment** posts the text as a comment on the pull request, with `@name` put first unless the text
+already mentions the person, and opens the comment. A comment must have text and at most 64 KiB.
+
+Every POST checks the pull request again: it must be the viewer's, open, and allowed as above; anything else is a 404
+and an unknown `pull` a 400. The server logs each request and mention (`asc audit: profile …`). The routes are
+`GET` and `POST /{username}/-/ask/{review|mention}` (`routers/web/user/asc_profile_ask.go`) and the picker is
+`templates/user/asc_profile_ask.tmpl`. Tests: TestAscProfileAskPicker, TestAscProfileAskReview,
+TestAscProfileAskMention, TestAscMentions, TestAscProfileAsk.

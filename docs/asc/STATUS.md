@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 241, partial 16, missing 60. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 242, partial 15, missing 60. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -644,16 +644,16 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Profile (ASC Hub profile)
 
-Area shell/settings. Rows 13: done 6, partial 2, missing 5. Copy found in the hub: 58% of 73 copy strings (mobile twin 56%). Template(s): asc_agents.tmpl, asc_heatmap.tmpl, header.tmpl, profile.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 13: done 7, partial 1, missing 5. Copy found in the hub: 58% of 73 copy strings (mobile twin 56%). Template(s): asc_agents.tmpl, asc_heatmap.tmpl, header.tmpl, profile.tmpl. Mobile twin: yes.
 
-Board copy not found word for word in locale, templates or scripts: Skip to content; Online, local time 14:20; Request a review; Draft: provider failover table; Fix clock skew in token expiry; Customer dashboard and checkout. Cursor pagination for every list..
+Board copy not found word for word in locale, templates or scripts: Skip to content; Online, local time 14:20; Draft: provider failover table; Fix clock skew in token expiry; Customer dashboard and checkout. Cursor pagination for every list..
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Header: avatar, name, handle, location, bio, followers, following, joined, website, Follow | done | templates/user/overview/header.tmpl (file) | - |
 | Presence pill ("Online, local time 14:20") | done | templates/shared/user/profile_big_avatar.tmpl, services/ascpresence | - |
 | Role line ("Staff engineer - Payments team - London") | missing (UI) | logged as not built (not re-probed) | Combine existing description, location and team names |
-| Request a review (picker with repository and change) and Mention | partial (hub+asc) | logged as not built (not re-probed) | Absent. Hub: picker modal of the viewer's open pull requests (routers/web/user/profile.go) and POST to asc RequestReview (exists... |
+| Request a review (picker with repository and change) and Mention | done | built | Request a review and Mention beside Follow, with a picker of the viewer's open pull requests (routers/web/user/asc_profile_ask.go) |
 | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | templates/user/overview/header.tmpl (file) | - |
 | Working-now list (stack, draft, ready) | done | templates/user/profile.tmpl (file) | - |
 | Pinned repositories (up to six) with Customize dialog and drag reorder | done | templates/user/settings/pins_form.tmpl, web_src/js/features/asc-pins.js, routers/web/user/asc_profile_tabs.go `ascPinRows` | Cards show stacks and changes; drag the cards, or Customize in a dialog with Move up and Move down (TestAscProfilePins) |

@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 192 |
+| done | 193 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 3 |
+| needs-both | 2 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 14, L 4.
+Open rows by size: S 0, M 14, L 3.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -269,7 +269,7 @@ Open rows by size: S 0, M 14, L 4.
 | Profile | Header: avatar, name, handle, location, bio, followers, following, joined, website, Follow | done | `templates/user/overview/header.tmpl`, `shared/user/asc_profile_band.tmpl` | - |
 | Profile | Presence pill ("Online, local time 14:20") | done | `profile_big_avatar.tmpl` pill from `ascpresence.Of`: online from the last request, local time in the zone of the profile behind its own privacy switch (off by default); OPERATIONS.md "Presence on profiles" | M |
 | Profile | Role line ("Staff engineer · Payments team · London") | done | Role is the `asc.role` user setting (Role field in profile settings, 60 characters, trimmed, empty clears it); the line in `profile_big_avatar.tmpl` adds role, the first team the viewer may know about (`AscProfileTeams`) and location; `tests/integration/asc_profile_role_test.go` | S |
-| Profile | Request a review (picker with repository and change) and Mention | needs-both | Absent. Hub: picker modal of the viewer's open pull requests (`routers/web/user/profile.go`) and POST to asc `RequestReview` (exists in `review.proto`) via `asc_rpc_proxy.go`; Mention opens a comment composer | L |
+| Profile | Request a review (picker with repository and change) and Mention | done | Request a review and Mention beside Follow open a picker of the viewer's open pull requests the person may read; review requests go to asc as `RequestReview`, Mention posts a comment (`routers/web/user/asc_profile_ask.go`) | L |
 | Profile | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | Tabs today: Overview, Repositories, Projects, Packages, Code, Activity, Stars (`overview/header.tmpl`). Add Work (`ascProfileWork`) and Reviews with counts | M |
 | Profile | Working-now list (stack, draft, ready) | done | `profile.tmpl`, `ascProfileWork` | - |
 | Profile | Pinned repositories (up to six) with Customize dialog and drag reorder | done | Cards show stacks and changes; the owner drags cards (saved at once) or opens Customize as a dialog with Move up and Move down and an announced position (`templates/user/settings/pins_form.tmpl`, `asc-pins.js`, `POST /user/settings/pins` with `inline=1` answers 204; `TestAscPinSettingsPostInline`, `TestAscProfilePins`, `asc-pins.test.js`) | M |
