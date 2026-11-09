@@ -230,6 +230,17 @@ After a restore the entrypoint starts `asc serve` after the hub. If the git brid
 
 Test a restore before you need one: restore the latest archive into a scratch volume, start a second container on it with another `ROOT_URL` and port, and run the smoke test against it. The backup tool's own tests are `tests/allinone/backup_test.sh`.
 
+### Scheduled backups of asc serve
+
+asc serve backs itself up on a schedule when `[backups]` names a target in its configuration (see its runbook). Site
+administrators manage the schedule, the history, checks and restores on **Site administration → Backups**. When the
+backups are overdue (no success within one and a half intervals) or the last one failed, the dashboard's **Needs
+attention** card lists them with the date of the newest good backup and a **Back up now** button, which starts a
+backup to the schedule's target and opens the Backups page (while a backup runs, the row offers **Open** instead).
+The dashboard asks asc only for site administrators, waits at most three seconds and shows no row when asc does not
+answer. Code: `routers/web/admin/overview.go` (backupAttention), `routers/web/admin/asc_backups.go`. Tests:
+TestTheDashboardOffersABackupWhenBackupsAreOverdue, TestAscBackups*.
+
 ## Upgrade and rollback
 
 > [!WARNING]
