@@ -265,12 +265,21 @@ func AscPolicyForm(ctx *context.Context) {
 		return n
 	}
 	flag := func(key string) bool { return ctx.Req.PostFormValue(key) == "on" }
+	// a list field is its ticked chips and the text of its Add field
+	list := func(key string) []string {
+		return asctrust.ListOf(ctx.Req.PostForm[key], ctx.Req.PostFormValue(key+"_add"))
+	}
+	// the longest run is asked in minutes; a form without the minutes field says seconds
+	runtime := num("max_runtime")
+	if _, ok := ctx.Req.PostForm["max_minutes"]; ok {
+		runtime = asctrust.RuntimeSecsOf(num("max_minutes"), runtime)
+	}
 	f := asctrust.PolicyForm{
-		RequireApprovals: num("approvals"), RequireChecks: asctrust.SplitLines(ctx.Req.PostFormValue("checks")),
+		RequireApprovals: num("approvals"), RequireChecks: list("checks"),
 		AllowForce: flag("allow_force"), RequireSigned: flag("require_signed"),
 		MergeStrategy: ctx.Req.PostFormValue("strategy"), MergeQueue: flag("queue"), AuthorMayApprove: flag("author_may_approve"), KeepApprovals: flag("keep_approvals"), MergeBatch: num("batch"), PostMergeChecks: flag("post_merge_checks"),
-		AgentsEnabled: flag("agents_enabled"), AgentScope: asctrust.SplitLines(ctx.Req.PostFormValue("agent_scope")),
-		AgentDenied: asctrust.SplitLines(ctx.Req.PostFormValue("agent_denied")), MaxRuntimeSecs: num("max_runtime"),
+		AgentsEnabled: flag("agents_enabled"), AgentScope: list("agent_scope"),
+		AgentDenied: list("agent_denied"), MaxRuntimeSecs: runtime,
 		MaxChangesPerRun: num("max_changes"), MaxTokens: num("max_tokens"),
 		MaxStackDepth: num("max_depth"), CleanupDays: num("cleanup_days"),
 		RestackOnMove: flag("restack_on_main_move"), WritersMayPush: flag("collaborators_may_push"),

@@ -36,6 +36,51 @@ type PolicyForm struct {
 	CleanupDays      int64 // [stacks] cleanup_days, 1 to MaxCleanupDays; 0 for the server's setting
 	RestackOnMove    bool  // [stacks] restack_on_main_move, off by default; the hub restacks open stacks
 	WritersMayPush   bool  // [stacks] collaborators_may_push, off by default; writers may update any stack
+	// HumanApproval is [review] human_approval, on by default: an agent's approval does not count. The form shows it
+	// locked; only the TOML view changes it, and ApplyForm leaves it as the text says.
+	HumanApproval bool
+}
+
+// MaxRuntimeMinutes is MaxRuntimeSecs in whole minutes, rounded up, for the minutes field of the form.
+func (f PolicyForm) MaxRuntimeMinutes() int64 {
+	if f.MaxRuntimeSecs <= 0 {
+		return 0
+	}
+	return (f.MaxRuntimeSecs + 59) / 60
+}
+
+// RuntimeSecsOf is the max_runtime_seconds the minutes field means. was is the value the form was drawn with: when
+// the minutes are what was shows (rounded up), the seconds stay as they were, so a policy of 90 seconds is not turned
+// into 120 by saving the form unchanged. A negative minutes value stays negative, for ApplyForm to refuse.
+func RuntimeSecsOf(minutes, was int64) int64 {
+	if minutes < 0 {
+		return -1
+	}
+	if was > 0 && minutes == (PolicyForm{MaxRuntimeSecs: was}).MaxRuntimeMinutes() {
+		return was
+	}
+	if minutes > (1<<62)/60 {
+		return -1
+	}
+	return minutes * 60
+}
+
+// ListOf joins the entries of a list field of the form: the ticked chips (one value each) and the text of its Add
+// field (one entry per line, commas also split, in a chip as well). Blanks and repeats are left out; the order is kept.
+func ListOf(chips []string, add string) []string {
+	var out []string
+	seen := map[string]bool{}
+	var all []string
+	for _, c := range chips {
+		all = append(all, SplitLines(c)...)
+	}
+	for _, v := range append(all, SplitLines(add)...) {
+		if !seen[v] {
+			seen[v] = true
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // MaxMergeBatch is the largest `[merge] batch` of asc-core (MAX_BATCH).
@@ -88,6 +133,10 @@ func FormOfText(text string) PolicyForm {
 	f.RestackOnMove, _ = TomlBool(text, "stacks", "restack_on_main_move")
 	f.WritersMayPush, _ = TomlBool(text, "stacks", "collaborators_may_push")
 	f.MergeStrategy, _ = tomlString(text, "merge", "strategy")
+	f.HumanApproval = true
+	if v, ok := TomlBool(text, "review", "human_approval"); ok {
+		f.HumanApproval = v
+	}
 	return f
 }
 

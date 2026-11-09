@@ -308,6 +308,79 @@
   color: var(--color-text-light-1);
 }
 
+/* the policy form: the approvals stepper and the list fields as chips (asc_policy_chips.tmpl) */
+.ast-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ast-stepper .ds-input {
+  inline-size: 5.5em;
+  text-align: center;
+}
+
+.ast-chips-field {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.ast-chips-legend {
+  padding: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.ast-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ast-chips:empty {
+  display: none;
+}
+
+.ast-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-block: 2px;
+  padding-inline: 8px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 999px;
+  background: var(--color-box-body);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.ast-chip input {
+  margin: 0;
+}
+
+.ast-chip:has(input:not(:checked)) span {
+  color: var(--color-text-light-2);
+  text-decoration: line-through;
+}
+
+.ast-chip-add {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ast-chip-add .ds-input {
+  flex: 1;
+  min-inline-size: 0;
+}
+
 /* the policy editor and "what this means" */
 .ast-split {
   display: grid;

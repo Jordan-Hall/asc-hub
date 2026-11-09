@@ -118,6 +118,7 @@ import {initAscIntent} from './features/asc-intent.js';
 import {initAscTitleCounter} from './features/asc-title-counter.js';
 import {initAscDraft} from './features/asc-draft.js';
 import {initAscWhere} from './features/asc-where.js';
+import {initAscPolicyForm} from './features/asc-policy-form.js';
 import {initAscAudit} from './features/asc-audit.js';
 import {initAscListLoading} from './features/asc-list-loading.js';
 import {initAscDashLive} from './features/asc-dash-live.js';
@@ -327,6 +328,7 @@ onDomReady(() => {
   initAscTitleCounter();
   initAscDraft();
   initAscWhere();
+  initAscPolicyForm();
   initAscAudit();
   initAscListLoading();
   initAscDashLive();

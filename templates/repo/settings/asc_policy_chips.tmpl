@@ -1,0 +1,15 @@
+{{/* A list field of the policy form as chips (board RepoSettingsPolicy): each entry is a ticked checkbox named .Name, unticking it
+removes the entry; the Add field (.Name_add) takes new entries, one a line or comma separated. Without the script the Add text is
+sent with the form; web_src/js/features/asc-policy-form.js turns Add into a button that makes a chip at once.
+Dot: dict with ID, Name, Label, AddLabel, Values, Help (may be empty). */}}
+<fieldset class="ast-chips-field" data-policy-chips="{{.Name}}"{{if .Help}} aria-describedby="{{.ID}}-help"{{end}}>
+	<legend class="ast-chips-legend">{{.Label}}</legend>
+	<ul class="ast-chips" data-chips-list>
+		{{range .Values}}<li><label class="ast-chip"><input type="checkbox" name="{{$.Name}}" value="{{.}}" checked><span class="ds-mono">{{.}}</span></label></li>{{end}}
+	</ul>
+	<div class="ast-chip-add">
+		<input id="{{.ID}}" class="ds-input ds-mono" name="{{.Name}}_add" type="text" spellcheck="false" autocomplete="off" aria-label="{{.AddLabel}}" data-chips-input>
+		<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" data-chips-add hidden>{{ctx.Locale.Tr "asc_rp.pf_add"}}</button>
+	</div>
+	{{if .Help}}<p id="{{.ID}}-help" class="asc-trust-sub">{{.Help}}</p>{{end}}
+</fieldset>
