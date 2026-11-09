@@ -5,6 +5,7 @@ package user
 
 import (
 	gocontext "context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -202,5 +203,38 @@ func TestAscDashPage(t *testing.T) {
 		assert.Contains(t, html, "It is just you for now")
 		assert.Contains(t, html, "Invite teammates and add an agent when you are ready.")
 		assert.Contains(t, html, `href="/org/create">Invite</a>`)
+	})
+}
+
+// GET /-/asc/dash/work: the cards of the work alone, which the open dashboard loads again (asc-dash-live.js).
+func TestAscDashWork(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+	ascRenderSeed(t)
+	ascRenderEntries(t)
+
+	ctx, body := ascRenderContext(t, "/-/asc/dash/work", 2)
+	AscDashWork(ctx)
+	require.Equal(t, http.StatusOK, ctx.Resp.Status())
+	assert.Equal(t, "private, no-store", ctx.Resp.Header().Get("Cache-Control"))
+	html := string(body())
+	assert.Contains(t, html, `data-asc-dash-work="/-/asc/dash/work"`)
+	assert.Contains(t, html, "Wire retry policy into the client")
+	assert.Contains(t, html, "Agents working now")
+	assert.Contains(t, html, `data-asc-dash-act="queue"`)
+	assert.NotContains(t, html, "<html", "the cards alone, not a page")
+	assert.NotContains(t, html, "data-asc-dash-today", "the Today card loads on its own")
+
+	t.Run("the dashboard wraps the same cards", func(t *testing.T) {
+		ctx, page := ascRenderContext(t, "/", 2)
+		Dashboard(ctx)
+		assert.Contains(t, string(page()), `data-asc-dash-work="/-/asc/dash/work"`)
+	})
+
+	t.Run("off without asc", func(t *testing.T) {
+		defer test.MockVariableValue(&setting.Asc.Enabled, false)()
+		ctx, _ := ascRenderContext(t, "/-/asc/dash/work", 2)
+		AscDashWork(ctx)
+		assert.Equal(t, http.StatusNotFound, ctx.Resp.Status())
 	})
 }

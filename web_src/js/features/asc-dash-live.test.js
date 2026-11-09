@@ -1,4 +1,4 @@
-import {initAscDashLive, refreshCounts, retryDelay} from './asc-dash-live.js';
+import {initAscDashLive, refreshCounts, refreshWork, retryDelay} from './asc-dash-live.js';
 
 const card = (items) => `<section data-asc-dash-today="/-/asc/dash/today">
   <div class="ds-card-h"><h2 id="wk-today-title">Today</h2></div>
@@ -161,4 +161,51 @@ test('each load of the Today card refreshes the counts', async () => {
   await settle();
   expect(load.mock.calls.map(([url]) => url)).toEqual(['/-/asc/dash/today', '/-/asc/dash/counts']);
   expect(liveCounts()[0]).toBe('9');
+});
+
+const work = (title) => `<div class="wk-dash-work" data-asc-dash-work="/-/asc/dash/work">
+  <ul data-asc-list data-asc-swipe><li data-asc-swipe-row><a href="/p/1">${title}</a></li></ul>
+  <form data-asc-dash-answer><input name="text"></form>
+</div>`;
+const workOk = (title) => () => Promise.resolve({ok: true, status: 200, text: () => Promise.resolve(work(title))});
+const rowTitle = () => q('[data-asc-dash-work] a').textContent;
+
+test('the cards of the work take what the hub sends', async () => {
+  document.body.innerHTML = `<main>${work('old row')}</main>`;
+  const load = vi.fn(workOk('new row'));
+  expect(await refreshWork(document, load)).toBe(true);
+  expect(load).toHaveBeenCalledWith('/-/asc/dash/work', {cache: 'no-store'});
+  expect(rowTitle()).toBe('new row');
+  expect(document.querySelectorAll('[data-asc-dash-work]')).toHaveLength(1);
+});
+
+test('the cards of the work stay while the person uses them', async () => {
+  document.body.innerHTML = `<main>${work('old row')}</main>`;
+  q('[data-asc-dash-work] a').focus();
+  expect(await refreshWork(document, workOk('new row'))).toBe(false);
+  expect(rowTitle()).toBe('old row');
+
+  q('[data-asc-dash-work] a').blur();
+  q('[data-asc-dash-answer] input').value = 'use the staging key';
+  expect(await refreshWork(document, workOk('new row'))).toBe(false);
+  expect(rowTitle()).toBe('old row');
+});
+
+test('the cards of the work stay when they cannot load', async () => {
+  document.body.innerHTML = `<main>${work('old row')}</main>`;
+  expect(await refreshWork(document, down)).toBe(false);
+  expect(await refreshWork(document, () => Promise.resolve({ok: false}))).toBe(false);
+  expect(await refreshWork(document, () => Promise.resolve({ok: true, text: () => Promise.resolve('<p>login</p>')}))).toBe(false);
+  expect(rowTitle()).toBe('old row');
+  document.body.innerHTML = '<main></main>';
+  expect(await refreshWork(document, down)).toBe(false);
+});
+
+test('each load of the Today card refreshes the cards of the work', async () => {
+  document.body.innerHTML = `<main>${card(['pushed one'])}${work('old row')}</main>`;
+  const load = vi.fn((url) => (url.endsWith('/work') ? workOk('new row')() : ok(['pushed two'])));
+  initAscDashLive({load, refreshMs: 1000});
+  await vi.advanceTimersByTimeAsync(1000);
+  await settle();
+  expect(rowTitle()).toBe('new row');
 });
