@@ -92,9 +92,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Hash-chain banner, filters, details, export, verify | done | routers/web/admin/asc_audit.go (file) | - |
 | Signed export file for the range | done | asc: Audit.Export ends with an SSHSIG over the file in the namespace asc-audit-export when `[signing] server_key_file` is set (crates/asc-serve/src/audit/rpc.rs, proto/asc/v1/audit.proto fields 6 and 7); hub: services/asctrust/audit.go checks the signature against the file and routers/web/shared/trustweb/audit.go serves a zip of the file, its .sig, allowed_signers and VERIFY.txt with the ssh-keygen -Y verify command; an unsigned export is the plain file; tests an_export_ends_with_the_server_signature_over_the_file, TestCopyExportKeepsTheSignatureAndItVerifies, TestWriteSignedExport, TestAscAuditExportIsSignedWhenTheServerSignsIt | - |
-| Board note: Rows expand in place to show the full record, request id and the diff | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Rows expand in place to show the full record, request id and the diff | done | templates/admin/asc_audit.tmpl (details asc-audit-record: event, id, time, request id, outcome, address, client, hash, diff of old and new); services/asctrust/audit.go AuditChange; tests TestAscAdminAuditBoardNotes, TestAuditPageOfBuildsTheRecordAndTheDiff | - |
 | Board note: Export downloads a signed file for the range | done | the signed export row above; TestAscAuditExportIsSignedWhenTheServerSignsIt | - |
-| Board note: Default, filtered, no results, chain verification failed (error banner), export in progre... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Default, filtered, no results, chain verification failed (error banner), export in progre... | done | default and filtered (filters open), no results (asc-audit-empty), chain failed (ds-banner-err role alert), export in progress (Export button is-loading and a polite status); tests TestAscAdminAuditBoardNotes, asc-audit.test.js showExportBusy | - |
 
 #### AdminBackups (ASC Hub admin: backups)
 
