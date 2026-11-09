@@ -77,7 +77,7 @@ has:
   name. You see the public members, or every member if you are a member of the organization or an admin. An
   organization you may not see finds no one.
 - **Sort, Most active**: most actions in the last 90 days first. Only actions anyone may see count: those in public
-  repositories by people who do not keep their activity private. A tie goes to the name.
+  repositories of public owners, by people who do not keep their activity private. A tie goes to the name.
 
 The pager keeps the filters. With no result, the list says so and offers to clear the filters.
 
