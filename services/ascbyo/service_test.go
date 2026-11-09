@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
+	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascbyo"
 	"forgejo.org/services/ascbyo/ascbyotest"
 
@@ -413,6 +414,54 @@ func TestMigrationProgress(t *testing.T) {
 	odd := ascbyo.MigrationFrom(repo, &ascv1.StorageMigration{Id: "mg_1", Repo: repo.Repo(), ToTargetId: "javascript:alert(1)", FromTargetId: "st_abcdefghijklmnopqrst"})
 	assert.Empty(t, odd.ToTarget, "a target id that is not one is dropped")
 	assert.Equal(t, "st_abcdefghijklmnopqrst", odd.FromTarget)
+}
+
+func TestMigrationETA(t *testing.T) {
+	repo := scope(t, ascbyo.KindRepo, "alice/widgets")
+	copying := ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_COPYING
+	mk := func(st ascv1.StorageMigrationState, paused bool, elapsed int64, total, copied, bytesTotal, bytes uint64) *ascbyo.Migration {
+		return ascbyo.MigrationFrom(repo, &ascv1.StorageMigration{
+			Id: "mg_1", Repo: repo.Repo(), State: st, Paused: paused, Created: 1000, Updated: 1000 + elapsed,
+			ObjectsTotal: total, ObjectsCopied: copied, BytesTotal: bytesTotal, BytesCopied: bytes,
+		})
+	}
+	// A quarter of the bytes in 100 s leaves 300 s, whatever the object count says.
+	assert.EqualValues(t, 300, mk(copying, false, 100, 10, 9, 4000, 1000).ETASeconds)
+	// Before asc counted the bytes the objects give the pace.
+	assert.EqualValues(t, 100, mk(copying, false, 100, 10, 5, 0, 0).ETASeconds)
+	assert.EqualValues(t, 1, mk(copying, false, 1, 1000, 999, 0, 0).ETASeconds, "never rounds to nothing while there is something left")
+	assert.EqualValues(t, 365*24*3600, mk(copying, false, 1<<40, 1<<40, 1, 0, 0).ETASeconds, "a hopeless pace is capped")
+	for name, m := range map[string]*ascbyo.Migration{
+		"nothing moved":   mk(copying, false, 100, 10, 0, 0, 0),
+		"no time passed":  mk(copying, false, 0, 10, 5, 0, 0),
+		"all moved":       mk(copying, false, 100, 10, 10, 0, 0),
+		"paused":          mk(copying, true, 100, 10, 5, 0, 0),
+		"checking":        mk(ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_VERIFYING, false, 100, 10, 5, 0, 0),
+		"waiting":         mk(ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_QUEUED, false, 100, 10, 5, 0, 0),
+		"clock backwards": mk(copying, false, -50, 10, 5, 0, 0),
+	} {
+		assert.Zero(t, m.ETASeconds, name)
+	}
+
+	l := translation.MockLocale{}
+	at := func(s int64) string { return (&ascbyo.Migration{ETASeconds: s}).ETALine(l) }
+	assert.Empty(t, at(0))
+	assert.Equal(t, "ascbyo.storage.repo.eta_soon", at(59))
+	assert.Equal(t, "ascbyo.storage.repo.eta_minutes_1", at(60))
+	assert.Equal(t, "ascbyo.storage.repo.eta_minutes_1", at(90*60-1))
+	assert.Equal(t, "ascbyo.storage.repo.eta_hours_1", at(90*60))
+	assert.Equal(t, "ascbyo.storage.repo.eta_days_1", at(48*3600))
+
+	m := mk(copying, false, 100, 10, 5, 0, 0)
+	assert.Equal(t, "ascbyo.storage.repo.progress \u00b7 ascbyo.storage.repo.eta_minutes_1", m.ProgressLine(l), "no bytes until they are counted")
+	m = mk(copying, false, 100, 10, 5, 2048, 1024)
+	assert.Equal(t, "ascbyo.storage.repo.progress \u00b7 ascbyo.storage.repo.progress_bytes \u00b7 ascbyo.storage.repo.eta_minutes_1", m.ProgressLine(l))
+	assert.EqualValues(t, 2048, m.SizeTotal())
+	assert.EqualValues(t, 1024, m.SizeCopied())
+	assert.Empty(t, m.RedoneLine(l))
+	redone := ascbyo.MigrationFrom(repo, &ascv1.StorageMigration{Id: "mg_1", Repo: repo.Repo(), Mismatched: 3})
+	assert.EqualValues(t, 3, redone.Mismatched)
+	assert.Equal(t, "ascbyo.storage.repo.redone_1", redone.RedoneLine(l))
 }
 
 func TestMigrationPaused(t *testing.T) {
