@@ -17,6 +17,7 @@ import (
 	"forgejo.org/models/unittest"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git"
+	base "forgejo.org/modules/migration"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascsync"
 
@@ -36,6 +37,25 @@ type fakeAscImport struct {
 	trunks  []string
 	head    string // the trunk asc reports
 	refuse  error
+	// importTakes is how long ImportGitPush runs; progress is what ImportProgress answers, one after the other
+	// (the last again and again), and progressAsked how often it was asked.
+	importTakes   time.Duration
+	progress      []*ascv1.ImportProgressResponse
+	progressAsked int
+}
+
+func (f *fakeAscImport) ImportProgress(context.Context, *ascv1.ImportProgressRequest) (*ascv1.ImportProgressResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.progressAsked++
+	if len(f.progress) == 0 {
+		return &ascv1.ImportProgressResponse{}, nil
+	}
+	p := f.progress[0]
+	if len(f.progress) > 1 {
+		f.progress = f.progress[1:]
+	}
+	return p, nil
 }
 
 // fakeSecretScan answers every scan with one finding, and records the notes it is given.
@@ -81,6 +101,7 @@ func (f *fakeAscImport) ListRefs(context.Context, *ascv1.ListRefsRequest) (*ascv
 }
 
 func (f *fakeAscImport) ImportGitPush(_ context.Context, req *ascv1.ImportGitPushRequest) (*ascv1.ImportGitPushResponse, error) {
+	time.Sleep(f.importTakes)
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.imports = append(f.imports, req)
@@ -159,6 +180,85 @@ func newAscMigrationFixture(t *testing.T) *ascMigrationFixture {
 		srv.Stop()
 	})
 	return &ascMigrationFixture{repo: repo, fake: fake, secret: secret, commit: commit}
+}
+
+// progressMessages collects what a migration reports through its messenger.
+type progressMessages struct {
+	mu   sync.Mutex
+	got  [][2]int64
+	keys []string
+}
+
+func (m *progressMessages) messenger(key string, args ...any) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.keys = append(m.keys, key)
+	if len(args) == 2 {
+		d, _ := args[0].(int64)
+		n, _ := args[1].(int64)
+		m.got = append(m.got, [2]int64{d, n})
+	}
+}
+
+func TestImportMigratedIntoAscReportsHowFarTheHistoryImportIs(t *testing.T) {
+	fx := newAscMigrationFixture(t)
+	restore := stubAscHolds(func(context.Context, *repo_model.Repository, string, string) error { return nil })
+	defer restore()
+	old := importProgressEvery
+	importProgressEvery = 5 * time.Millisecond
+	defer func() { importProgressEvery = old }()
+
+	// Three commits on main: the hub counts them itself.
+	path := fx.repo.RepoPath()
+	tree := gitIn(t, path, "", "hash-object", "-t", "tree", "-w", "--stdin")
+	c2 := gitIn(t, path, "", "commit-tree", tree, "-p", fx.commit, "-m", "two")
+	c3 := gitIn(t, path, "", "commit-tree", tree, "-p", c2, "-m", "three")
+	gitIn(t, path, "", "update-ref", "refs/heads/main", c3)
+
+	fx.fake.importTakes = 400 * time.Millisecond
+	fx.fake.progress = []*ascv1.ImportProgressResponse{
+		{}, // not started yet
+		{Running: true, Commits: 1, Started: 100}, //
+		{Running: true, Commits: 1, Started: 100}, // the same again is not reported again
+		{Running: true, Commits: 2, Started: 100}, //
+		{Running: true, Commits: 1, Started: 200}, // a second batch counts from zero: 2 + 1
+		{Running: true, Commits: 9, Started: 200}, // never more than the whole history
+	}
+	var msgs progressMessages
+	ctx := base.WithMessenger(t.Context(), msgs.messenger)
+	require.NoError(t, importMigratedIntoAsc(ctx, fx.repo, "main"))
+
+	assert.Equal(t, [][2]int64{{0, 3}, {1, 3}, {2, 3}, {3, 3}, {3, 3}}, msgs.got)
+	for _, k := range msgs.keys {
+		assert.Equal(t, ImportProgressFormat, k)
+	}
+	asked := fx.fake.progressAsked
+	time.Sleep(30 * time.Millisecond)
+	assert.Equal(t, asked, fx.fake.progressAsked, "nothing is asked once the import has ended")
+}
+
+func TestImportMigratedIntoAscReportsNoProgressItCannotStandBy(t *testing.T) {
+	old := importProgressEvery
+	importProgressEvery = 5 * time.Millisecond
+	defer func() { importProgressEvery = old }()
+
+	t.Run("a refused import never reports the history as done", func(t *testing.T) {
+		fx := newAscMigrationFixture(t)
+		fx.fake.refuse = status.Error(codes.InvalidArgument, "path policy: .env is not allowed")
+		fx.fake.importTakes = 50 * time.Millisecond
+		var msgs progressMessages
+		require.Error(t, importMigratedIntoAsc(base.WithMessenger(t.Context(), msgs.messenger), fx.repo, "main"))
+		assert.Equal(t, [][2]int64{{0, 1}}, msgs.got)
+	})
+
+	t.Run("without a messenger asc is not asked", func(t *testing.T) {
+		fx := newAscMigrationFixture(t)
+		restore := stubAscHolds(func(context.Context, *repo_model.Repository, string, string) error { return nil })
+		defer restore()
+		fx.fake.importTakes = 50 * time.Millisecond
+		require.NoError(t, importMigratedIntoAsc(t.Context(), fx.repo, "main"))
+		assert.Zero(t, fx.fake.progressAsked)
+	})
 }
 
 func TestScrubBridgeConfig(t *testing.T) {

@@ -486,6 +486,27 @@ func TestImportHistoryImportsOnceAndRepeatsAsNoOp(t *testing.T) {
 	assert.Equal(t, mustHex(c3), u.GetNewGit())
 }
 
+func TestImportProgressAsksAscAboutTheRepository(t *testing.T) {
+	fx := newFixture(t)
+	p, err := ImportProgress(t.Context(), fx.repo)
+	require.NoError(t, err)
+	assert.Equal(t, Progress{}, p, "nothing runs")
+
+	fx.fake.progress = &ascv1.ImportProgressResponse{Running: true, Commits: 3412, Started: 1700000000}
+	p, err = ImportProgress(t.Context(), fx.repo)
+	require.NoError(t, err)
+	assert.Equal(t, Progress{Running: true, Commits: 3412, Started: 1700000000}, p)
+	assert.Len(t, fx.fake.progressFor, 2)
+	for _, name := range fx.fake.progressFor {
+		assert.NotEmpty(t, name)
+	}
+
+	// A repository that is not asc's is not asked about.
+	_, err = ImportProgress(t.Context(), &repo_model.Repository{OwnerName: "o", Name: "git", StorageBackend: "git"})
+	require.ErrorIs(t, err, ErrNotAsc)
+	assert.Len(t, fx.fake.progressFor, 2)
+}
+
 func TestImportHistoryStopsAtARefusal(t *testing.T) {
 	fx := newFixture(t)
 	c1 := fx.commit("one")

@@ -158,6 +158,20 @@ type fakeAsc struct {
 	importShort bool
 	// promoteDelay is how long the bridge takes to follow an UpdateRefs; a negative value never follows.
 	promoteDelay time.Duration
+	// progress is the answer of ImportProgress; progressFor records the repositories it was asked about.
+	progress    *ascv1.ImportProgressResponse
+	progressFor []string
+}
+
+func (f *fakeAsc) ImportProgress(_ context.Context, req *ascv1.ImportProgressRequest) (*ascv1.ImportProgressResponse, error) {
+	f.record("ImportProgress")
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.progressFor = append(f.progressFor, req.GetRepo().GetName())
+	if f.progress == nil {
+		return &ascv1.ImportProgressResponse{}, nil
+	}
+	return f.progress, nil
 }
 
 func (f *fakeAsc) record(name string) {
