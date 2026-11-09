@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 191 |
+| done | 192 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 4 |
+| needs-both | 3 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 14, L 5.
+Open rows by size: S 0, M 14, L 4.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -114,7 +114,7 @@ Open rows by size: S 0, M 14, L 5.
 | GetStarted | Two parallel first-run pages (`asc/get_started.tmpl`, `user/asc_welcome.tmpl` with old `hub-` classes) | done | Merge into one page that follows the board; delete `user/asc_welcome.tmpl` and `routers/web/asc_welcome.go` | S |
 | GetStarted | Step 2 ticks by itself when the first CLI sign-in arrives, no reload | done | `routers/web/asc_public.go` (`ascStartedOf`, `GET /-/get-started/status`, JSON, no-store), `templates/asc/get_started.tmpl` (`data-gs-watch`, `data-gs-part`, `data-gs-live`), `web_src/js/features/asc-welcome.js` (polls every 3 s while the tab is shown, then swaps the steps, progress and health card and announces it) | - |
 | GetStarted | Import step with source tabs and progress "Reading history 12,408 commits" | done | Step 3 opens an inline form: tabs From a Git URL (in place), From GitHub or GitLab (`/repo/migrate`), Start empty (`/repo/create`). `POST /-/get-started/import` queues a private history-only migration (https only); the page asks `GET /-/get-started/import/status` until the task ends and shows the commits read (`routers/web/asc_get_started_import.go`, `web_src/js/features/asc-welcome.js`) | L |
-| GetStarted | Health check (Git found, signed in, SSH key, shell shim; `asc doctor` on machine and server) | needs-both | Hub card lists email, SSH key and token only. `asc doctor` exists (`crates/asc/src/cli/doctor.rs`) but never reports to the hub: add a report call or show server checks only | L |
+| GetStarted | Health check (Git found, signed in, SSH key, shell shim; `asc doctor` on machine and server) | done | `asc doctor --report [<hub>]` (asc `crates/asc/src/cli/doctor/report.rs`) posts the name and level of each check to `POST /api/v1/user/asc/doctor` (`routers/api/v1/user/asc_doctor.go`, `services/ascdoctor`); the card (`templates/asc/get_started.tmpl`) shows Git with its version, the shim, the checks that warn or fail and when the machine was checked; the server side is the sign-in, SSH key and token rows | L |
 | GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | done | Data exists (`services/ascbyo`, settings); card missing | S |
 | GetStarted | Shortcuts card | done | Static card; `t` and `?` need handlers (see Shell) | S |
 | GetStarted | "Open the sample project" read-only | done | `services/ascsample` makes the sample on the first `POST /-/get-started/sample` (bot owner `asc-sample`, archived, four commits); `[asc] SAMPLE_PROJECT` turns it off | - |

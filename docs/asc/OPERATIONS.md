@@ -555,6 +555,23 @@ An empty text and a text over 32 KiB are refused. When the run cannot start, no 
 an error. When the run starts but the comment cannot be posted, the inbox warns; the run still has the instruction.
 Each request is written to the log as an `asc audit: inbox ask` line.
 
+## The health check of Get started
+
+The health check card of Get started shows what the hub knows (the email, the SSH key, the first sign-in of the command
+line) and what the machine of the person last reported. Run `asc doctor --report` on the machine, in a workspace whose
+remote is this hub, or `asc doctor --report https://<hub>` anywhere. The command sends the name and level of each
+check, the version of asc and of git, and the operating system and architecture to `POST /api/v1/user/asc/doctor`
+with the token of `asc auth login`. It sends no path, no detail text and no secret.
+
+The card then shows Git with its version, the shell shim, every check that warns or fails (failures first) and when
+the machine was checked. Fix opens the docs. The hub keeps only the last report of each person, shows it only to them
+and trusts it for nothing.
+
+The route takes a token with the repository scope, the scope the command line signs in with. It answers 204 when the
+report is kept, 422 when the report is not of the shape `asc doctor` sends (at most 64 checks; names of lower case
+letters, digits, `.`, `_` and `-`; levels ok, info, warn and fail), and 404 when asc is off. A refused report keeps
+the last one.
+
 ## New items, in the open inbox
 
 While the inbox is open and in view, the page asks the hub every minute for the rows of the same tab, repository,
