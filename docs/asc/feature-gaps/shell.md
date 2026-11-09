@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 178 |
+| done | 179 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 17 |
+| needs-both | 16 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 18, L 14.
+Open rows by size: S 0, M 18, L 13.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -274,7 +274,7 @@ Open rows by size: S 0, M 18, L 14.
 | Profile | Working-now list (stack, draft, ready) | done | `profile.tmpl`, `ascProfileWork` | - |
 | Profile | Pinned repositories (up to six) with Customize dialog and drag reorder | done | Cards show stacks and changes; the owner drags cards (saved at once) or opens Customize as a dialog with Move up and Move down and an announced position (`templates/user/settings/pins_form.tmpl`, `asc-pins.js`, `POST /user/settings/pins` with `inline=1` answers 204; `TestAscPinSettingsPostInline`, `TestAscProfilePins`, `asc-pins.test.js`) | M |
 | Profile | Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for agent-authored changes, cell opens the day, table alternative | needs-both | One-colour grid exists (`asc_heatmap.tmpl`) with a text total. Agent attribution needs asc (changeset author kind via `changes.proto`); turnaround from review timestamps | L |
-| Profile | "Agents Priya runs" with New agent | needs-both | Not on the profile. Hub must list the person's agents (see Explore users) with scope and counts | L |
+| Profile | "Agents Priya runs" with New agent | done | routers/web/user/asc_profile_agents.go `ascProfileAgents`, templates/user/profile.tmpl `data-asc-pf-agents`; asc SummarizeAgents `created_by` (TestTheProfileHasTheAgentsThePersonRuns) | - |
 | Profile | Recent activity | done | `profile.tmpl` feed | - |
 | Profile | "Knows best" (path share of changes and reviews, six months) | needs-both | No code. Aggregate asc `LastCommits` / blame data per user: new RPC or hub job | L |
 | Profile | Teams and Focus chips beside Repositories and Organizations | done | Teams card (`wk-pteams`, members only) and Focus card (`[data-asc-pf-focus]`): the topics and main language of up to 12 readable repositories the person changes, weighted by their pull requests, six at most, each linked to Explore (`ascProfileRepos`, `ascFocusTally`); tests `routers/web/user/asc_profile_focus_test.go`, `tests/integration/asc_profile_focus_test.go` | S |

@@ -496,6 +496,16 @@ required, the required checks, Only people approve, Changes must be signed, Land
 strategy, or "Not set yet". **Read the policy** opens the merge defaults in the organization settings, which a member
 who is not an owner reads without changing. When asc cannot be asked the card keeps its lead and the link.
 
+## Agents a person runs, on the profile
+
+The side of a profile has an **Agents <name> runs** card for a signed-in viewer with agent features on. It names, most
+runs first, at most five agents with runs the person created in the asc repositories of the person and those the person
+can reach, as far as the viewer can read their code: `@owner/name` (it opens the runs of that agent in its busiest
+repository), the number of runs and that repository, and how many are going. Past five it says how many more. The agent
+directory asks asc once per profile and keeps the answer for a minute. On one's own profile the card has **New agent**
+(the agents page) and, with no runs yet, "No agent runs yet."; on someone else's profile with no runs the card is left
+out, and it is left out when asc cannot be asked.
+
 ## Checks and Watch on organization rows
 
 Each repository row of an organization page says how the checks of the head of its default branch went: **Checks
