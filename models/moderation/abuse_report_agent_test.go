@@ -6,6 +6,7 @@ package moderation_test
 import (
 	"testing"
 
+	"forgejo.org/models/db"
 	"forgejo.org/models/moderation"
 	"forgejo.org/models/unittest"
 
@@ -50,4 +51,17 @@ func TestAnAgentTokenHasABoundedNumberOfOpenReports(t *testing.T) {
 	}
 	_, err := moderation.ReportAbuseByAgent(t.Context(), agentReport("at_flood", 5000))
 	require.ErrorIs(t, err, moderation.ErrAgentReportLimit)
+}
+
+func TestEveryAgentReportTakesTheLockOfItsToken(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	for i := range 3 {
+		_, err := moderation.ReportAbuseByAgent(t.Context(), agentReport("at_lock", int64(1+i%2)))
+		require.NoError(t, err)
+	}
+	lock := &moderation.AgentReportLock{Token: "at_lock"}
+	has, err := db.GetEngine(t.Context()).Get(lock)
+	require.NoError(t, err)
+	require.True(t, has)
+	assert.EqualValues(t, 3, lock.Seq, "a duplicate takes the lock too")
 }
