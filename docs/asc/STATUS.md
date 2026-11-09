@@ -77,10 +77,10 @@ Board copy not found word for word in locale, templates or scripts: Contact us; 
 | Hero, story with before and after table, principles, open source chips, data ownership, contact | done | templates/asc/about.tmpl:1 | - |
 | Header About and footer link go to /-/about | done | services/ascdocs/content/WHY.md (file) | - |
 | Source code, Security policy and Contact targets | done | Source and security policy link the ASC Hub repository; `[asc] CONTACT_EMAIL`, `SECURITY_EMAIL` and `POLICIES_URL` (`modules/setting/asc.go`, OPERATIONS.md) set the contact, report and policies targets, with the ... | - |
-| Board note: Calls to action: Download ASC (/download), Read the docs | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Principle cards are not links; their content is the content | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Hero, story with before and after table, four principles, open source and data ownership,... | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Light and dark; hero stays navy | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Calls to action: Download ASC (/download), Read the docs | done | templates/asc/about.tmpl:10-11; test routers/web/asc_about_board_test.go TestAscAboutBoardNotes | - |
+| Board note: Principle cards are not links; their content is the content | done | templates/asc/about.tmpl:46-49 (article cards, no links); test TestAscAboutBoardNotes | - |
+| Board note: Hero, story with before and after table, four principles, open source and data ownership,... | done | templates/asc/about.tmpl (hero, why with before and after table, principles, open source chips, data ownership); test TestAscAboutBoardNotes | - |
+| Board note: Light and dark; hero stays navy | done | web_src/css/asc-ds/landing.css:9 hero on var(--navy), one --navy in tokens.css:74 for both themes; test TestAscAboutBoardNotes | - |
 
 #### AdminAudit (ASC Hub admin: audit log)
 
