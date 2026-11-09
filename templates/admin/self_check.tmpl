@@ -28,6 +28,19 @@
 			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.gauge_disk_sub"}}</div>
 		</div>
 		{{end}}{{end}}
+		{{with .StoreGauge}}
+		<div class="ds-stat" data-testid="gauge-store">
+			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_store"}}</div>
+			{{if .Limit}}
+			<div class="ds-stat-value">{{.Pct}}%</div>
+			<progress class="adm-meter {{if ge .Pct 90}}adm-meter-err{{else if ge .Pct 80}}adm-meter-warn{{else}}adm-meter-ok{{end}}" max="100" value="{{.Pct}}" aria-label="{{ctx.Locale.Tr "asc_admin.gauge_store"}}">{{.Pct}}%</progress>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.gauge_store_of" .UsedText .LimitText}}</div>
+			{{else}}
+			<div class="ds-stat-value">{{.UsedText}}</div>
+			<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_admin.gauge_store_nolimit"}}</div>
+			{{end}}
+		</div>
+		{{end}}
 		<div class="ds-stat">
 			<div class="ds-stat-label">{{ctx.Locale.Tr "asc_admin.gauge_goroutines"}}</div>
 			<div class="ds-stat-value">{{.SysStatus.NumGoroutine}}</div>

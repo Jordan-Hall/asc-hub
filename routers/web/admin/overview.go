@@ -234,6 +234,22 @@ func storageRow(ctx *context.Context) (statusRow, bool) {
 	return statusRow{name, ctx.Tr("asc_admin.sys_storage_used", m.UsedText()), "ok", ctx.Tr("asc_admin.state_healthy")}, true
 }
 
+// storeGauge is the Object storage gauge of the health page: what asc serve stores for the whole server, against the
+// server's storage limit when one is set. False when asc is off, has no usage figures or does not answer.
+func storeGauge(ctx *context.Context) (asctrust.Meter, bool) {
+	conn, callCtx, done, ok := dashboardAscCall(ctx, asctrust.FeatureUsage)
+	if !ok {
+		return asctrust.Meter{}, false
+	}
+	defer done()
+	u, err := asctrust.LoadUsage(callCtx, conn, &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_INSTANCE}, "")
+	if err != nil {
+		log.Debug("health: storage usage: %v", err)
+		return asctrust.Meter{}, false
+	}
+	return u.Storage, true
+}
+
 // mailWaitWarn is how long the oldest mail may wait before the Mail row warns.
 const mailWaitWarn = 5 * time.Minute
 
@@ -345,6 +361,9 @@ func healthFacts(ctx *context.Context) {
 	ctx.Data["MemPercent"] = pct
 	ctx.Data["CPUGauge"] = cpuGauge()
 	ctx.Data["DiskGauge"] = diskGauge(setting.AppDataPath)
+	if m, ok := storeGauge(ctx); ok {
+		ctx.Data["StoreGauge"] = m
+	}
 	ctx.Data["Checks"] = rows
 	ctx.Data["ChecksOK"], ctx.Data["ChecksWarn"], ctx.Data["ChecksFail"], ctx.Data["ChecksNoRun"] = ok, warn, fail, norun
 	ctx.Data["ChecksTally"] = checkTally(ctx, ok, warn, fail, norun)
