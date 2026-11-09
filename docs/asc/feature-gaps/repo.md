@@ -409,12 +409,12 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 256 |
+| done | 258 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 7 |
+| needs-both | 5 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
