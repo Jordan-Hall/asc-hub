@@ -21,6 +21,8 @@ import (
 	"forgejo.org/modules/util"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
+
+	"google.golang.org/grpc"
 )
 
 // The brief of the review page (board Review): what the change does, why, how to check it, what could go wrong and
@@ -199,40 +201,51 @@ func ascBriefOf(resp *ascv1.GetBriefResponse, runLink func(uint64) string, fileL
 	return out, nil
 }
 
-// prepareAscBrief puts the brief of an open stacked pull request into ctx.Data["AscBrief"]. It never fails the page:
-// without asc, without a link or on any asc problem it sets nothing, and the page shows no brief card.
-func prepareAscBrief(ctx *context.Context, pull *issues_model.PullRequest) {
+// fetchAscBrief asks asc for the brief of the change a stacked pull request carries (Review.GetBrief). ok is false
+// without asc, without a stack link, for a repository that is not asc's or on any asc problem; nothing is logged as an
+// error then, because none of it fails a page.
+func fetchAscBrief(ctx *context.Context, pull *issues_model.PullRequest) (resp *ascv1.GetBriefResponse, name string, change []byte, conn grpc.ClientConnInterface, ok bool) {
 	if pull == nil || !setting.Asc.Enabled {
-		return
+		return nil, "", nil, nil, false
 	}
 	link, err := issues_model.GetPullRequestAscStack(ctx, pull.ID)
 	if err != nil || link == nil {
-		return
+		return nil, "", nil, nil, false
 	}
 	if pull.BaseRepo == nil && pull.LoadBaseRepo(ctx) != nil {
-		return
+		return nil, "", nil, nil, false
 	}
 	repo := pull.BaseRepo
 	if repo.GetStorageBackend() != string(gitrepo.StorageBackendAsc) {
-		return
+		return nil, "", nil, nil, false
 	}
-	name, err := ascGraphRepoName(repo)
+	name, err = ascGraphRepoName(repo)
 	if err != nil {
-		return
+		return nil, "", nil, nil, false
 	}
-	change := ascChangeBytes(link.AscChange)
+	change = ascChangeBytes(link.AscChange)
 	if change == nil {
-		return
+		return nil, "", nil, nil, false
 	}
-	conn, err := ascRPCConn()
+	conn, err = ascRPCConn()
 	if err != nil {
-		return
+		return nil, "", nil, nil, false
 	}
 	callCtx, cancel := gocontext.WithTimeout(ascclient.WithSystem(ctx), ascBriefTimeout)
 	defer cancel()
-	resp, err := ascv1.NewReviewClient(conn).GetBrief(callCtx, &ascv1.GetBriefRequest{Repo: &ascv1.RepoRef{Name: name}, Change: change})
+	resp, err = ascv1.NewReviewClient(conn).GetBrief(callCtx, &ascv1.GetBriefRequest{Repo: &ascv1.RepoRef{Name: name}, Change: change})
 	if err != nil {
 		log.Warn("asc brief: %v", err)
+		return nil, "", nil, nil, false
+	}
+	return resp, name, change, conn, true
+}
+
+// prepareAscBrief puts the brief of an open stacked pull request into ctx.Data["AscBrief"]. It never fails the page:
+// without asc, without a link or on any asc problem it sets nothing, and the page shows no brief card.
+func prepareAscBrief(ctx *context.Context, pull *issues_model.PullRequest) {
+	resp, name, change, conn, ok := fetchAscBrief(ctx, pull)
+	if !ok {
 		return
 	}
 	repoLink := ctx.Repo.RepoLink

@@ -170,6 +170,8 @@ func prepareAscChange(ctx *context.Context, commit *git.Commit, statuses []*git_
 		ctx.Data["ChangeRevertLink"] = fmt.Sprintf("%s/pulls/%d/asc/revert", ctx.Repo.RepoLink, pr.Index)
 	}
 
+	prepareAscChangeBrief(ctx, pr, commitID)
+
 	if panel, err := pull_service.BuildAscStackPanel(ctx, pr); err != nil {
 		log.Error("change page: stack of %s#%d: %v", repo.FullName(), pr.Index, err)
 	} else if panel != nil {

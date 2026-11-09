@@ -11,7 +11,24 @@
 		<div><dt>{{ctx.Locale.Tr "asc_rp.fact_size"}}</dt><dd class="ds-num"><span class="rp-add">+{{.ChangeFacts.Additions}}</span> <span class="rp-del">&minus;{{.ChangeFacts.Deletions}}</span></dd></div>
 		<div><dt>{{ctx.Locale.Tr "asc_rp.fact_files"}}</dt><dd class="ds-num">{{ctx.Locale.PrettyNumber .ChangeFacts.Files}}</dd></div>
 		{{if .ChangeFacts.ChecksTotal}}<div><dt>{{ctx.Locale.Tr "asc_rp.fact_checks"}}</dt><dd class="ds-num">{{ctx.Locale.Tr "asc_rp.checks_n_of_n" .ChangeFacts.ChecksPass .ChangeFacts.ChecksTotal}}</dd></div>{{end}}
+		{{with .ChangeBrief}}{{if .RiskLevel}}<div data-testid="change-fact-risk"><dt>{{ctx.Locale.Tr "asc_rp.fact_risk"}}</dt><dd>{{ctx.Locale.Tr (printf "asc_rp.risk_word_%s" .RiskLevel)}}</dd></div>{{end}}{{end}}
 	</dl>
+	{{with .ChangeBrief}}
+	<section class="ds-card rp-look" aria-labelledby="rp-look-h" data-testid="change-brief">
+		{{if .Where}}
+		<h2 class="rp-rail-title" id="rp-look-h">{{ctx.Locale.Tr "asc_rp.where_to_look"}}</h2>
+		<ul class="rp-look-list">
+			{{range .Where}}<li><a href="{{.Link}}"><code>{{.Path}}{{if .Line}}:{{.Line}}{{end}}</code></a>{{if .Note}} <span>{{.Note}}</span>{{end}}</li>{{end}}
+		</ul>
+		{{else}}
+		<h2 class="rp-rail-title" id="rp-look-h">{{ctx.Locale.Tr "asc_rp.fact_risk"}}</h2>
+		{{end}}
+		{{if or .RiskLevel .RiskNote}}
+		<p class="rp-look-risk" data-testid="change-risk">{{if .Where}}<strong>{{ctx.Locale.Tr "asc_rp.fact_risk"}}</strong> {{end}}{{if .RiskLevel}}<span class="ds-chip {{if eq .RiskLevel "high"}}ds-chip-err{{else if eq .RiskLevel "medium"}}ds-chip-warn{{else}}ds-chip-ok{{end}}">{{ctx.Locale.Tr (printf "asc_review.risk_%s" .RiskLevel)}}</span>{{end}}{{if .RiskNote}} <span class="rp-look-note">{{.RiskNote}}</span>{{end}}</p>
+		{{if .RiskReasons}}<ul class="rp-look-reasons">{{range .RiskReasons}}<li>{{.}}</li>{{end}}</ul>{{end}}
+		{{end}}
+	</section>
+	{{end}}
 	{{with .AscChangeFiles}}
 	<section class="ds-card rp-groups" aria-labelledby="rp-groups-h" data-testid="change-groups">
 		<h2 class="rp-rail-title" id="rp-groups-h">{{ctx.Locale.Tr "asc_rp.groups_title" .Total}}</h2>

@@ -414,6 +414,38 @@
   font-weight: 700;
 }
 
+.rp-look {
+  padding: 14px 16px;
+}
+
+.rp-look-list,
+.rp-look-reasons {
+  margin: 8px 0 0;
+  padding-inline-start: 18px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.rp-look-list li + li,
+.rp-look-reasons li + li {
+  margin-block-start: 4px;
+}
+
+.rp-look-risk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 14px;
+}
+
+.rp-look-note {
+  color: var(--text-b);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .rp-stackpos {
   display: flex;
   align-items: center;
