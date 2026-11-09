@@ -39,6 +39,7 @@ const (
 	Agents_GetSpend_FullMethodName         = "/asc.v1.Agents/GetSpend"
 	Agents_SetMonthlyBudget_FullMethodName = "/asc.v1.Agents/SetMonthlyBudget"
 	Agents_GetPerson_FullMethodName        = "/asc.v1.Agents/GetPerson"
+	Agents_CountRuns_FullMethodName        = "/asc.v1.Agents/CountRuns"
 )
 
 // AgentsClient is the client API for Agents service.
@@ -68,6 +69,7 @@ type AgentsClient interface {
 	GetSpend(ctx context.Context, in *GetAgentSpendRequest, opts ...grpc.CallOption) (*GetAgentSpendResponse, error)
 	SetMonthlyBudget(ctx context.Context, in *SetMonthlyBudgetRequest, opts ...grpc.CallOption) (*SetMonthlyBudgetResponse, error)
 	GetPerson(ctx context.Context, in *GetAgentPersonRequest, opts ...grpc.CallOption) (*GetAgentPersonResponse, error)
+	CountRuns(ctx context.Context, in *CountAgentRunsRequest, opts ...grpc.CallOption) (*CountAgentRunsResponse, error)
 }
 
 type agentsClient struct {
@@ -287,6 +289,16 @@ func (c *agentsClient) GetPerson(ctx context.Context, in *GetAgentPersonRequest,
 	return out, nil
 }
 
+func (c *agentsClient) CountRuns(ctx context.Context, in *CountAgentRunsRequest, opts ...grpc.CallOption) (*CountAgentRunsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CountAgentRunsResponse)
+	err := c.cc.Invoke(ctx, Agents_CountRuns_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentsServer is the server API for Agents service.
 // All implementations should embed UnimplementedAgentsServer
 // for forward compatibility.
@@ -314,6 +326,7 @@ type AgentsServer interface {
 	GetSpend(context.Context, *GetAgentSpendRequest) (*GetAgentSpendResponse, error)
 	SetMonthlyBudget(context.Context, *SetMonthlyBudgetRequest) (*SetMonthlyBudgetResponse, error)
 	GetPerson(context.Context, *GetAgentPersonRequest) (*GetAgentPersonResponse, error)
+	CountRuns(context.Context, *CountAgentRunsRequest) (*CountAgentRunsResponse, error)
 }
 
 // UnimplementedAgentsServer should be embedded to have
@@ -382,6 +395,9 @@ func (UnimplementedAgentsServer) SetMonthlyBudget(context.Context, *SetMonthlyBu
 }
 func (UnimplementedAgentsServer) GetPerson(context.Context, *GetAgentPersonRequest) (*GetAgentPersonResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPerson not implemented")
+}
+func (UnimplementedAgentsServer) CountRuns(context.Context, *CountAgentRunsRequest) (*CountAgentRunsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CountRuns not implemented")
 }
 func (UnimplementedAgentsServer) testEmbeddedByValue() {}
 
@@ -756,6 +772,24 @@ func _Agents_GetPerson_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Agents_CountRuns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CountAgentRunsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).CountRuns(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_CountRuns_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).CountRuns(ctx, req.(*CountAgentRunsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Agents_ServiceDesc is the grpc.ServiceDesc for Agents service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -838,6 +872,10 @@ var Agents_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPerson",
 			Handler:    _Agents_GetPerson_Handler,
+		},
+		{
+			MethodName: "CountRuns",
+			Handler:    _Agents_CountRuns_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
