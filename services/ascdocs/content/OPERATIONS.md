@@ -415,3 +415,21 @@ Neither shows to someone who may not see the person's activity (activity kept pr
 someone else). The pill is `ascpresence.Of` (`services/ascpresence`), filled in `routers/web/user/profile.go` and drawn
 in `templates/shared/user/profile_big_avatar.tmpl`. Tests: TestThePillSaysOnlineAndTheLocalTime,
 TestTheProfileShowsAPresencePill.
+
+## Checks and Watch on organization rows
+
+Each repository row of an organization page says how the checks of the head of its default branch went: **Checks
+passing**, **N checks failing**, **Checks running** or **No checks**, linked to the commits of that branch. The latest
+status of each check (commit status context) counts; a failure or an error fails, a pending check runs, a warning
+passes. The text shows only to someone who may read the code of the repository, because checks name commits and tests;
+an empty repository shows nothing. A failure to read the statuses is logged with the request id and the rows show no
+check text.
+
+A signed-in person also gets a **Watch** (or **Unwatch**) button with the watcher count on each row, and the same item
+in the phone row menu. The button posts a plain form that comes back to the page (`redirect_to`, an address inside the
+hub only); the Watch control in the repository header still swaps in place with htmx. The Star button of the rows also
+comes back to the page it was on now, not to Explore.
+
+The rows are `repoquick.LoadChecks` and `repoquick.LoadWatching` (`routers/web/shared/repoquick/rowstate.go`), called
+from `routers/web/org/home.go`, and drawn in `templates/explore/repo_list.tmpl`. Tests: TestTheRowCheckSumsUpTheChecks,
+TestTheOrgRowsShowChecksAndAWatchToggle.
