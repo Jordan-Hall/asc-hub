@@ -1373,6 +1373,15 @@
   margin-top: 8px;
 }
 
+.site-started .site-health-more,
+.site-started .site-health-when {
+  margin: 8px 0 0;
+}
+
+.site-started .site-health-more code {
+  overflow-wrap: anywhere;
+}
+
 .site-started .site-hub-h {
   margin: 20px 0 4px;
 }

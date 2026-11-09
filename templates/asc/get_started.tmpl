@@ -127,12 +127,23 @@
 					<h2 class="ds-t-h4" id="gs-health-title">{{ctx.Locale.Tr "asc_site.started_health_h"}}</h2>
 					<p class="ds-t-small ds-c-2 site-health-t">{{ctx.Locale.Tr "asc_site.started_health_t"}}</p>
 					<dl class="site-checkl">
-						<div><dt>{{ctx.Locale.Tr "asc_site.started_health_git"}}</dt><dd class="ds-c-2"><code>asc doctor</code></dd></div>
+						{{$git := .GSDoctor.Level "real-git"}}
+						<div data-gs-check="git"><dt>{{ctx.Locale.Tr "asc_site.started_health_git"}}</dt><dd class="{{template "asc/get_started_level_class" $git}}">{{if $git}}{{template "asc/get_started_level" $git}}{{if .GSDoctor.Git}} <span class="ds-c-2">{{.GSDoctor.Git}}</span>{{end}}{{else}}<code>asc doctor --report</code>{{end}}</dd></div>
 						<div><dt>{{ctx.Locale.Tr "asc_site.started_health_in" .SignedUser.Name}}</dt><dd class="{{if .GSConnected}}ds-c-ok{{else}}ds-c-warn{{end}}">{{if .GSConnected}}{{ctx.Locale.Tr "asc_site.started_ok"}}{{else}}{{ctx.Locale.Tr "asc_site.started_waiting"}}{{end}}</dd></div>
 						<div><dt>{{ctx.Locale.Tr "asc_site.started_check_ssh"}}</dt><dd class="{{if .GSKeys}}ds-c-ok{{else}}ds-c-warn{{end}}">{{if .GSKeys}}{{ctx.Locale.Tr "asc_site.started_ok"}}{{else}}<a class="ds-link" href="{{AppSubUrl}}/user/settings/keys">{{ctx.Locale.Tr "asc_site.started_add_one"}}</a>{{end}}</dd></div>
-						<div><dt>{{ctx.Locale.Tr "asc_site.started_health_shim"}}</dt><dd class="ds-c-warn">{{ctx.Locale.Tr "asc_site.started_optional"}}</dd></div>
+						{{$shim := .GSDoctor.Level "shim-dir"}}
+						<div data-gs-check="shim"><dt>{{ctx.Locale.Tr "asc_site.started_health_shim"}}</dt><dd class="{{if eq $shim "ok"}}ds-c-ok{{else}}ds-c-warn{{end}}">{{if eq $shim "ok"}}{{ctx.Locale.Tr "asc_site.started_ok"}}{{else}}{{ctx.Locale.Tr "asc_site.started_optional"}}{{end}}</dd></div>
 					</dl>
-					{{if or (not .GSConnected) (not .GSKeys)}}<a class="ds-btn ds-btn-secondary site-health-fix" href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.started_health_fix"}}</a>{{end}}
+					{{if .GSDoctor}}
+						{{$problems := .GSDoctor.Problems}}
+						{{if $problems}}
+							<p class="ds-t-small site-health-more" data-gs-problems>{{ctx.Locale.Tr "asc_site.started_health_more"}} {{range $i, $c := $problems}}{{if $i}}, {{end}}<code class="{{if eq $c.Level "fail"}}ds-c-err{{else}}ds-c-warn{{end}}">{{$c.Name}}</code>{{end}}</p>
+						{{end}}
+						<p class="ds-t-small ds-c-2 site-health-when" data-gs-reported>{{ctx.Locale.Tr "asc_site.started_health_when" .GSDoctor.OS (DateUtils.TimeSince .GSDoctor.Reported)}}</p>
+					{{else}}
+						<p class="ds-t-small ds-c-2 site-health-when" data-gs-reported>{{ctx.Locale.Tr "asc_site.started_health_none"}}</p>
+					{{end}}
+					{{if or (not .GSConnected) (not .GSKeys) (and .GSDoctor .GSDoctor.Problems)}}<a class="ds-btn ds-btn-secondary site-health-fix" href="{{AppSubUrl}}/-/docs">{{ctx.Locale.Tr "asc_site.started_health_fix"}}</a>{{end}}
 					<h3 class="ds-t-eyebrow site-hub-h">{{ctx.Locale.Tr "asc_site.started_hub_h"}}</h3>
 					<dl class="site-checkl">
 						<div><dt>{{ctx.Locale.Tr "asc_site.started_hub_storage"}}</dt><dd><span class="ds-c-2">{{ctx.Locale.Tr "asc_site.started_hub_storage_v"}}</span> <a class="ds-link" href="{{AppSubUrl}}/user/settings/asc/storage">{{ctx.Locale.Tr "asc_site.started_hub_change"}}</a></dd></div>

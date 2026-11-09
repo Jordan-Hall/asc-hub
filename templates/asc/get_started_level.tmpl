@@ -1,0 +1,2 @@
+{{define "asc/get_started_level_class"}}{{if or (eq . "ok") (eq . "info")}}ds-c-ok{{else if eq . "fail"}}ds-c-err{{else if eq . "warn"}}ds-c-warn{{else}}ds-c-2{{end}}{{end}}
+{{define "asc/get_started_level"}}{{if or (eq . "ok") (eq . "info")}}{{ctx.Locale.Tr "asc_site.started_ok"}}{{else if eq . "fail"}}{{ctx.Locale.Tr "asc_site.started_failed"}}{{else}}{{ctx.Locale.Tr "asc_site.started_warns"}}{{end}}{{end}}

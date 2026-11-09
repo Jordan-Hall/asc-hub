@@ -24,6 +24,7 @@ import (
 	"forgejo.org/modules/markup/markdown"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/ascdocs"
+	"forgejo.org/services/ascdoctor"
 	"forgejo.org/services/ascsample"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
@@ -122,6 +123,11 @@ func AscGetStarted(ctx *context.Context) {
 		ctx.ServerError("CountPublicKeys", err)
 		return
 	}
+	report, err := ascdoctor.Load(ctx, doer.ID)
+	if err != nil {
+		ctx.ServerError("ascdoctor.Load", err)
+		return
+	}
 	prepareAscDownload(ctx)
 	connected, hasRepo, hasOrg, done := st.Connected, st.HasRepo, st.HasOrg, st.Done
 	ctx.Data["Title"] = ctx.Locale.TrString("asc_site.started_title")
@@ -131,6 +137,7 @@ func AscGetStarted(ctx *context.Context) {
 	ctx.Data["GSHasOrg"] = hasOrg
 	ctx.Data["GSHasRepo"] = hasRepo
 	ctx.Data["GSKeys"] = keys
+	ctx.Data["GSDoctor"] = report
 	ctx.Data["GSDone"] = done
 	ctx.Data["GSTotal"] = 4
 	ctx.Data["GSPercent"] = done * 100 / 4

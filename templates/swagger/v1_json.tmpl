@@ -21492,6 +21492,46 @@
         }
       }
     },
+    "/user/asc/doctor": {
+      "post": {
+        "description": "Keeps the report as the last one of the user; the health check of Get started shows it to them only. The report holds the name and level of each check and the versions, no path and no detail.",
+        "consumes": [
+          "application/json"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "Report the checks of `asc doctor` on the machine of the authenticated user",
+        "operationId": "userCurrentReportAscDoctor",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AscDoctorReport"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/responses/empty"
+          },
+          "401": {
+            "$ref": "#/responses/unauthorized"
+          },
+          "403": {
+            "$ref": "#/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/responses/notFound"
+          },
+          "422": {
+            "$ref": "#/responses/validationError"
+          }
+        }
+      }
+    },
     "/user/asc/inbox": {
       "get": {
         "description": "The most recently updated 200 pull requests the user wrote or was asked to review are examined. Entries are ordered by section, then pinned first, then most recently updated first. Pull requests the user snoozed are left out unless include_snoozed is set. The response carries an ETag; a request with a matching If-None-Match gets 304 without a body.",
@@ -25002,6 +25042,59 @@
           "description": "whether more exist than are listed",
           "type": "boolean",
           "x-go-name": "Truncated"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscDoctorCheck": {
+      "type": "object",
+      "title": "AscDoctorCheck is one check of a machine report.",
+      "properties": {
+        "level": {
+          "description": "ok, info, warn or fail",
+          "type": "string",
+          "x-go-name": "Level"
+        },
+        "name": {
+          "description": "the name of the check, as `asc doctor` prints it (real-git, shim-dir, daemon, ...)",
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "forgejo.org/modules/structs"
+    },
+    "AscDoctorReport": {
+      "description": "AscDoctorReport is what `asc doctor --report` says about the machine of the authenticated user. It holds no
+path and no detail text.",
+      "type": "object",
+      "properties": {
+        "arch": {
+          "description": "the processor architecture",
+          "type": "string",
+          "x-go-name": "Arch"
+        },
+        "asc": {
+          "description": "the version of asc",
+          "type": "string",
+          "x-go-name": "Asc"
+        },
+        "checks": {
+          "description": "the checks, at most 64",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AscDoctorCheck"
+          },
+          "x-go-name": "Checks"
+        },
+        "git": {
+          "description": "the version of git asc uses, when found",
+          "type": "string",
+          "x-go-name": "Git"
+        },
+        "os": {
+          "description": "the operating system (windows, linux, macos)",
+          "type": "string",
+          "x-go-name": "OS"
         }
       },
       "x-go-package": "forgejo.org/modules/structs"
