@@ -215,6 +215,25 @@
 				</div>
 			</section>
 			{{end}}{{end}}
+			{{with .UserAgents}}
+			<section class="ds-card" aria-labelledby="adm-agents" data-testid="admin-user-agents">
+				<div class="ds-card-h"><h2 id="adm-agents">{{ctx.Locale.Tr "asc_admin.person_agents"}}</h2><span class="ds-count">{{len .Agents}}</span></div>
+				<ul class="adm-rows">
+					{{range .Agents}}
+						<li class="ds-li" data-agent="{{.Name}}">
+							<span class="adm-tile" aria-hidden="true">{{svg "dsi-agent" 18}}</span>
+							<div class="ds-li-main">
+								<div class="ds-li-title"><a class="adm-mono" href="{{.RunsLink}}">{{.Handle}}</a>{{if .Active}} <span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_work.org_agent_active" (ctx.Locale.PrettyNumber .Active)}}</span>{{end}}</div>
+								<div class="ds-li-meta"><span>{{ctx.Locale.TrPluralString .Runs "explore.agent_runs_short_n" (ctx.Locale.PrettyNumber .Runs)}}</span>{{with index .Repos 0}}<span>{{.FullName}}</span>{{end}}</div>
+							</div>
+						</li>
+					{{else}}
+						<li class="wk-empty-li"><p class="ds-c-2 adm-pad">{{ctx.Locale.Tr "asc_admin.person_agents_none"}}</p></li>
+					{{end}}
+				</ul>
+				{{if .More}}<p class="ds-t-small ds-c-2 adm-pad">{{ctx.Locale.Tr "asc_admin.person_agents_more" .More}}</p>{{end}}
+			</section>
+			{{end}}
 		</div>
 	{{end}}
 

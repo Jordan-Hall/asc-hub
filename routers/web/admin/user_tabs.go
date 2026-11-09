@@ -22,6 +22,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/routers/web/shared/trustweb"
 	"forgejo.org/routers/web/user/setting/security"
+	"forgejo.org/services/ascagentdir"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 	user_service "forgejo.org/services/user"
@@ -145,7 +146,38 @@ func prepareUserOverview(ctx *context.Context, u *user_model.User) bool {
 		ctx.Data["Passkeys"] = len(wn)
 	}
 	ctx.Data["UserUsage"] = loadUserUsage(ctx, u)
+	ctx.Data["UserAgents"] = loadUserAgents(ctx, u)
 	return true
+}
+
+// userAgentsMax is how many agents the Agents card of a person names.
+const userAgentsMax = 5
+
+// userAgents is the Agents card: the agents the person started or created runs of.
+type userAgents struct {
+	Agents []*ascagentdir.Agent
+	More   int
+}
+
+// loadUserAgents asks asc for the agents the person runs, in the asc repositories of the person and those the person
+// can reach (the agent directory, as on the profile). nil means agents are off for the viewer or asc could not be
+// asked: the page then has no Agents card.
+func loadUserAgents(ctx *context.Context, u *user_model.User) *userAgents {
+	if u.IsOrganization() || !ascagentdir.Enabled(ctx, ctx.Doer) {
+		return nil
+	}
+	repos, err := ascagentdir.Repos(ctx, ctx.Doer, u.ID, true)
+	if err != nil {
+		log.Error("admin user: the asc repositories of %s: %v", u.Name, err)
+		return nil
+	}
+	agents, err := ascagentdir.Summarize(ctx, repos, u.Name)
+	if err != nil {
+		log.Debug("admin user: the agents of %s: %v", u.Name, err)
+		return nil
+	}
+	shown := agents[:min(len(agents), userAgentsMax)]
+	return &userAgents{Agents: shown, More: len(agents) - len(shown)}
 }
 
 // userUsage is the usage block: the figures asc keeps for the person, or nothing when asc cannot say.
