@@ -42,9 +42,9 @@
 						</div>
 						<div class="ds-li-sub ds-break">{{ctx.Locale.Tr "moderation.report_remarks"}}: <em>{{.Remarks}}</em></div>
 						<div class="ds-li-meta">
-							<span>{{if .ReporterName}}{{ctx.Locale.Tr "asc_admin.mod_report_by"}} <a class="ds-link" href="{{AppSubUrl}}/{{.ReporterName}}">{{.ReporterName}}</a>{{else}}{{ctx.Locale.Tr "asc_admin.mod_report_by"}} {{$.GhostUserName}}{{end}}</span>
+							<span>{{if .ReporterAgent}}{{svg "dsi-agent" 14}} {{ctx.Locale.Tr "asc_admin.mod_report_by_agent" .ReporterAgent}}{{else if .ReporterName}}{{ctx.Locale.Tr "asc_admin.mod_report_by"}} <a class="ds-link" href="{{AppSubUrl}}/{{.ReporterName}}">{{.ReporterName}}</a>{{else}}{{ctx.Locale.Tr "asc_admin.mod_report_by"}} {{$.GhostUserName}}{{end}}</span>
 							<span>{{DateUtils.TimeSince .CreatedUnix}}</span>
-							<a href="{{AppSubUrl}}/admin/moderation/reports/type/{{.ContentType}}/id/{{.ContentID}}">{{ctx.Locale.Tr "asc_admin.mod_reported_times" .ReportedTimes}}</a>
+							<a href="{{AppSubUrl}}/admin/moderation/reports/type/{{.ContentType}}/id/{{.ContentID}}">{{if .ReportedByAgents}}{{ctx.Locale.Tr "asc_admin.mod_reported_people_agents" .ReportedByPeople .ReportedByAgents}}{{else}}{{ctx.Locale.Tr "asc_admin.mod_reported_times" .ReportedTimes}}{{end}}</a>
 						</div>
 						<div class="ds-field">
 							<label class="ds-label" for="mod-reason-{{.ID}}">{{ctx.Locale.Tr "asc_admin.mod_reason"}}</label>

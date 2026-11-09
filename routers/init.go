@@ -28,6 +28,7 @@ import (
 	"forgejo.org/modules/translation"
 	"forgejo.org/modules/web"
 	actions_router "forgejo.org/routers/api/actions"
+	ascagent_router "forgejo.org/routers/api/ascagent"
 	forgejo "forgejo.org/routers/api/forgejo/v1"
 	packages_router "forgejo.org/routers/api/packages"
 	apiv1 "forgejo.org/routers/api/v1"
@@ -207,6 +208,10 @@ func NormalRoutes() *web.Route {
 	r.Mount("/api/v1", apiv1.Routes())
 	r.Mount("/api/forgejo/v1", forgejo.Routes())
 	r.Mount("/api/internal", private.Routes())
+	if setting.Asc.Enabled {
+		// agents call it with their agent token, which the account authentication of /api/v1 must never see
+		r.Mount("/api/asc/agents", ascagent_router.Routes())
+	}
 
 	r.Post("/-/fetch-redirect", common.FetchRedirectDelegate)
 

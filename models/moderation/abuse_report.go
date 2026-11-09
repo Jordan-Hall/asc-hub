@@ -100,8 +100,12 @@ func (t ReportedContentType) IsValid() bool {
 type AbuseReport struct {
 	ID     int64            `xorm:"pk autoincr"`
 	Status ReportStatusType `xorm:"INDEX NOT NULL DEFAULT 1"`
-	// The ID of the user who submitted the report.
+	// The ID of the user who submitted the report; 0 for a report an agent sent.
 	ReporterID int64 `xorm:"NOT NULL"`
+	// ReporterAgent names the agent that sent the report with its agent token (asc), empty for a person's report.
+	ReporterAgent string `xorm:"VARCHAR(64) NOT NULL DEFAULT ''"`
+	// ReporterAgentToken is the id of that agent token (never its secret); one open report per token and content.
+	ReporterAgentToken string `xorm:"VARCHAR(64) INDEX NOT NULL DEFAULT ''"`
 	// Reported content type: user/organization profile, repository, issue/pull or comment.
 	ContentType ReportedContentType `xorm:"INDEX NOT NULL"`
 	// The ID of the reported item (based on ContentType: user, repository, issue or comment).
@@ -117,6 +121,54 @@ type AbuseReport struct {
 }
 
 var ErrSelfReporting = errors.New("reporting yourself is not allowed")
+
+// MaxOpenAgentReports bounds the open reports one agent token may have: an agent that floods the queue is stopped
+// until an administrator works through what it sent.
+const MaxOpenAgentReports = 100
+
+// ErrAgentReportLimit is returned when an agent token already has MaxOpenAgentReports open reports.
+var ErrAgentReportLimit = errors.New("moderation: this agent token has too many open reports")
+
+// IsAgentReport tells whether an agent sent the report.
+func (r *AbuseReport) IsAgentReport() bool { return r.ReporterAgentToken != "" }
+
+// ReportAbuseByAgent stores a report an agent sent with its agent token, with the status Open. When the same token
+// already has an open report on the same content, that report is returned and created is false. The reporter is no
+// person (ReporterID 0).
+func ReportAbuseByAgent(ctx context.Context, report *AbuseReport) (existing *AbuseReport, err error) {
+	if report.ReporterAgentToken == "" || report.ReporterAgent == "" {
+		return nil, errors.New("moderation: an agent report needs the agent and its token")
+	}
+	err = db.WithTx(ctx, func(ctx context.Context) error {
+		open := new(AbuseReport)
+		has, err := db.GetEngine(ctx).Where(builder.Eq{
+			"status":               ReportStatusTypeOpen,
+			"reporter_agent_token": report.ReporterAgentToken,
+			"content_type":         report.ContentType,
+			"content_id":           report.ContentID,
+		}).Get(open)
+		if err != nil {
+			return err
+		}
+		if has {
+			existing = open
+			return nil
+		}
+		n, err := db.GetEngine(ctx).Where(builder.Eq{"status": ReportStatusTypeOpen, "reporter_agent_token": report.ReporterAgentToken}).Count(new(AbuseReport))
+		if err != nil {
+			return err
+		}
+		if n >= MaxOpenAgentReports {
+			return ErrAgentReportLimit
+		}
+		report.ID = 0
+		report.ReporterID = 0
+		report.Status = ReportStatusTypeOpen
+		_, err = db.GetEngine(ctx).Insert(report)
+		return err
+	})
+	return existing, err
+}
 
 func init() {
 	// RegisterModel will create the table if does not already exist

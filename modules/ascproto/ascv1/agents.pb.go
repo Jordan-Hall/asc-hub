@@ -2216,6 +2216,98 @@ func (x *GetAgentTokenResponse) GetRemaining() *AgentBudgetUsage {
 	return nil
 }
 
+// ResolveToken: the hub was handed an agent token secret (an agent reporting content, for one) and
+// asks which token it is. Only the host service may ask; anyone else is refused. A secret that is
+// no token answers NOT_FOUND; a revoked, expired or spent token is returned with its state, and the
+// hub refuses what is not active. The secret is never returned.
+type ResolveAgentTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Secret        string                 `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"` // "ascat_" + 43 characters
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolveAgentTokenRequest) Reset() {
+	*x = ResolveAgentTokenRequest{}
+	mi := &file_asc_v1_agents_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveAgentTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveAgentTokenRequest) ProtoMessage() {}
+
+func (x *ResolveAgentTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveAgentTokenRequest.ProtoReflect.Descriptor instead.
+func (*ResolveAgentTokenRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ResolveAgentTokenRequest) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+type ResolveAgentTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         *AgentToken            `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolveAgentTokenResponse) Reset() {
+	*x = ResolveAgentTokenResponse{}
+	mi := &file_asc_v1_agents_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveAgentTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveAgentTokenResponse) ProtoMessage() {}
+
+func (x *ResolveAgentTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_agents_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveAgentTokenResponse.ProtoReflect.Descriptor instead.
+func (*ResolveAgentTokenResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ResolveAgentTokenResponse) GetToken() *AgentToken {
+	if x != nil {
+		return x.Token
+	}
+	return nil
+}
+
 type RevokeAgentTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Repo          *RepoRef               `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
@@ -2227,7 +2319,7 @@ type RevokeAgentTokenRequest struct {
 
 func (x *RevokeAgentTokenRequest) Reset() {
 	*x = RevokeAgentTokenRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[23]
+	mi := &file_asc_v1_agents_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2239,7 +2331,7 @@ func (x *RevokeAgentTokenRequest) String() string {
 func (*RevokeAgentTokenRequest) ProtoMessage() {}
 
 func (x *RevokeAgentTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[23]
+	mi := &file_asc_v1_agents_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2252,7 +2344,7 @@ func (x *RevokeAgentTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAgentTokenRequest.ProtoReflect.Descriptor instead.
 func (*RevokeAgentTokenRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{23}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *RevokeAgentTokenRequest) GetRepo() *RepoRef {
@@ -2285,7 +2377,7 @@ type RevokeAgentTokenResponse struct {
 
 func (x *RevokeAgentTokenResponse) Reset() {
 	*x = RevokeAgentTokenResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[24]
+	mi := &file_asc_v1_agents_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2297,7 +2389,7 @@ func (x *RevokeAgentTokenResponse) String() string {
 func (*RevokeAgentTokenResponse) ProtoMessage() {}
 
 func (x *RevokeAgentTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[24]
+	mi := &file_asc_v1_agents_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2310,7 +2402,7 @@ func (x *RevokeAgentTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeAgentTokenResponse.ProtoReflect.Descriptor instead.
 func (*RevokeAgentTokenResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{24}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *RevokeAgentTokenResponse) GetToken() *AgentToken {
@@ -2331,7 +2423,7 @@ type SetAgentTokenBudgetRequest struct {
 
 func (x *SetAgentTokenBudgetRequest) Reset() {
 	*x = SetAgentTokenBudgetRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[25]
+	mi := &file_asc_v1_agents_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2343,7 +2435,7 @@ func (x *SetAgentTokenBudgetRequest) String() string {
 func (*SetAgentTokenBudgetRequest) ProtoMessage() {}
 
 func (x *SetAgentTokenBudgetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[25]
+	mi := &file_asc_v1_agents_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2356,7 +2448,7 @@ func (x *SetAgentTokenBudgetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAgentTokenBudgetRequest.ProtoReflect.Descriptor instead.
 func (*SetAgentTokenBudgetRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{25}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SetAgentTokenBudgetRequest) GetRepo() *RepoRef {
@@ -2389,7 +2481,7 @@ type SetAgentTokenBudgetResponse struct {
 
 func (x *SetAgentTokenBudgetResponse) Reset() {
 	*x = SetAgentTokenBudgetResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[26]
+	mi := &file_asc_v1_agents_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2401,7 +2493,7 @@ func (x *SetAgentTokenBudgetResponse) String() string {
 func (*SetAgentTokenBudgetResponse) ProtoMessage() {}
 
 func (x *SetAgentTokenBudgetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[26]
+	mi := &file_asc_v1_agents_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2414,7 +2506,7 @@ func (x *SetAgentTokenBudgetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAgentTokenBudgetResponse.ProtoReflect.Descriptor instead.
 func (*SetAgentTokenBudgetResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{26}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *SetAgentTokenBudgetResponse) GetToken() *AgentToken {
@@ -2439,7 +2531,7 @@ type ReportAgentUsageRequest struct {
 
 func (x *ReportAgentUsageRequest) Reset() {
 	*x = ReportAgentUsageRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[27]
+	mi := &file_asc_v1_agents_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2451,7 +2543,7 @@ func (x *ReportAgentUsageRequest) String() string {
 func (*ReportAgentUsageRequest) ProtoMessage() {}
 
 func (x *ReportAgentUsageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[27]
+	mi := &file_asc_v1_agents_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2464,7 +2556,7 @@ func (x *ReportAgentUsageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportAgentUsageRequest.ProtoReflect.Descriptor instead.
 func (*ReportAgentUsageRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{27}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ReportAgentUsageRequest) GetRepo() *RepoRef {
@@ -2512,7 +2604,7 @@ type ReportAgentUsageResponse struct {
 
 func (x *ReportAgentUsageResponse) Reset() {
 	*x = ReportAgentUsageResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[28]
+	mi := &file_asc_v1_agents_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2524,7 +2616,7 @@ func (x *ReportAgentUsageResponse) String() string {
 func (*ReportAgentUsageResponse) ProtoMessage() {}
 
 func (x *ReportAgentUsageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[28]
+	mi := &file_asc_v1_agents_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2537,7 +2629,7 @@ func (x *ReportAgentUsageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportAgentUsageResponse.ProtoReflect.Descriptor instead.
 func (*ReportAgentUsageResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{28}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ReportAgentUsageResponse) GetUsage() *AgentBudgetUsage {
@@ -2565,7 +2657,7 @@ type AgentPlanStep struct {
 
 func (x *AgentPlanStep) Reset() {
 	*x = AgentPlanStep{}
-	mi := &file_asc_v1_agents_proto_msgTypes[29]
+	mi := &file_asc_v1_agents_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2577,7 +2669,7 @@ func (x *AgentPlanStep) String() string {
 func (*AgentPlanStep) ProtoMessage() {}
 
 func (x *AgentPlanStep) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[29]
+	mi := &file_asc_v1_agents_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2590,7 +2682,7 @@ func (x *AgentPlanStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentPlanStep.ProtoReflect.Descriptor instead.
 func (*AgentPlanStep) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{29}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *AgentPlanStep) GetIndex() uint32 {
@@ -2634,7 +2726,7 @@ type AgentRequest struct {
 
 func (x *AgentRequest) Reset() {
 	*x = AgentRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[30]
+	mi := &file_asc_v1_agents_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2646,7 +2738,7 @@ func (x *AgentRequest) String() string {
 func (*AgentRequest) ProtoMessage() {}
 
 func (x *AgentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[30]
+	mi := &file_asc_v1_agents_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2659,7 +2751,7 @@ func (x *AgentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentRequest.ProtoReflect.Descriptor instead.
 func (*AgentRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{30}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *AgentRequest) GetId() uint64 {
@@ -2759,7 +2851,7 @@ type ListAgentRequestsRequest struct {
 
 func (x *ListAgentRequestsRequest) Reset() {
 	*x = ListAgentRequestsRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[31]
+	mi := &file_asc_v1_agents_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2771,7 +2863,7 @@ func (x *ListAgentRequestsRequest) String() string {
 func (*ListAgentRequestsRequest) ProtoMessage() {}
 
 func (x *ListAgentRequestsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[31]
+	mi := &file_asc_v1_agents_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2784,7 +2876,7 @@ func (x *ListAgentRequestsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentRequestsRequest.ProtoReflect.Descriptor instead.
 func (*ListAgentRequestsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{31}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListAgentRequestsRequest) GetRepo() *RepoRef {
@@ -2832,7 +2924,7 @@ type ListAgentRequestsResponse struct {
 
 func (x *ListAgentRequestsResponse) Reset() {
 	*x = ListAgentRequestsResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[32]
+	mi := &file_asc_v1_agents_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2844,7 +2936,7 @@ func (x *ListAgentRequestsResponse) String() string {
 func (*ListAgentRequestsResponse) ProtoMessage() {}
 
 func (x *ListAgentRequestsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[32]
+	mi := &file_asc_v1_agents_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2857,7 +2949,7 @@ func (x *ListAgentRequestsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentRequestsResponse.ProtoReflect.Descriptor instead.
 func (*ListAgentRequestsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{32}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListAgentRequestsResponse) GetRequests() []*AgentRequest {
@@ -2888,7 +2980,7 @@ type DecideAgentRequestRequest struct {
 
 func (x *DecideAgentRequestRequest) Reset() {
 	*x = DecideAgentRequestRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[33]
+	mi := &file_asc_v1_agents_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2900,7 +2992,7 @@ func (x *DecideAgentRequestRequest) String() string {
 func (*DecideAgentRequestRequest) ProtoMessage() {}
 
 func (x *DecideAgentRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[33]
+	mi := &file_asc_v1_agents_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2913,7 +3005,7 @@ func (x *DecideAgentRequestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DecideAgentRequestRequest.ProtoReflect.Descriptor instead.
 func (*DecideAgentRequestRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{33}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *DecideAgentRequestRequest) GetRepo() *RepoRef {
@@ -2954,7 +3046,7 @@ type DecideAgentRequestResponse struct {
 
 func (x *DecideAgentRequestResponse) Reset() {
 	*x = DecideAgentRequestResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[34]
+	mi := &file_asc_v1_agents_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2966,7 +3058,7 @@ func (x *DecideAgentRequestResponse) String() string {
 func (*DecideAgentRequestResponse) ProtoMessage() {}
 
 func (x *DecideAgentRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[34]
+	mi := &file_asc_v1_agents_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2979,7 +3071,7 @@ func (x *DecideAgentRequestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DecideAgentRequestResponse.ProtoReflect.Descriptor instead.
 func (*DecideAgentRequestResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{34}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DecideAgentRequestResponse) GetRequest() *AgentRequest {
@@ -3008,7 +3100,7 @@ type PauseAgentRunRequest struct {
 
 func (x *PauseAgentRunRequest) Reset() {
 	*x = PauseAgentRunRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[35]
+	mi := &file_asc_v1_agents_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3020,7 +3112,7 @@ func (x *PauseAgentRunRequest) String() string {
 func (*PauseAgentRunRequest) ProtoMessage() {}
 
 func (x *PauseAgentRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[35]
+	mi := &file_asc_v1_agents_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3033,7 +3125,7 @@ func (x *PauseAgentRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseAgentRunRequest.ProtoReflect.Descriptor instead.
 func (*PauseAgentRunRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{35}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *PauseAgentRunRequest) GetRepo() *RepoRef {
@@ -3073,7 +3165,7 @@ type PauseAgentRunResponse struct {
 
 func (x *PauseAgentRunResponse) Reset() {
 	*x = PauseAgentRunResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[36]
+	mi := &file_asc_v1_agents_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3085,7 +3177,7 @@ func (x *PauseAgentRunResponse) String() string {
 func (*PauseAgentRunResponse) ProtoMessage() {}
 
 func (x *PauseAgentRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[36]
+	mi := &file_asc_v1_agents_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3098,7 +3190,7 @@ func (x *PauseAgentRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseAgentRunResponse.ProtoReflect.Descriptor instead.
 func (*PauseAgentRunResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{36}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *PauseAgentRunResponse) GetRun() *AgentRun {
@@ -3125,7 +3217,7 @@ type AgentCheckpoint struct {
 
 func (x *AgentCheckpoint) Reset() {
 	*x = AgentCheckpoint{}
-	mi := &file_asc_v1_agents_proto_msgTypes[37]
+	mi := &file_asc_v1_agents_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3137,7 +3229,7 @@ func (x *AgentCheckpoint) String() string {
 func (*AgentCheckpoint) ProtoMessage() {}
 
 func (x *AgentCheckpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[37]
+	mi := &file_asc_v1_agents_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3150,7 +3242,7 @@ func (x *AgentCheckpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentCheckpoint.ProtoReflect.Descriptor instead.
 func (*AgentCheckpoint) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{37}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *AgentCheckpoint) GetId() uint64 {
@@ -3226,7 +3318,7 @@ type ListAgentCheckpointsRequest struct {
 
 func (x *ListAgentCheckpointsRequest) Reset() {
 	*x = ListAgentCheckpointsRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[38]
+	mi := &file_asc_v1_agents_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3238,7 +3330,7 @@ func (x *ListAgentCheckpointsRequest) String() string {
 func (*ListAgentCheckpointsRequest) ProtoMessage() {}
 
 func (x *ListAgentCheckpointsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[38]
+	mi := &file_asc_v1_agents_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3251,7 +3343,7 @@ func (x *ListAgentCheckpointsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentCheckpointsRequest.ProtoReflect.Descriptor instead.
 func (*ListAgentCheckpointsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{38}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListAgentCheckpointsRequest) GetRepo() *RepoRef {
@@ -3277,7 +3369,7 @@ type ListAgentCheckpointsResponse struct {
 
 func (x *ListAgentCheckpointsResponse) Reset() {
 	*x = ListAgentCheckpointsResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[39]
+	mi := &file_asc_v1_agents_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3289,7 +3381,7 @@ func (x *ListAgentCheckpointsResponse) String() string {
 func (*ListAgentCheckpointsResponse) ProtoMessage() {}
 
 func (x *ListAgentCheckpointsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[39]
+	mi := &file_asc_v1_agents_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3302,7 +3394,7 @@ func (x *ListAgentCheckpointsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentCheckpointsResponse.ProtoReflect.Descriptor instead.
 func (*ListAgentCheckpointsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{39}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListAgentCheckpointsResponse) GetCheckpoints() []*AgentCheckpoint {
@@ -3326,7 +3418,7 @@ type RollbackAgentRunRequest struct {
 
 func (x *RollbackAgentRunRequest) Reset() {
 	*x = RollbackAgentRunRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[40]
+	mi := &file_asc_v1_agents_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3338,7 +3430,7 @@ func (x *RollbackAgentRunRequest) String() string {
 func (*RollbackAgentRunRequest) ProtoMessage() {}
 
 func (x *RollbackAgentRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[40]
+	mi := &file_asc_v1_agents_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3351,7 +3443,7 @@ func (x *RollbackAgentRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackAgentRunRequest.ProtoReflect.Descriptor instead.
 func (*RollbackAgentRunRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{40}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *RollbackAgentRunRequest) GetRepo() *RepoRef {
@@ -3392,7 +3484,7 @@ type RollbackAgentRunResponse struct {
 
 func (x *RollbackAgentRunResponse) Reset() {
 	*x = RollbackAgentRunResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[41]
+	mi := &file_asc_v1_agents_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3404,7 +3496,7 @@ func (x *RollbackAgentRunResponse) String() string {
 func (*RollbackAgentRunResponse) ProtoMessage() {}
 
 func (x *RollbackAgentRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[41]
+	mi := &file_asc_v1_agents_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3417,7 +3509,7 @@ func (x *RollbackAgentRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackAgentRunResponse.ProtoReflect.Descriptor instead.
 func (*RollbackAgentRunResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{41}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *RollbackAgentRunResponse) GetRun() *AgentRun {
@@ -3447,7 +3539,7 @@ type SetAgentRunLimitsRequest struct {
 
 func (x *SetAgentRunLimitsRequest) Reset() {
 	*x = SetAgentRunLimitsRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[42]
+	mi := &file_asc_v1_agents_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3459,7 +3551,7 @@ func (x *SetAgentRunLimitsRequest) String() string {
 func (*SetAgentRunLimitsRequest) ProtoMessage() {}
 
 func (x *SetAgentRunLimitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[42]
+	mi := &file_asc_v1_agents_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3472,7 +3564,7 @@ func (x *SetAgentRunLimitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAgentRunLimitsRequest.ProtoReflect.Descriptor instead.
 func (*SetAgentRunLimitsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{42}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *SetAgentRunLimitsRequest) GetRepo() *RepoRef {
@@ -3506,7 +3598,7 @@ type SetAgentRunLimitsResponse struct {
 
 func (x *SetAgentRunLimitsResponse) Reset() {
 	*x = SetAgentRunLimitsResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[43]
+	mi := &file_asc_v1_agents_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3518,7 +3610,7 @@ func (x *SetAgentRunLimitsResponse) String() string {
 func (*SetAgentRunLimitsResponse) ProtoMessage() {}
 
 func (x *SetAgentRunLimitsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[43]
+	mi := &file_asc_v1_agents_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3531,7 +3623,7 @@ func (x *SetAgentRunLimitsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAgentRunLimitsResponse.ProtoReflect.Descriptor instead.
 func (*SetAgentRunLimitsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{43}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *SetAgentRunLimitsResponse) GetRun() *AgentRun {
@@ -3561,7 +3653,7 @@ type ContinueAgentRunRequest struct {
 
 func (x *ContinueAgentRunRequest) Reset() {
 	*x = ContinueAgentRunRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[44]
+	mi := &file_asc_v1_agents_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3573,7 +3665,7 @@ func (x *ContinueAgentRunRequest) String() string {
 func (*ContinueAgentRunRequest) ProtoMessage() {}
 
 func (x *ContinueAgentRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[44]
+	mi := &file_asc_v1_agents_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3586,7 +3678,7 @@ func (x *ContinueAgentRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContinueAgentRunRequest.ProtoReflect.Descriptor instead.
 func (*ContinueAgentRunRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{44}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ContinueAgentRunRequest) GetRepo() *RepoRef {
@@ -3620,7 +3712,7 @@ type ContinueAgentRunResponse struct {
 
 func (x *ContinueAgentRunResponse) Reset() {
 	*x = ContinueAgentRunResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[45]
+	mi := &file_asc_v1_agents_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3632,7 +3724,7 @@ func (x *ContinueAgentRunResponse) String() string {
 func (*ContinueAgentRunResponse) ProtoMessage() {}
 
 func (x *ContinueAgentRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[45]
+	mi := &file_asc_v1_agents_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3645,7 +3737,7 @@ func (x *ContinueAgentRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContinueAgentRunResponse.ProtoReflect.Descriptor instead.
 func (*ContinueAgentRunResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{45}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ContinueAgentRunResponse) GetRun() *AgentRun {
@@ -3673,7 +3765,7 @@ type GetAgentEstimateRequest struct {
 
 func (x *GetAgentEstimateRequest) Reset() {
 	*x = GetAgentEstimateRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[46]
+	mi := &file_asc_v1_agents_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3685,7 +3777,7 @@ func (x *GetAgentEstimateRequest) String() string {
 func (*GetAgentEstimateRequest) ProtoMessage() {}
 
 func (x *GetAgentEstimateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[46]
+	mi := &file_asc_v1_agents_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3698,7 +3790,7 @@ func (x *GetAgentEstimateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentEstimateRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentEstimateRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{46}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetAgentEstimateRequest) GetRepo() *RepoRef {
@@ -3734,7 +3826,7 @@ type GetAgentEstimateResponse struct {
 
 func (x *GetAgentEstimateResponse) Reset() {
 	*x = GetAgentEstimateResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[47]
+	mi := &file_asc_v1_agents_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3746,7 +3838,7 @@ func (x *GetAgentEstimateResponse) String() string {
 func (*GetAgentEstimateResponse) ProtoMessage() {}
 
 func (x *GetAgentEstimateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[47]
+	mi := &file_asc_v1_agents_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3759,7 +3851,7 @@ func (x *GetAgentEstimateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentEstimateResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentEstimateResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{47}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *GetAgentEstimateResponse) GetSamples() uint32 {
@@ -3803,7 +3895,7 @@ type AgentTaskRef struct {
 
 func (x *AgentTaskRef) Reset() {
 	*x = AgentTaskRef{}
-	mi := &file_asc_v1_agents_proto_msgTypes[48]
+	mi := &file_asc_v1_agents_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3815,7 +3907,7 @@ func (x *AgentTaskRef) String() string {
 func (*AgentTaskRef) ProtoMessage() {}
 
 func (x *AgentTaskRef) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[48]
+	mi := &file_asc_v1_agents_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3828,7 +3920,7 @@ func (x *AgentTaskRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentTaskRef.ProtoReflect.Descriptor instead.
 func (*AgentTaskRef) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{48}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *AgentTaskRef) GetTask() string {
@@ -3876,7 +3968,7 @@ type RecentAgentTasksRequest struct {
 
 func (x *RecentAgentTasksRequest) Reset() {
 	*x = RecentAgentTasksRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[49]
+	mi := &file_asc_v1_agents_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3888,7 +3980,7 @@ func (x *RecentAgentTasksRequest) String() string {
 func (*RecentAgentTasksRequest) ProtoMessage() {}
 
 func (x *RecentAgentTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[49]
+	mi := &file_asc_v1_agents_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3901,7 +3993,7 @@ func (x *RecentAgentTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RecentAgentTasksRequest.ProtoReflect.Descriptor instead.
 func (*RecentAgentTasksRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{49}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *RecentAgentTasksRequest) GetRepo() *RepoRef {
@@ -3927,7 +4019,7 @@ type RecentAgentTasksResponse struct {
 
 func (x *RecentAgentTasksResponse) Reset() {
 	*x = RecentAgentTasksResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[50]
+	mi := &file_asc_v1_agents_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3939,7 +4031,7 @@ func (x *RecentAgentTasksResponse) String() string {
 func (*RecentAgentTasksResponse) ProtoMessage() {}
 
 func (x *RecentAgentTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[50]
+	mi := &file_asc_v1_agents_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3952,7 +4044,7 @@ func (x *RecentAgentTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RecentAgentTasksResponse.ProtoReflect.Descriptor instead.
 func (*RecentAgentTasksResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{50}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *RecentAgentTasksResponse) GetTasks() []*AgentTaskRef {
@@ -3972,7 +4064,7 @@ type GetAgentRunLogRequest struct {
 
 func (x *GetAgentRunLogRequest) Reset() {
 	*x = GetAgentRunLogRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[51]
+	mi := &file_asc_v1_agents_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3984,7 +4076,7 @@ func (x *GetAgentRunLogRequest) String() string {
 func (*GetAgentRunLogRequest) ProtoMessage() {}
 
 func (x *GetAgentRunLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[51]
+	mi := &file_asc_v1_agents_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3997,7 +4089,7 @@ func (x *GetAgentRunLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentRunLogRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentRunLogRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{51}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetAgentRunLogRequest) GetRepo() *RepoRef {
@@ -4025,7 +4117,7 @@ type GetAgentRunLogResponse struct {
 
 func (x *GetAgentRunLogResponse) Reset() {
 	*x = GetAgentRunLogResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[52]
+	mi := &file_asc_v1_agents_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4037,7 +4129,7 @@ func (x *GetAgentRunLogResponse) String() string {
 func (*GetAgentRunLogResponse) ProtoMessage() {}
 
 func (x *GetAgentRunLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[52]
+	mi := &file_asc_v1_agents_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4050,7 +4142,7 @@ func (x *GetAgentRunLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentRunLogResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentRunLogResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{52}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *GetAgentRunLogResponse) GetJsonl() []byte {
@@ -4090,7 +4182,7 @@ type RepoAgentInfo struct {
 
 func (x *RepoAgentInfo) Reset() {
 	*x = RepoAgentInfo{}
-	mi := &file_asc_v1_agents_proto_msgTypes[53]
+	mi := &file_asc_v1_agents_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4102,7 +4194,7 @@ func (x *RepoAgentInfo) String() string {
 func (*RepoAgentInfo) ProtoMessage() {}
 
 func (x *RepoAgentInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[53]
+	mi := &file_asc_v1_agents_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4115,7 +4207,7 @@ func (x *RepoAgentInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepoAgentInfo.ProtoReflect.Descriptor instead.
 func (*RepoAgentInfo) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{53}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *RepoAgentInfo) GetAgent() string {
@@ -4183,7 +4275,7 @@ type ListRepoAgentsRequest struct {
 
 func (x *ListRepoAgentsRequest) Reset() {
 	*x = ListRepoAgentsRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[54]
+	mi := &file_asc_v1_agents_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4195,7 +4287,7 @@ func (x *ListRepoAgentsRequest) String() string {
 func (*ListRepoAgentsRequest) ProtoMessage() {}
 
 func (x *ListRepoAgentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[54]
+	mi := &file_asc_v1_agents_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4208,7 +4300,7 @@ func (x *ListRepoAgentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRepoAgentsRequest.ProtoReflect.Descriptor instead.
 func (*ListRepoAgentsRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{54}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ListRepoAgentsRequest) GetRepo() *RepoRef {
@@ -4232,7 +4324,7 @@ type ListRepoAgentsResponse struct {
 
 func (x *ListRepoAgentsResponse) Reset() {
 	*x = ListRepoAgentsResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[55]
+	mi := &file_asc_v1_agents_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4244,7 +4336,7 @@ func (x *ListRepoAgentsResponse) String() string {
 func (*ListRepoAgentsResponse) ProtoMessage() {}
 
 func (x *ListRepoAgentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[55]
+	mi := &file_asc_v1_agents_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4257,7 +4349,7 @@ func (x *ListRepoAgentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRepoAgentsResponse.ProtoReflect.Descriptor instead.
 func (*ListRepoAgentsResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{55}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ListRepoAgentsResponse) GetAgents() []*RepoAgentInfo {
@@ -4315,7 +4407,7 @@ type AgentActivityDay struct {
 
 func (x *AgentActivityDay) Reset() {
 	*x = AgentActivityDay{}
-	mi := &file_asc_v1_agents_proto_msgTypes[56]
+	mi := &file_asc_v1_agents_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4327,7 +4419,7 @@ func (x *AgentActivityDay) String() string {
 func (*AgentActivityDay) ProtoMessage() {}
 
 func (x *AgentActivityDay) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[56]
+	mi := &file_asc_v1_agents_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4340,7 +4432,7 @@ func (x *AgentActivityDay) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentActivityDay.ProtoReflect.Descriptor instead.
 func (*AgentActivityDay) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{56}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *AgentActivityDay) GetDay() string {
@@ -4382,7 +4474,7 @@ type SpendDay struct {
 
 func (x *SpendDay) Reset() {
 	*x = SpendDay{}
-	mi := &file_asc_v1_agents_proto_msgTypes[57]
+	mi := &file_asc_v1_agents_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4394,7 +4486,7 @@ func (x *SpendDay) String() string {
 func (*SpendDay) ProtoMessage() {}
 
 func (x *SpendDay) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[57]
+	mi := &file_asc_v1_agents_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4407,7 +4499,7 @@ func (x *SpendDay) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpendDay.ProtoReflect.Descriptor instead.
 func (*SpendDay) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{57}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *SpendDay) GetDay() string {
@@ -4444,7 +4536,7 @@ type AgentSpend struct {
 
 func (x *AgentSpend) Reset() {
 	*x = AgentSpend{}
-	mi := &file_asc_v1_agents_proto_msgTypes[58]
+	mi := &file_asc_v1_agents_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4456,7 +4548,7 @@ func (x *AgentSpend) String() string {
 func (*AgentSpend) ProtoMessage() {}
 
 func (x *AgentSpend) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[58]
+	mi := &file_asc_v1_agents_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4469,7 +4561,7 @@ func (x *AgentSpend) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentSpend.ProtoReflect.Descriptor instead.
 func (*AgentSpend) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{58}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *AgentSpend) GetAgent() string {
@@ -4517,7 +4609,7 @@ type GetAgentSpendRequest struct {
 
 func (x *GetAgentSpendRequest) Reset() {
 	*x = GetAgentSpendRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[59]
+	mi := &file_asc_v1_agents_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4529,7 +4621,7 @@ func (x *GetAgentSpendRequest) String() string {
 func (*GetAgentSpendRequest) ProtoMessage() {}
 
 func (x *GetAgentSpendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[59]
+	mi := &file_asc_v1_agents_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4542,7 +4634,7 @@ func (x *GetAgentSpendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentSpendRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentSpendRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{59}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetAgentSpendRequest) GetRepo() *RepoRef {
@@ -4573,7 +4665,7 @@ type GetAgentSpendResponse struct {
 
 func (x *GetAgentSpendResponse) Reset() {
 	*x = GetAgentSpendResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[60]
+	mi := &file_asc_v1_agents_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4585,7 +4677,7 @@ func (x *GetAgentSpendResponse) String() string {
 func (*GetAgentSpendResponse) ProtoMessage() {}
 
 func (x *GetAgentSpendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[60]
+	mi := &file_asc_v1_agents_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4598,7 +4690,7 @@ func (x *GetAgentSpendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentSpendResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentSpendResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{60}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *GetAgentSpendResponse) GetMonth() string {
@@ -4656,7 +4748,7 @@ type SetMonthlyBudgetRequest struct {
 
 func (x *SetMonthlyBudgetRequest) Reset() {
 	*x = SetMonthlyBudgetRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	mi := &file_asc_v1_agents_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4668,7 +4760,7 @@ func (x *SetMonthlyBudgetRequest) String() string {
 func (*SetMonthlyBudgetRequest) ProtoMessage() {}
 
 func (x *SetMonthlyBudgetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[61]
+	mi := &file_asc_v1_agents_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4681,7 +4773,7 @@ func (x *SetMonthlyBudgetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMonthlyBudgetRequest.ProtoReflect.Descriptor instead.
 func (*SetMonthlyBudgetRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{61}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *SetMonthlyBudgetRequest) GetRepo() *RepoRef {
@@ -4719,7 +4811,7 @@ type GetAgentPersonRequest struct {
 
 func (x *GetAgentPersonRequest) Reset() {
 	*x = GetAgentPersonRequest{}
-	mi := &file_asc_v1_agents_proto_msgTypes[62]
+	mi := &file_asc_v1_agents_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4731,7 +4823,7 @@ func (x *GetAgentPersonRequest) String() string {
 func (*GetAgentPersonRequest) ProtoMessage() {}
 
 func (x *GetAgentPersonRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[62]
+	mi := &file_asc_v1_agents_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4744,7 +4836,7 @@ func (x *GetAgentPersonRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentPersonRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentPersonRequest) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{62}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *GetAgentPersonRequest) GetRepo() *RepoRef {
@@ -4776,7 +4868,7 @@ type GetAgentPersonResponse struct {
 
 func (x *GetAgentPersonResponse) Reset() {
 	*x = GetAgentPersonResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[63]
+	mi := &file_asc_v1_agents_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4788,7 +4880,7 @@ func (x *GetAgentPersonResponse) String() string {
 func (*GetAgentPersonResponse) ProtoMessage() {}
 
 func (x *GetAgentPersonResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[63]
+	mi := &file_asc_v1_agents_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4801,7 +4893,7 @@ func (x *GetAgentPersonResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentPersonResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentPersonResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{63}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *GetAgentPersonResponse) GetAllowed() bool {
@@ -4863,7 +4955,7 @@ type SetMonthlyBudgetResponse struct {
 
 func (x *SetMonthlyBudgetResponse) Reset() {
 	*x = SetMonthlyBudgetResponse{}
-	mi := &file_asc_v1_agents_proto_msgTypes[64]
+	mi := &file_asc_v1_agents_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4875,7 +4967,7 @@ func (x *SetMonthlyBudgetResponse) String() string {
 func (*SetMonthlyBudgetResponse) ProtoMessage() {}
 
 func (x *SetMonthlyBudgetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_asc_v1_agents_proto_msgTypes[64]
+	mi := &file_asc_v1_agents_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4888,7 +4980,7 @@ func (x *SetMonthlyBudgetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMonthlyBudgetResponse.ProtoReflect.Descriptor instead.
 func (*SetMonthlyBudgetResponse) Descriptor() ([]byte, []int) {
-	return file_asc_v1_agents_proto_rawDescGZIP(), []int{64}
+	return file_asc_v1_agents_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *SetMonthlyBudgetResponse) GetAgent() string {
@@ -5079,7 +5171,11 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\x02id\x18\x02 \x01(\tR\x02id\"y\n" +
 	"\x15GetAgentTokenResponse\x12(\n" +
 	"\x05token\x18\x01 \x01(\v2\x12.asc.v1.AgentTokenR\x05token\x126\n" +
-	"\tremaining\x18\x02 \x01(\v2\x18.asc.v1.AgentBudgetUsageR\tremaining\"f\n" +
+	"\tremaining\x18\x02 \x01(\v2\x18.asc.v1.AgentBudgetUsageR\tremaining\"2\n" +
+	"\x18ResolveAgentTokenRequest\x12\x16\n" +
+	"\x06secret\x18\x01 \x01(\tR\x06secret\"E\n" +
+	"\x19ResolveAgentTokenResponse\x12(\n" +
+	"\x05token\x18\x01 \x01(\v2\x12.asc.v1.AgentTokenR\x05token\"f\n" +
 	"\x17RevokeAgentTokenRequest\x12#\n" +
 	"\x04repo\x18\x01 \x01(\v2\x0f.asc.v1.RepoRefR\x04repo\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x16\n" +
@@ -5344,7 +5440,7 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"ListAgents\x12\x1d.asc.v1.ListRepoAgentsRequest\x1a\x1e.asc.v1.ListRepoAgentsResponse\x12G\n" +
 	"\bGetSpend\x12\x1c.asc.v1.GetAgentSpendRequest\x1a\x1d.asc.v1.GetAgentSpendResponse\x12U\n" +
 	"\x10SetMonthlyBudget\x12\x1f.asc.v1.SetMonthlyBudgetRequest\x1a .asc.v1.SetMonthlyBudgetResponse\x12J\n" +
-	"\tGetPerson\x12\x1d.asc.v1.GetAgentPersonRequest\x1a\x1e.asc.v1.GetAgentPersonResponse2\xf1\x03\n" +
+	"\tGetPerson\x12\x1d.asc.v1.GetAgentPersonRequest\x1a\x1e.asc.v1.GetAgentPersonResponse2\xc6\x04\n" +
 	"\vAgentTokens\x12P\n" +
 	"\vCreateToken\x12\x1f.asc.v1.CreateAgentTokenRequest\x1a .asc.v1.CreateAgentTokenResponse\x12M\n" +
 	"\n" +
@@ -5352,7 +5448,8 @@ const file_asc_v1_agents_proto_rawDesc = "" +
 	"\bGetToken\x12\x1c.asc.v1.GetAgentTokenRequest\x1a\x1d.asc.v1.GetAgentTokenResponse\x12P\n" +
 	"\vRevokeToken\x12\x1f.asc.v1.RevokeAgentTokenRequest\x1a .asc.v1.RevokeAgentTokenResponse\x12T\n" +
 	"\tSetBudget\x12\".asc.v1.SetAgentTokenBudgetRequest\x1a#.asc.v1.SetAgentTokenBudgetResponse\x12P\n" +
-	"\vReportUsage\x12\x1f.asc.v1.ReportAgentUsageRequest\x1a .asc.v1.ReportAgentUsageResponseBv\n" +
+	"\vReportUsage\x12\x1f.asc.v1.ReportAgentUsageRequest\x1a .asc.v1.ReportAgentUsageResponse\x12S\n" +
+	"\fResolveToken\x12 .asc.v1.ResolveAgentTokenRequest\x1a!.asc.v1.ResolveAgentTokenResponseBv\n" +
 	"\n" +
 	"com.asc.v1B\vAgentsProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -5369,7 +5466,7 @@ func file_asc_v1_agents_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_agents_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_asc_v1_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 65)
+var file_asc_v1_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 67)
 var file_asc_v1_agents_proto_goTypes = []any{
 	(AgentRunState)(0),                   // 0: asc.v1.AgentRunState
 	(AgentRunEventKind)(0),               // 1: asc.v1.AgentRunEventKind
@@ -5400,183 +5497,188 @@ var file_asc_v1_agents_proto_goTypes = []any{
 	(*ListAgentTokensResponse)(nil),      // 26: asc.v1.ListAgentTokensResponse
 	(*GetAgentTokenRequest)(nil),         // 27: asc.v1.GetAgentTokenRequest
 	(*GetAgentTokenResponse)(nil),        // 28: asc.v1.GetAgentTokenResponse
-	(*RevokeAgentTokenRequest)(nil),      // 29: asc.v1.RevokeAgentTokenRequest
-	(*RevokeAgentTokenResponse)(nil),     // 30: asc.v1.RevokeAgentTokenResponse
-	(*SetAgentTokenBudgetRequest)(nil),   // 31: asc.v1.SetAgentTokenBudgetRequest
-	(*SetAgentTokenBudgetResponse)(nil),  // 32: asc.v1.SetAgentTokenBudgetResponse
-	(*ReportAgentUsageRequest)(nil),      // 33: asc.v1.ReportAgentUsageRequest
-	(*ReportAgentUsageResponse)(nil),     // 34: asc.v1.ReportAgentUsageResponse
-	(*AgentPlanStep)(nil),                // 35: asc.v1.AgentPlanStep
-	(*AgentRequest)(nil),                 // 36: asc.v1.AgentRequest
-	(*ListAgentRequestsRequest)(nil),     // 37: asc.v1.ListAgentRequestsRequest
-	(*ListAgentRequestsResponse)(nil),    // 38: asc.v1.ListAgentRequestsResponse
-	(*DecideAgentRequestRequest)(nil),    // 39: asc.v1.DecideAgentRequestRequest
-	(*DecideAgentRequestResponse)(nil),   // 40: asc.v1.DecideAgentRequestResponse
-	(*PauseAgentRunRequest)(nil),         // 41: asc.v1.PauseAgentRunRequest
-	(*PauseAgentRunResponse)(nil),        // 42: asc.v1.PauseAgentRunResponse
-	(*AgentCheckpoint)(nil),              // 43: asc.v1.AgentCheckpoint
-	(*ListAgentCheckpointsRequest)(nil),  // 44: asc.v1.ListAgentCheckpointsRequest
-	(*ListAgentCheckpointsResponse)(nil), // 45: asc.v1.ListAgentCheckpointsResponse
-	(*RollbackAgentRunRequest)(nil),      // 46: asc.v1.RollbackAgentRunRequest
-	(*RollbackAgentRunResponse)(nil),     // 47: asc.v1.RollbackAgentRunResponse
-	(*SetAgentRunLimitsRequest)(nil),     // 48: asc.v1.SetAgentRunLimitsRequest
-	(*SetAgentRunLimitsResponse)(nil),    // 49: asc.v1.SetAgentRunLimitsResponse
-	(*ContinueAgentRunRequest)(nil),      // 50: asc.v1.ContinueAgentRunRequest
-	(*ContinueAgentRunResponse)(nil),     // 51: asc.v1.ContinueAgentRunResponse
-	(*GetAgentEstimateRequest)(nil),      // 52: asc.v1.GetAgentEstimateRequest
-	(*GetAgentEstimateResponse)(nil),     // 53: asc.v1.GetAgentEstimateResponse
-	(*AgentTaskRef)(nil),                 // 54: asc.v1.AgentTaskRef
-	(*RecentAgentTasksRequest)(nil),      // 55: asc.v1.RecentAgentTasksRequest
-	(*RecentAgentTasksResponse)(nil),     // 56: asc.v1.RecentAgentTasksResponse
-	(*GetAgentRunLogRequest)(nil),        // 57: asc.v1.GetAgentRunLogRequest
-	(*GetAgentRunLogResponse)(nil),       // 58: asc.v1.GetAgentRunLogResponse
-	(*RepoAgentInfo)(nil),                // 59: asc.v1.RepoAgentInfo
-	(*ListRepoAgentsRequest)(nil),        // 60: asc.v1.ListRepoAgentsRequest
-	(*ListRepoAgentsResponse)(nil),       // 61: asc.v1.ListRepoAgentsResponse
-	(*AgentActivityDay)(nil),             // 62: asc.v1.AgentActivityDay
-	(*SpendDay)(nil),                     // 63: asc.v1.SpendDay
-	(*AgentSpend)(nil),                   // 64: asc.v1.AgentSpend
-	(*GetAgentSpendRequest)(nil),         // 65: asc.v1.GetAgentSpendRequest
-	(*GetAgentSpendResponse)(nil),        // 66: asc.v1.GetAgentSpendResponse
-	(*SetMonthlyBudgetRequest)(nil),      // 67: asc.v1.SetMonthlyBudgetRequest
-	(*GetAgentPersonRequest)(nil),        // 68: asc.v1.GetAgentPersonRequest
-	(*GetAgentPersonResponse)(nil),       // 69: asc.v1.GetAgentPersonResponse
-	(*SetMonthlyBudgetResponse)(nil),     // 70: asc.v1.SetMonthlyBudgetResponse
-	(*RepoRef)(nil),                      // 71: asc.v1.RepoRef
+	(*ResolveAgentTokenRequest)(nil),     // 29: asc.v1.ResolveAgentTokenRequest
+	(*ResolveAgentTokenResponse)(nil),    // 30: asc.v1.ResolveAgentTokenResponse
+	(*RevokeAgentTokenRequest)(nil),      // 31: asc.v1.RevokeAgentTokenRequest
+	(*RevokeAgentTokenResponse)(nil),     // 32: asc.v1.RevokeAgentTokenResponse
+	(*SetAgentTokenBudgetRequest)(nil),   // 33: asc.v1.SetAgentTokenBudgetRequest
+	(*SetAgentTokenBudgetResponse)(nil),  // 34: asc.v1.SetAgentTokenBudgetResponse
+	(*ReportAgentUsageRequest)(nil),      // 35: asc.v1.ReportAgentUsageRequest
+	(*ReportAgentUsageResponse)(nil),     // 36: asc.v1.ReportAgentUsageResponse
+	(*AgentPlanStep)(nil),                // 37: asc.v1.AgentPlanStep
+	(*AgentRequest)(nil),                 // 38: asc.v1.AgentRequest
+	(*ListAgentRequestsRequest)(nil),     // 39: asc.v1.ListAgentRequestsRequest
+	(*ListAgentRequestsResponse)(nil),    // 40: asc.v1.ListAgentRequestsResponse
+	(*DecideAgentRequestRequest)(nil),    // 41: asc.v1.DecideAgentRequestRequest
+	(*DecideAgentRequestResponse)(nil),   // 42: asc.v1.DecideAgentRequestResponse
+	(*PauseAgentRunRequest)(nil),         // 43: asc.v1.PauseAgentRunRequest
+	(*PauseAgentRunResponse)(nil),        // 44: asc.v1.PauseAgentRunResponse
+	(*AgentCheckpoint)(nil),              // 45: asc.v1.AgentCheckpoint
+	(*ListAgentCheckpointsRequest)(nil),  // 46: asc.v1.ListAgentCheckpointsRequest
+	(*ListAgentCheckpointsResponse)(nil), // 47: asc.v1.ListAgentCheckpointsResponse
+	(*RollbackAgentRunRequest)(nil),      // 48: asc.v1.RollbackAgentRunRequest
+	(*RollbackAgentRunResponse)(nil),     // 49: asc.v1.RollbackAgentRunResponse
+	(*SetAgentRunLimitsRequest)(nil),     // 50: asc.v1.SetAgentRunLimitsRequest
+	(*SetAgentRunLimitsResponse)(nil),    // 51: asc.v1.SetAgentRunLimitsResponse
+	(*ContinueAgentRunRequest)(nil),      // 52: asc.v1.ContinueAgentRunRequest
+	(*ContinueAgentRunResponse)(nil),     // 53: asc.v1.ContinueAgentRunResponse
+	(*GetAgentEstimateRequest)(nil),      // 54: asc.v1.GetAgentEstimateRequest
+	(*GetAgentEstimateResponse)(nil),     // 55: asc.v1.GetAgentEstimateResponse
+	(*AgentTaskRef)(nil),                 // 56: asc.v1.AgentTaskRef
+	(*RecentAgentTasksRequest)(nil),      // 57: asc.v1.RecentAgentTasksRequest
+	(*RecentAgentTasksResponse)(nil),     // 58: asc.v1.RecentAgentTasksResponse
+	(*GetAgentRunLogRequest)(nil),        // 59: asc.v1.GetAgentRunLogRequest
+	(*GetAgentRunLogResponse)(nil),       // 60: asc.v1.GetAgentRunLogResponse
+	(*RepoAgentInfo)(nil),                // 61: asc.v1.RepoAgentInfo
+	(*ListRepoAgentsRequest)(nil),        // 62: asc.v1.ListRepoAgentsRequest
+	(*ListRepoAgentsResponse)(nil),       // 63: asc.v1.ListRepoAgentsResponse
+	(*AgentActivityDay)(nil),             // 64: asc.v1.AgentActivityDay
+	(*SpendDay)(nil),                     // 65: asc.v1.SpendDay
+	(*AgentSpend)(nil),                   // 66: asc.v1.AgentSpend
+	(*GetAgentSpendRequest)(nil),         // 67: asc.v1.GetAgentSpendRequest
+	(*GetAgentSpendResponse)(nil),        // 68: asc.v1.GetAgentSpendResponse
+	(*SetMonthlyBudgetRequest)(nil),      // 69: asc.v1.SetMonthlyBudgetRequest
+	(*GetAgentPersonRequest)(nil),        // 70: asc.v1.GetAgentPersonRequest
+	(*GetAgentPersonResponse)(nil),       // 71: asc.v1.GetAgentPersonResponse
+	(*SetMonthlyBudgetResponse)(nil),     // 72: asc.v1.SetMonthlyBudgetResponse
+	(*RepoRef)(nil),                      // 73: asc.v1.RepoRef
 }
 var file_asc_v1_agents_proto_depIdxs = []int32{
 	0,   // 0: asc.v1.AgentRun.state:type_name -> asc.v1.AgentRunState
 	6,   // 1: asc.v1.AgentRun.limits:type_name -> asc.v1.AgentBudgetLimits
 	7,   // 2: asc.v1.AgentRun.usage:type_name -> asc.v1.AgentBudgetUsage
 	9,   // 3: asc.v1.AgentRun.progress:type_name -> asc.v1.AgentRunProgress
-	71,  // 4: asc.v1.CreateAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 4: asc.v1.CreateAgentRunRequest.repo:type_name -> asc.v1.RepoRef
 	6,   // 5: asc.v1.CreateAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
 	8,   // 6: asc.v1.CreateAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	71,  // 7: asc.v1.ListAgentRunsRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 7: asc.v1.ListAgentRunsRequest.repo:type_name -> asc.v1.RepoRef
 	0,   // 8: asc.v1.ListAgentRunsRequest.states:type_name -> asc.v1.AgentRunState
 	8,   // 9: asc.v1.ListAgentRunsResponse.runs:type_name -> asc.v1.AgentRun
-	71,  // 10: asc.v1.GetAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 10: asc.v1.GetAgentRunRequest.repo:type_name -> asc.v1.RepoRef
 	8,   // 11: asc.v1.GetAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	71,  // 12: asc.v1.CancelAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 12: asc.v1.CancelAgentRunRequest.repo:type_name -> asc.v1.RepoRef
 	8,   // 13: asc.v1.CancelAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	71,  // 14: asc.v1.SendAgentInputRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 14: asc.v1.SendAgentInputRequest.repo:type_name -> asc.v1.RepoRef
 	8,   // 15: asc.v1.SendAgentInputResponse.run:type_name -> asc.v1.AgentRun
 	1,   // 16: asc.v1.AgentRunEvent.kind:type_name -> asc.v1.AgentRunEventKind
 	0,   // 17: asc.v1.AgentRunEvent.state:type_name -> asc.v1.AgentRunState
 	7,   // 18: asc.v1.AgentRunEvent.usage:type_name -> asc.v1.AgentBudgetUsage
-	71,  // 19: asc.v1.WatchAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 19: asc.v1.WatchAgentRunRequest.repo:type_name -> asc.v1.RepoRef
 	2,   // 20: asc.v1.AgentToken.state:type_name -> asc.v1.AgentTokenState
 	6,   // 21: asc.v1.AgentToken.limits:type_name -> asc.v1.AgentBudgetLimits
 	7,   // 22: asc.v1.AgentToken.usage:type_name -> asc.v1.AgentBudgetUsage
-	71,  // 23: asc.v1.CreateAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 23: asc.v1.CreateAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
 	6,   // 24: asc.v1.CreateAgentTokenRequest.limits:type_name -> asc.v1.AgentBudgetLimits
 	22,  // 25: asc.v1.CreateAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	71,  // 26: asc.v1.ListAgentTokensRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 26: asc.v1.ListAgentTokensRequest.repo:type_name -> asc.v1.RepoRef
 	2,   // 27: asc.v1.ListAgentTokensRequest.states:type_name -> asc.v1.AgentTokenState
 	22,  // 28: asc.v1.ListAgentTokensResponse.tokens:type_name -> asc.v1.AgentToken
-	71,  // 29: asc.v1.GetAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 29: asc.v1.GetAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
 	22,  // 30: asc.v1.GetAgentTokenResponse.token:type_name -> asc.v1.AgentToken
 	7,   // 31: asc.v1.GetAgentTokenResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
-	71,  // 32: asc.v1.RevokeAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
-	22,  // 33: asc.v1.RevokeAgentTokenResponse.token:type_name -> asc.v1.AgentToken
-	71,  // 34: asc.v1.SetAgentTokenBudgetRequest.repo:type_name -> asc.v1.RepoRef
-	6,   // 35: asc.v1.SetAgentTokenBudgetRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	22,  // 36: asc.v1.SetAgentTokenBudgetResponse.token:type_name -> asc.v1.AgentToken
-	71,  // 37: asc.v1.ReportAgentUsageRequest.repo:type_name -> asc.v1.RepoRef
-	7,   // 38: asc.v1.ReportAgentUsageResponse.usage:type_name -> asc.v1.AgentBudgetUsage
-	7,   // 39: asc.v1.ReportAgentUsageResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
-	3,   // 40: asc.v1.AgentRequest.kind:type_name -> asc.v1.AgentRequestKind
-	4,   // 41: asc.v1.AgentRequest.state:type_name -> asc.v1.AgentRequestState
-	35,  // 42: asc.v1.AgentRequest.plan:type_name -> asc.v1.AgentPlanStep
-	71,  // 43: asc.v1.ListAgentRequestsRequest.repo:type_name -> asc.v1.RepoRef
-	4,   // 44: asc.v1.ListAgentRequestsRequest.states:type_name -> asc.v1.AgentRequestState
-	36,  // 45: asc.v1.ListAgentRequestsResponse.requests:type_name -> asc.v1.AgentRequest
-	71,  // 46: asc.v1.DecideAgentRequestRequest.repo:type_name -> asc.v1.RepoRef
-	5,   // 47: asc.v1.DecideAgentRequestRequest.decision:type_name -> asc.v1.AgentDecision
-	36,  // 48: asc.v1.DecideAgentRequestResponse.request:type_name -> asc.v1.AgentRequest
-	8,   // 49: asc.v1.DecideAgentRequestResponse.run:type_name -> asc.v1.AgentRun
-	71,  // 50: asc.v1.PauseAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	8,   // 51: asc.v1.PauseAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	71,  // 52: asc.v1.ListAgentCheckpointsRequest.repo:type_name -> asc.v1.RepoRef
-	43,  // 53: asc.v1.ListAgentCheckpointsResponse.checkpoints:type_name -> asc.v1.AgentCheckpoint
-	71,  // 54: asc.v1.RollbackAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	8,   // 55: asc.v1.RollbackAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	43,  // 56: asc.v1.RollbackAgentRunResponse.checkpoint:type_name -> asc.v1.AgentCheckpoint
-	71,  // 57: asc.v1.SetAgentRunLimitsRequest.repo:type_name -> asc.v1.RepoRef
-	6,   // 58: asc.v1.SetAgentRunLimitsRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	8,   // 59: asc.v1.SetAgentRunLimitsResponse.run:type_name -> asc.v1.AgentRun
-	71,  // 60: asc.v1.ContinueAgentRunRequest.repo:type_name -> asc.v1.RepoRef
-	6,   // 61: asc.v1.ContinueAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
-	8,   // 62: asc.v1.ContinueAgentRunResponse.run:type_name -> asc.v1.AgentRun
-	71,  // 63: asc.v1.GetAgentEstimateRequest.repo:type_name -> asc.v1.RepoRef
-	71,  // 64: asc.v1.RecentAgentTasksRequest.repo:type_name -> asc.v1.RepoRef
-	54,  // 65: asc.v1.RecentAgentTasksResponse.tasks:type_name -> asc.v1.AgentTaskRef
-	71,  // 66: asc.v1.GetAgentRunLogRequest.repo:type_name -> asc.v1.RepoRef
-	71,  // 67: asc.v1.ListRepoAgentsRequest.repo:type_name -> asc.v1.RepoRef
-	59,  // 68: asc.v1.ListRepoAgentsResponse.agents:type_name -> asc.v1.RepoAgentInfo
-	62,  // 69: asc.v1.ListRepoAgentsResponse.days:type_name -> asc.v1.AgentActivityDay
-	71,  // 70: asc.v1.GetAgentSpendRequest.repo:type_name -> asc.v1.RepoRef
-	63,  // 71: asc.v1.GetAgentSpendResponse.days:type_name -> asc.v1.SpendDay
-	64,  // 72: asc.v1.GetAgentSpendResponse.agents:type_name -> asc.v1.AgentSpend
-	71,  // 73: asc.v1.SetMonthlyBudgetRequest.repo:type_name -> asc.v1.RepoRef
-	71,  // 74: asc.v1.GetAgentPersonRequest.repo:type_name -> asc.v1.RepoRef
-	10,  // 75: asc.v1.Agents.CreateRun:input_type -> asc.v1.CreateAgentRunRequest
-	12,  // 76: asc.v1.Agents.ListRuns:input_type -> asc.v1.ListAgentRunsRequest
-	14,  // 77: asc.v1.Agents.GetRun:input_type -> asc.v1.GetAgentRunRequest
-	16,  // 78: asc.v1.Agents.CancelRun:input_type -> asc.v1.CancelAgentRunRequest
-	18,  // 79: asc.v1.Agents.SendInput:input_type -> asc.v1.SendAgentInputRequest
-	21,  // 80: asc.v1.Agents.WatchRun:input_type -> asc.v1.WatchAgentRunRequest
-	37,  // 81: asc.v1.Agents.ListRequests:input_type -> asc.v1.ListAgentRequestsRequest
-	39,  // 82: asc.v1.Agents.DecideRequest:input_type -> asc.v1.DecideAgentRequestRequest
-	41,  // 83: asc.v1.Agents.PauseRun:input_type -> asc.v1.PauseAgentRunRequest
-	44,  // 84: asc.v1.Agents.ListCheckpoints:input_type -> asc.v1.ListAgentCheckpointsRequest
-	46,  // 85: asc.v1.Agents.RollbackRun:input_type -> asc.v1.RollbackAgentRunRequest
-	48,  // 86: asc.v1.Agents.SetRunLimits:input_type -> asc.v1.SetAgentRunLimitsRequest
-	50,  // 87: asc.v1.Agents.ContinueRun:input_type -> asc.v1.ContinueAgentRunRequest
-	52,  // 88: asc.v1.Agents.GetEstimate:input_type -> asc.v1.GetAgentEstimateRequest
-	55,  // 89: asc.v1.Agents.RecentTasks:input_type -> asc.v1.RecentAgentTasksRequest
-	57,  // 90: asc.v1.Agents.GetRunLog:input_type -> asc.v1.GetAgentRunLogRequest
-	60,  // 91: asc.v1.Agents.ListAgents:input_type -> asc.v1.ListRepoAgentsRequest
-	65,  // 92: asc.v1.Agents.GetSpend:input_type -> asc.v1.GetAgentSpendRequest
-	67,  // 93: asc.v1.Agents.SetMonthlyBudget:input_type -> asc.v1.SetMonthlyBudgetRequest
-	68,  // 94: asc.v1.Agents.GetPerson:input_type -> asc.v1.GetAgentPersonRequest
-	23,  // 95: asc.v1.AgentTokens.CreateToken:input_type -> asc.v1.CreateAgentTokenRequest
-	25,  // 96: asc.v1.AgentTokens.ListTokens:input_type -> asc.v1.ListAgentTokensRequest
-	27,  // 97: asc.v1.AgentTokens.GetToken:input_type -> asc.v1.GetAgentTokenRequest
-	29,  // 98: asc.v1.AgentTokens.RevokeToken:input_type -> asc.v1.RevokeAgentTokenRequest
-	31,  // 99: asc.v1.AgentTokens.SetBudget:input_type -> asc.v1.SetAgentTokenBudgetRequest
-	33,  // 100: asc.v1.AgentTokens.ReportUsage:input_type -> asc.v1.ReportAgentUsageRequest
-	11,  // 101: asc.v1.Agents.CreateRun:output_type -> asc.v1.CreateAgentRunResponse
-	13,  // 102: asc.v1.Agents.ListRuns:output_type -> asc.v1.ListAgentRunsResponse
-	15,  // 103: asc.v1.Agents.GetRun:output_type -> asc.v1.GetAgentRunResponse
-	17,  // 104: asc.v1.Agents.CancelRun:output_type -> asc.v1.CancelAgentRunResponse
-	19,  // 105: asc.v1.Agents.SendInput:output_type -> asc.v1.SendAgentInputResponse
-	20,  // 106: asc.v1.Agents.WatchRun:output_type -> asc.v1.AgentRunEvent
-	38,  // 107: asc.v1.Agents.ListRequests:output_type -> asc.v1.ListAgentRequestsResponse
-	40,  // 108: asc.v1.Agents.DecideRequest:output_type -> asc.v1.DecideAgentRequestResponse
-	42,  // 109: asc.v1.Agents.PauseRun:output_type -> asc.v1.PauseAgentRunResponse
-	45,  // 110: asc.v1.Agents.ListCheckpoints:output_type -> asc.v1.ListAgentCheckpointsResponse
-	47,  // 111: asc.v1.Agents.RollbackRun:output_type -> asc.v1.RollbackAgentRunResponse
-	49,  // 112: asc.v1.Agents.SetRunLimits:output_type -> asc.v1.SetAgentRunLimitsResponse
-	51,  // 113: asc.v1.Agents.ContinueRun:output_type -> asc.v1.ContinueAgentRunResponse
-	53,  // 114: asc.v1.Agents.GetEstimate:output_type -> asc.v1.GetAgentEstimateResponse
-	56,  // 115: asc.v1.Agents.RecentTasks:output_type -> asc.v1.RecentAgentTasksResponse
-	58,  // 116: asc.v1.Agents.GetRunLog:output_type -> asc.v1.GetAgentRunLogResponse
-	61,  // 117: asc.v1.Agents.ListAgents:output_type -> asc.v1.ListRepoAgentsResponse
-	66,  // 118: asc.v1.Agents.GetSpend:output_type -> asc.v1.GetAgentSpendResponse
-	70,  // 119: asc.v1.Agents.SetMonthlyBudget:output_type -> asc.v1.SetMonthlyBudgetResponse
-	69,  // 120: asc.v1.Agents.GetPerson:output_type -> asc.v1.GetAgentPersonResponse
-	24,  // 121: asc.v1.AgentTokens.CreateToken:output_type -> asc.v1.CreateAgentTokenResponse
-	26,  // 122: asc.v1.AgentTokens.ListTokens:output_type -> asc.v1.ListAgentTokensResponse
-	28,  // 123: asc.v1.AgentTokens.GetToken:output_type -> asc.v1.GetAgentTokenResponse
-	30,  // 124: asc.v1.AgentTokens.RevokeToken:output_type -> asc.v1.RevokeAgentTokenResponse
-	32,  // 125: asc.v1.AgentTokens.SetBudget:output_type -> asc.v1.SetAgentTokenBudgetResponse
-	34,  // 126: asc.v1.AgentTokens.ReportUsage:output_type -> asc.v1.ReportAgentUsageResponse
-	101, // [101:127] is the sub-list for method output_type
-	75,  // [75:101] is the sub-list for method input_type
-	75,  // [75:75] is the sub-list for extension type_name
-	75,  // [75:75] is the sub-list for extension extendee
-	0,   // [0:75] is the sub-list for field type_name
+	22,  // 32: asc.v1.ResolveAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	73,  // 33: asc.v1.RevokeAgentTokenRequest.repo:type_name -> asc.v1.RepoRef
+	22,  // 34: asc.v1.RevokeAgentTokenResponse.token:type_name -> asc.v1.AgentToken
+	73,  // 35: asc.v1.SetAgentTokenBudgetRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 36: asc.v1.SetAgentTokenBudgetRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	22,  // 37: asc.v1.SetAgentTokenBudgetResponse.token:type_name -> asc.v1.AgentToken
+	73,  // 38: asc.v1.ReportAgentUsageRequest.repo:type_name -> asc.v1.RepoRef
+	7,   // 39: asc.v1.ReportAgentUsageResponse.usage:type_name -> asc.v1.AgentBudgetUsage
+	7,   // 40: asc.v1.ReportAgentUsageResponse.remaining:type_name -> asc.v1.AgentBudgetUsage
+	3,   // 41: asc.v1.AgentRequest.kind:type_name -> asc.v1.AgentRequestKind
+	4,   // 42: asc.v1.AgentRequest.state:type_name -> asc.v1.AgentRequestState
+	37,  // 43: asc.v1.AgentRequest.plan:type_name -> asc.v1.AgentPlanStep
+	73,  // 44: asc.v1.ListAgentRequestsRequest.repo:type_name -> asc.v1.RepoRef
+	4,   // 45: asc.v1.ListAgentRequestsRequest.states:type_name -> asc.v1.AgentRequestState
+	38,  // 46: asc.v1.ListAgentRequestsResponse.requests:type_name -> asc.v1.AgentRequest
+	73,  // 47: asc.v1.DecideAgentRequestRequest.repo:type_name -> asc.v1.RepoRef
+	5,   // 48: asc.v1.DecideAgentRequestRequest.decision:type_name -> asc.v1.AgentDecision
+	38,  // 49: asc.v1.DecideAgentRequestResponse.request:type_name -> asc.v1.AgentRequest
+	8,   // 50: asc.v1.DecideAgentRequestResponse.run:type_name -> asc.v1.AgentRun
+	73,  // 51: asc.v1.PauseAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 52: asc.v1.PauseAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	73,  // 53: asc.v1.ListAgentCheckpointsRequest.repo:type_name -> asc.v1.RepoRef
+	45,  // 54: asc.v1.ListAgentCheckpointsResponse.checkpoints:type_name -> asc.v1.AgentCheckpoint
+	73,  // 55: asc.v1.RollbackAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	8,   // 56: asc.v1.RollbackAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	45,  // 57: asc.v1.RollbackAgentRunResponse.checkpoint:type_name -> asc.v1.AgentCheckpoint
+	73,  // 58: asc.v1.SetAgentRunLimitsRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 59: asc.v1.SetAgentRunLimitsRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,   // 60: asc.v1.SetAgentRunLimitsResponse.run:type_name -> asc.v1.AgentRun
+	73,  // 61: asc.v1.ContinueAgentRunRequest.repo:type_name -> asc.v1.RepoRef
+	6,   // 62: asc.v1.ContinueAgentRunRequest.limits:type_name -> asc.v1.AgentBudgetLimits
+	8,   // 63: asc.v1.ContinueAgentRunResponse.run:type_name -> asc.v1.AgentRun
+	73,  // 64: asc.v1.GetAgentEstimateRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 65: asc.v1.RecentAgentTasksRequest.repo:type_name -> asc.v1.RepoRef
+	56,  // 66: asc.v1.RecentAgentTasksResponse.tasks:type_name -> asc.v1.AgentTaskRef
+	73,  // 67: asc.v1.GetAgentRunLogRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 68: asc.v1.ListRepoAgentsRequest.repo:type_name -> asc.v1.RepoRef
+	61,  // 69: asc.v1.ListRepoAgentsResponse.agents:type_name -> asc.v1.RepoAgentInfo
+	64,  // 70: asc.v1.ListRepoAgentsResponse.days:type_name -> asc.v1.AgentActivityDay
+	73,  // 71: asc.v1.GetAgentSpendRequest.repo:type_name -> asc.v1.RepoRef
+	65,  // 72: asc.v1.GetAgentSpendResponse.days:type_name -> asc.v1.SpendDay
+	66,  // 73: asc.v1.GetAgentSpendResponse.agents:type_name -> asc.v1.AgentSpend
+	73,  // 74: asc.v1.SetMonthlyBudgetRequest.repo:type_name -> asc.v1.RepoRef
+	73,  // 75: asc.v1.GetAgentPersonRequest.repo:type_name -> asc.v1.RepoRef
+	10,  // 76: asc.v1.Agents.CreateRun:input_type -> asc.v1.CreateAgentRunRequest
+	12,  // 77: asc.v1.Agents.ListRuns:input_type -> asc.v1.ListAgentRunsRequest
+	14,  // 78: asc.v1.Agents.GetRun:input_type -> asc.v1.GetAgentRunRequest
+	16,  // 79: asc.v1.Agents.CancelRun:input_type -> asc.v1.CancelAgentRunRequest
+	18,  // 80: asc.v1.Agents.SendInput:input_type -> asc.v1.SendAgentInputRequest
+	21,  // 81: asc.v1.Agents.WatchRun:input_type -> asc.v1.WatchAgentRunRequest
+	39,  // 82: asc.v1.Agents.ListRequests:input_type -> asc.v1.ListAgentRequestsRequest
+	41,  // 83: asc.v1.Agents.DecideRequest:input_type -> asc.v1.DecideAgentRequestRequest
+	43,  // 84: asc.v1.Agents.PauseRun:input_type -> asc.v1.PauseAgentRunRequest
+	46,  // 85: asc.v1.Agents.ListCheckpoints:input_type -> asc.v1.ListAgentCheckpointsRequest
+	48,  // 86: asc.v1.Agents.RollbackRun:input_type -> asc.v1.RollbackAgentRunRequest
+	50,  // 87: asc.v1.Agents.SetRunLimits:input_type -> asc.v1.SetAgentRunLimitsRequest
+	52,  // 88: asc.v1.Agents.ContinueRun:input_type -> asc.v1.ContinueAgentRunRequest
+	54,  // 89: asc.v1.Agents.GetEstimate:input_type -> asc.v1.GetAgentEstimateRequest
+	57,  // 90: asc.v1.Agents.RecentTasks:input_type -> asc.v1.RecentAgentTasksRequest
+	59,  // 91: asc.v1.Agents.GetRunLog:input_type -> asc.v1.GetAgentRunLogRequest
+	62,  // 92: asc.v1.Agents.ListAgents:input_type -> asc.v1.ListRepoAgentsRequest
+	67,  // 93: asc.v1.Agents.GetSpend:input_type -> asc.v1.GetAgentSpendRequest
+	69,  // 94: asc.v1.Agents.SetMonthlyBudget:input_type -> asc.v1.SetMonthlyBudgetRequest
+	70,  // 95: asc.v1.Agents.GetPerson:input_type -> asc.v1.GetAgentPersonRequest
+	23,  // 96: asc.v1.AgentTokens.CreateToken:input_type -> asc.v1.CreateAgentTokenRequest
+	25,  // 97: asc.v1.AgentTokens.ListTokens:input_type -> asc.v1.ListAgentTokensRequest
+	27,  // 98: asc.v1.AgentTokens.GetToken:input_type -> asc.v1.GetAgentTokenRequest
+	31,  // 99: asc.v1.AgentTokens.RevokeToken:input_type -> asc.v1.RevokeAgentTokenRequest
+	33,  // 100: asc.v1.AgentTokens.SetBudget:input_type -> asc.v1.SetAgentTokenBudgetRequest
+	35,  // 101: asc.v1.AgentTokens.ReportUsage:input_type -> asc.v1.ReportAgentUsageRequest
+	29,  // 102: asc.v1.AgentTokens.ResolveToken:input_type -> asc.v1.ResolveAgentTokenRequest
+	11,  // 103: asc.v1.Agents.CreateRun:output_type -> asc.v1.CreateAgentRunResponse
+	13,  // 104: asc.v1.Agents.ListRuns:output_type -> asc.v1.ListAgentRunsResponse
+	15,  // 105: asc.v1.Agents.GetRun:output_type -> asc.v1.GetAgentRunResponse
+	17,  // 106: asc.v1.Agents.CancelRun:output_type -> asc.v1.CancelAgentRunResponse
+	19,  // 107: asc.v1.Agents.SendInput:output_type -> asc.v1.SendAgentInputResponse
+	20,  // 108: asc.v1.Agents.WatchRun:output_type -> asc.v1.AgentRunEvent
+	40,  // 109: asc.v1.Agents.ListRequests:output_type -> asc.v1.ListAgentRequestsResponse
+	42,  // 110: asc.v1.Agents.DecideRequest:output_type -> asc.v1.DecideAgentRequestResponse
+	44,  // 111: asc.v1.Agents.PauseRun:output_type -> asc.v1.PauseAgentRunResponse
+	47,  // 112: asc.v1.Agents.ListCheckpoints:output_type -> asc.v1.ListAgentCheckpointsResponse
+	49,  // 113: asc.v1.Agents.RollbackRun:output_type -> asc.v1.RollbackAgentRunResponse
+	51,  // 114: asc.v1.Agents.SetRunLimits:output_type -> asc.v1.SetAgentRunLimitsResponse
+	53,  // 115: asc.v1.Agents.ContinueRun:output_type -> asc.v1.ContinueAgentRunResponse
+	55,  // 116: asc.v1.Agents.GetEstimate:output_type -> asc.v1.GetAgentEstimateResponse
+	58,  // 117: asc.v1.Agents.RecentTasks:output_type -> asc.v1.RecentAgentTasksResponse
+	60,  // 118: asc.v1.Agents.GetRunLog:output_type -> asc.v1.GetAgentRunLogResponse
+	63,  // 119: asc.v1.Agents.ListAgents:output_type -> asc.v1.ListRepoAgentsResponse
+	68,  // 120: asc.v1.Agents.GetSpend:output_type -> asc.v1.GetAgentSpendResponse
+	72,  // 121: asc.v1.Agents.SetMonthlyBudget:output_type -> asc.v1.SetMonthlyBudgetResponse
+	71,  // 122: asc.v1.Agents.GetPerson:output_type -> asc.v1.GetAgentPersonResponse
+	24,  // 123: asc.v1.AgentTokens.CreateToken:output_type -> asc.v1.CreateAgentTokenResponse
+	26,  // 124: asc.v1.AgentTokens.ListTokens:output_type -> asc.v1.ListAgentTokensResponse
+	28,  // 125: asc.v1.AgentTokens.GetToken:output_type -> asc.v1.GetAgentTokenResponse
+	32,  // 126: asc.v1.AgentTokens.RevokeToken:output_type -> asc.v1.RevokeAgentTokenResponse
+	34,  // 127: asc.v1.AgentTokens.SetBudget:output_type -> asc.v1.SetAgentTokenBudgetResponse
+	36,  // 128: asc.v1.AgentTokens.ReportUsage:output_type -> asc.v1.ReportAgentUsageResponse
+	30,  // 129: asc.v1.AgentTokens.ResolveToken:output_type -> asc.v1.ResolveAgentTokenResponse
+	103, // [103:130] is the sub-list for method output_type
+	76,  // [76:103] is the sub-list for method input_type
+	76,  // [76:76] is the sub-list for extension type_name
+	76,  // [76:76] is the sub-list for extension extendee
+	0,   // [0:76] is the sub-list for field type_name
 }
 
 func init() { file_asc_v1_agents_proto_init() }
@@ -5592,7 +5694,7 @@ func file_asc_v1_agents_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_agents_proto_rawDesc), len(file_asc_v1_agents_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   65,
+			NumMessages:   67,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

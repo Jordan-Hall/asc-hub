@@ -19,7 +19,7 @@
 				<li class="ds-li">
 					<div class="ds-li-main">
 						<div class="ds-li-title">
-							<span>{{if .ReporterName}}<a href="{{AppSubUrl}}/{{.ReporterName}}">{{.ReporterName}}</a>{{else}}{{$.GhostUserName}}{{end}}</span>
+							<span>{{if .ReporterAgent}}{{svg "dsi-agent" 14}} {{ctx.Locale.Tr "asc_admin.mod_report_by_agent" .ReporterAgent}}{{else if .ReporterName}}<a href="{{AppSubUrl}}/{{.ReporterName}}">{{.ReporterName}}</a>{{else}}{{$.GhostUserName}}{{end}}</span>
 							<span class="ds-chip ds-chip-warn">{{svg "dsi-flag" 14}}{{ctx.Locale.Tr (index $.AbuseCategories .Category)}}</span>
 						</div>
 						<div class="ds-li-meta"><span>{{DateUtils.AbsoluteShort .CreatedUnix}}</span></div>

@@ -851,12 +851,13 @@ var Agents_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	AgentTokens_CreateToken_FullMethodName = "/asc.v1.AgentTokens/CreateToken"
-	AgentTokens_ListTokens_FullMethodName  = "/asc.v1.AgentTokens/ListTokens"
-	AgentTokens_GetToken_FullMethodName    = "/asc.v1.AgentTokens/GetToken"
-	AgentTokens_RevokeToken_FullMethodName = "/asc.v1.AgentTokens/RevokeToken"
-	AgentTokens_SetBudget_FullMethodName   = "/asc.v1.AgentTokens/SetBudget"
-	AgentTokens_ReportUsage_FullMethodName = "/asc.v1.AgentTokens/ReportUsage"
+	AgentTokens_CreateToken_FullMethodName  = "/asc.v1.AgentTokens/CreateToken"
+	AgentTokens_ListTokens_FullMethodName   = "/asc.v1.AgentTokens/ListTokens"
+	AgentTokens_GetToken_FullMethodName     = "/asc.v1.AgentTokens/GetToken"
+	AgentTokens_RevokeToken_FullMethodName  = "/asc.v1.AgentTokens/RevokeToken"
+	AgentTokens_SetBudget_FullMethodName    = "/asc.v1.AgentTokens/SetBudget"
+	AgentTokens_ReportUsage_FullMethodName  = "/asc.v1.AgentTokens/ReportUsage"
+	AgentTokens_ResolveToken_FullMethodName = "/asc.v1.AgentTokens/ResolveToken"
 )
 
 // AgentTokensClient is the client API for AgentTokens service.
@@ -872,6 +873,7 @@ type AgentTokensClient interface {
 	RevokeToken(ctx context.Context, in *RevokeAgentTokenRequest, opts ...grpc.CallOption) (*RevokeAgentTokenResponse, error)
 	SetBudget(ctx context.Context, in *SetAgentTokenBudgetRequest, opts ...grpc.CallOption) (*SetAgentTokenBudgetResponse, error)
 	ReportUsage(ctx context.Context, in *ReportAgentUsageRequest, opts ...grpc.CallOption) (*ReportAgentUsageResponse, error)
+	ResolveToken(ctx context.Context, in *ResolveAgentTokenRequest, opts ...grpc.CallOption) (*ResolveAgentTokenResponse, error)
 }
 
 type agentTokensClient struct {
@@ -942,6 +944,16 @@ func (c *agentTokensClient) ReportUsage(ctx context.Context, in *ReportAgentUsag
 	return out, nil
 }
 
+func (c *agentTokensClient) ResolveToken(ctx context.Context, in *ResolveAgentTokenRequest, opts ...grpc.CallOption) (*ResolveAgentTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResolveAgentTokenResponse)
+	err := c.cc.Invoke(ctx, AgentTokens_ResolveToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentTokensServer is the server API for AgentTokens service.
 // All implementations should embed UnimplementedAgentTokensServer
 // for forward compatibility.
@@ -955,6 +967,7 @@ type AgentTokensServer interface {
 	RevokeToken(context.Context, *RevokeAgentTokenRequest) (*RevokeAgentTokenResponse, error)
 	SetBudget(context.Context, *SetAgentTokenBudgetRequest) (*SetAgentTokenBudgetResponse, error)
 	ReportUsage(context.Context, *ReportAgentUsageRequest) (*ReportAgentUsageResponse, error)
+	ResolveToken(context.Context, *ResolveAgentTokenRequest) (*ResolveAgentTokenResponse, error)
 }
 
 // UnimplementedAgentTokensServer should be embedded to have
@@ -981,6 +994,9 @@ func (UnimplementedAgentTokensServer) SetBudget(context.Context, *SetAgentTokenB
 }
 func (UnimplementedAgentTokensServer) ReportUsage(context.Context, *ReportAgentUsageRequest) (*ReportAgentUsageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportUsage not implemented")
+}
+func (UnimplementedAgentTokensServer) ResolveToken(context.Context, *ResolveAgentTokenRequest) (*ResolveAgentTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveToken not implemented")
 }
 func (UnimplementedAgentTokensServer) testEmbeddedByValue() {}
 
@@ -1110,6 +1126,24 @@ func _AgentTokens_ReportUsage_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentTokens_ResolveToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveAgentTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentTokensServer).ResolveToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentTokens_ResolveToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentTokensServer).ResolveToken(ctx, req.(*ResolveAgentTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AgentTokens_ServiceDesc is the grpc.ServiceDesc for AgentTokens service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1140,6 +1174,10 @@ var AgentTokens_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportUsage",
 			Handler:    _AgentTokens_ReportUsage_Handler,
+		},
+		{
+			MethodName: "ResolveToken",
+			Handler:    _AgentTokens_ResolveToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

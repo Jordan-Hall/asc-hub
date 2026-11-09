@@ -18,6 +18,7 @@ import (
 type AbuseReportDetailed struct {
 	AbuseReport        `xorm:"extends"`
 	ReportedTimes      int // only for overview
+	ReportedByAgents   int // only for overview: how many of ReportedTimes agents sent
 	ReporterName       string
 	ContentReference   string
 	ShadowCopyDate     timeutil.TimeStamp // only for details
@@ -55,6 +56,11 @@ func (ard AbuseReportDetailed) ContentURL() string {
 	}
 }
 
+// ReportedByPeople is how many of ReportedTimes people sent (overview only).
+func (ard AbuseReportDetailed) ReportedByPeople() int {
+	return ard.ReportedTimes - ard.ReportedByAgents
+}
+
 func (ard AbuseReportDetailed) ReportedContentIsUser() bool {
 	return ard.ContentType == ReportedContentTypeUser
 }
@@ -86,10 +92,10 @@ func GetOpenReports(ctx context.Context) ([]*AbuseReportDetailed, error) {
 		identifierEscapeChar = `"`
 	}
 
-	err := db.GetEngine(ctx).SQL(fmt.Sprintf(`SELECT AR.*, ARD.reported_times, U.name AS reporter_name, REFS.ref AS content_reference
+	err := db.GetEngine(ctx).SQL(fmt.Sprintf(`SELECT AR.*, ARD.reported_times, ARD.reported_by_agents, U.name AS reporter_name, REFS.ref AS content_reference
 		FROM abuse_report AR
 		INNER JOIN (
-			SELECT min(id) AS id, count(id) AS reported_times
+			SELECT min(id) AS id, count(id) AS reported_times, count(CASE WHEN reporter_agent_token <> '' THEN 1 END) AS reported_by_agents
 			FROM abuse_report
 			WHERE status = %[2]d
 			GROUP BY content_type, content_id
