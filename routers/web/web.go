@@ -714,6 +714,7 @@ func registerRoutes(m *web.Route) {
 	m.Get("/-/asc/inbox", reqSignIn, user.AscInbox)
 	registerAscAgentsUserRoutes(m, reqSignIn)
 	m.Post("/-/asc/inbox/state", reqSignIn, user.AscInboxStatePost)
+	m.Post("/-/asc/inbox/ask", reqSignIn, user.AscInboxAsk)
 	m.Get("/-/asc/inbox/count", reqSignIn, user.AscInboxCount)
 	m.Get("/-/asc/inbox/rows", reqSignIn, user.AscInboxRows)
 	m.Get("/-/asc/dash/today", reqSignIn, user.AscDashTodayCard)

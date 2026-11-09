@@ -123,9 +123,10 @@ async function formFetchAction(e) {
   }
 
   const formMethod = formEl.getAttribute('method') || 'get';
-  const formActionUrl = formEl.getAttribute('action');
   const formData = new FormData(formEl);
   const formSubmitter = submitEventSubmitter(e);
+  // a button with formaction sends the form there, as the browser does
+  const formActionUrl = formSubmitter?.getAttribute('formaction') || formEl.getAttribute('action');
   const [submitterName, submitterValue] = [formSubmitter?.getAttribute('name'), formSubmitter?.getAttribute('value')];
   if (submitterName) {
     formData.append(submitterName, submitterValue || '');

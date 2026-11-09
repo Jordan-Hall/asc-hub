@@ -110,9 +110,12 @@ type AscInboxDetail struct {
 	SnoozeChecks bool
 	SnoozeFirst  string
 	SnoozeLast   string
-	Done         bool // the person marked it done: the pane offers Restore instead of Mark done
-	Info         *AscInboxInfo
-	Return       string // the tab, kept after a mark
+	// AskAgent is the agent that made the pull request when the person may ask it to change it ("Ask agent to
+	// change"), else "".
+	AskAgent string
+	Done     bool // the person marked it done: the pane offers Restore instead of Mark done
+	Info     *AscInboxInfo
+	Return   string // the tab, kept after a mark
 }
 
 // AscInboxPage is everything the template shows.
@@ -369,6 +372,7 @@ func ascInboxDetailFor(ctx *context.Context, row AscInboxRow, tab string) *AscIn
 	_, d.SnoozeToday = ascInboxSnoozeUntil("today", "", now)
 	d.SnoozeChecks = e.ChecksRunning && e.HeadCommitID != ""
 	d.SnoozeFirst, d.SnoozeLast = ascInboxSnoozeDays(now)
+	d.AskAgent = ascInboxAskAgent(ctx, ctx.Doer, e)
 	d.Info = ascInboxInfoLoad(ctx, e)
 	d.Row.Dash = ascDashRowFor(ctx.Locale, e, d.Info)
 	if e.Section == issues_model.AscInboxNeedsReview {

@@ -151,12 +151,16 @@ Under 1024 the page shows the list, or the pane of the chosen item (AscInbox.Exp
 				<form class="wk-reply form-fetch-action" method="post" action="{{.ReviewURL}}">
 					{{$.CsrfTokenHtml}}
 					{{if .CommitID}}<input type="hidden" name="commit_id" value="{{.CommitID}}">{{end}}
+					{{if .AskAgent}}<input type="hidden" name="pull" value="{{.Row.Entry.PullID}}"><input type="hidden" name="tab" value="{{.Return}}">{{end}}
 					<label class="ds-sr" for="wk-reply-text">{{ctx.Locale.Tr "user.asc_inbox.reply_label"}}</label>
 					<textarea class="ds-textarea" id="wk-reply-text" name="content" rows="2" placeholder="{{ctx.Locale.Tr "user.asc_inbox.reply_placeholder"}}"></textarea>
 					<div class="wk-reply-actions">
 						{{if .CanReview}}
 							<button class="ds-btn ds-btn-primary" type="submit" name="type" value="approve">{{ctx.Locale.Tr "user.asc_inbox.approve"}}</button>
 							<button class="ds-btn ds-btn-secondary" type="submit" name="type" value="reject">{{ctx.Locale.Tr "user.asc_inbox.request_changes"}}</button>
+						{{end}}
+						{{if .AskAgent}}
+							<button class="ds-btn ds-btn-secondary" type="submit" formaction="{{AppSubUrl}}/-/asc/inbox/ask" aria-label="{{ctx.Locale.Tr "user.asc_inbox.ask_agent_for" .AskAgent}}" data-asc-ask-agent>{{ctx.Locale.Tr "user.asc_inbox.ask_agent"}}</button>
 						{{end}}
 						<button class="ds-btn ds-btn-secondary" type="submit" name="type" value="comment">{{ctx.Locale.Tr "user.asc_inbox.reply"}}</button>
 					</div>
