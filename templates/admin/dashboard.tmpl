@@ -47,7 +47,17 @@
 								<div class="ds-li-title"><span>{{.Title}}</span> <span class="ds-chip ds-chip-{{.Tone}}">{{.Tag}}</span></div>
 								<div class="ds-li-sub">{{.Text}}</div>
 							</div>
-							<div class="adm-row-side"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link}}">{{.Action}}</a></div>
+							<div class="adm-row-side">
+								{{if .Post}}
+									<form method="post" action="{{.Post}}" data-testid="adm-attention-post">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="op" value="{{.Op}}">
+										<button class="ds-btn ds-btn-secondary ds-btn-sm" type="submit">{{.Action}}</button>
+									</form>
+								{{else}}
+									<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.Link}}">{{.Action}}</a>
+								{{end}}
+							</div>
 						</li>
 					{{end}}
 				</ul>

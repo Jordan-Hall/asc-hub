@@ -214,6 +214,21 @@ func LoadBackups(ctx context.Context, conn grpc.ClientConnInterface) (*BackupsPa
 	return p, nil
 }
 
+// BackupHealth asks only for the status of the backups: the dashboard's "Needs attention" row.
+func BackupHealth(ctx context.Context, conn grpc.ClientConnInterface) (BackupStatus, error) {
+	cctx, cancel := context.WithTimeout(ctx, CallTimeout)
+	defer cancel()
+	list, err := ascv1.NewBackupsClient(conn).ListBackups(cctx, &ascv1.ListBackupsRequest{Limit: 1})
+	if err != nil {
+		return BackupStatus{}, err
+	}
+	st := list.GetStatus()
+	return BackupStatus{
+		LastSuccess: unixTime(st.GetLastSuccess()), LastFailure: unixTime(st.GetLastFailure()), Overdue: st.GetOverdue(), Running: st.GetRunning(),
+		Staged: st.GetRestoreStaged(), StagedID: CleanText(st.GetRestoreBackupId(), 32), Configured: st.GetConfigured(),
+	}, nil
+}
+
 // Failing says the last attempt to back up failed: a failure with no success after it.
 func (s BackupStatus) Failing() bool {
 	return !s.LastFailure.IsZero() && !s.LastFailure.Before(s.LastSuccess)
