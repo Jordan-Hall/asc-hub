@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 190 |
+| done | 191 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 5 |
+| needs-both | 4 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 14, L 6.
+Open rows by size: S 0, M 14, L 5.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -254,7 +254,7 @@ Open rows by size: S 0, M 14, L 6.
 | Inbox | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | done | `done_unix` on `asc_inbox_state` (migration `v18l_asc_inbox_done.go`); `SetAscInboxDone`; `do=done` and `do=restore` in `AscInboxStatePost`; an item comes back when the pull request changes; the Done tab lists it for `AscInboxDoneKeep` (30 days); fade and once-only send in `initAscInboxDone` (`asc-keys.js`); undo toast `[data-asc-undo]` | M |
 | Inbox | Snooze menu: Later today 17:00, Tomorrow 09:00, Monday 09:00, When the checks finish, Pick a date | done | `templates/user/asc_inbox.tmpl` (`.wk-snooze-menu`; Later today off after 17:00, When the checks finish off while no check runs, a date field from tomorrow to a year), `ascInboxSnoozeUntil` in `routers/web/user/asc_inbox_page.go` (hours of the hub time zone), `asc_inbox_state.snooze_head` (migration v19a, `SetAscInboxSnoozeChecks`, `IsSnoozedFor`) and `ascinbox.ChecksRunning` (latest status of each check of the head): the snooze ends when no check runs, the head moves, or after a day; tests TestAscInboxSnoozeChoices, TestAscInboxSnoozeMenu, TestAscInboxSnoozePost, TestAscInboxStateSnoozeChecks, TestChecksRunning | - |
 | Inbox | Detail pane: why waiting, changed since last look, policy line (approvals 1 of 2), thread, reply box with Approve and Request changes | done | `asc_inbox.tmpl` | - |
-| Inbox | "Ask agent to change" (comment becomes an instruction for the author agent) | needs-both | Reply form has Approve, Request changes, Reply only. Hub: POST to `CreateRun` or `SendInput`; asc: instruction flag on review comments (`review.proto` `AddComment`) | L |
+| Inbox | "Ask agent to change" (comment becomes an instruction for the author agent) | done | Reply form button (`templates/user/asc_inbox.tmpl`, `data-asc-ask-agent`, `formaction`) shown when `ascInboxAskAgent` finds the agent of the run that opened the pull request (`pull_request_asc_run`) and the person may change it (`AscMayRestoreVersion`, `AscPullIsOpen`, same repository). `POST /-/asc/inbox/ask` (`routers/web/user/asc_inbox_ask.go`) starts a run of that agent as the person (`ascagentui.StartRun`, target the head branch, the instruction fenced) and posts the text as a comment; `formSubmitAction` (`web_src/js/utils/dom.js`) lets form-fetch-action honour `formaction`; tests TestAscInboxAskTask, TestAscInboxAskAgentFromModels, TestAscInboxAskButton, TestAscInboxAskPost, formSubmitAction | - |
 | Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | done | `asc-keys.js`: j k, e (focused row or open item), s, p, g i; x in `ds-bulk.js`; a and r put the focus on Approve and Request changes of the reply form (Enter sends); Enter opens the row link | - |
 | Inbox | Pagination "Showing 8 of 23" | done | None in `asc_inbox.tmpl`; list is capped (`ascInboxInfoRows`) | M |
 | Inbox | New items slide in from the top without jumping the list | done | `GET /-/asc/inbox/rows` (`AscInboxRows` in `routers/web/user/asc_inbox_page.go`, `templates/user/asc_inbox_live.tmpl` and `asc_inbox_rows.tmpl`: the rows of the same tab and filters, each with a `data-asc-key`, none chosen, no-store), `web_src/js/features/asc-inbox-live.js` (every minute while in view: adds missing rows where the server puts them, never moves or removes rows, keeps the first row in view in place, marks new rows, polite live region; empty inbox shows "Show N new items"); tests TestAscInboxRows, asc-inbox-live.test.js | - |

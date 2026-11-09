@@ -540,6 +540,21 @@ The hours are those of the hub's time zone (`[time] DEFAULT_UI_LOCATION`). Snooz
 and a left swipe on a phone hide the item for four hours. Another snooze replaces the one before; Mark done and Wake
 end it. A day in the past or more than a year ahead is refused.
 
+## Asking the agent to change a pull request
+
+When an agent opened the chosen pull request of the inbox, the reply box has **Ask agent to change**. The text of the
+box becomes a comment of the pull request and the task of a new run of that agent, started as the person, on the
+branch of the pull request; the agent makes the change and pushes the next version. The run is listed in Agents with
+the title "Change #N as asked in review".
+
+Only a person who may change the pull request is offered the button: its author, an owner or admin of the
+repository, or a writer when the stack is open to writers. The pull request must be open, not archived, and its
+branch must be in the same repository. asc checks the right to write the repository again when the run starts.
+
+An empty text and a text over 32 KiB are refused. When the run cannot start, no comment is posted and the inbox shows
+an error. When the run starts but the comment cannot be posted, the inbox warns; the run still has the instruction.
+Each request is written to the log as an `asc audit: inbox ask` line.
+
 ## New items, in the open inbox
 
 While the inbox is open and in view, the page asks the hub every minute for the rows of the same tab, repository,

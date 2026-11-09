@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 239, partial 17, missing 61. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 240, partial 17, missing 60. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -484,7 +484,7 @@ Board copy not found word for word in locale, templates or scripts: Your hub is 
 
 #### Inbox (ASC Hub inbox)
 
-Area shell/settings. Rows 15: done 8, partial 2, missing 5. Copy found in the hub: 53% of 79 copy strings (mobile twin 45%). Template(s): asc_inbox.tmpl, notification.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 15: done 9, partial 2, missing 4. Copy found in the hub: 53% of 79 copy strings (mobile twin 45%). Template(s): asc_inbox.tmpl, notification.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; for shortcuts; Sorted by: oldest waiting; Mark done; "Can we keep the old cursor format for one release? Mobile clients pin to it."; Mark done.
 
@@ -498,7 +498,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | partial (hub) | logged as not built (not re-probed) | Only pin, unpin, snooze, wake exist; Done tab lists merged items. Add done and restore with expiry in asc_inbox_state.go; asc inb... |
 | Snooze menu: Later today 17:00, Tomorrow 09:00, Monday 09:00, When the checks finish, Pick a d... | done | templates/user/asc_inbox.tmpl (.wk-snooze-menu), routers/web/user/asc_inbox_page.go ascInboxSnoozeUntil, models/issues/asc_inbox_state.go SetAscInboxSnoozeChecks, services/ascinbox ChecksRunning | - |
 | Detail pane: why waiting, changed since last look, policy line (approvals 1 of 2), thread, rep... | done | templates/user/asc_inbox.tmpl:167 | - |
-| "Ask agent to change" (comment becomes an instruction for the author agent) | missing (hub+asc) | logged as not built (not re-probed) | Reply form has Approve, Request changes, Reply only. Hub: POST to CreateRun or SendInput; asc: instruction flag on review comment... |
+| "Ask agent to change" (comment becomes an instruction for the author agent) | done | routers/web/user/asc_inbox_ask.go, templates/user/asc_inbox.tmpl (reply form) | - |
 | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | done | a and r on the reply form; `asc-keys.test.js` | - |
 | Pagination "Showing 8 of 23" | done | templates/user/asc_inbox.tmpl (file) | - |
 | New items slide in from the top without jumping the list | done | routers/web/user/asc_inbox_page.go `AscInboxRows` (GET /-/asc/inbox/rows), templates/user/asc_inbox_rows.tmpl, web_src/js/features/asc-inbox-live.js | - |
