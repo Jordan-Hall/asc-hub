@@ -26,6 +26,8 @@ type AscUserFilter struct {
 	// (an organization the viewer may not see).
 	MemberOf   int64
 	AllMembers bool
+	// Only, when set, is one more condition on the accounts found (the Maintainers and Online now chips).
+	Only builder.Cond
 }
 
 func (f AscUserFilter) cond(t UserType, cond builder.Cond) builder.Cond {
@@ -38,6 +40,9 @@ func (f AscUserFilter) cond(t UserType, cond builder.Cond) builder.Cond {
 			members = builder.Eq{"org_id": f.MemberOf, "is_public": true}
 		}
 		cond = builder.And(cond, builder.In("`user`.id", builder.Select("uid").From("org_user").Where(members)))
+	}
+	if f.Only != nil {
+		cond = builder.And(cond, f.Only)
 	}
 	return cond
 }

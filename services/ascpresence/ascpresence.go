@@ -13,6 +13,8 @@ import (
 	"time"
 
 	user_model "forgejo.org/models/user"
+
+	"xorm.io/builder"
 )
 
 const (
@@ -111,4 +113,24 @@ func Of(ctx context.Context, userID int64, tz string) (p Presence, ok bool) {
 		}
 	}
 	return p, p.Online || p.LocalTime != ""
+}
+
+// OnlineCond keeps the accounts the viewer would see as online: they made a request within OnlineWithin, did not switch
+// "Show when I am online" off and, unless the viewer is themself or a site admin, do not keep their activity private
+// (being online is activity). The time is stored as decimal Unix seconds, ten digits until the year 2286, so the
+// text compare orders it as a number.
+func OnlineCond(viewer *user_model.User) builder.Cond {
+	since := strconv.FormatInt(now().Add(-OnlineWithin).Unix(), 10)
+	cond := builder.In("`user`.id", builder.Select("user_id").From("user_setting").
+		Where(builder.Eq{"setting_key": lastSeenKey}.And(builder.Gte{"setting_value": since}))).
+		And(builder.NotIn("`user`.id", builder.Select("user_id").From("user_setting").
+			Where(builder.Eq{"setting_key": showKey, "setting_value": "false"})))
+	switch {
+	case viewer != nil && viewer.IsAdmin:
+		return cond
+	case viewer != nil:
+		return cond.And(builder.Or(builder.Eq{"`user`.keep_activity_private": false}, builder.Eq{"`user`.id": viewer.ID}))
+	default:
+		return cond.And(builder.Eq{"`user`.keep_activity_private": false})
+	}
 }

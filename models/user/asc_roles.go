@@ -44,6 +44,12 @@ func ascWritersCond() builder.Cond {
 	return builder.In("`user`.id", builder.Select("`access`.user_id").From("`access`").Where(ascPublicWriteCond()))
 }
 
+// AscMaintainersCond keeps the people with the Maintainer role: not a site admin, with write access to a repository
+// anyone may see.
+func AscMaintainersCond() builder.Cond {
+	return builder.Eq{"`user`.is_admin": false}.And(ascWritersCond())
+}
+
 // AscRolesOf gives the role of each of the users.
 func AscRolesOf(ctx context.Context, users []*User) (map[int64]string, error) {
 	roles := make(map[int64]string, len(users))
