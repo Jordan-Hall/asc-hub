@@ -374,6 +374,19 @@ queues, runners (when Actions is on), mail and object storage.
 Code: `routers/web/admin/overview.go` (mailRow, storageRow), `services/mailer/queue_watch.go`. Tests:
 TestTheSystemCardShowsTheMailQueue, TestTheSystemCardShowsObjectStorage, TestTheQueueWatch*.
 
+## Usage and agents on a person's page
+
+The page of a person in site administration (Overview tab) has a **Usage** card (storage and agent minutes this
+month) and an **Agents** card. Both ask asc serve as the site administrator; the usage read is written to asc's audit
+log. The Agents card lists the agents that ran in the asc repositories the person can see, counting only the runs the
+person started (Agents.SummarizeAgents with `created_by`): the handle links to the agent's runs, with Active when a
+run is going, the number of runs and the first repository. At most five are shown, then "And N more". The card shows
+only when the site administrator has turned agent features on for their own account; when asc cannot answer, the card
+is left out.
+
+Code: `routers/web/admin/user_tabs.go` (loadUserUsage, loadUserAgents). Test:
+TestTheAdminPersonPageHasTheAgentsThePersonRuns.
+
 ## The default branch asc protects
 
 asc protects one branch of each repository (path rules, secret scanning, review, signing): the trunk it holds. The hub
