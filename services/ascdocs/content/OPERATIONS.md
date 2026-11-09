@@ -772,7 +772,7 @@ The storage page of an asc repository (`Settings`, `Storage`) has a **Search ind
 - **Text and symbol search**: how much of the default branch is indexed, or "Not indexed yet".
 - **Meaning search**: on, with how much is indexed and the embedding model; off for this repository, with a link to
   the repository settings where it is switched on again; or off on this server.
-- How far behind the newest change the indexes are behind the default branch, in minutes.
+- How far the indexes are behind the default branch, in minutes.
 
 Meaning search is off on the server until an instance administrator installs the embedding model on the asc server:
 put the `asc-embed` helper, the `model/` directory and `calibration.bin` in one directory (the layout
