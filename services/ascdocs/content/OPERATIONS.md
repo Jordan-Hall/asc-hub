@@ -729,3 +729,18 @@ left out when nothing landed in the twelve weeks or the repository cannot be rea
 It is worked out by the hub alone, with one `git log --since` on the viewed ref, for git and asc repositories alike;
 no asc call is made. Code: `routers/web/repo/commits_landing.go`, `templates/repo/commits.tmpl`. Tests:
 TestHistoryLandingOf, TestHistoryLandingTimes, TestAscHistoryLandingRate.
+
+## Removing an agent from a repository
+
+On the access page of a repository (`Settings`, `Collaborators`), **Remove** on an agent's row opens its own confirm:
+a run of the agent that is going now stops, and the pull requests it already opened stay open, owned by the person
+who started each run. A person's row keeps the plain confirm.
+
+When an agent account is removed from an asc repository, the hub asks asc for the agent's runs on the repository that
+are queued, running or waiting for input (`Agents.ListRuns`) and stops each with `Agents.CancelRun`, as the person
+who removed it, with the reason "The agent was removed from the repository." The removal itself never waits on asc:
+when asc cannot be reached the agent is still removed and the page warns that its runs could not be stopped, so stop
+them from the agent runs page. A git repository has no agent runs, so nothing else happens. The agent's name comes
+from the account's login (`agent-<name>`); a shortened login is matched against the agents of the repository's runs.
+Code: `services/ascagentui/removeagent.go`, `routers/web/repo/setting/collaboration.go`. Tests: TestAgentOfUser,
+TestStopAgentRuns, TestStopRemovedAgentOutsideAsc, TestAccessAgentRows, TestAscAccessRemoveAgent.
