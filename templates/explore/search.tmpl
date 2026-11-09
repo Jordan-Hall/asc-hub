@@ -1,5 +1,5 @@
 {{/* The filter bar of the people and organizations lists: a search field and the order; on the people list also Show
-(people and agents, people, agents) and Organization; on the organization list also Size, and the chips All, Verified,
+(people and agents, people, agents, maintainers, online now), Organization and chips of the same choices; on the organization list also Size, and the chips All, Verified,
 Has agents and I am a member (links that keep the search, order and size). GET form. */}}
 {{$placeholder := ctx.Locale.Tr "search.org_kind"}}
 {{if .PageIsExploreUsers}}{{$placeholder = ctx.Locale.Tr "search.user_kind"}}{{end}}
@@ -19,6 +19,8 @@ Has agents and I am a member (links that keep the search, order and size). GET f
 						<option value="all"{{if eq .ExploreShow "all"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_all"}}</option>
 						<option value="people"{{if eq .ExploreShow "people"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_people"}}</option>
 						<option value="agents"{{if eq .ExploreShow "agents"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_agents"}}</option>
+						{{if .ExploreRolesVisible}}<option value="maintainers"{{if eq .ExploreShow "maintainers"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_maintainers"}}</option>{{end}}
+						<option value="online"{{if eq .ExploreShow "online"}} selected{{end}}>{{ctx.Locale.Tr "explore.show_online"}}</option>
 					</select>
 					{{svg "dsi-chevron-down" 16}}
 				</label>
@@ -52,6 +54,11 @@ Has agents and I am a member (links that keep the search, order and size). GET f
 				<button type="submit" class="ds-btn ds-btn-secondary">{{ctx.Locale.Tr "search.search"}}</button>
 			</form>
 		</div>
+		{{if and .PageIsExploreUsers .ExploreUserChips}}
+		<div class="ds-seg ds-filterbar-chips" role="group" aria-label="{{ctx.Locale.Tr "explore.users_chips_aria"}}" data-testid="explore-users-chips">
+			{{range .ExploreUserChips}}<a class="ds-chip-btn" href="{{.Href}}" data-chip="{{.Key}}"{{if .Current}} aria-current="true"{{end}}>{{ctx.Locale.Tr (print "explore.users_chip_" .Key)}}</a>{{end}}
+		</div>
+		{{end}}
 		{{if and .PageIsExploreOrganizations .ExploreOrgChips}}
 		<div class="ds-seg ds-filterbar-chips" role="group" aria-label="{{ctx.Locale.Tr "explore.orgs_only_aria"}}" data-testid="explore-orgs-only">
 			{{range .ExploreOrgChips}}<a class="ds-chip-btn" href="{{.Href}}" data-chip="{{.Key}}"{{if .Current}} aria-current="true"{{end}}>{{ctx.Locale.Tr (print "explore.orgs_only_" .Key)}}</a>{{end}}

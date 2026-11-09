@@ -11,12 +11,75 @@
 					{{template "shared/ds/layout_toggle" (dict "Target" ".ds-userlist")}}
 				</div>
 				{{if .Users}}{{template "shared/ds/active_filters" (dict "Keyword" .Keyword "Language" "" "Sort" .SortType)}}{{end}}
-				{{template "explore/user_list" .}}
+				{{if .ExploreAgents}}
+				<ul class="ds-list ds-userlist ds-agent-rows" aria-label="{{ctx.Locale.Tr "explore.agents_rows_aria"}}" data-asc-explore-agents>
+					{{range .ExploreAgents}}
+					<li class="ds-li ds-user-row ds-agent-row" data-asc-agent="{{.Handle}}">
+						<a class="ds-user-av" href="{{.RunsLink}}" tabindex="-1" aria-hidden="true"><span class="ds-av ds-av-48 ds-av-agent ds-agent-av">{{svg "dsi-agent" 22}}</span></a>
+						<div class="ds-li-main">
+							<div class="ds-li-title">
+								<a class="ds-mono" href="{{.RunsLink}}">{{.Handle}}</a>
+								<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "explore.agent_chip"}}</span>
+								{{if .Active}}<span class="ds-chip ds-chip-info" data-asc-agent-active>{{ctx.Locale.Tr "asc_work.org_agent_active" (ctx.Locale.PrettyNumber .Active)}}</span>{{end}}
+							</div>
+							<div class="ds-li-meta">
+								<span data-asc-agent-owner><span class="tw-sr-only">{{ctx.Locale.Tr "explore.agent_owner"}}</span>{{svg "dsi-building" 14}}<a href="{{.Owner.HomeLink}}">{{.Owner.Name}}</a></span>
+								<span data-asc-agent-scope><span class="tw-sr-only">{{ctx.Locale.Tr "explore.agent_scope"}}</span>{{svg "dsi-folder" 14}}{{range $i, $r := .Repos}}{{if lt $i 2}}{{if $i}}, {{end}}<a href="{{$r.Link}}">{{$r.Name}}</a>{{end}}{{end}}{{if gt (len .Repos) 2}} {{ctx.Locale.Tr "explore.agent_scope_more" (ctx.Locale.PrettyNumber (Eval (len .Repos) "-" 2))}}{{end}}</span>
+								{{if not .LastRun.IsZero}}<span>{{svg "dsi-clock" 14}}{{ctx.Locale.Tr "explore.agent_last_run" (DateUtils.TimeSince .LastRun)}}</span>{{end}}
+							</div>
+						</div>
+						<div class="ds-li-stats ds-hide-xs">
+							<div class="ds-li-stat" data-asc-agent-runs><b>{{ctx.Locale.PrettyNumber .Runs}}</b><span>{{ctx.Locale.Tr "explore.stat_runs"}}</span></div>
+						</div>
+						<div class="ds-row-acts"><a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{.RunsLink}}" aria-label="{{ctx.Locale.Tr "explore.agent_view_runs_for" .Handle}}">{{ctx.Locale.Tr "explore.agent_view_runs"}}</a></div>
+					</li>
+					{{end}}
+				</ul>
+				{{if .ExploreAgentsAllHref}}<p class="ds-agent-rows-all"><a class="ds-link" href="{{.ExploreAgentsAllHref}}" data-asc-explore-agents-all>{{ctx.Locale.Tr "explore.agents_all"}} ({{ctx.Locale.PrettyNumber .ExploreAgentsTotal}})</a></p>{{end}}
+				{{end}}
+				{{if or .Users (not .ExploreAgents)}}{{template "explore/user_list" .}}{{end}}
 				{{template "base/paginate" .}}
 				{{template "shared/ds/more" (dict "Page" .Page "Link" .Link "List" ".ds-userlist")}}
 			</div>
-			{{if and .PageIsExploreUsers .ExploreRoleCounts}}
-				<aside class="ds-rail ds-only-desktop ds-stack-24" aria-label="{{ctx.Locale.Tr "explore.roles_title"}}">
+			{{if and .PageIsExploreUsers (or .ExploreRoleCounts .ExploreActiveNow)}}
+				<aside class="ds-rail ds-only-desktop ds-stack-24" aria-label="{{ctx.Locale.Tr "explore.active_now_title"}}">
+					{{with .ExploreActiveNow}}
+					<div class="ds-card" data-asc-active-now>
+						<div class="ds-card-b">
+						<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.active_now_title"}}</h2>
+						{{if .People}}
+						<ul class="ds-active-now ds-mt-12">
+							{{range .People}}
+							<li data-asc-active-person="{{.User.Name}}">
+								<a class="ds-active-av" href="{{.User.HomeLink}}" tabindex="-1" aria-hidden="true">{{ctx.AvatarUtils.Avatar .User 32}}<span class="ds-active-dot"></span></a>
+								<span class="ds-active-main">
+									<a class="ds-active-name" href="{{.User.HomeLink}}">{{.User.GetDisplayName}}</a>
+									<span class="ds-active-meta">{{ctx.Locale.Tr "explore.active_now_online"}}{{if .Repo}} · {{ctx.Locale.Tr "explore.active_now_in" .Repo.FullName}} · {{DateUtils.TimeSince .When}}{{end}}</span>
+								</span>
+							</li>
+							{{end}}
+						</ul>
+						{{if gt .PeopleTotal (len .People)}}<p class="ds-t-small ds-c-2 ds-mt-8" data-asc-active-more><a class="ds-link" href="?show=online">{{ctx.Locale.Tr "explore.active_now_more" (ctx.Locale.PrettyNumber (Eval .PeopleTotal "-" (len .People)))}}</a></p>{{end}}
+						{{end}}
+						{{if .Agents}}
+						<h3 class="ds-t-small ds-c-2 ds-mt-12">{{ctx.Locale.Tr "explore.active_now_agents"}}</h3>
+						<ul class="ds-active-now ds-mt-8">
+							{{range .Agents}}
+							<li data-asc-active-agent="{{.Handle}}">
+								<span class="ds-av ds-av-32 ds-av-agent ds-agent-av" aria-hidden="true">{{svg "dsi-agent" 16}}</span>
+								<span class="ds-active-main">
+									<a class="ds-active-name ds-mono" href="{{.RunsLink}}">{{.Handle}}</a>
+									<span class="ds-active-meta">{{ctx.Locale.Tr "asc_work.org_agent_active" (ctx.Locale.PrettyNumber .Active)}}{{with index .Repos 0}} · {{ctx.Locale.Tr "explore.active_now_in" .FullName}}{{end}}</span>
+								</span>
+							</li>
+							{{end}}
+						</ul>
+						{{end}}
+						{{if not (or .People .Agents)}}<p class="ds-t-small ds-c-2 ds-mt-8" data-asc-active-none>{{ctx.Locale.Tr "explore.active_now_none"}}</p>{{end}}
+						</div>
+					</div>
+					{{end}}
+					{{if .ExploreRoleCounts}}
 					<div class="ds-card" data-asc-roles>
 						<div class="ds-card-b">
 						<h2 class="ds-t-h4">{{ctx.Locale.Tr "explore.roles_title"}}</h2>
@@ -30,6 +93,7 @@
 						</dl>
 						</div>
 					</div>
+					{{end}}
 				</aside>
 			{{end}}
 			{{if .PageIsExploreOrganizations}}

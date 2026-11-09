@@ -22,6 +22,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/sitemap"
 	"forgejo.org/modules/structs"
+	"forgejo.org/services/ascpresence"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
 )
@@ -227,7 +228,7 @@ func loadExploreActivity(ctx *context.Context, users []*user_model.User) {
 // runs the hub, so only a signed-in viewer who is not restricted gets them; a visitor sees the Agent chip only. A
 // lookup that fails leaves the roles out.
 func loadExploreRoles(ctx *context.Context, users []*user_model.User) {
-	if ctx.Doer == nil || ctx.Doer.IsRestricted {
+	if !rolesVisible(ctx) {
 		return
 	}
 	roles, err := user_model.AscRolesOf(ctx, users)
@@ -289,7 +290,10 @@ func Users(ctx *context.Context) {
 	if !readPeopleFilters(ctx, opts) {
 		return
 	}
-	RenderUserSearchWith(ctx, opts, tplExploreUsers, func(users []*user_model.User) { loadExploreUserRows(ctx, users) })
+	RenderUserSearchWith(ctx, opts, tplExploreUsers, func(users []*user_model.User) {
+		loadExploreUserRows(ctx, users)
+		loadExploreAgentsAndActive(ctx, opts)
+	})
 }
 
 // exploreOrgChoices is how many organizations the Organization filter of the people directory suggests.
@@ -302,10 +306,14 @@ const exploreOrgChoices = 100
 // already answered (an error).
 func readPeopleFilters(ctx *context.Context, opts *user_model.SearchUserOptions) bool {
 	show := ctx.FormTrim("show")
-	switch show {
-	case "people":
-	case "agents":
+	switch {
+	case show == "people":
+	case show == "agents":
 		opts.Type = user_model.UserTypeBot
+	case show == "maintainers" && rolesVisible(ctx):
+		opts.Asc.Only = user_model.AscMaintainersCond()
+	case show == "online":
+		opts.Asc.Only = ascpresence.OnlineCond(ctx.Doer)
 	default:
 		show = "all"
 		opts.Asc.WithAgents = true
@@ -338,6 +346,8 @@ func readPeopleFilters(ctx *context.Context, opts *user_model.SearchUserOptions)
 		}
 	}
 	ctx.Data["ExploreUsersFiltered"] = show != "all" || orgName != ""
+	ctx.Data["ExploreUserChips"] = peopleChips(ctx, show)
+	ctx.Data["ExploreRolesVisible"] = rolesVisible(ctx)
 
 	choices, _, err := user_model.SearchUsers(ctx, &user_model.SearchUserOptions{
 		Actor:       ctx.Doer,

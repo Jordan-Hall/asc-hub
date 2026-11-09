@@ -2379,6 +2379,82 @@ a.ds-stat:hover {
   font-size: 15px;
 }
 
+/* agent rows of the people directory and the "Who is active now" card */
+.ds-agent-av {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
+}
+
+.ds-agent-rows + .ds-agent-rows-all {
+  margin: 8px 0 16px;
+}
+
+.ds-agent-rows + .ds-userlist,
+.ds-agent-rows + .ds-card {
+  margin-top: 16px;
+}
+
+.ds-active-now {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-active-now > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ds-active-av {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 32px;
+}
+
+.ds-active-av img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.ds-active-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--ok-dot);
+}
+
+.ds-active-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-active-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ds-active-meta {
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ds-li-name a:last-child {
   font-weight: 700;
 }
