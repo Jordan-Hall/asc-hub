@@ -63,7 +63,7 @@ func loadStorage(ctx *context.Context, lvl *Level, s *svc.Service, p *Page) erro
 	} else {
 		p.Usage = u
 		syncRepoSize(ctx, lvl.Repo, u)
-		if lvl.Repo != nil && u.OnServer() {
+		if lvl.Repo != nil && lvl.OwnerAdmin && u.OnServer() {
 			if p.Plan, err = planOf(ctx, lvl.Repo.OwnerID); err != nil {
 				log.Warn("asc byo: plan of %s: %v", lvl.Scope.Name, err)
 			}

@@ -70,6 +70,7 @@ func ascByoLevel(ctx *context.Context) *byoweb.Level {
 	} else {
 		adminOfOwner = adminOfOwner || ctx.Doer.ID == owner.ID
 	}
+	lvl.OwnerAdmin = adminOfOwner
 	if adminOfOwner {
 		if sc, err := svc.NewScope(ownerKind, owner.LowerName); err == nil {
 			lvl.Allowed = append(lvl.Allowed, sc)

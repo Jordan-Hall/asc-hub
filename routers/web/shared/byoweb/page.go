@@ -51,6 +51,9 @@ type Level struct {
 	ScopeLabel string
 	// Repo is the repository of a repository level, nil for the others.
 	Repo *repo_model.Repository
+	// OwnerAdmin is true when the user administers the repository's owner as well. Only they see the owner's
+	// plan, which counts every repository of the owner.
+	OwnerAdmin bool
 }
 
 // Problem is what a failed action shows at the top of the page. All three strings are escaped by the
