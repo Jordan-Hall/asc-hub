@@ -1,0 +1,31 @@
+{{/*
+The picker of Request a review and Mention on a person's profile (board Profile), loaded into its dialog when the dialog
+opens (routers/web/user/asc_profile_ask.go). It lists the open pull requests of the viewer that the person may read.
+* AscAskKind: "review" or "mention"
+* AscAskPulls: []AscAskPull
+* AscAskMax: the longest Mention comment
+*/}}
+{{if .AscAskPulls}}
+	<form class="wk-ask-form" method="post" action="{{.ContextUser.HomeLink}}/-/ask/{{.AscAskKind}}" data-asc-ask-form="{{.AscAskKind}}">
+		{{.CsrfTokenHtml}}
+		<fieldset class="wk-ask-pulls">
+			<legend>{{ctx.Locale.Tr "user.asc_profile.ask_pick"}}</legend>
+			{{range $i, $p := .AscAskPulls}}
+				<label class="wk-ask-pull">
+					<input type="radio" name="pull" value="{{$p.ID}}" required{{if eq $i 0}} checked{{end}}>
+					<span class="wk-ask-pull-text"><span class="ds-mono wk-ask-pull-ref">{{$p.Repo}}#{{$p.Index}}</span><span class="wk-ask-pull-title">{{$p.Title}}</span></span>
+				</label>
+			{{end}}
+		</fieldset>
+		{{if eq .AscAskKind "mention"}}
+			<label class="wk-ask-label" for="asc-ask-content">{{ctx.Locale.Tr "user.asc_profile.mention_label" .ContextUser.Name}}</label>
+			<textarea id="asc-ask-content" class="ds-textarea" name="content" rows="4" required maxlength="{{.AscAskMax}}"></textarea>
+		{{end}}
+		<button type="submit" class="ds-btn ds-btn-primary wk-ask-send">{{if eq .AscAskKind "mention"}}{{ctx.Locale.Tr "user.asc_profile.mention_send"}}{{else}}{{ctx.Locale.Tr "user.asc_profile.review_send"}}{{end}}</button>
+	</form>
+{{else}}
+	<div class="ds-empty" data-asc-ask-empty>
+		<span class="ds-empty-ic" aria-hidden="true">{{svg "dsi-branch" 32}}</span>
+		<p>{{if eq .AscAskKind "mention"}}{{ctx.Locale.Tr "user.asc_profile.mention_none" .ContextUser.Name}}{{else}}{{ctx.Locale.Tr "user.asc_profile.review_none" .ContextUser.Name}}{{end}}</p>
+	</div>
+{{end}}

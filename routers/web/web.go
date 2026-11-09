@@ -1369,6 +1369,12 @@ func registerRoutes(m *web.Route) {
 		}, reqUnitAccess(unit.TypeCode, perm.AccessModeRead, false), individualPermsChecker)
 	}, ignSignIn, context.UserAssignmentWeb(), context.OrgAssignment()) // for "/{username}/-" (packages, projects, code)
 
+	// Request a review and Mention on a person's profile
+	m.Group("/{username}/-/ask", func() {
+		m.Get("/{kind}", user.AscProfileAsk)
+		m.Post("/{kind}", user.AscProfileAskPost)
+	}, reqSignIn, context.UserAssignmentWeb())
+
 	m.Group("/{username}/{reponame}", func() {
 		m.Group("/settings", func() {
 			m.Group("", func() {

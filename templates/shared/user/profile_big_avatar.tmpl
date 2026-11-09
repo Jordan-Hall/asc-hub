@@ -74,8 +74,28 @@ routers/web/user/profile.go answers those actions with this same template.
 					<button hx-post="{{.ContextUser.HomeLink}}?action=follow" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "user.follow"}}</button>
 				{{end}}
 			</div>
+			{{if and (not $limited) .ContextUser.IsIndividual}}
+				<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#profile-ask-review" aria-haspopup="dialog" data-asc-pf-review>{{ctx.Locale.Tr "user.asc_profile.review_ask"}}</button>
+				<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#profile-ask-mention" aria-haspopup="dialog" data-asc-pf-mention>{{ctx.Locale.Tr "user.asc_profile.mention_ask"}}</button>
+			{{end}}
 		{{end}}
 		<button type="button" class="ds-btn ds-btn-secondary show-modal" data-modal="#profile-actions" aria-haspopup="dialog">{{ctx.Locale.Tr "asc_work.pf_more"}}</button>
 	</div>
 	{{template "shared/user/actions_menu" .}}
+	{{if and $showFollow (not $limited) .ContextUser.IsIndividual}}
+		<dialog id="profile-ask-review" class="wk-sheet-menu wk-ask" aria-labelledby="profile-ask-review-h">
+			<article>
+				<header id="profile-ask-review-h">{{ctx.Locale.Tr "user.asc_profile.review_head" .ContextUser.Name}}</header>
+				<div class="content" hx-get="{{.ContextUser.HomeLink}}/-/ask/review" hx-trigger="intersect once" hx-swap="innerHTML"><p class="wk-ask-loading">{{ctx.Locale.Tr "loading"}}</p></div>
+				<div class="actions"><button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button></div>
+			</article>
+		</dialog>
+		<dialog id="profile-ask-mention" class="wk-sheet-menu wk-ask" aria-labelledby="profile-ask-mention-h">
+			<article>
+				<header id="profile-ask-mention-h">{{ctx.Locale.Tr "user.asc_profile.mention_head" .ContextUser.Name}}</header>
+				<div class="content" hx-get="{{.ContextUser.HomeLink}}/-/ask/mention" hx-trigger="intersect once" hx-swap="innerHTML"><p class="wk-ask-loading">{{ctx.Locale.Tr "loading"}}</p></div>
+				<div class="actions"><button type="button" class="ds-btn ds-btn-secondary cancel">{{ctx.Locale.Tr "cancel"}}</button></div>
+			</article>
+		</dialog>
+	{{end}}
 </div>

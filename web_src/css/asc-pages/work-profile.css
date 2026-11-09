@@ -627,3 +627,69 @@
   margin: 0;
   padding: 14px 16px;
 }
+
+/* Request a review and Mention: the picker in the dialog */
+.wk-ask-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wk-ask-pulls {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 0;
+}
+
+.wk-ask-pulls legend,
+.wk-ask-label {
+  margin-bottom: 4px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.wk-ask-pull {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.wk-ask-pull:hover {
+  background: var(--hover);
+}
+
+.wk-ask-pull input {
+  margin-top: 3px;
+}
+
+.wk-ask-pull-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wk-ask-pull-ref {
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.wk-ask-pull-title {
+  overflow-wrap: anywhere;
+}
+
+.wk-ask-send {
+  align-self: flex-end;
+}
+
+.wk-ask-loading {
+  margin: 0;
+  color: var(--text-3);
+}
