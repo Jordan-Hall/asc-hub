@@ -418,7 +418,9 @@ func NewContext(ctx context.Context) {
 		for _, msg := range items {
 			gomailMsg := msg.ToMessage()
 			log.Trace("New e-mail sending request %s: %s", gomailMsg.GetHeader("To"), msg.Info)
-			if err := gomail.Send(Sender, gomailMsg); err != nil {
+			err := gomail.Send(Sender, gomailMsg)
+			watch.tried(msg, err, time.Now())
+			if err != nil {
 				log.Error("Failed to send emails %s: %s - %v", gomailMsg.GetHeader("To"), msg.Info, err)
 			} else {
 				log.Trace("E-mails sent %s: %s", gomailMsg.GetHeader("To"), msg.Info)
@@ -443,7 +445,10 @@ func sendAsync(msgs ...*Message) {
 
 	go func() {
 		for _, msg := range msgs {
-			_ = mailQueue.Push(msg)
+			watch.pushed(msg)
+			if err := mailQueue.Push(msg); err != nil {
+				watch.tried(msg, err, time.Now())
+			}
 		}
 	}()
 }
