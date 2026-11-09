@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 188 |
+| done | 189 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 7 |
+| needs-both | 6 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 16, L 6.
+Open rows by size: S 0, M 15, L 6.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -257,7 +257,7 @@ Open rows by size: S 0, M 16, L 6.
 | Inbox | "Ask agent to change" (comment becomes an instruction for the author agent) | needs-both | Reply form has Approve, Request changes, Reply only. Hub: POST to `CreateRun` or `SendInput`; asc: instruction flag on review comments (`review.proto` `AddComment`) | L |
 | Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | done | `asc-keys.js`: j k, e (focused row or open item), s, p, g i; x in `ds-bulk.js`; a and r put the focus on Approve and Request changes of the reply form (Enter sends); Enter opens the row link | - |
 | Inbox | Pagination "Showing 8 of 23" | done | None in `asc_inbox.tmpl`; list is capped (`ascInboxInfoRows`) | M |
-| Inbox | New items slide in from the top without jumping the list | needs-both | No live update. Hub poll or SSE; asc `inbox.proto` `Count` is poll friendly | M |
+| Inbox | New items slide in from the top without jumping the list | done | `GET /-/asc/inbox/rows` (`AscInboxRows` in `routers/web/user/asc_inbox_page.go`, `templates/user/asc_inbox_live.tmpl` and `asc_inbox_rows.tmpl`: the rows of the same tab and filters, each with a `data-asc-key`, none chosen, no-store), `web_src/js/features/asc-inbox-live.js` (every minute while in view: adds missing rows where the server puts them, never moves or removes rows, keeps the first row in view in place, marks new rows, polite live region; empty inbox shows "Show N new items"); tests TestAscInboxRows, asc-inbox-live.test.js | - |
 | Inbox | States: bulk bar, inbox zero with Watch more repositories, loading skeleton | done | Empty exists; the other two missing | S |
 | Inbox | Subscriptions link to Settings, Notifications | done | `/notifications/subscriptions` | - |
 | Mobile-Inbox | Swipe right to mark done, left to snooze; sticky action bar with Open next | done | `asc-row-swipe.js` on `.wk-ilist` rows: right marks done, left snoozes 4 h; the sticky Open next bar is `ds-sticky-actions` in `asc_inbox.tmpl` | - |

@@ -525,6 +525,19 @@ Past its section, each row of **Needs you** says what it is about:
 A fact that cannot be read (asc off or not answering, a pull request gone) leaves the row as it was; the rest of the
 dashboard shows.
 
+## New items, in the open inbox
+
+While the inbox is open and in view, the page asks the hub every minute for the rows of the same tab, repository,
+kind and sort (`GET /-/asc/inbox/rows`, signed in, never cached). Rows the list does not show yet come in where the
+list puts them, with their day heading when that is new too, and keep a tint for a few seconds. The rows already shown
+never move and never go away; a reload drops the ones that left the inbox. When the person has scrolled down, the
+list scrolls by the height of what came in above, so the row they read stays where it is. A screen reader hears "2 new
+items in the inbox". While a row is being swiped nothing changes; a hidden tab waits and asks again when it comes back.
+
+An empty inbox shows **Show 2 new items** instead, which loads the page with them. Loading the rows marks nothing as
+read and never opens one. Without scripts the page is the same and a reload shows the new items. The endpoint answers
+404 when asc is off.
+
 ## Rows that act in place, on the dashboard
 
 Each row of **Needs you** on the dashboard has one button that does the next step without opening the pull request:
