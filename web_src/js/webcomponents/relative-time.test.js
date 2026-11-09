@@ -299,4 +299,7 @@ test('the tooltip time follows the time zone of the person, and an unknown zone 
   expect(makeAbsoluteDatetimeFormat('UTC', 'en-GB').format(t)).toContain('02:00');
   expect(() => makeAbsoluteDatetimeFormat('Not/AZone', 'en-GB')).not.toThrow();
   expect(makeAbsoluteDatetimeFormat('', 'en-GB')).toBeInstanceOf(Intl.DateTimeFormat);
+  // the clock the person chose wins over the language
+  expect(makeAbsoluteDatetimeFormat('UTC', 'en-GB', '12').format(new Date('2026-10-27T14:00:00Z'))).toMatch(/0?2:00\s?pm/i);
+  expect(makeAbsoluteDatetimeFormat('UTC', 'en-US', '24').format(new Date('2026-10-27T14:00:00Z'))).toContain('14:00');
 });

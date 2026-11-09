@@ -1,4 +1,13 @@
-import {toAbsoluteLocaleDate} from './absolute-date.js';
+import {toAbsoluteLocaleDate, toOrderedDate} from './absolute-date.js';
+
+test('toOrderedDate follows the date order of the person', () => {
+  const opts = {year: 'numeric', month: 'short', day: 'numeric'};
+  expect(toOrderedDate('2026-02-03', 'de-DE', opts, 'dmy')).toEqual('3 Feb 2026');
+  expect(toOrderedDate('2026-02-03', 'de-DE', opts, 'mdy')).toEqual('Feb 3, 2026');
+  expect(toOrderedDate('2026-02-03T10:00:00', 'de-DE', opts, 'ymd')).toEqual('2026-02-03');
+  expect(toOrderedDate('2026-02-03', 'en-US', {...opts, weekday: 'short'}, 'ymd')).toEqual('Tue 2026-02-03');
+  expect(toOrderedDate('2026-02-03', 'de-DE', opts, 'unknown')).toEqual('3. Feb. 2026');
+});
 
 test('toAbsoluteLocaleDate', () => {
   expect(toAbsoluteLocaleDate('2024-03-15', 'en-US', {
