@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 261, partial 12, missing 44. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 264, partial 12, missing 41. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -145,16 +145,16 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### AdminHealth (ASC Hub admin: health)
 
-Area shell/settings. Rows 4: done 1, partial 0, missing 3. Copy found in the hub: 75% of 64 copy strings (mobile twin 69%). Template(s): self_check.tmpl, system_status.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 4: done 4, partial 0, missing 0. Copy found in the hub: 75% of 64 copy strings (mobile twin 69%). Template(s): self_check.tmpl, system_status.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Primary reachable, 4 ms. Migrations are up to date.; Disk usage; Data volume is 78% full. At the current rate it fills in about 41 days.; Outgoing mail; Runner capacity.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Self check list with passed/warn/fail chips, Copy report, Run again | done | templates/admin/self_check.tmpl (file) | - |
-| Checks for disk fill rate, object storage probe, signing key validity, outgoing mail queue, ti... | missing (hub+asc) | logged as not built (not re-probed) | hub: overview.go healthFacts; asc: health RPC (object store probe, signing key expiry) |
-| Gauges CPU, Memory, Disk, Object storage with percent text (hub shows uptime, memory, goroutin... | missing (hub) | logged as not built (not re-probed) | overview.go healthFacts (add disk/CPU), self_check.tmpl |
-| Running state (steps appear one by one), could-not-run state | missing (UI) | logged as not built (not re-probed) | self_check.tmpl + htmx streaming |
+| Checks for disk fill rate, object storage probe, signing key validity, outgoing mail queue, ti... | done | asc_health_more.go; asc Maintenance.CheckHealth; TestTheAscChecksAskAscServeToProbeItself, TestTheDiskCheckSaysHowSoonTheVolumeFills | - |
+| Gauges CPU, Memory, Disk, Object storage with percent text (hub shows uptime, memory, goroutin... | done | asc_gauges.go (CPU, Disk), self_check.tmpl; TestLoadPercent, TestDiskPercent | - |
+| Running state (steps appear one by one), could-not-run state | done | self_check.tmpl data-health-steps, SelfCheckStep; TestAscHealthSteps | - |
 | Board note: Run again re-runs every check and keeps the old result until it finishes | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Fix links to the page that solves it: Backups, Runners, Configuration | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: All passed, warnings, failed, running (steps appear one by one), check could not run | unverified | not tracked in the gap files | needs a row and a test |
