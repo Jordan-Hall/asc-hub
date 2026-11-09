@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 185 |
+| done | 186 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 10 |
+| needs-both | 9 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 16, L 9.
+Open rows by size: S 0, M 16, L 8.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -236,7 +236,7 @@ Open rows by size: S 0, M 16, L 9.
 | Dashboard | Merge queue card (Running, median wait, positions, "2 of 3 checks", Open) | needs-both | No such card. Hub aggregates the person's queue entries (`routers/web/repo/asc_queue.go`; asc `mergequeue.proto` `List`, `Get`, `Watch`); median wait needs an asc statistic | L |
 | Dashboard | Today feed with Filter | done | Feed present; filter menu missing | S |
 | Dashboard | From your terminal card with Copy; g i tip | done | `asc_home.tmpl` | - |
-| Dashboard | Live updates | needs-both | Counts load once. Hub: poll `/-/asc/inbox/count` or reuse `eventsource.sharedworker.js`; asc `WatchRefs` / queue `Watch` for pushes | L |
+| Dashboard | Live updates | done | `GET /-/asc/dash/work` (`AscDashWork`, `user/dashboard/asc_dash_work.tmpl`) reloads Needs you, the merge queue and the agents working now with the Today card every minute; `asc-dash-live.js` `refreshWork` skips while the focus is in them or an answer is typed, keeps them on a failed load and binds the swipe again (TestAscDashWork, asc-dash-live.test.js) | - |
 | Dashboard | States: loading skeleton, new account, offline error with retry countdown | done | `user/dashboard/asc_home.tmpl`: the main column is `data-asc-list-main` with a three-row skeleton a scope chip shows (`asc-list-loading.js`); new account and inbox zero empty states; `user/dashboard/asc_today.tmpl` Today card refreshes every minute from `GET /-/asc/dash/today` (`asc-dash-live.js`: not while hidden or in use) and on a failed load keeps its items and shows "Offline. Activity could not load." with Try again and "Retrying in N s" (8, 16, 32, 60 s), the `online` event retries at once | - |
 | Dashboard | Undo toast ("Added to merge queue. Undo for 10 s") | done | `data-asc-dash-undo` in `templates/user/dashboard/asc_home.tmpl` after `?queued=`, timed by `asc-applied-toast.js` (`data-ms`); Undo posts `do=unqueue` | - |
 | Dashboard | Appearance setting hides agent surfaces | done | `ascagentui.FeaturesEnabled` | - |
