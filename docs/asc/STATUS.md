@@ -18,14 +18,14 @@ After this audit:
 
 | Area | Boards | Rows | Done | Partial | Missing | Done % |
 |---|---|---|---|---|---|---|
-| shell/settings | 47 | 317 | 160 | 32 | 125 | 50% |
+| shell/settings | 47 | 317 | 162 | 32 | 123 | 51% |
 | repo | 24 | 274 | 154 | 23 | 97 | 56% |
 | review | 5 | 88 | 35 | 15 | 38 | 40% |
 | agents-ops | 12 | 126 | 96 | 7 | 23 | 76% |
 | auth | 6 | 40 | 25 | 5 | 10 | 62% |
-| **all** | 94 | 845 | 448 | 85 | 312 | 53% |
+| **all** | 94 | 845 | 450 | 85 | 310 | 53% |
 
-Missing rows by kind of work: UI 141, hub 130, asc 14, hub+asc 81. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
+Missing rows by kind of work: UI 140, hub 130, asc 14, hub+asc 80. Rows that need asc work are fewer than the logs say: asc `origin/master` has 272 RPCs and the hub's generated stubs have the same 272; 52 of them are newer than the local asc checkout of 2026-10-28 (Insights, Releases, Backups, Sessions, Usage, OrgSettings, DataExport, AiKeyShares, SecretScan, Review brief and suggestions, Agents pause and checkpoints) exist on both sides.
 
 Copy match across all 95 desktop boards (copy-like strings found in the hub): NewChange 35%, ReviewVersions 49%, Download 50%, Dependencies 51%, Drafts 51%, Inbox 53%, RepoSettingsStorage 53%, GetStarted 54%, Projects 54%, Checks 55%, ChangeChecks 56%, Refs 56% are the lowest; no board is at 100%, the highest is About at 90%.
 
@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 249, partial 13, missing 55. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 251, partial 13, missing 53. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -716,7 +716,7 @@ Board copy not found word for word in locale, templates or scripts: Four links, 
 
 #### UserSettingsAI (ASC Hub settings: ai keys)
 
-Area shell/settings. Rows 8: done 6, partial 0, missing 2. Copy found in the hub: 64% of 114 copy strings (mobile twin 61%). Template(s): asc_ai.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 8: done 8, partial 0, missing 0. Copy found in the hub: 64% of 114 copy strings (mobile twin 61%). Template(s): asc_ai.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Bring your own API keys. Agents use the keys of their own scope, and the cost g...; Personal Anthropic; Embeddings key; - text-embedding-3-large - tested yesterday.
 
@@ -725,10 +725,10 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Key list with provider, hint, model, tested time, spend meter, Test/Details; add form; state c... | done | routers/web/shared/byoweb/aikeys.go (file) | - |
 | Test connection result with latency (ms), polite live region | done | see where-cell | - |
 | Test result lists model count ("9 models available") | done | routers/web/shared/byoweb/aikeys.go (file) | - |
-| Key detail tabs (Usage, Limits, Models, Activity) and spend-by-day chart | missing (UI) | logged as not built (not re-probed) | byo_ai_key.tmpl is one long page with a by-day table; split into tabs, add a small bar chart |
+| Key detail tabs (Usage, Limits, Models, Activity) and spend-by-day chart | done | templates/shared/asc/byo_ai_key.tmpl (tabs with ?tab=, asc-byo-bar chart) | - |
 | Warn me at 80% (inbox + email), Stop agents at the cap (pause with a question) | done | routers/web/shared/byoweb/aishares.go (file) | - |
 | Who can use it: allow my agents, share with organization (org owners attach it, see spend not... | done | routers/web/shared/byoweb/aishares.go (file) | - |
-| Activity tab (who used the key, runs, tokens) | missing (hub+asc) | logged as not built (not re-probed) | asc: AiProviders.Usage groups by day/model/repo/agent only, no event list; hub: new tab |
+| Activity tab (who used the key, runs, tokens) | done | services/ascbyo/uses.go, routers/web/shared/byoweb/uses.go (AiProviders.ListActivity) | - |
 | Masked key field with Show button; remove needs a ticked box | done | see where-cell | - |
 
 #### UserSettingsAccount (ASC Hub settings: account)

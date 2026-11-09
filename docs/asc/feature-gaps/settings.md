@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 160 |
+| done | 161 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 13 |
+| needs-both | 12 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -122,7 +122,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsAI | Key detail tabs (Usage, Limits, Models, Activity) and spend-by-day chart | done | byo_ai_key.tmpl has Usage, Limits, Models and Activity tabs (?tab=); spend-by-day bar chart over the day table; Activity lists the key's ai.key.* audit events (ascbyo.KeyActivity, newest 25) | M |
 | UserSettingsAI | Warn me at 80% (inbox + email), Stop agents at the cap (pause with a question) | done | AiKeyShares.GetKeyCaps/SetKeyCaps: byoweb/aishares.go AICaps, templates/shared/asc/byo_ai_sharing.tmpl. The warning goes out from asc (audit + notification event) | - |
 | UserSettingsAI | Who can use it: allow my agents, share with organization (org owners attach it, see spend not key) | done | AiKeyShares.ShareKey/ListShares/RevokeShare/ShareUsage/ListSharedWithMe: byoweb/aishares.go, byo_ai_sharing.tmpl (key page), byo_ai_shared.tmpl (list) | - |
-| UserSettingsAI | Activity tab (who used the key, runs, tokens) | needs-both | asc: AiProviders.Usage groups by day/model/repo/agent only, no event list; hub: new tab | M |
+| UserSettingsAI | Activity tab (who used the key, runs, tokens) | done | asc: AiProviders.ListActivity (one row per agent run, per person and change for review summaries, per day for key tests; 90 days). Hub: ascbyo.KeyUses, byoweb/uses.go, the Who used this key table at the top of the Activity tab of byo_ai_key.tmpl, with links to runs, changes and repositories the viewer may read, and paging | M |
 | UserSettingsAI | Masked key field with Show button; remove needs a ticked box | done | byo_field.tmpl, byo_ai_key.tmpl delete confirm | - |
 | UserSettingsUsage | Four tiles (object storage, agent minutes, AI spend, bandwidth) with meters and "of N" text | done | Usage service: routers/web/shared/usageweb, templates/shared/asc_usage.tmpl; /user/settings/asc/usage, /org/{org}/settings/asc/usage, /admin/asc/usage | - |
 | UserSettingsUsage | By repository table (storage, agent minutes, AI spend) | done | usageweb + asc_usage.tmpl repository table (largest AI spend first, 200 rows) | - |
