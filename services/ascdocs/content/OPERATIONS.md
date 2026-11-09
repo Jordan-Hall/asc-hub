@@ -1074,3 +1074,20 @@ repository whose objects are all on its own bucket counts as nothing, and while 
 as it is. The target in use is selected in **Where new objects go**. Code: `models/quota/limit.go`,
 `routers/web/shared/byoweb/plan.go`, `templates/shared/asc/byo_storage_repo.tmpl`. Tests: TestAllowanceFor,
 TestRepoStoragePlan, TestRepoStorageAssignShowsTheCurrentTarget.
+
+## Discarding a draft and undoing it
+
+On **Drafts** (`/-/asc/drafts`) each draft on the hub has **Continue** and **Discard**. Continue opens a panel with
+the command that resumes the draft where the repository is checked out (`asc stack resume <change>`) and a copy
+button. Discard asks nothing: the draft leaves the list at once, the page says "Draft discarded" with **Undo**, and
+the draft stays under **Discarded** with its own Undo until asc deletes it, 30 days after the discard (asc's
+`hidden_grace_days`). A draft that is only on a device has no Discard; drop it there with the command line.
+
+Discard is `POST /-/asc/drafts/discard` and Undo is `POST /-/asc/drafts/undo`, each with the repository id and the
+draft's commit id. The hub reads the person's workspace in that repository and hides or shows the draft
+(Cloud.UpdateWorkspace); when another device changed the workspace in between, it reads again, up to three times. The
+call carries the hub's signed claim about the signed-in person, so asc changes only their own workspace, and only in a
+repository they can read. A draft that is gone, a repository they cannot read or a bad id says "That draft is not on
+the hub any more"; asc failing says "The draft could not be changed". Clicking twice changes nothing. Code:
+`routers/web/user/asc_drafts.go` (ascDraftsAct, ascDraftsSetHidden), `templates/user/asc_drafts.tmpl`. Tests:
+TestAscDraftsDiscardAndUndo, TestAscDraftsRefs.
