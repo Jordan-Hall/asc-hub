@@ -19,6 +19,7 @@ func TestMain(m *testing.M) { unittest.MainTest(m) }
 
 func TestValidate(t *testing.T) {
 	require.NoError(t, State{}.Validate())
+	require.NoError(t, State{Version: "2.4.0-rc.1+b7"}.Validate())
 	require.NoError(t, State{On: true, Message: "Upgrading", Window: "22:00 to 23:00 UTC", Until: "2026-10-29T23:00:00Z", StatusURL: "https://status.example.org"}.Validate())
 	for name, s := range map[string]State{
 		"long message": {Message: strings.Repeat("a", 301)},
@@ -27,6 +28,11 @@ func TestValidate(t *testing.T) {
 		"http status":  {StatusURL: "http://status.example.org"},
 		"script":       {StatusURL: "javascript:alert(1)"},
 		"login in url": {StatusURL: "https://a:b@status.example.org"},
+		"bell":         {Message: "bell"},
+		"delete":       {Window: "x"},
+		"bad version":  {Version: "2.4 beta"},
+		"slash":        {Version: "v/1"},
+		"long version": {Version: strings.Repeat("1", 65)},
 	} {
 		assert.Error(t, s.Validate(), name)
 	}

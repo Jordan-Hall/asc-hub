@@ -93,7 +93,7 @@ func TestMaintenanceChangesAreAppendedToTheAuditLogOfAsc(t *testing.T) {
 	ctx.Render = templates.HTMLRenderer()
 	contexttest.LoadUser(t, ctx, 1)
 	ctx.IsSigned = true
-	form := url.Values{"on": {"1"}, "message": {"Back at noon"}, "until": {"2026-11-01T12:00"}}
+	form := url.Values{"on": {"1"}, "message": {"Back at noon"}, "until": {"2099-11-01T12:00"}, "version": {"2.4.0"}}
 	ctx.Req.Form, ctx.Req.PostForm = form, form
 	MaintenancePost(ctx)
 	require.Equal(t, http.StatusSeeOther, rec.Code)
@@ -103,7 +103,8 @@ func TestMaintenanceChangesAreAppendedToTheAuditLogOfAsc(t *testing.T) {
 	assert.Equal(t, "user1", got.GetActor())
 	assert.Equal(t, "true", got.GetDetails()["enabled"])
 	assert.Equal(t, "Back at noon", got.GetDetails()["message"])
-	assert.Equal(t, "2026-11-01T12:00:00Z", got.GetDetails()["until"])
+	assert.Equal(t, "2099-11-01T12:00:00Z", got.GetDetails()["until"])
+	assert.Equal(t, "2.4.0", got.GetDetails()["version"])
 }
 
 func postUserAction(t *testing.T, handler func(*context.Context), userID, what, reason string) int {
