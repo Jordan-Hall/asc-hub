@@ -40,6 +40,7 @@ const (
 	Agents_SetMonthlyBudget_FullMethodName = "/asc.v1.Agents/SetMonthlyBudget"
 	Agents_GetPerson_FullMethodName        = "/asc.v1.Agents/GetPerson"
 	Agents_CountRuns_FullMethodName        = "/asc.v1.Agents/CountRuns"
+	Agents_SummarizeAgents_FullMethodName  = "/asc.v1.Agents/SummarizeAgents"
 )
 
 // AgentsClient is the client API for Agents service.
@@ -70,6 +71,7 @@ type AgentsClient interface {
 	SetMonthlyBudget(ctx context.Context, in *SetMonthlyBudgetRequest, opts ...grpc.CallOption) (*SetMonthlyBudgetResponse, error)
 	GetPerson(ctx context.Context, in *GetAgentPersonRequest, opts ...grpc.CallOption) (*GetAgentPersonResponse, error)
 	CountRuns(ctx context.Context, in *CountAgentRunsRequest, opts ...grpc.CallOption) (*CountAgentRunsResponse, error)
+	SummarizeAgents(ctx context.Context, in *SummarizeAgentsRequest, opts ...grpc.CallOption) (*SummarizeAgentsResponse, error)
 }
 
 type agentsClient struct {
@@ -299,6 +301,16 @@ func (c *agentsClient) CountRuns(ctx context.Context, in *CountAgentRunsRequest,
 	return out, nil
 }
 
+func (c *agentsClient) SummarizeAgents(ctx context.Context, in *SummarizeAgentsRequest, opts ...grpc.CallOption) (*SummarizeAgentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SummarizeAgentsResponse)
+	err := c.cc.Invoke(ctx, Agents_SummarizeAgents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentsServer is the server API for Agents service.
 // All implementations should embed UnimplementedAgentsServer
 // for forward compatibility.
@@ -327,6 +339,7 @@ type AgentsServer interface {
 	SetMonthlyBudget(context.Context, *SetMonthlyBudgetRequest) (*SetMonthlyBudgetResponse, error)
 	GetPerson(context.Context, *GetAgentPersonRequest) (*GetAgentPersonResponse, error)
 	CountRuns(context.Context, *CountAgentRunsRequest) (*CountAgentRunsResponse, error)
+	SummarizeAgents(context.Context, *SummarizeAgentsRequest) (*SummarizeAgentsResponse, error)
 }
 
 // UnimplementedAgentsServer should be embedded to have
@@ -398,6 +411,9 @@ func (UnimplementedAgentsServer) GetPerson(context.Context, *GetAgentPersonReque
 }
 func (UnimplementedAgentsServer) CountRuns(context.Context, *CountAgentRunsRequest) (*CountAgentRunsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CountRuns not implemented")
+}
+func (UnimplementedAgentsServer) SummarizeAgents(context.Context, *SummarizeAgentsRequest) (*SummarizeAgentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SummarizeAgents not implemented")
 }
 func (UnimplementedAgentsServer) testEmbeddedByValue() {}
 
@@ -790,6 +806,24 @@ func _Agents_CountRuns_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Agents_SummarizeAgents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SummarizeAgentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentsServer).SummarizeAgents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agents_SummarizeAgents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentsServer).SummarizeAgents(ctx, req.(*SummarizeAgentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Agents_ServiceDesc is the grpc.ServiceDesc for Agents service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -876,6 +910,10 @@ var Agents_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CountRuns",
 			Handler:    _Agents_CountRuns_Handler,
+		},
+		{
+			MethodName: "SummarizeAgents",
+			Handler:    _Agents_SummarizeAgents_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
