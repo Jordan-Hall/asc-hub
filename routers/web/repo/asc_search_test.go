@@ -487,6 +487,27 @@ func TestAscSearchErrorsAreGeneric(t *testing.T) {
 	}
 }
 
+// TestAscSearchMeaningIndexOff checks that a meaning search the server cannot run says so and sends an admin to
+// the storage settings, where the state of the index is shown (board RepoSettingsStorage).
+func TestAscSearchMeaningIndexOff(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	setStorageBackend(t, 1, "asc")
+	refuse := status.Error(codes.FailedPrecondition, "semantic search needs an embedding model")
+	startFakeSearch(t, &fakeSearchServer{
+		search:   func(*ascv1.SearchRequest) ([]*ascv1.SearchResponse, error) { return nil, refuse },
+		semantic: func(*ascv1.SemanticRequest) (*ascv1.SemanticResponse, error) { return nil, refuse },
+	})
+	page := getAscSearch(t, "?mode=semantic&q=retry")
+	assert.Equal(t, http.StatusServiceUnavailable, page.status)
+	assert.Contains(t, page.body, "asc_rp.s_err_503_meaning")
+	assert.Contains(t, page.body, "/user2/repo1/asc/search?q=retry&amp;mode=lexical", "a text search is offered")
+	assert.NotContains(t, page.body, "embedding model", "asc's own words are not shown")
+
+	page = getAscSearch(t, "?q=retry")
+	assert.Equal(t, http.StatusServiceUnavailable, page.status)
+	assert.NotContains(t, page.body, "asc_rp.s_err_503_meaning", "a text search has its own message")
+}
+
 func TestAscSearchNoConnection(t *testing.T) {
 	require.NoError(t, unittest.PrepareTestDatabase())
 	setStorageBackend(t, 1, "asc")
