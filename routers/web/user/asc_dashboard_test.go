@@ -11,12 +11,14 @@ import (
 
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
 	"forgejo.org/modules/translation"
 	"forgejo.org/services/ascagentui"
+	"forgejo.org/services/automerge"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -235,6 +237,23 @@ func TestAscDashWork(t *testing.T) {
 		ctx, page := ascRenderContext(t, "/", 2)
 		Dashboard(ctx)
 		assert.Contains(t, string(page()), `data-asc-dash-work="/-/asc/dash/work"`)
+	})
+
+	t.Run("the merge queue card", func(t *testing.T) {
+		pr := unittest.AssertExistsAndLoadBean(t, &issues_model.PullRequest{ID: 8})
+		_, err := db.GetEngine(t.Context()).Insert(&automerge.AscStackQueueEntry{RepoID: pr.BaseRepoID, Branch: pr.BaseBranch, PullID: 8, AscChange: "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq", DoerID: 2, State: automerge.AscQueueQueued})
+		require.NoError(t, err)
+		defer test.MockVariableValue(&ascDashQueueTiming, func(gocontext.Context, *repo_model.Repository, string) (string, map[string]string, error) {
+			return "9 min", map[string]string{"qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq": "4 min"}, nil
+		})()
+		ctx, body := ascRenderContext(t, "/-/asc/dash/work", 2)
+		AscDashWork(ctx)
+		html := string(body())
+		assert.Contains(t, html, `data-asc-dash-queue`)
+		assert.Contains(t, html, "Median wait 9 min")
+		assert.Contains(t, html, "lands in about 4 min")
+		assert.Contains(t, html, `/asc/queue?branch=`+pr.BaseBranch)
+		assert.Contains(t, html, `aria-label="Open the merge queue of Wire retry policy into the client"`)
 	})
 
 	t.Run("off without asc", func(t *testing.T) {
