@@ -628,7 +628,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Packages (ASC Hub packages)
 
-Area shell/settings. Rows 7: done 5, partial 0, missing 2. Copy found in the hub: 62% of 61 copy strings (mobile twin 64%). Template(s): list.tmpl, packages_cleanup_rules_edit.tmpl, view.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 7: done 7, partial 0, missing 0. Copy found in the hub: 62% of 61 copy strings (mobile twin 64%). Template(s): list.tmpl, packages_cleanup_rules_edit.tmpl, view.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Filter packages; - published Today; - published Today; design-tokens.
 
@@ -637,8 +637,8 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Package list with type, version, downloads, filter by type | done | templates/package/shared/list.tmpl:1 | - |
 | Type chips with counts (a select today) | done | templates/package/shared/list.tmpl, models/packages/asc_package_type_count.go | - |
 | Visibility chip per package (Public/Private/Internal) | done | templates/package/shared/list.tmpl, routers/web/shared/packages/asc_list.go | - |
-| Package page views Install/Versions/Dependencies/Settings as tabs | missing (UI) | logged as not built (not re-probed) | templates/package/view.tmpl (single page + /versions) |
-| "Published from acme/payments by a landed stack", "Signed with release key" | missing (hub+asc) | logged as not built (not re-probed) | asc: publish provenance and release signature record; hub: package metadata + view.tmpl |
+| Package page views Install/Versions/Dependencies/Settings as tabs | done | templates/package/tabs.tmpl, routers/web/user/package_tabs.go | - |
+| "Published from acme/payments by a landed stack", "Signed with release key" | done | TestAscPackageProvenance, TestPackageViewShowsProvenance | - |
 | Cleanup rule preview ("removes 14 versions of 6 packages, frees 1.3 GB") | done | templates/org/settings/packages_cleanup_rules_preview.tmpl:3 | - |
 | Error state with request id and Status page link | done | templates/package/shared/list.tmpl, routers/web/shared/packages/asc_list.go | - |
 

@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 172 |
+| done | 173 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 1 |
+| needs-both | 0 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -222,7 +222,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | Packages | Type chips with counts (a select today) | done | The package lists of an owner and of a repository (`templates/package/shared/list.tmpl`) show "All N" and one chip per type that has packages, the most packages first (`CountPackagesByType` in `models/packages/asc_package_type_count.go`, set by `routers/web/shared/packages/asc_type_counts.go`); the counts keep the name filter, the chosen chip is `aria-current`, and the search keeps the chosen type; tests: TestCountPackagesByType, TestPackageTypeChips | - |
 | Packages | Visibility chip per package (Public/Private/Internal) | done | Built as the visibility the registries enforce, which is the owner's: Public (public owner), Internal (limited owner, or a public owner on a hub with REQUIRE_SIGNIN_VIEW), Private (private owner); the chip is in `templates/package/shared/list.tmpl` and its hover names the owner (`VisibilityOf` in `routers/web/shared/packages/asc_list.go`). A per-package flag was rejected: the owner-wide registry indexes (Debian, RPM, Alpine, Arch, Helm, Conda, CRAN) would list a private package of a public owner. Docs: OPERATIONS.md "Who can install a package"; tests: TestAPackageIsAsVisibleAsItsOwner, TestThePackageListShowsTheVisibilityOfEachPackage | - |
 | Packages | Package page views Install/Versions/Dependencies/Settings as tabs | done | templates/package/tabs.tmpl is one tab bar on the version page, the versions list and settings (Settings only for writers); Dependencies is its own view (package/dependencies.tmpl) built for every format from routers/web/user/package_tabs.go; a tab on a page without a version goes through the latest version | M |
-| Packages | "Published from acme/payments by a landed stack", "Signed with release key" | needs-both | asc: publish provenance and release signature record; hub: package metadata + view.tmpl | L |
+| Packages | "Published from acme/payments by a landed stack", "Signed with release key" | done | Hub data first: a version created in a request authenticated by an Actions task keeps the task's repository, run, commit and ref as the version property `asc.provenance` (`packages_model.SetAscProvenance`, written by `recordAscProvenance` in `services/packages/asc_provenance.go`, never taken from the client). The head of `templates/package/view.tmpl` says "Published from <repo> by a landed stack" when the commit is the merge of an asc stack pull request (`ListLandedAscStackPulls`), else "by run #N" or "at <commit>"; only the signature is asc's: "Signed with release key" when the release tagged with the version (or v and the version) is published and its signature is valid (`asctrust.ListReleaseRecords`). Nothing is shown about a repository the person cannot read (`routers/web/user/package_asc_provenance.go`). Docs: OPERATIONS.md "Where a package version came from"; tests: TestAscProvenance, TestRecordAscProvenance, TestAscPackageProvenance, TestPackageViewShowsProvenance | - |
 | Packages | Cleanup rule preview ("removes 14 versions of 6 packages, frees 1.3 GB") | done | templates/org/settings/packages_cleanup_rules_preview.tmpl | - |
 | Packages | Error state with request id and Status page link | done | routers/web/shared/packages/asc_list.go (LoadList, ListFailed) renders the error card of templates/package/shared/list.tmpl with status 500; Status page is /-/status (AscStatus, templates/asc/status.tmpl) | S |
 | MobileAdmin* | Same data as desktop in stacked groups, back arrow to the admin menu, sticky action bar | done | templates/admin/navbar.tmpl (shared settings-nav shell) | - |
