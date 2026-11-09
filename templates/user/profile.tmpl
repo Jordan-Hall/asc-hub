@@ -174,6 +174,31 @@
 							</ul>
 						</section>
 					{{end}}
+					{{with .AscProfileAgents}}
+						<section class="ds-card" aria-labelledby="wk-pagents-title" data-asc-pf-agents>
+							<div class="ds-card-h">
+								<h2 id="wk-pagents-title">{{ctx.Locale.Tr "user.asc_profile.agents_h" ($.ContextUser.GetDisplayName)}}</h2>
+								{{if .Self}}<a class="ds-btn ds-btn-secondary ds-btn-sm ds-ml-auto" href="{{AppSubUrl}}/-/asc/agents" data-asc-pf-new-agent>{{ctx.Locale.Tr "user.asc_profile.agents_new"}}</a>{{end}}
+							</div>
+							{{if .Agents}}
+							<ul class="wk-pf-agents">
+								{{range .Agents}}
+									<li>
+										<span class="ds-av ds-av-32 ds-av-agent wk-pf-agent-av" aria-hidden="true">{{svg "dsi-agent" 16}}</span>
+										<span class="wk-pf-agent-main">
+											<a class="wk-pf-agent-name ds-mono" href="{{.RunsLink}}">{{.Handle}}</a>
+											<span class="wk-pf-agent-meta">{{ctx.Locale.TrPluralString .Runs "explore.agent_runs_short_n" (ctx.Locale.PrettyNumber .Runs)}}{{with index .Repos 0}} · {{.FullName}}{{end}}</span>
+										</span>
+										{{if .Active}}<span class="ds-chip ds-chip-agent">{{ctx.Locale.Tr "asc_work.org_agent_active" (ctx.Locale.PrettyNumber .Active)}}</span>{{end}}
+									</li>
+								{{end}}
+							</ul>
+							{{if .More}}<p class="ds-t-small ds-c-2 wk-pf-agents-more" data-asc-pf-agents-more>{{ctx.Locale.Tr "user.asc_profile.agents_more" .More}}</p>{{end}}
+							{{else}}
+							<p class="ds-t-small ds-c-2 wk-pf-agents-none" data-asc-pf-agents-none>{{ctx.Locale.Tr "user.asc_profile.agents_none"}}</p>
+							{{end}}
+						</section>
+					{{end}}
 					{{if .AscProfileFocus}}
 						<section class="ds-card" aria-labelledby="wk-pfocus-title" data-asc-pf-focus>
 							<div class="ds-card-h"><h2 id="wk-pfocus-title">{{ctx.Locale.Tr "user.asc_profile.focus"}}</h2></div>

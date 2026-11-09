@@ -577,3 +577,53 @@
 .wk-pf-private strong {
   color: var(--text);
 }
+
+.wk-pf-agents {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 16px;
+  list-style: none;
+}
+
+.wk-pf-agents > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wk-pf-agent-av {
+  border-radius: 8px;
+}
+
+.wk-pf-agent-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-pf-agent-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wk-pf-agent-meta {
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wk-pf-agents-more {
+  margin: 0;
+  padding: 0 16px 14px;
+}
+
+.wk-pf-agents-none {
+  margin: 0;
+  padding: 14px 16px;
+}
