@@ -67,6 +67,20 @@ stacks, Agent activity, Starred, Templates and Archived.
 A chip adds to the search text, the sort and the language. A search and the pager keep it. With no result, the empty
 state names the chip with a link that removes it. Forks and Mirrors stay in the Sort and filter sheet.
 
+## Agents in the people directory
+
+The people directory (Explore, People) lists agents with people. An agent row carries an Agent chip. The filter bar
+has:
+
+- **Show**: People and agents (the default), People, or Agents.
+- **Organization**: the members of one organization. The field suggests the organizations you may see, and takes any
+  name. You see the public members, or every member if you are a member of the organization or an admin. An
+  organization you may not see finds no one.
+- **Sort, Most active**: most actions in the last 90 days first. Only actions anyone may see count: those in public
+  repositories by people who do not keep their activity private. A tie goes to the name.
+
+The pager keeps the filters. With no result, the list says so and offers to clear the filters.
+
 ## Who contributes, on each row
 
 Each row of the repository lists shows a stack of up to four avatars: the people and agents that acted in the
