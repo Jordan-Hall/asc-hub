@@ -1285,12 +1285,12 @@ Board copy not found word for word in locale, templates or scripts: Values your 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Secrets and variables on one page | done | templates/shared/secrets/add_list.tmpl (file) | - |
-| Scope chips per secret (Checks, Agent runs, Releases) and "Agents only receive it when Agent r... | missing (hub+asc) | logged as not built (not re-probed) | Workflows.SetSecret has name and value only (A:proto/asc/v1/workflows.proto); add scopes to the asc secret and to the Forgejo sec... |
+| Scope chips per secret (Checks, Agent runs, Releases) and "Agents only receive it when Agent r... | done | templates/shared/secrets/add_list.tmpl, scope_boxes.tmpl, scope_chips.tmpl; models/actions/asc_run_scope.go | - |
 | "Updated by Maya Okafor, 12 d ago" | partial (hub) | logged as not built (not re-probed) | WorkflowSecret.updated_by exists in asc; Forgejo secret has created time only; template |
 | Update value dialog with name locked; value never shown | missing (UI) | logged as not built (not re-probed) | H:routers/web/repo/setting/secrets.go, add_list.tmpl |
-| Delete confirmation that lists which scopes lose it | missing (UI) | logged as not built (not re-probed) | add_list.tmpl confirm |
+| Delete confirmation that lists which scopes lose it | done | templates/shared/secrets/add_list.tmpl (secrets.deletion.named) | - |
 | Name rule (capitals, digits, underscores) validation in dialog | done | see where-cell | - |
-| Variables table with "Available to" scope and updated-by | missing (hub+asc) | logged as not built (not re-probed) | same scope work as secrets |
+| Variables table with "Available to" scope and updated-by | done | templates/shared/variables/variable_list.tmpl; models/actions/variable.go | - |
 | Secret-redaction in change logs ("the log redacts it") | missing (asc) | logged as not built (not re-probed) | run log redaction in A:crates/asc-ci job log append |
 | Saved toast and empty state | missing (UI) | logged as not built (not re-probed) | add_list.tmpl |
 
