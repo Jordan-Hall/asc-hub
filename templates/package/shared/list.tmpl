@@ -33,6 +33,7 @@
 				<div class="ds-li-title"><a class="tw-break-anywhere" href="{{.VersionWebLink}}">{{.Package.Name}}</a>
 					<span class="ds-chip">{{.Package.Type.Name}}</span>
 					<span class="ds-chip ds-mono">{{.Version.Version}}</span>
+					{{if $.PackageVisibility}}{{with index $.PackageVisibility .Package.ID}}{{if .Key}}<span class="ds-chip{{if eq .Key "public"}} ds-chip-outline{{end}}" title="{{ctx.Locale.Tr (print "asc_work.pk_vis_" .Key "_title") .Owner}}" data-testid="package-visibility">{{ctx.Locale.Tr (print "asc_work.pk_vis_" .Key)}}</span>{{end}}{{end}}{{end}}
 				</div>
 				<div class="ds-li-sub">
 					{{$timeStr := DateUtils.TimeSince .Version.CreatedUnix}}

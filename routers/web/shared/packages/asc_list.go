@@ -8,7 +8,10 @@ import (
 	"net/http"
 
 	packages_model "forgejo.org/models/packages"
+	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/log"
+	"forgejo.org/modules/setting"
+	"forgejo.org/modules/structs"
 	"forgejo.org/services/context"
 )
 
@@ -36,7 +39,34 @@ func LoadList(ctx *context.Context, opts *packages_model.PackageSearchOptions) (
 	}
 	ctx.Data["PackageTypeCounts"] = counts
 	ctx.Data["PackageCountAll"] = all
+	vis := make(map[int64]PackageVisibility, len(pds))
+	for _, pd := range pds {
+		vis[pd.Package.ID] = VisibilityOf(pd.Owner)
+	}
+	ctx.Data["PackageVisibility"] = vis
 	return pds, total, nil
+}
+
+// PackageVisibility is who can install a package: Key is public, internal or private (asc_work.pk_vis_<key>), Owner
+// names the owner for the hint of a private package.
+type PackageVisibility struct {
+	Key   string
+	Owner string
+}
+
+// VisibilityOf is the visibility of the packages of an owner, as every registry enforces it
+// (packages_service.DeterminePackageAccessMode): a package is as visible as its owner. A public owner on a hub that needs
+// a sign-in to see anything is internal. The registries also serve indexes of all the packages of an owner of one type
+// (Debian, RPM, Alpine, Arch, Helm, Conda, CRAN), which is why visibility is the owner's and not set per package.
+func VisibilityOf(owner *user_model.User) PackageVisibility {
+	v := PackageVisibility{Key: "public", Owner: owner.Name}
+	switch {
+	case owner.Visibility == structs.VisibleTypePrivate:
+		v.Key = "private"
+	case owner.Visibility == structs.VisibleTypeLimited || setting.Service.RequireSignInView:
+		v.Key = "internal"
+	}
+	return v
 }
 
 // ListFailed puts a list that could not be loaded into its error state: the error goes to the log with the request id,
