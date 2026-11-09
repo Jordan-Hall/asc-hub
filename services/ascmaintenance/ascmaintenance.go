@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -30,7 +31,11 @@ type State struct {
 	Window    string `json:"window,omitempty"`     // free text such as "22:00 to 23:00 UTC"
 	Until     string `json:"until,omitempty"`      // expected back, RFC 3339; shown as a date
 	StatusURL string `json:"status_url,omitempty"` // https address of a status page
+	Version   string `json:"version,omitempty"`    // the release being installed, shown as "upgrading to"
 }
+
+// versionShape is what asc serve accepts as a version label.
+var versionShape = regexp.MustCompile(`^[A-Za-z0-9._+-]{0,64}$`)
 
 // Validate refuses what the page cannot have sent.
 func (s State) Validate() error {
@@ -39,6 +44,12 @@ func (s State) Validate() error {
 	}
 	if strings.ContainsAny(s.Message+s.Window, "\r\n\x00") {
 		return errors.New("a text has a line break")
+	}
+	if strings.ContainsFunc(s.Message+s.Window, func(r rune) bool { return r < 0x20 || r == 0x7f }) {
+		return errors.New("a text has a control character")
+	}
+	if !versionShape.MatchString(s.Version) {
+		return errors.New("a version is letters, digits and . _ + - (at most 64)")
 	}
 	if s.Until != "" {
 		if _, err := time.Parse(time.RFC3339, s.Until); err != nil {

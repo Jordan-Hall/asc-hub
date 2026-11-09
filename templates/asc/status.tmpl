@@ -8,7 +8,7 @@
 			<h1 class="ds-t-h2" id="st-title" tabindex="-1">{{if $ok}}{{ctx.Locale.Tr "asc_shell.footer_status_ok"}}{{else}}{{ctx.Locale.Tr "asc_shell.footer_status_degraded"}}{{end}}</h1>
 			<p class="st-text">{{ctx.Locale.Tr "asc_status.page_text"}}</p>
 			{{if .AscMaintenance}}
-				<div class="ds-banner ds-banner-warn st-maint" role="status" data-testid="status-maintenance">{{svg "dsi-alert" 18}}<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_status.maintenance"}}</b> {{if .AscMaintenance.Message}}{{.AscMaintenance.Message}}{{else}}{{ctx.Locale.Tr "asc_err.text_maintenance"}}{{end}}{{if .AscMaintenance.Window}} &middot; {{.AscMaintenance.Window}}{{end}}</div></div>
+				<div class="ds-banner ds-banner-warn st-maint" role="status" data-testid="status-maintenance">{{svg "dsi-alert" 18}}<div class="ds-banner-body"><b>{{ctx.Locale.Tr "asc_status.maintenance"}}</b> {{if .AscMaintenance.Message}}{{.AscMaintenance.Message}}{{else}}{{ctx.Locale.Tr "asc_err.text_maintenance"}}{{end}}{{if .AscMaintenance.Version}} &middot; {{ctx.Locale.Tr "asc_err.maintenance_upgrading" .AscMaintenance.Version}}{{end}}{{if .AscMaintenance.Window}} &middot; {{.AscMaintenance.Window}}{{end}}</div></div>
 			{{end}}
 			<ul class="st-parts" aria-label="{{ctx.Locale.Tr "asc_status.parts"}}">
 				{{template "asc/status_part" dict "Name" (ctx.Locale.Tr "asc_status.part_web") "Up" true "Key" "web"}}

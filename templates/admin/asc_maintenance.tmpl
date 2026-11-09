@@ -8,8 +8,32 @@
 	</div>
 	{{end}}
 
+	{{with .AscMaintenanceBoard}}
+	<section class="ds-card adm-sec" data-testid="asc-maintenance" aria-labelledby="asc-mt-h">
+		<div class="ds-card-h"><h2 id="asc-mt-h">{{ctx.Locale.Tr "asc_admin.maintenance_asc"}}</h2></div>
+		<div class="ds-card-b ds-stack-16">
+		{{if .Unsupported}}
+			<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-maintenance-unsupported"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.maintenance_asc_unsupported"}}</div></div>
+		{{else if .Problem}}
+			<div class="ds-banner ds-banner-err" role="alert" data-testid="asc-maintenance-problem"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{.Problem}}</div></div>
+		{{else}}{{with .State}}
+			{{if .RestoreStaged}}
+			<div class="ds-banner ds-banner-warn" role="status" data-testid="asc-maintenance-restore"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_admin.maintenance_asc_restore"}}</div></div>
+			{{end}}
+			<dl class="adm-kv">
+				<div><dt>{{ctx.Locale.Tr "asc_admin.maintenance_asc_state"}}</dt><dd data-testid="asc-maintenance-state">{{if .ReadOnly}}{{ctx.Locale.Tr "asc_admin.maintenance_asc_read_only"}}{{else}}{{ctx.Locale.Tr "asc_admin.maintenance_asc_writable"}}{{end}}</dd></div>
+				{{if .Version}}<div><dt>{{ctx.Locale.Tr "asc_admin.maintenance_version"}}</dt><dd class="ds-mono">{{.Version}}</dd></div>{{end}}
+				{{if not .Updated.IsZero}}<div><dt>{{ctx.Locale.Tr "asc_admin.maintenance_asc_updated"}}</dt><dd>{{DateUtils.DayTime .Updated}}{{if .UpdatedBy}} &middot; <span class="ds-mono">{{.UpdatedBy}}</span>{{end}}</dd></div>{{end}}
+			</dl>
+			<p class="ds-hint">{{ctx.Locale.Tr "asc_admin.maintenance_asc_hint"}}</p>
+		{{end}}{{end}}
+		</div>
+	</section>
+	{{end}}
+
 	<form class="ds-card adm-sec ds-form" action="{{.MaintenanceLink}}" method="post">
 		{{.CsrfTokenHtml}}
+		{{with .AscMaintenanceBoard}}{{with .Op}}<input type="hidden" name="op" value="{{.}}">{{end}}{{end}}
 		<div class="ds-card-h"><h2>{{ctx.Locale.Tr "asc_admin.maintenance"}}</h2></div>
 		<div class="ds-card-b ds-stack-16">
 			<input type="hidden" name="on" value="0">
@@ -33,9 +57,16 @@
 					<p class="ds-hint">{{ctx.Locale.Tr "asc_admin.maintenance_until_hint"}}</p>
 				</div>
 			</div>
+			<div class="ds-form-row ds-form-row-2">
+			<div class="ds-field">
+				<label class="ds-label" for="m-version">{{ctx.Locale.Tr "asc_admin.maintenance_version"}}</label>
+				<input id="m-version" class="ds-input ds-mono" name="version" maxlength="64" pattern="[A-Za-z0-9._+\-]*" value="{{.Maintenance.Version}}" placeholder="2.4.0" aria-describedby="m-version-hint">
+				<p class="ds-hint" id="m-version-hint">{{ctx.Locale.Tr "asc_admin.maintenance_version_hint"}}</p>
+			</div>
 			<div class="ds-field">
 				<label class="ds-label" for="m-status">{{ctx.Locale.Tr "asc_admin.maintenance_status"}}</label>
 				<input id="m-status" class="ds-input" type="url" name="status_url" maxlength="300" value="{{.Maintenance.StatusURL}}" placeholder="https://status.example.org">
+			</div>
 			</div>
 			<div class="ds-row"><button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "save"}}</button></div>
 		</div>
