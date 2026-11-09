@@ -199,3 +199,36 @@ func TestSetColumnHidden(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, column.Hidden)
 }
+
+func TestAProjectHasAtMostOneLandedColumn(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+
+	none, err := GetLandedColumn(db.DefaultContext, 1)
+	require.NoError(t, err)
+	assert.Nil(t, none, "a project has no Landed column until one is chosen")
+
+	require.NoError(t, SetLandedColumn(db.DefaultContext, 1, 3, true))
+	landed, err := GetLandedColumn(db.DefaultContext, 1)
+	require.NoError(t, err)
+	require.NotNil(t, landed)
+	assert.EqualValues(t, 3, landed.ID)
+
+	require.NoError(t, SetLandedColumn(db.DefaultContext, 1, 2, true))
+	landed, err = GetLandedColumn(db.DefaultContext, 1)
+	require.NoError(t, err)
+	assert.EqualValues(t, 2, landed.ID, "choosing another column moves the mark")
+	column, err := GetColumn(db.DefaultContext, 3)
+	require.NoError(t, err)
+	assert.False(t, column.AscLanded)
+
+	err = SetLandedColumn(db.DefaultContext, 2, 1, true)
+	assert.True(t, IsErrProjectColumnNotExist(err), "a column of another project is not touched")
+	landed, err = GetLandedColumn(db.DefaultContext, 1)
+	require.NoError(t, err)
+	assert.EqualValues(t, 2, landed.ID)
+
+	require.NoError(t, SetLandedColumn(db.DefaultContext, 1, 2, false))
+	none, err = GetLandedColumn(db.DefaultContext, 1)
+	require.NoError(t, err)
+	assert.Nil(t, none)
+}

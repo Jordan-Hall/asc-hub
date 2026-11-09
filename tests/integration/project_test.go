@@ -694,6 +694,22 @@ func TestProjectBoardCardsAndColumns(t *testing.T) {
 		assert.Zero(t, doc.Find(`[data-testid="project-hidden-columns"]`).Length())
 	})
 
+	t.Run("The column menu chooses the Landed column", func(t *testing.T) {
+		sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/3/landed", map[string]string{"landed": "true"}), http.StatusOK)
+		resp := sess.MakeRequest(t, NewRequest(t, "GET", "/user2/repo1/projects/1"), http.StatusOK)
+		doc := NewHTMLParser(t, resp.Body)
+		assert.Equal(t, 1, doc.Find(`.project-column[data-id="3"] [data-testid="project-column-landed"]`).Length())
+		assert.Equal(t, "false", doc.Find(`.project-column[data-id="3"] [data-testid="project-column-set-landed"]`).AttrOr("data-landed", ""))
+		assert.Equal(t, 1, doc.Find(`[data-testid="project-column-landed"]`).Length(), "one Landed column")
+
+		sess4 := loginUser(t, "user4")
+		sess4.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/2/landed", map[string]string{"landed": "true"}), http.StatusNotFound)
+		assert.True(t, unittest.AssertExistsAndLoadBean(t, &project_model.Column{ID: 3}).AscLanded)
+
+		sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/3/landed", map[string]string{"landed": "false"}), http.StatusOK)
+		assert.False(t, unittest.AssertExistsAndLoadBean(t, &project_model.Column{ID: 3}).AscLanded)
+	})
+
 	t.Run("The default column cannot be hidden", func(t *testing.T) {
 		resp := sess.MakeRequest(t, NewRequestWithValues(t, "POST", "/user2/repo1/projects/1/1/hidden", map[string]string{"hidden": "true"}), http.StatusUnprocessableEntity)
 		var body map[string]string

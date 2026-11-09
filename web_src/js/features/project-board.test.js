@@ -1,4 +1,4 @@
-import {initProjectBoard, refusalText, setColumnHidden, submitAddCard} from './project-board.js';
+import {initProjectBoard, refusalText, setColumnHidden, setColumnLanded, submitAddCard} from './project-board.js';
 
 const page = `
 <form class="project-add-card-form" data-url="/acme/nova/projects/1/cards">
@@ -10,6 +10,7 @@ const page = `
 <div id="project-board" data-moved="Moved" data-column-failed="Column unchanged. Request id {id}." data-column-failed-no-id="Column unchanged.">
   <div id="project-board-error" hidden><p class="ds-banner-body"></p></div>
   <a class="project-column-visibility" data-url="/acme/nova/projects/1/3/hidden" data-hidden="true">Hide column</a>
+  <a class="project-column-landed" data-url="/acme/nova/projects/1/3/landed" data-landed="true">Use as Landed column</a>
 </div>`;
 
 const answer = (status, body, id) => new Response(body, {status, headers: id ? {'X-Request-Id': id} : {}});
@@ -82,4 +83,29 @@ test('the column menu item works from the keyboard', () => {
   expect(fetch).not.toHaveBeenCalled();
   control.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
   expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+test('Use as Landed column posts the new state; a failure shows the banner', async () => {
+  const board = document.querySelector('#project-board');
+  const control = document.querySelector('.project-column-landed');
+  fetch.mockResolvedValue(answer(200, '{}'));
+  const reload = vi.fn();
+  expect(await setColumnLanded(board, control, reload)).toBe(true);
+  expect(fetch.mock.calls[0][0]).toBe('/acme/nova/projects/1/3/landed');
+  expect(fetch.mock.calls[0][1].body.toString()).toBe('landed=true');
+  expect(reload).toHaveBeenCalled();
+
+  fetch.mockResolvedValue(answer(500, '', 'req-10'));
+  expect(await setColumnLanded(board, control, reload)).toBe(false);
+  expect(board.querySelector('.ds-banner-body').textContent).toBe('Column unchanged. Request id req-10.');
+});
+
+test('the Landed menu item posts to its own address', () => {
+  fetch.mockResolvedValue(answer(500, ''));
+  const doc = document.implementation.createHTMLDocument('board');
+  doc.body.innerHTML = page;
+  initProjectBoard(doc);
+  doc.querySelector('.project-column-landed').dispatchEvent(new MouseEvent('click', {bubbles: true}));
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch.mock.calls[0][0]).toBe('/acme/nova/projects/1/3/landed');
 });

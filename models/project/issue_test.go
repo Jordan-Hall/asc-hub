@@ -147,3 +147,27 @@ func TestMoveIssuesToAnotherColumnErrorPaths(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestMoveCardsToColumnEnd(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	done := unittest.AssertExistsAndLoadBean(t, &Column{ID: 3}) // holds the card of issue 5 at 0
+
+	moved, err := MoveCardsToColumnEnd(db.DefaultContext, done, []int64{3, 5, 16, 1, 99})
+	require.NoError(t, err)
+	assert.Equal(t, []int64{3, 1}, moved, "a card already there, a card of another project and an issue not on a board stay")
+
+	for issueID, sorting := range map[int64]int64{5: 0, 3: 1, 1: 2} {
+		card := unittest.AssertExistsAndLoadBean(t, &ProjectIssue{ProjectID: 1, IssueID: issueID})
+		assert.EqualValues(t, 3, card.ProjectColumnID, issueID)
+		assert.Equal(t, sorting, card.Sorting, issueID)
+	}
+	other := unittest.AssertExistsAndLoadBean(t, &ProjectIssue{IssueID: 16})
+	assert.EqualValues(t, 4, other.ProjectColumnID)
+
+	moved, err = MoveCardsToColumnEnd(db.DefaultContext, done, []int64{3, 1})
+	require.NoError(t, err)
+	assert.Empty(t, moved, "moving again changes nothing")
+	moved, err = MoveCardsToColumnEnd(db.DefaultContext, done, nil)
+	require.NoError(t, err)
+	assert.Empty(t, moved)
+}
