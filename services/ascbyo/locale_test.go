@@ -134,12 +134,12 @@ func TestLocaleKeys(t *testing.T) {
 		_, ok := have[key]
 		assert.True(t, ok, "%s uses the key %q that the locale file does not have", where, key)
 	}
-	// every text is plain: no HTML and no stray percent signs, so it is safe wherever it is printed
+	// every text is plain: no HTML and no stray percent signs (%% is a literal one), so it is safe wherever it is printed
 	for key, text := range have {
 		assert.NotContains(t, text, "<", key)
 		assert.NotContains(t, text, ">", key)
 		for _, m := range regexp.MustCompile(`%(?:\[\d\])?.?`).FindAllString(text, -1) {
-			assert.Regexp(t, `^%(s|d|\[\d\][sd])$`, m, "%s has an odd format verb", key)
+			assert.Regexp(t, `^%(s|d|%|\[\d\][sd])$`, m, "%s has an odd format verb", key)
 		}
 	}
 }
