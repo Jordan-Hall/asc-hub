@@ -18,8 +18,8 @@ After this audit:
 
 | Area | Boards | Rows | Done | Partial | Missing | Done % |
 |---|---|---|---|---|---|---|
-| shell/settings | 47 | 317 | 155 | 33 | 129 | 49% |
-| repo | 24 | 274 | 153 | 24 | 97 | 56% |
+| shell/settings | 47 | 317 | 155 | 34 | 128 | 49% |
+| repo | 24 | 274 | 154 | 23 | 97 | 56% |
 | review | 5 | 88 | 35 | 15 | 38 | 40% |
 | agents-ops | 12 | 126 | 96 | 7 | 23 | 76% |
 | auth | 6 | 40 | 24 | 5 | 11 | 60% |
@@ -52,8 +52,8 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 244, partial 14, missing 59. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
-- **repo**: 24 boards, 274 rows, done 153, partial 24, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
+- **shell/settings**: 47 boards, 317 rows, done 244, partial 15, missing 58. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **repo**: 24 boards, 274 rows, done 154, partial 23, missing 97. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
 - **auth**: 6 boards, 40 rows, done 29, partial 4, missing 7. Boards: AdminAuth, Onboarding, UserSettingsApps, UserSettingsKeys, UserSettingsSecurity, UserSettingsTokens.
@@ -850,7 +850,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### UserSettingsStorage (ASC Hub settings: storage)
 
-Area shell/settings. Rows 6: done 5, partial 0, missing 1. Copy found in the hub: 71% of 108 copy strings (mobile twin 68%). Template(s): asc_storage.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 6: done 5, partial 1, missing 0. Copy found in the hub: 71% of 108 copy strings (mobile twin 68%). Template(s): asc_storage.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Personal settings; Keep your repository objects in an S3-compatible bucket that you own.; Keep your repository objects in a bucket you own. ASC writes a probe object, re...; S3-compatible buckets you own: Garage, MinIO, Backblaze B2, Cloudflare R2 or Am...; garage-eu.
 
@@ -860,7 +860,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Verify handshake: five steps with latency, failure message in words | done | see where-cell | - |
 | Per repository assignment ("where new objects go") | done | see where-cell | - |
 | Migration progress (copied/total) and cancel | done | web_src/js/features/asc-byo.js:5 | - |
-| Migration Pause/resume, bytes and ETA, mismatch count, paused state | missing (hub+asc) | logged as not built (not re-probed) | asc: proto/asc/v1/storage.proto has no pause RPC, no bytes_total, no mismatch counter; hub: byo_storage_repo.tmpl + asc-byo.js |
+| Migration Pause/resume, bytes and ETA, mismatch count, paused state | partial (hub+asc) | Pause, Resume and the paused state: Storage.PauseMigration/ResumeMigration, StorageMigration.paused, byo_storage_repo.tmpl | asc: no bytes_total and no mismatch counter in proto/asc/v1/storage.proto; hub: bytes and ETA in byo_storage_repo.tmpl + asc-byo.js |
 | Card text "Used by N repositories - verified 2 days ago" | done | templates/shared/asc/byo_storage_cards.tmpl | - |
 
 #### UserSettingsUsage (ASC Hub settings: usage and quota)
@@ -1296,7 +1296,7 @@ Board copy not found word for word in locale, templates or scripts: Values your 
 
 #### RepoSettingsStorage (ASC Hub repository settings: Storage)
 
-Area repo. Rows 8: done 7, partial 1, missing 0. Copy found in the hub: 53% of 96 copy strings (mobile twin 42%). Template(s): asc_storage.tmpl. Mobile twin: yes.
+Area repo. Rows 8: done 8, partial 0, missing 0. Copy found in the hub: 53% of 96 copy strings (mobile twin 42%). Template(s): asc_storage.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Where changes, large files and indexes are kept.; Storage holds changes, large files and search indexes. Changing it never touche...; Where this repository's data lives; Pick one. Moving data is a copy first and a switch after.; ASC Hub storage; Managed by us. Nothing to set up; counted against your plan..
 
@@ -1305,7 +1305,7 @@ Board copy not found word for word in locale, templates or scripts: Where change
 | Choose ASC Hub storage or own S3-compatible bucket (endpoint https only, region, bucket, prefi... | done | templates/shared/asc/byo_storage.tmpl:45 | - |
 | Test connection with four steps (reachable, can write, can read, versioning on) and AccessDeni... | done | VerifyStorageTarget steps with the versioning advisory and needs; byo_storage_target.tmpl | - |
 | Usage: 38.2 GB split into changes, large files, search indexes plus objects and "read this mon... | done | Storage.GetRepoUsage; services/ascbyo/storage_usage.go; byo_storage_repo.tmpl; TestRepoStorageUsage | - |
-| Moving data: 64% progress, Pause, Cancel and keep current | partial (hub+asc) | logged as not built (not re-probed) | StartMigration/GetMigration/CancelMigration exist; no Pause RPC; hub progress UI |
+| Moving data: 64% progress, Pause, Cancel and keep current | done | Storage.PauseMigration and ResumeMigration in asc (the worker holds the cursor and the mirror); Pause, Resume and Cancel and keep current in byo_storage_repo.tmpl; TestRepoStorageMigrationPause | - |
 | Managed storage selected: "38.2 GB of 100 GB on your plan", Use my own bucket | done | the usage answer names where new objects go (GetRepoStorageUsageResponse target_id, fallback); on the server's storage the usage card shows the owner's quota on repository data (models/quota AllowanceFor) with a meter and Use my own bucket; asc's count is recorded as the repository size so the quota counts it; routers/web/shared/byoweb/plan.go; TestRepoStoragePlan, TestAllowanceFor | - |
 | Local-option and http refused message | done | services/ascbyo/validate.go (file) | - |
 | Bucket settings changed bar with Discard / Save and test | done | byo_storage_target.tmpl savebar; StorageUpdate saves and tests | - |
