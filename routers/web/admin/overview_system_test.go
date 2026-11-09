@@ -6,6 +6,7 @@ package admin
 import (
 	gocontext "context"
 	"net"
+	"net/http"
 	"sync"
 	"testing"
 	"time"
@@ -120,4 +121,36 @@ func TestTheSystemCardShowsTheMailQueue(t *testing.T) {
 		assert.Equal(t, c.state, r.State, c.text)
 		assert.Contains(t, string(r.Text), c.text)
 	}
+}
+
+func TestTheHealthPageHasTheObjectStorageGauge(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	f := &fakeUsage{storage: &ascv1.UsageMeter{Used: 3 << 30, Limit: 4 << 30}}
+	srv := grpc.NewServer()
+	ascv1.RegisterRepoServer(srv, f)
+	ascv1.RegisterUsageServer(srv, f)
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	go func() { _ = srv.Serve(l) }()
+	defer srv.Stop()
+	c, err := ascclient.New(ascclient.Config{Target: l.Addr().String(), InternalToken: "internal-token-for-tests", Retry: ascclient.RetryConfig{MaxAttempts: 1}})
+	require.NoError(t, err)
+	defer c.Close()
+	defer asctrust.UseConn(c)()
+	defer test.MockVariableValue(&setting.Asc.ForwardedKey, []byte("0123456789abcdef0123456789abcdef"))()
+	defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+
+	code, body, _ := runHealth(t, "/admin/self_check", "", SelfCheck)
+	require.Equal(t, http.StatusOK, code)
+	assert.Contains(t, body, `data-testid="gauge-store"`)
+	assert.Contains(t, body, `value="75"`)
+	assert.Contains(t, body, "asc_admin.gauge_store_of")
+
+	f.storage = &ascv1.UsageMeter{Used: 3 << 30}
+	_, body, _ = runHealth(t, "/admin/self_check", "", SelfCheck)
+	assert.Contains(t, body, "asc_admin.gauge_store_nolimit")
+
+	f.fail = true
+	_, body, _ = runHealth(t, "/admin/self_check", "", SelfCheck)
+	assert.NotContains(t, body, `data-testid="gauge-store"`, "no answer, no gauge")
 }
