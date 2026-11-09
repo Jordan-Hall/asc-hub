@@ -506,6 +506,25 @@ median wait asc measures for it ("Median wait 9 min"). The estimate and the medi
 `MergeQueue.List` for each queue, as the internal credential, after the inbox has checked that the person may read
 the pull requests); when asc does not answer they are left out and the rest of the card shows.
 
+## What each row of Needs you says, on the dashboard
+
+Past its section, each row of **Needs you** says what it is about:
+
+- a change that came back to the person quotes the newest reply on it: the newest review asking for changes that has
+  text, else the newest comment, never one of the person's own. The row shows the first line with text, at most 140
+  letters; the pull request has the rest;
+- a change ready to land through the asc merge queue says the place it would take ("Joins the merge queue as number
+  2") and, when asc measures one, the median wait of that queue ("· about 9 min");
+- a change of a stack that asc restacked after the trunk moved has a **Trunk moved** chip and, when the row has no
+  other note, how many changes of the stack asc restacked in the last 24 hours ("asc restacked 2 of 3"). The hub reads
+  the newest operation of the branch of each change (one `ListRefLog` call each, as the person, for stacks of 2 to 10
+  changes in one repository, each stack once per dashboard); it needs the `stacks.undo.v1` feature;
+- an agent run in **Agents working now** that waits for the person shows the question it asks, its current step on
+  one line, above the answer box.
+
+A fact that cannot be read (asc off or not answering, a pull request gone) leaves the row as it was; the rest of the
+dashboard shows.
+
 ## Rows that act in place, on the dashboard
 
 Each row of **Needs you** on the dashboard has one button that does the next step without opening the pull request:
