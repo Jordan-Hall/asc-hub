@@ -5,6 +5,7 @@
 package setting
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -405,6 +406,7 @@ func Appearance(ctx *context.Context) {
 		return
 	}
 	ctx.Data["AscHideResolved"] = hide != "false"
+	ctx.Data["AscClock"], ctx.Data["AscDateOrder"] = user_model.AscTimeFormat(ctx, ctx.Doer.ID)
 
 	ctx.Data["IsCommentTypeGroupChecked"] = func(commentTypeGroup string) bool {
 		return forms.IsUserHiddenCommentTypeGroupChecked(commentTypeGroup, hiddenCommentTypes)
@@ -526,6 +528,23 @@ func UpdateUserHideResolved(ctx *context.Context) {
 	}
 	ctx.Flash.Success(translation.NewLocale(ctx.Doer.Language).TrString("settings.update_hints_success"))
 	ctx.Redirect(setting.AppSubURL + "/user/settings/appearance")
+}
+
+// UpdateUserTimeFormat saves the clock (24 or 12 hours) and the order of a date the person reads times in.
+func UpdateUserTimeFormat(ctx *context.Context) {
+	back := setting.AppSubURL + "/user/settings/appearance"
+	err := user_model.SetAscTimeFormat(ctx, ctx.Doer.ID, ctx.FormString("clock"), ctx.FormString("date_order"))
+	if errors.Is(err, user_model.ErrAscTimeFormat) {
+		ctx.Flash.Error(ctx.Tr("settings.asc_time_format_bad"))
+		ctx.Redirect(back)
+		return
+	}
+	if err != nil {
+		ctx.ServerError("SetAscTimeFormat", err)
+		return
+	}
+	ctx.Flash.Success(translation.NewLocale(ctx.Doer.Language).TrString("settings.asc_time_format_saved"))
+	ctx.Redirect(back)
 }
 
 // UpdateUserHiddenComments update a user's shown comment types

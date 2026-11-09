@@ -15,6 +15,10 @@ const (
 	// SettingsKeyAscDensity is the setting key for the row density of the person ("comfy" or "compact"; no value:
 	// comfy)
 	SettingsKeyAscDensity = "asc.density"
+	// SettingsKeyAscClock is the setting key for the clock of the person ("24" or "12"; no value: 24)
+	SettingsKeyAscClock = "asc.clock"
+	// SettingsKeyAscDateOrder is the setting key for the order of a date ("dmy", "mdy" or "ymd"; no value: dmy)
+	SettingsKeyAscDateOrder = "asc.date_order"
 	// SettingsKeyDiffWhitespaceBehavior is the setting key for whitespace behavior of diff
 	SettingsKeyDiffWhitespaceBehavior = "diff.whitespace_behaviour"
 	// SettingsKeyShowOutdatedComments is the setting key whether or not to show outdated comments in PRs

@@ -801,6 +801,7 @@ func registerRoutes(m *web.Route) {
 			m.Post("/hints", web.Bind(forms.UpdateHintsForm{}), user_setting.UpdateUserHints)
 			m.Post("/hidden_comments", user_setting.UpdateUserHiddenComments)
 			m.Post("/hide_resolved", user_setting.UpdateUserHideResolved)
+			m.Post("/time_format", user_setting.UpdateUserTimeFormat)
 			m.Post("/theme", web.Bind(forms.UpdateThemeForm{}), user_setting.UpdateUIThemePost)
 		})
 		m.Group("/security", func() {

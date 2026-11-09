@@ -88,6 +88,16 @@ func (ctx *Context) HTML(status int, name base.TplName) {
 		// the zone the person chose on the profile page: <html data-tz> carries it to the script that draws times in it
 		ctx.Data["UserTimeZone"] = ascnotify.TimeZoneName(ctx, ctx.Doer.ID)
 	}
+	if _, set := ctx.Data["UserClock"]; !set && ctx.IsSigned && ctx.Doer != nil {
+		// the clock and date order chosen on Settings, Appearance: <html data-clock data-date-order>, only when not the default
+		clock, order := user_model.AscTimeFormat(ctx, ctx.Doer.ID)
+		if clock != user_model.AscClock24 {
+			ctx.Data["UserClock"] = clock
+		}
+		if order != user_model.AscDateDMY {
+			ctx.Data["UserDateOrder"] = order
+		}
+	}
 	ctx.Data["TemplateLoadTimes"] = func() string {
 		return strconv.FormatInt(time.Since(tmplStartTime).Nanoseconds()/1e6, 10) + "ms"
 	}

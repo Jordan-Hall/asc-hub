@@ -9,6 +9,20 @@ export function toAbsoluteLocaleDate(date, lang, opts) {
   return new Date(`${date}T00:00:00`).toLocaleString(lang || [], opts);
 }
 
+// The date order the person chose on Settings, Appearance (<html data-date-order>): day first reads as British English,
+// month first as American English, year first as 2026-02-03. Without it the language of the page decides.
+const ORDER_LOCALES = {dmy: 'en-GB', mdy: 'en-US'};
+
+export function toOrderedDate(date, lang, opts, order) {
+  if (order !== 'ymd') return toAbsoluteLocaleDate(date, ORDER_LOCALES[order] ?? lang, opts);
+  const dateSep = date.indexOf('T');
+  const day = dateSep === -1 ? date : date.substring(0, dateSep);
+  const parsed = new Date(`${day}T00:00:00`);
+  const ymd = [parsed.getFullYear(), String(parsed.getMonth() + 1).padStart(2, '0'), String(parsed.getDate()).padStart(2, '0')].join('-');
+  if (!opts.weekday) return ymd;
+  return `${parsed.toLocaleString(lang || [], {weekday: opts.weekday})} ${ymd}`;
+}
+
 window.customElements.define('absolute-date', class extends HTMLElement {
   static observedAttributes = ['date', 'year', 'month', 'weekday', 'day'];
 
@@ -29,7 +43,8 @@ window.customElements.define('absolute-date', class extends HTMLElement {
       this.contentSpan.setAttribute('part', 'absolute-date');
       this.shadowRoot.append(this.contentSpan);
     }
-    this.contentSpan.textContent = toAbsoluteLocaleDate(this.getAttribute('date'), lang, opt);
+    const order = this.ownerDocument.documentElement.getAttribute('data-date-order');
+    this.contentSpan.textContent = order ? toOrderedDate(this.getAttribute('date'), lang, opt, order) : toAbsoluteLocaleDate(this.getAttribute('date'), lang, opt);
   };
 
   attributeChangedCallback(_name, oldValue, newValue) {

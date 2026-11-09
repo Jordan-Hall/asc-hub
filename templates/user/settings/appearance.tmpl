@@ -27,6 +27,32 @@
 		</section>
 	</form>
 
+	<!-- Date and time -->
+	<form class="ui form ds-form wk-sp-form" action="{{.Link}}/time_format" method="post" data-testid="time-format-form">
+		{{.CsrfTokenHtml}}
+		<section class="ds-card" aria-labelledby="sp-time">
+			<div class="ds-card-h"><h2 id="sp-time">{{ctx.Locale.Tr "settings.asc_time_format"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "settings.asc_time_format_hint"}}</span></div>
+			<div class="ds-card-b ds-stack-16">
+				<fieldset class="ds-stack-8">
+					<legend class="ds-label">{{ctx.Locale.Tr "settings.asc_clock"}}</legend>
+					<div class="wk-radio-cards wk-cols-3">
+						<label class="wk-radio-card"><input type="radio" name="clock" value="24"{{if eq .AscClock "24"}} checked{{end}}><span><b>{{ctx.Locale.Tr "settings.asc_clock_24"}}</b><span class="ds-hint ds-mono">14:05</span></span></label>
+						<label class="wk-radio-card"><input type="radio" name="clock" value="12"{{if eq .AscClock "12"}} checked{{end}}><span><b>{{ctx.Locale.Tr "settings.asc_clock_12"}}</b><span class="ds-hint ds-mono">2:05 PM</span></span></label>
+					</div>
+				</fieldset>
+				<fieldset class="ds-stack-8">
+					<legend class="ds-label">{{ctx.Locale.Tr "settings.asc_date_order"}}</legend>
+					<div class="wk-radio-cards wk-cols-3">
+						<label class="wk-radio-card"><input type="radio" name="date_order" value="dmy"{{if eq .AscDateOrder "dmy"}} checked{{end}}><span><b>{{ctx.Locale.Tr "settings.asc_date_dmy"}}</b><span class="ds-hint ds-mono">3 Feb 2026</span></span></label>
+						<label class="wk-radio-card"><input type="radio" name="date_order" value="mdy"{{if eq .AscDateOrder "mdy"}} checked{{end}}><span><b>{{ctx.Locale.Tr "settings.asc_date_mdy"}}</b><span class="ds-hint ds-mono">Feb 3, 2026</span></span></label>
+						<label class="wk-radio-card"><input type="radio" name="date_order" value="ymd"{{if eq .AscDateOrder "ymd"}} checked{{end}}><span><b>{{ctx.Locale.Tr "settings.asc_date_ymd"}}</b><span class="ds-hint ds-mono">2026-02-03</span></span></label>
+					</div>
+				</fieldset>
+				<div><button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "save"}}</button></div>
+			</div>
+		</section>
+	</form>
+
 	<!-- Density -->
 	<section class="ds-card" aria-labelledby="sp-density">
 		<div class="ds-card-h"><h2 id="sp-density">{{ctx.Locale.Tr "asc_work.sp_density"}}</h2><span class="ds-card-sub">{{ctx.Locale.Tr "asc_work.sp_density_hint"}}</span></div>

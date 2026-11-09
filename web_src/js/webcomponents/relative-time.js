@@ -17,15 +17,18 @@ const ABSOLUTE_DATETIME_OPTIONS = {
   minute: '2-digit',
   timeZoneName: 'short',
 };
-// the time zone the person chose on their profile page is on <html data-tz>; an unknown one is ignored
-export function makeAbsoluteDatetimeFormat(timeZone, lang = navigator.language) {
+// the time zone the person chose on their profile page is on <html data-tz>; an unknown one is ignored. The clock they chose
+// on Settings, Appearance is on <html data-clock> ("12" or "24"); without it the language decides.
+export function makeAbsoluteDatetimeFormat(timeZone, lang = navigator.language, clock = '') {
+  const cycle = {'12': {hourCycle: 'h12'}, '24': {hourCycle: 'h23'}}[clock] ?? {};
+  const opts = {...ABSOLUTE_DATETIME_OPTIONS, ...cycle};
   try {
-    return new Intl.DateTimeFormat(lang, timeZone ? {...ABSOLUTE_DATETIME_OPTIONS, timeZone} : ABSOLUTE_DATETIME_OPTIONS);
+    return new Intl.DateTimeFormat(lang, timeZone ? {...opts, timeZone} : opts);
   } catch {
-    return new Intl.DateTimeFormat(lang, ABSOLUTE_DATETIME_OPTIONS);
+    return new Intl.DateTimeFormat(lang, opts);
   }
 }
-const ABSOLUTE_DATETIME_FORMAT = makeAbsoluteDatetimeFormat(document.documentElement.getAttribute('data-tz'));
+const ABSOLUTE_DATETIME_FORMAT = makeAbsoluteDatetimeFormat(document.documentElement.getAttribute('data-tz'), navigator.language, document.documentElement.getAttribute('data-clock') ?? '');
 const FALLBACK_DATETIME_FORMAT = new Intl.RelativeTimeFormat(navigator.language, {style: 'long'});
 
 // Fallback formatter for duration units, used only when the corresponding
