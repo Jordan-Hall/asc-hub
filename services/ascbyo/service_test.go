@@ -415,6 +415,31 @@ func TestMigrationProgress(t *testing.T) {
 	assert.Equal(t, "st_abcdefghijklmnopqrst", odd.FromTarget)
 }
 
+func TestMigrationPaused(t *testing.T) {
+	repo := scope(t, ascbyo.KindRepo, "alice/widgets")
+	mk := func(st ascv1.StorageMigrationState, paused bool) *ascbyo.Migration {
+		return ascbyo.MigrationFrom(repo, &ascv1.StorageMigration{Id: "mg_1", Repo: repo.Repo(), State: st, Paused: paused})
+	}
+	running := mk(ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_COPYING, false)
+	assert.True(t, running.Pausable)
+	assert.False(t, running.Resumable)
+	held := mk(ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_COPYING, true)
+	assert.True(t, held.Paused)
+	assert.True(t, held.Active, "a paused migration is still the repository's active one")
+	assert.Equal(t, "copying", held.StateName, "the slug keeps the phase it stopped in")
+	assert.Equal(t, "ascbyo.migration.state.paused", held.StateKey)
+	assert.False(t, held.Pausable)
+	assert.True(t, held.Resumable)
+	for _, st := range []ascv1.StorageMigrationState{
+		ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_SWITCHING,
+		ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_DONE,
+		ascv1.StorageMigrationState_STORAGE_MIGRATION_STATE_CANCELLED,
+	} {
+		m := mk(st, true)
+		assert.False(t, m.Paused || m.Pausable || m.Resumable, "%v: no pause once the switch has begun", st)
+	}
+}
+
 func TestAIKeys(t *testing.T) {
 	s, f := newService(t)
 	alice := scope(t, ascbyo.KindUser, "alice")
