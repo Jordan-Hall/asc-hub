@@ -531,3 +531,52 @@ a.rp-who:hover {
   border-color: var(--primary-line);
   font-weight: 700;
 }
+
+/* ---- landing rate: this week, the change on last week and a bar per week ---- */
+.rp-landing-k {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rp-landing-n {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 2px 0 10px;
+}
+
+.rp-landing-n b {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.rp-landing-delta {
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.rp-landing-delta.is-up {
+  color: var(--ok);
+}
+
+.rp-landing-delta.is-down {
+  color: var(--warn);
+}
+
+.rp-landing-bars {
+  display: block;
+  width: 100%;
+  height: 48px;
+}
+
+.rp-landing-bars rect {
+  fill: var(--surface-3);
+}
+
+.rp-landing-bars rect.is-now {
+  fill: var(--link);
+}

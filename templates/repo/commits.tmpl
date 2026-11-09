@@ -83,6 +83,14 @@
 				{{template "repo/commits_table" .}}
 			</div>
 			<aside class="ds-rail">
+				{{with .HistoryLanding}}
+				<section class="rp-card rp-landing" aria-labelledby="rp-landing-title" data-testid="history-landing">
+					<div class="rp-rail-head"><h2 class="rp-rail-title" id="rp-landing-title">{{ctx.Locale.Tr "asc_rp.landing_title"}}</h2><span class="rp-dim">{{ctx.Locale.Tr "asc_rp.landing_weeks" .Weeks}}</span></div>
+					<p class="rp-landing-k">{{ctx.Locale.Tr "asc_rp.landing_this_week"}}</p>
+					<p class="rp-landing-n"><b data-testid="history-landing-week">{{.ThisWeek}}</b> <span class="rp-landing-delta{{if gt .Delta 0}} is-up{{else if lt .Delta 0}} is-down{{end}}">{{if gt .Delta 0}}{{ctx.Locale.Tr "asc_rp.landing_up" .Delta}}{{else if lt .Delta 0}}{{ctx.Locale.Tr "asc_rp.landing_down" .Fewer}}{{else}}{{ctx.Locale.Tr "asc_rp.landing_same"}}{{end}}</span></p>
+					<svg class="rp-landing-bars" viewBox="0 0 100 32" preserveAspectRatio="none" role="img" aria-label="{{ctx.Locale.Tr "asc_rp.landing_label" .Total .Weeks .ThisWeek}}">{{range .Bars}}<rect class="{{if .Current}}is-now{{end}}" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="0.6"><title>{{ctx.Locale.Tr "asc_rp.landing_bar" .Count}}</title></rect>{{end}}</svg>
+				</section>
+				{{end}}
 				{{if $isAsc}}
 				<section class="rp-card">
 					<h2 class="rp-rail-title">{{ctx.Locale.Tr "asc_rp.undo_title"}}</h2>

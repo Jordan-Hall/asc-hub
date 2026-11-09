@@ -146,6 +146,7 @@ func Commits(ctx *context.Context) {
 	}
 	ctx.Data["Page"] = pager
 	prepareAscLandedBrackets(ctx, commits)
+	prepareHistoryLanding(ctx)
 	if who == "" {
 		prepareAscOpenChanges(ctx)
 	}
