@@ -421,6 +421,27 @@ Code: `routers/web/admin/asc_health.go`, `asc_health_more.go`, `services/asctrus
 TestTheDiskCheckSaysHowSoonTheVolumeFills, TestTheTLSCheckReadsTheCertificateTheHubServes, TestTheClockCheck,
 TestTheAscChecksAskAscServeToProbeItself, TestLoadHealthMeasuresTheClocks, TestAscHealthSteps.
 
+## Agent runners on the runners page
+
+Site administration > Runners lists the hub's Actions runners and, under them, the agent runners: the asc serve
+processes that execute agent runs. The section is shown to the site administrator when asc is on and runs agents
+(`[agents] enabled`, feature `agent-runners.v1`).
+
+- Every asc serve process with agents on is one runner. It reports every 10 seconds and stamps the runs it takes with
+  its name.
+- Name: `[agents] runner_name` in asc serve's configuration, by default the host name. Give each process its own
+  name: two processes with one name show as one runner.
+- Slots: `[agents] max_concurrent_runs` (4 by default), shown as "2 of 4 slots in use". vCPU is the number of CPUs the
+  process may use.
+- State: Running an agent (it has a live run), Idle, or Offline (no report for 90 seconds; the row says when it was
+  last seen). An offline runner stays listed for 7 days, then is removed.
+- Each live run (running or waiting for an answer) shows as "Agent run #214" and links to the run page of its
+  repository.
+- When asc serve does not answer within 3 seconds, the section says so and the rest of the page draws as usual.
+
+Code: `routers/web/shared/actions/asc_agent_runners.go`, `services/asctrust/runners.go`; asc serve
+`Maintenance.ListAgentRunners`. Tests: TestTheAdminRunnersPageListsTheAgentRunners, TestLoadAgentRunnersRefusesABadAnswer.
+
 ## Usage and agents on a person's page
 
 The page of a person in site administration (Overview tab) has a **Usage** card (storage and agent minutes this
