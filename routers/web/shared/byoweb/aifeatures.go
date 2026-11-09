@@ -204,6 +204,21 @@ type ReplaceView struct {
 	Detail string
 }
 
+// replaceRefusal says why the provider refused a replacement; a rejected key names its provider, as in
+// "Anthropic rejected this key (401 or 403)".
+func replaceRefusal(ctx *context.Context, res *svc.ReplaceResult) string {
+	if res.Status == "unauthorized" {
+		name := ctx.Locale.TrString("ascbyo.ai.provider.unknown")
+		if res.Key != nil {
+			if v := svc.KeyViewOf(res.Key); v.Provider != "" {
+				name = ctx.Locale.TrString(v.ProviderKey)
+			}
+		}
+		return ctx.Locale.TrString("ascbyo.ai.replace.rejected.unauthorized", name)
+	}
+	return ctx.Locale.TrString("ascbyo.ai.replace.rejected." + res.Status)
+}
+
 // AIReplace is POST .../asc/ai/keys/{id}/replace. The old secret stays until the provider accepts the new one.
 func AIReplace(ctx *context.Context, lvl *Level) {
 	s, p, ok := begin(ctx, lvl, dataAI)
@@ -237,7 +252,7 @@ func AIReplace(ctx *context.Context, lvl *Level) {
 	}
 	if !res.Replaced {
 		record(ctx, lvl, "AI key replacement refused by the provider", id)
-		p.Replace = &ReplaceView{ID: id, Err: ctx.Locale.TrString("ascbyo.ai.replace.rejected." + res.Status), Detail: res.Message}
+		p.Replace = &ReplaceView{ID: id, Err: replaceRefusal(ctx, res), Detail: res.Message}
 		renderAIIndex(ctx, lvl, s, p, http.StatusUnprocessableEntity)
 		return
 	}
