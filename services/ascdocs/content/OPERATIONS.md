@@ -786,6 +786,17 @@ repository admins, **Open storage**. Code: `services/ascbyo/searchindex.go`, `ro
 `templates/shared/asc/byo_storage_repo.tmpl`, `templates/repo/asc_search.tmpl`. Tests: TestSearchIndexOf,
 TestRepoStorageSearchIndexes, TestAscSearchMeaningIndexOff.
 
+## Pausing a storage migration
+
+While a repository's objects move to another place, the storage page shows the progress with **Pause** and **Cancel and keep
+current**. Pause holds the migration before the switch: the asc worker stops after the chunk it is on (at most 64 objects), keeps
+what it copied and where it was, and new writes still go to both places, so nothing is lost while it waits. The page then says
+**Paused** and offers **Resume**, which carries on from where it stopped without copying anything again. A paused migration is still
+the repository's migration: another one cannot start until it is resumed and finishes, or is cancelled. Cancel and keep current
+works on a paused migration as well and leaves the objects where they were. Once the migration is switching over there is nothing
+left to pause, and the buttons go away. Pausing and resuming are recorded in the audit log (`storage.migration.paused`,
+`storage.migration.resumed`) and in the hub log.
+
 ## The plan on the storage page
 
 When quotas are on (`[quota] ENABLED = true`) and an asc repository keeps its objects on the server's storage, the
