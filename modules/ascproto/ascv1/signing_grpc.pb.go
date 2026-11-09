@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Signing_ListKeys_FullMethodName        = "/asc.v1.Signing/ListKeys"
-	Signing_AddKey_FullMethodName          = "/asc.v1.Signing/AddKey"
-	Signing_RevokeKey_FullMethodName       = "/asc.v1.Signing/RevokeKey"
-	Signing_SubmitSignature_FullMethodName = "/asc.v1.Signing/SubmitSignature"
-	Signing_Verify_FullMethodName          = "/asc.v1.Signing/Verify"
-	Signing_GetServerKey_FullMethodName    = "/asc.v1.Signing/GetServerKey"
+	Signing_ListKeys_FullMethodName           = "/asc.v1.Signing/ListKeys"
+	Signing_AddKey_FullMethodName             = "/asc.v1.Signing/AddKey"
+	Signing_RevokeKey_FullMethodName          = "/asc.v1.Signing/RevokeKey"
+	Signing_SubmitSignature_FullMethodName    = "/asc.v1.Signing/SubmitSignature"
+	Signing_Verify_FullMethodName             = "/asc.v1.Signing/Verify"
+	Signing_GetServerKey_FullMethodName       = "/asc.v1.Signing/GetServerKey"
+	Signing_GetSigningDefaults_FullMethodName = "/asc.v1.Signing/GetSigningDefaults"
+	Signing_SetSigningDefaults_FullMethodName = "/asc.v1.Signing/SetSigningDefaults"
 )
 
 // SigningClient is the client API for Signing service.
@@ -44,6 +46,8 @@ type SigningClient interface {
 	SubmitSignature(ctx context.Context, in *SubmitSignatureRequest, opts ...grpc.CallOption) (*SubmitSignatureResponse, error)
 	Verify(ctx context.Context, in *VerifySignaturesRequest, opts ...grpc.CallOption) (*VerifySignaturesResponse, error)
 	GetServerKey(ctx context.Context, in *GetServerKeyRequest, opts ...grpc.CallOption) (*GetServerKeyResponse, error)
+	GetSigningDefaults(ctx context.Context, in *GetSigningDefaultsRequest, opts ...grpc.CallOption) (*GetSigningDefaultsResponse, error)
+	SetSigningDefaults(ctx context.Context, in *SetSigningDefaultsRequest, opts ...grpc.CallOption) (*SetSigningDefaultsResponse, error)
 }
 
 type signingClient struct {
@@ -114,6 +118,26 @@ func (c *signingClient) GetServerKey(ctx context.Context, in *GetServerKeyReques
 	return out, nil
 }
 
+func (c *signingClient) GetSigningDefaults(ctx context.Context, in *GetSigningDefaultsRequest, opts ...grpc.CallOption) (*GetSigningDefaultsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSigningDefaultsResponse)
+	err := c.cc.Invoke(ctx, Signing_GetSigningDefaults_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *signingClient) SetSigningDefaults(ctx context.Context, in *SetSigningDefaultsRequest, opts ...grpc.CallOption) (*SetSigningDefaultsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetSigningDefaultsResponse)
+	err := c.cc.Invoke(ctx, Signing_SetSigningDefaults_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SigningServer is the server API for Signing service.
 // All implementations should embed UnimplementedSigningServer
 // for forward compatibility.
@@ -131,6 +155,8 @@ type SigningServer interface {
 	SubmitSignature(context.Context, *SubmitSignatureRequest) (*SubmitSignatureResponse, error)
 	Verify(context.Context, *VerifySignaturesRequest) (*VerifySignaturesResponse, error)
 	GetServerKey(context.Context, *GetServerKeyRequest) (*GetServerKeyResponse, error)
+	GetSigningDefaults(context.Context, *GetSigningDefaultsRequest) (*GetSigningDefaultsResponse, error)
+	SetSigningDefaults(context.Context, *SetSigningDefaultsRequest) (*SetSigningDefaultsResponse, error)
 }
 
 // UnimplementedSigningServer should be embedded to have
@@ -157,6 +183,12 @@ func (UnimplementedSigningServer) Verify(context.Context, *VerifySignaturesReque
 }
 func (UnimplementedSigningServer) GetServerKey(context.Context, *GetServerKeyRequest) (*GetServerKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetServerKey not implemented")
+}
+func (UnimplementedSigningServer) GetSigningDefaults(context.Context, *GetSigningDefaultsRequest) (*GetSigningDefaultsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSigningDefaults not implemented")
+}
+func (UnimplementedSigningServer) SetSigningDefaults(context.Context, *SetSigningDefaultsRequest) (*SetSigningDefaultsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetSigningDefaults not implemented")
 }
 func (UnimplementedSigningServer) testEmbeddedByValue() {}
 
@@ -286,6 +318,42 @@ func _Signing_GetServerKey_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Signing_GetSigningDefaults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSigningDefaultsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SigningServer).GetSigningDefaults(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Signing_GetSigningDefaults_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SigningServer).GetSigningDefaults(ctx, req.(*GetSigningDefaultsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Signing_SetSigningDefaults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSigningDefaultsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SigningServer).SetSigningDefaults(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Signing_SetSigningDefaults_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SigningServer).SetSigningDefaults(ctx, req.(*SetSigningDefaultsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Signing_ServiceDesc is the grpc.ServiceDesc for Signing service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -316,6 +384,14 @@ var Signing_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetServerKey",
 			Handler:    _Signing_GetServerKey_Handler,
+		},
+		{
+			MethodName: "GetSigningDefaults",
+			Handler:    _Signing_GetSigningDefaults_Handler,
+		},
+		{
+			MethodName: "SetSigningDefaults",
+			Handler:    _Signing_SetSigningDefaults_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

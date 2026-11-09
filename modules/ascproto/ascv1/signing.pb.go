@@ -969,6 +969,202 @@ func (x *GetServerKeyResponse) GetPublicKey() string {
 	return ""
 }
 
+// A user's signing defaults. `sign_by_default` asks the user's clients to sign every new change without a flag: the CLI
+// reads it with `asc signing default` and keeps it as the local key `asc.signByDefault`, which a local `commit.gpgsign`
+// overrides. The server does not refuse unsigned changes because of it; branch policy `[signing] require_signed` does that.
+// `user` empty means the caller.
+type GetSigningDefaultsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          string                 `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSigningDefaultsRequest) Reset() {
+	*x = GetSigningDefaultsRequest{}
+	mi := &file_asc_v1_signing_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSigningDefaultsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSigningDefaultsRequest) ProtoMessage() {}
+
+func (x *GetSigningDefaultsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_signing_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSigningDefaultsRequest.ProtoReflect.Descriptor instead.
+func (*GetSigningDefaultsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_signing_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetSigningDefaultsRequest) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
+}
+
+type GetSigningDefaultsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SignByDefault bool                   `protobuf:"varint,1,opt,name=sign_by_default,json=signByDefault,proto3" json:"sign_by_default,omitempty"`
+	Updated       int64                  `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"` // 0 = never set
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSigningDefaultsResponse) Reset() {
+	*x = GetSigningDefaultsResponse{}
+	mi := &file_asc_v1_signing_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSigningDefaultsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSigningDefaultsResponse) ProtoMessage() {}
+
+func (x *GetSigningDefaultsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_signing_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSigningDefaultsResponse.ProtoReflect.Descriptor instead.
+func (*GetSigningDefaultsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_signing_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetSigningDefaultsResponse) GetSignByDefault() bool {
+	if x != nil {
+		return x.SignByDefault
+	}
+	return false
+}
+
+func (x *GetSigningDefaultsResponse) GetUpdated() int64 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
+type SetSigningDefaultsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SignByDefault bool                   `protobuf:"varint,1,opt,name=sign_by_default,json=signByDefault,proto3" json:"sign_by_default,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSigningDefaultsRequest) Reset() {
+	*x = SetSigningDefaultsRequest{}
+	mi := &file_asc_v1_signing_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSigningDefaultsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSigningDefaultsRequest) ProtoMessage() {}
+
+func (x *SetSigningDefaultsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_signing_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSigningDefaultsRequest.ProtoReflect.Descriptor instead.
+func (*SetSigningDefaultsRequest) Descriptor() ([]byte, []int) {
+	return file_asc_v1_signing_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SetSigningDefaultsRequest) GetSignByDefault() bool {
+	if x != nil {
+		return x.SignByDefault
+	}
+	return false
+}
+
+type SetSigningDefaultsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SignByDefault bool                   `protobuf:"varint,1,opt,name=sign_by_default,json=signByDefault,proto3" json:"sign_by_default,omitempty"`
+	Updated       int64                  `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSigningDefaultsResponse) Reset() {
+	*x = SetSigningDefaultsResponse{}
+	mi := &file_asc_v1_signing_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSigningDefaultsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSigningDefaultsResponse) ProtoMessage() {}
+
+func (x *SetSigningDefaultsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_asc_v1_signing_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSigningDefaultsResponse.ProtoReflect.Descriptor instead.
+func (*SetSigningDefaultsResponse) Descriptor() ([]byte, []int) {
+	return file_asc_v1_signing_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *SetSigningDefaultsResponse) GetSignByDefault() bool {
+	if x != nil {
+		return x.SignByDefault
+	}
+	return false
+}
+
+func (x *SetSigningDefaultsResponse) GetUpdated() int64 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
 var File_asc_v1_signing_proto protoreflect.FileDescriptor
 
 const file_asc_v1_signing_proto_rawDesc = "" +
@@ -1039,7 +1235,17 @@ const file_asc_v1_signing_proto_rawDesc = "" +
 	"\x04kind\x18\x02 \x01(\x0e2\x16.asc.v1.SigningKeyKindR\x04kind\x12 \n" +
 	"\vfingerprint\x18\x03 \x01(\tR\vfingerprint\x12\x1d\n" +
 	"\n" +
-	"public_key\x18\x04 \x01(\tR\tpublicKey*\x97\x01\n" +
+	"public_key\x18\x04 \x01(\tR\tpublicKey\"/\n" +
+	"\x19GetSigningDefaultsRequest\x12\x12\n" +
+	"\x04user\x18\x01 \x01(\tR\x04user\"^\n" +
+	"\x1aGetSigningDefaultsResponse\x12&\n" +
+	"\x0fsign_by_default\x18\x01 \x01(\bR\rsignByDefault\x12\x18\n" +
+	"\aupdated\x18\x02 \x01(\x03R\aupdated\"C\n" +
+	"\x19SetSigningDefaultsRequest\x12&\n" +
+	"\x0fsign_by_default\x18\x01 \x01(\bR\rsignByDefault\"^\n" +
+	"\x1aSetSigningDefaultsResponse\x12&\n" +
+	"\x0fsign_by_default\x18\x01 \x01(\bR\rsignByDefault\x12\x18\n" +
+	"\aupdated\x18\x02 \x01(\x03R\aupdated*\x97\x01\n" +
 	"\x0eSigningKeyKind\x12 \n" +
 	"\x1cSIGNING_KEY_KIND_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cSIGNING_KEY_KIND_SSH_ED25519\x10\x01\x12#\n" +
@@ -1054,14 +1260,16 @@ const file_asc_v1_signing_proto_rawDesc = "" +
 	"\x1fVERIFICATION_STATUS_KEY_EXPIRED\x10\x05\x12#\n" +
 	"\x1fVERIFICATION_STATUS_KEY_REVOKED\x10\x06\x12%\n" +
 	"!VERIFICATION_STATUS_BAD_SIGNATURE\x10\a\x12#\n" +
-	"\x1fVERIFICATION_STATUS_UNSUPPORTED\x10\b2\xd9\x03\n" +
+	"\x1fVERIFICATION_STATUS_UNSUPPORTED\x10\b2\x93\x05\n" +
 	"\aSigning\x12K\n" +
 	"\bListKeys\x12\x1e.asc.v1.ListSigningKeysRequest\x1a\x1f.asc.v1.ListSigningKeysResponse\x12E\n" +
 	"\x06AddKey\x12\x1c.asc.v1.AddSigningKeyRequest\x1a\x1d.asc.v1.AddSigningKeyResponse\x12N\n" +
 	"\tRevokeKey\x12\x1f.asc.v1.RevokeSigningKeyRequest\x1a .asc.v1.RevokeSigningKeyResponse\x12R\n" +
 	"\x0fSubmitSignature\x12\x1e.asc.v1.SubmitSignatureRequest\x1a\x1f.asc.v1.SubmitSignatureResponse\x12K\n" +
 	"\x06Verify\x12\x1f.asc.v1.VerifySignaturesRequest\x1a .asc.v1.VerifySignaturesResponse\x12I\n" +
-	"\fGetServerKey\x12\x1b.asc.v1.GetServerKeyRequest\x1a\x1c.asc.v1.GetServerKeyResponseBw\n" +
+	"\fGetServerKey\x12\x1b.asc.v1.GetServerKeyRequest\x1a\x1c.asc.v1.GetServerKeyResponse\x12[\n" +
+	"\x12GetSigningDefaults\x12!.asc.v1.GetSigningDefaultsRequest\x1a\".asc.v1.GetSigningDefaultsResponse\x12[\n" +
+	"\x12SetSigningDefaults\x12!.asc.v1.SetSigningDefaultsRequest\x1a\".asc.v1.SetSigningDefaultsResponseBw\n" +
 	"\n" +
 	"com.asc.v1B\fSigningProtoP\x01Z\"forgejo.org/modules/ascproto/ascv1\xa2\x02\x03AXX\xaa\x02\x06Asc.V1\xca\x02\x06Asc\\V1\xe2\x02\x12Asc\\V1\\GPBMetadata\xea\x02\aAsc::V1b\x06proto3"
 
@@ -1078,35 +1286,39 @@ func file_asc_v1_signing_proto_rawDescGZIP() []byte {
 }
 
 var file_asc_v1_signing_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_asc_v1_signing_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_asc_v1_signing_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_asc_v1_signing_proto_goTypes = []any{
-	(SigningKeyKind)(0),              // 0: asc.v1.SigningKeyKind
-	(VerificationStatus)(0),          // 1: asc.v1.VerificationStatus
-	(*SigningKey)(nil),               // 2: asc.v1.SigningKey
-	(*ListSigningKeysRequest)(nil),   // 3: asc.v1.ListSigningKeysRequest
-	(*ListSigningKeysResponse)(nil),  // 4: asc.v1.ListSigningKeysResponse
-	(*AddSigningKeyRequest)(nil),     // 5: asc.v1.AddSigningKeyRequest
-	(*AddSigningKeyResponse)(nil),    // 6: asc.v1.AddSigningKeyResponse
-	(*RevokeSigningKeyRequest)(nil),  // 7: asc.v1.RevokeSigningKeyRequest
-	(*RevokeSigningKeyResponse)(nil), // 8: asc.v1.RevokeSigningKeyResponse
-	(*SubmitSignatureRequest)(nil),   // 9: asc.v1.SubmitSignatureRequest
-	(*SubmitSignatureResponse)(nil),  // 10: asc.v1.SubmitSignatureResponse
-	(*SignatureVerification)(nil),    // 11: asc.v1.SignatureVerification
-	(*VerifySignaturesRequest)(nil),  // 12: asc.v1.VerifySignaturesRequest
-	(*VerifySignaturesResponse)(nil), // 13: asc.v1.VerifySignaturesResponse
-	(*GetServerKeyRequest)(nil),      // 14: asc.v1.GetServerKeyRequest
-	(*GetServerKeyResponse)(nil),     // 15: asc.v1.GetServerKeyResponse
-	(*RepoRef)(nil),                  // 16: asc.v1.RepoRef
+	(SigningKeyKind)(0),                // 0: asc.v1.SigningKeyKind
+	(VerificationStatus)(0),            // 1: asc.v1.VerificationStatus
+	(*SigningKey)(nil),                 // 2: asc.v1.SigningKey
+	(*ListSigningKeysRequest)(nil),     // 3: asc.v1.ListSigningKeysRequest
+	(*ListSigningKeysResponse)(nil),    // 4: asc.v1.ListSigningKeysResponse
+	(*AddSigningKeyRequest)(nil),       // 5: asc.v1.AddSigningKeyRequest
+	(*AddSigningKeyResponse)(nil),      // 6: asc.v1.AddSigningKeyResponse
+	(*RevokeSigningKeyRequest)(nil),    // 7: asc.v1.RevokeSigningKeyRequest
+	(*RevokeSigningKeyResponse)(nil),   // 8: asc.v1.RevokeSigningKeyResponse
+	(*SubmitSignatureRequest)(nil),     // 9: asc.v1.SubmitSignatureRequest
+	(*SubmitSignatureResponse)(nil),    // 10: asc.v1.SubmitSignatureResponse
+	(*SignatureVerification)(nil),      // 11: asc.v1.SignatureVerification
+	(*VerifySignaturesRequest)(nil),    // 12: asc.v1.VerifySignaturesRequest
+	(*VerifySignaturesResponse)(nil),   // 13: asc.v1.VerifySignaturesResponse
+	(*GetServerKeyRequest)(nil),        // 14: asc.v1.GetServerKeyRequest
+	(*GetServerKeyResponse)(nil),       // 15: asc.v1.GetServerKeyResponse
+	(*GetSigningDefaultsRequest)(nil),  // 16: asc.v1.GetSigningDefaultsRequest
+	(*GetSigningDefaultsResponse)(nil), // 17: asc.v1.GetSigningDefaultsResponse
+	(*SetSigningDefaultsRequest)(nil),  // 18: asc.v1.SetSigningDefaultsRequest
+	(*SetSigningDefaultsResponse)(nil), // 19: asc.v1.SetSigningDefaultsResponse
+	(*RepoRef)(nil),                    // 20: asc.v1.RepoRef
 }
 var file_asc_v1_signing_proto_depIdxs = []int32{
 	0,  // 0: asc.v1.SigningKey.kind:type_name -> asc.v1.SigningKeyKind
 	2,  // 1: asc.v1.ListSigningKeysResponse.keys:type_name -> asc.v1.SigningKey
 	2,  // 2: asc.v1.AddSigningKeyResponse.key:type_name -> asc.v1.SigningKey
 	2,  // 3: asc.v1.RevokeSigningKeyResponse.key:type_name -> asc.v1.SigningKey
-	16, // 4: asc.v1.SubmitSignatureRequest.repo:type_name -> asc.v1.RepoRef
+	20, // 4: asc.v1.SubmitSignatureRequest.repo:type_name -> asc.v1.RepoRef
 	11, // 5: asc.v1.SubmitSignatureResponse.verification:type_name -> asc.v1.SignatureVerification
 	1,  // 6: asc.v1.SignatureVerification.status:type_name -> asc.v1.VerificationStatus
-	16, // 7: asc.v1.VerifySignaturesRequest.repo:type_name -> asc.v1.RepoRef
+	20, // 7: asc.v1.VerifySignaturesRequest.repo:type_name -> asc.v1.RepoRef
 	11, // 8: asc.v1.VerifySignaturesResponse.results:type_name -> asc.v1.SignatureVerification
 	0,  // 9: asc.v1.GetServerKeyResponse.kind:type_name -> asc.v1.SigningKeyKind
 	3,  // 10: asc.v1.Signing.ListKeys:input_type -> asc.v1.ListSigningKeysRequest
@@ -1115,14 +1327,18 @@ var file_asc_v1_signing_proto_depIdxs = []int32{
 	9,  // 13: asc.v1.Signing.SubmitSignature:input_type -> asc.v1.SubmitSignatureRequest
 	12, // 14: asc.v1.Signing.Verify:input_type -> asc.v1.VerifySignaturesRequest
 	14, // 15: asc.v1.Signing.GetServerKey:input_type -> asc.v1.GetServerKeyRequest
-	4,  // 16: asc.v1.Signing.ListKeys:output_type -> asc.v1.ListSigningKeysResponse
-	6,  // 17: asc.v1.Signing.AddKey:output_type -> asc.v1.AddSigningKeyResponse
-	8,  // 18: asc.v1.Signing.RevokeKey:output_type -> asc.v1.RevokeSigningKeyResponse
-	10, // 19: asc.v1.Signing.SubmitSignature:output_type -> asc.v1.SubmitSignatureResponse
-	13, // 20: asc.v1.Signing.Verify:output_type -> asc.v1.VerifySignaturesResponse
-	15, // 21: asc.v1.Signing.GetServerKey:output_type -> asc.v1.GetServerKeyResponse
-	16, // [16:22] is the sub-list for method output_type
-	10, // [10:16] is the sub-list for method input_type
+	16, // 16: asc.v1.Signing.GetSigningDefaults:input_type -> asc.v1.GetSigningDefaultsRequest
+	18, // 17: asc.v1.Signing.SetSigningDefaults:input_type -> asc.v1.SetSigningDefaultsRequest
+	4,  // 18: asc.v1.Signing.ListKeys:output_type -> asc.v1.ListSigningKeysResponse
+	6,  // 19: asc.v1.Signing.AddKey:output_type -> asc.v1.AddSigningKeyResponse
+	8,  // 20: asc.v1.Signing.RevokeKey:output_type -> asc.v1.RevokeSigningKeyResponse
+	10, // 21: asc.v1.Signing.SubmitSignature:output_type -> asc.v1.SubmitSignatureResponse
+	13, // 22: asc.v1.Signing.Verify:output_type -> asc.v1.VerifySignaturesResponse
+	15, // 23: asc.v1.Signing.GetServerKey:output_type -> asc.v1.GetServerKeyResponse
+	17, // 24: asc.v1.Signing.GetSigningDefaults:output_type -> asc.v1.GetSigningDefaultsResponse
+	19, // 25: asc.v1.Signing.SetSigningDefaults:output_type -> asc.v1.SetSigningDefaultsResponse
+	18, // [18:26] is the sub-list for method output_type
+	10, // [10:18] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name
@@ -1141,7 +1357,7 @@ func file_asc_v1_signing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_asc_v1_signing_proto_rawDesc), len(file_asc_v1_signing_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   14,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
