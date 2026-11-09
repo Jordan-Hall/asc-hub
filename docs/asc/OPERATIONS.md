@@ -395,8 +395,10 @@ Test: TestTheDashboardShowsTodaysActivity, TestTodaysActivityIsKeptForAMinute, T
 
 ## The health page of the site administration
 
-`/admin/self_check` runs its checks one after the other; "Run again" runs them again, each row changing when its own
-check is done. A check that does not apply to this hub has no row. Each row is passed, warning, failed, or could not run
+`/admin/self_check` runs its checks one after the other; "Run again" runs them again, each row keeping its old result
+(marked Waiting, then Running) until its own check is done. The summary chip is passed when all passed, a warning when
+any warned or could not run, and failed when any failed. A row with a problem has a Fix button to the page that solves
+it: Backups, Runners, Configuration or System notices. A check that does not apply to this hub has no row. Each row is passed, warning, failed, or could not run
 (the question could not be asked, so it neither passed nor failed).
 
 | Check | Answered by | Warning | Failed |
@@ -408,6 +410,7 @@ check is done. A check that does not apply to this hub has no row. Each row is p
 | Clock | the host kernel (Linux: whether NTP keeps it in time) and asc serve's clock | not kept in time, or over 2 seconds from asc serve's | over 30 seconds from asc serve's: signed calls fail |
 | Object storage | asc serve (Maintenance.CheckHealth, `health.v1`): writes, reads back and deletes a probe object in its bucket | - | the object store refused or did not answer in 10 seconds |
 | Signing key | asc serve: its server key signs a fixed message and the signature verifies | no server key is set, so the commits it makes are not signed | the key cannot sign |
+| Backups | asc serve (`backups.v1`), for a site administrator: the state of its scheduled backups; Fix opens Site administration > Backups | not set up, or the last backup failed | overdue (no success within one and a half intervals) |
 | Runners (with Actions), System notices | the hub | no runner, notices | a runner offline |
 
 - **How soon the disk fills** is the rate the hub saw over the last day (at least an hour of it): it samples the used
