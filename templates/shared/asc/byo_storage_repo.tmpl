@@ -37,6 +37,13 @@
 		{{else}}
 			<p class="asc-byo-empty">{{ctx.Locale.Tr "ascbyo.storage.usage.first"}}</p>
 		{{end}}
+		{{with $a.Plan}}
+			<div class="asc-usage-plan" data-testid="asc-usage-plan">
+				<progress class="asc-meter {{.MeterClass}}" max="100" value="{{.Percent}}" aria-label="{{ctx.Locale.Tr "ascbyo.storage.usage.plan" (ctx.Locale.TrSize .Used) (ctx.Locale.TrSize .Limit)}}">{{.Percent}}%</progress>
+				<p>{{ctx.Locale.Tr "ascbyo.storage.usage.plan" (ctx.Locale.TrSize .Used) (ctx.Locale.TrSize .Limit)}}
+					<a href="{{if $a.Usable}}#asc-assign-target{{else}}#asc-add-h{{end}}" data-testid="asc-usage-own">{{ctx.Locale.Tr "ascbyo.storage.usage.own_bucket"}}</a></p>
+			</div>
+		{{end}}
 		{{if .Month}}<p data-testid="asc-usage-read">{{ctx.Locale.Tr "ascbyo.storage.usage.read" (ctx.Locale.TrSize .ReadSize) .Month}}</p>{{end}}
 		{{if .Computing}}
 			<p class="asc-byo-hint" role="status" data-testid="asc-usage-computing">{{ctx.Locale.Tr "ascbyo.storage.usage.computing"}}</p>
@@ -96,7 +103,8 @@
 				<label for="asc-assign-target">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_field"}}</label>
 				<select class="ds-select" id="asc-assign-target" name="target_id">
 					<option value="">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_default"}}</option>
-					{{range $a.Usable}}<option value="{{.ID}}">{{.Label}}</option>{{end}}
+					{{$cur := ""}}{{with $a.Usage}}{{$cur = .TargetID}}{{end}}
+					{{range $a.Usable}}<option value="{{.ID}}"{{if eq .ID $cur}} selected{{end}}>{{.Label}}</option>{{end}}
 				</select>
 			</div>
 			<button class="ds-btn ds-btn-primary" type="submit">{{ctx.Locale.Tr "ascbyo.storage.repo.assign_button"}}</button>

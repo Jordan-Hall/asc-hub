@@ -62,6 +62,12 @@ func loadStorage(ctx *context.Context, lvl *Level, s *svc.Service, p *Page) erro
 		p.UsageFailed = true
 	} else {
 		p.Usage = u
+		syncRepoSize(ctx, lvl.Repo, u)
+		if lvl.Repo != nil && u.OnServer() {
+			if p.Plan, err = planOf(ctx, lvl.Repo.OwnerID); err != nil {
+				log.Warn("asc byo: plan of %s: %v", lvl.Scope.Name, err)
+			}
+		}
 	}
 	// So are the search indexes.
 	si, err := s.RepoSearchIndex(ctx, lvl.Scope)

@@ -30,6 +30,26 @@ type StorageUsage struct {
 	Computing  bool
 	ReadBytes  uint64
 	Month      string // YYYY-MM, or empty when the answer's was not one
+	// TargetID is where new objects go, "" for the server's storage. HasFallback is set while objects remain in an
+	// earlier place, FallbackTargetID ("" for the server's storage), until a migration moves them.
+	TargetID         string
+	HasFallback      bool
+	FallbackTargetID string
+}
+
+// OnServer reports whether the repository keeps its objects on the server's storage alone.
+func (u *StorageUsage) OnServer() bool {
+	return u.TargetID == "" && (!u.HasFallback || u.FallbackTargetID == "")
+}
+
+// LargeFileBytes is the size of the large files, for the size formatter.
+func (u *StorageUsage) LargeFileBytes() int64 {
+	for _, k := range u.Kinds {
+		if k.Name == "large_files" {
+			return k.Size()
+		}
+	}
+	return 0
 }
 
 var monthRe = regexp.MustCompile(`^[0-9]{4}-(0[1-9]|1[0-2])$`)
@@ -56,7 +76,10 @@ func StorageUsageFrom(r *ascv1.GetRepoStorageUsageResponse) *StorageUsage {
 			got[row.GetKind()] = row
 		}
 	}
-	out := &StorageUsage{Computing: r.GetComputing(), ReadBytes: r.GetReadThisMonth()}
+	out := &StorageUsage{
+		Computing: r.GetComputing(), ReadBytes: r.GetReadThisMonth(),
+		TargetID: r.GetTargetId(), HasFallback: r.GetHasFallback(), FallbackTargetID: r.GetFallbackTargetId(),
+	}
 	if at := r.GetComputedAt(); at > 0 {
 		out.ComputedAt = timeutil.TimeStamp(at)
 	}

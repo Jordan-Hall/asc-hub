@@ -50,6 +50,7 @@ func ascByoLevel(ctx *context.Context) *byoweb.Level {
 	}
 	lvl.StorageTpl, lvl.AITpl = tplSettingsAscStorage, tplSettingsAscAI
 	lvl.Allowed = []svc.Scope{lvl.Scope}
+	lvl.Repo = repo
 
 	// The owner's targets may be used when the user administers the owner as well.
 	owner := ctx.Repo.Owner

@@ -22,6 +22,7 @@ package byoweb
 import (
 	"net/http"
 
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
@@ -48,6 +49,8 @@ type Level struct {
 	OwnerAIURL      string
 	// ScopeLabel is the name shown to people (the user name, the organisation name, "owner/repo").
 	ScopeLabel string
+	// Repo is the repository of a repository level, nil for the others.
+	Repo *repo_model.Repository
 }
 
 // Problem is what a failed action shows at the top of the page. All three strings are escaped by the
@@ -83,6 +86,9 @@ type Page struct {
 	// Usage is the repository's storage usage; UsageFailed is set when asc could not answer it.
 	Usage       *svc.StorageUsage
 	UsageFailed bool
+	// Plan is the owner's plan, for a repository on the server's storage when the hub has a quota on repository
+	// data; nil otherwise.
+	Plan *StoragePlan
 	// SearchIndex is the state of the repository's search indexes; SearchIndexFailed is set when asc could not
 	// answer it.
 	SearchIndex       *svc.SearchIndex

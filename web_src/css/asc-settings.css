@@ -557,6 +557,18 @@
   accent-color: var(--color-primary);
 }
 
+.asc-usage-plan {
+  margin-block: 12px;
+}
+
+.asc-usage-plan .asc-meter {
+  max-width: 240px;
+}
+
+.asc-usage-plan p {
+  margin-block-start: 4px;
+}
+
 .asc-index-list {
   display: grid;
   gap: 12px;
