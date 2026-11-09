@@ -74,6 +74,15 @@ func TestTheFiltersOfThePeopleDirectory(t *testing.T) {
 		}
 		_, err = e.Exec("UPDATE `user` SET keep_activity_private = ? WHERE id = 28", true)
 		require.NoError(t, err)
+		// user2 also acted three times in repo3 of org3, a public repository of a limited organization: not counted
+		_, err = e.Exec("UPDATE `user` SET visibility = ? WHERE id = 3", 1)
+		require.NoError(t, err)
+		_, err = e.Exec("UPDATE `repository` SET is_private = ? WHERE id = 3", false)
+		require.NoError(t, err)
+		for range 3 {
+			_, err = e.Exec("INSERT INTO `action` (user_id, op_type, act_user_id, repo_id, is_private, created_unix) VALUES (2, 5, 2, 3, ?, ?)", false, hourAgo.Unix())
+			require.NoError(t, err)
+		}
 		// a watcher's copy of an action of user2 does not count
 		_, err = e.Exec("INSERT INTO `action` (user_id, op_type, act_user_id, repo_id, is_private, created_unix) VALUES (4, 5, 2, 1, ?, ?)", false, hourAgo.Unix())
 		require.NoError(t, err)
