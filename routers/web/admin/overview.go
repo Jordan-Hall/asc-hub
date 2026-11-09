@@ -17,6 +17,7 @@ import (
 	"forgejo.org/models/db"
 	"forgejo.org/models/moderation"
 	system_model "forgejo.org/models/system"
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/cache"
 	"forgejo.org/modules/log"
@@ -25,6 +26,9 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/asctrust"
 	"forgejo.org/services/context"
+	"forgejo.org/services/mailer"
+
+	"google.golang.org/grpc"
 )
 
 // attentionItem is one row of "Needs attention" on the dashboard: what is wrong, where to go.
@@ -105,6 +109,11 @@ func dashboardFacts(ctx *context.Context) {
 		}
 	}
 
+	system = append(system, mailRow(ctx, mailer.QueueStatus(), time.Now()))
+	if row, ok := storageRow(ctx); ok {
+		system = append(system, row)
+	}
+
 	if setting.Moderation.Enabled {
 		if reports, err := moderation.GetOpenReports(ctx); err == nil && len(reports) > 0 {
 			ctx.Data["OpenReports"] = len(reports)
@@ -128,24 +137,88 @@ func dashboardFacts(ctx *context.Context) {
 	ctx.Data["SystemRows"] = system
 }
 
+// dashboardAscCall opens a call to asc serve as the site administrator for one figure of the dashboard, when asc is
+// on and has feature. The call gives up after three seconds: the dashboard does not wait for asc.
+func dashboardAscCall(ctx *context.Context, feature string) (grpc.ClientConnInterface, gocontext.Context, func(), bool) {
+	if !setting.Asc.Enabled || ctx.Doer == nil || !ctx.Doer.IsAdmin || !asctrust.HasFeature(ctx, feature) {
+		return nil, nil, nil, false
+	}
+	conn, err := asctrust.Conn()
+	if err != nil {
+		return nil, nil, nil, false
+	}
+	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallInstance, nil)
+	if err != nil {
+		return nil, nil, nil, false
+	}
+	callCtx, cancel := gocontext.WithTimeout(callCtx, 3*time.Second)
+	return conn, callCtx, func() { cancel(); release() }, true
+}
+
+// storageRow is the "Object storage" row of the System card: what asc serve stores for the whole server this month
+// against the server's limit. There is no row when asc is off or has no usage figures.
+func storageRow(ctx *context.Context) (statusRow, bool) {
+	conn, callCtx, done, ok := dashboardAscCall(ctx, asctrust.FeatureUsage)
+	if !ok {
+		return statusRow{}, false
+	}
+	defer done()
+	name := ctx.Tr("asc_admin.sys_storage")
+	u, err := asctrust.LoadUsage(callCtx, conn, &ascv1.OwnerRef{Kind: ascv1.OwnerKind_OWNER_KIND_INSTANCE}, "")
+	if err != nil {
+		log.Debug("dashboard: storage usage: %v", err)
+		return statusRow{name, ctx.Tr("asc_admin.sys_storage_unread"), "warn", ctx.Tr("asc_admin.state_degraded")}, true
+	}
+	m := u.Storage
+	switch {
+	case m.Over:
+		return statusRow{name, ctx.Tr("asc_admin.sys_storage_of", m.UsedText(), m.LimitText()), "err", ctx.Tr("asc_admin.state_full")}, true
+	case m.Limit > 0 && m.Used >= m.Limit/10*9:
+		return statusRow{name, ctx.Tr("asc_admin.sys_storage_of", m.UsedText(), m.LimitText()), "warn", ctx.Tr("asc_admin.state_nearly_full")}, true
+	case m.Limit > 0:
+		return statusRow{name, ctx.Tr("asc_admin.sys_storage_of", m.UsedText(), m.LimitText()), "ok", ctx.Tr("asc_admin.state_healthy")}, true
+	}
+	return statusRow{name, ctx.Tr("asc_admin.sys_storage_used", m.UsedText()), "ok", ctx.Tr("asc_admin.state_healthy")}, true
+}
+
+// mailWaitWarn is how long the oldest mail may wait before the Mail row warns.
+const mailWaitWarn = 5 * time.Minute
+
+// mailRow is the "Mail" row of the System card: the outgoing mail queue, how long its oldest mail has waited, and
+// whether sending fails.
+func mailRow(ctx *context.Context, q mailer.QueueState, now time.Time) statusRow {
+	name := ctx.Tr("asc_admin.sys_mail")
+	if !q.Enabled {
+		return statusRow{name, ctx.Tr("asc_admin.sys_mail_off"), "warn", ctx.Tr("asc_admin.state_none")}
+	}
+	age := ""
+	if !q.Oldest.IsZero() {
+		age = now.Sub(q.Oldest).Round(time.Second).String()
+	}
+	switch {
+	case q.Failing() && q.Waiting > 0:
+		return statusRow{name, ctx.Tr("asc_admin.sys_mail_failing_waiting", q.Waiting), "err", ctx.Tr("asc_admin.state_down")}
+	case q.Failing():
+		return statusRow{name, ctx.Tr("asc_admin.sys_mail_failing"), "err", ctx.Tr("asc_admin.state_down")}
+	case q.Waiting > 0 && age != "" && now.Sub(q.Oldest) > mailWaitWarn:
+		return statusRow{name, ctx.Tr("asc_admin.sys_mail_waiting_age", q.Waiting, age), "warn", ctx.Tr("asc_admin.state_degraded")}
+	case q.Waiting > 0 && age != "":
+		return statusRow{name, ctx.Tr("asc_admin.sys_mail_waiting_age", q.Waiting, age), "ok", ctx.Tr("asc_admin.state_busy")}
+	case q.Waiting > 0:
+		return statusRow{name, ctx.Tr("asc_admin.sys_mail_waiting", q.Waiting), "ok", ctx.Tr("asc_admin.state_busy")}
+	}
+	return statusRow{name, ctx.Tr("asc_admin.sys_mail_empty"), "ok", ctx.Tr("asc_admin.state_healthy")}
+}
+
 // backupAttention asks asc serve how its scheduled backups are doing and returns a row when they are overdue or the
 // last one failed. The row offers "Back up now" unless a backup is already running. When asc is off, has no backups,
 // or does not answer within a few seconds, there is no row: the Backups page shows the problem.
 func backupAttention(ctx *context.Context) (attentionItem, bool) {
-	if !setting.Asc.Enabled || ctx.Doer == nil || !ctx.Doer.IsAdmin || !asctrust.HasFeature(ctx, asctrust.FeatureBackups) {
+	conn, callCtx, done, ok := dashboardAscCall(ctx, asctrust.FeatureBackups)
+	if !ok {
 		return attentionItem{}, false
 	}
-	conn, err := asctrust.Conn()
-	if err != nil {
-		return attentionItem{}, false
-	}
-	callCtx, release, err := asctrust.UserCall(ctx, ctx.Doer, asctrust.CallInstance, nil)
-	if err != nil {
-		return attentionItem{}, false
-	}
-	defer release()
-	callCtx, cancel := gocontext.WithTimeout(callCtx, 3*time.Second)
-	defer cancel()
+	defer done()
 	st, err := asctrust.BackupHealth(callCtx, conn)
 	if err != nil {
 		log.Debug("dashboard: backup status: %v", err)
