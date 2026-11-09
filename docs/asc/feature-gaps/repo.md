@@ -385,7 +385,7 @@ Size: S = under a day, M = one to three days, L = more than three days.
 | RepoSettingsStorage | Test connection with four steps (reachable, can write, can read, versioning on) and AccessDenied explanation naming the needed permissions | done | `VerifyStorageTarget` reports resolve, connect (TLS, with its time), put, get, delete and an advisory `versioning` step (a signed `GET ?versioning`; off or suspended is a warning, never a failure), and a refused step names the permission in `needs` (`s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, `s3:GetBucketVersioning`) in `A:crates/asc-serve/src/storage/live.rs`; the hub shows the warning and `storage.detail.needs` in `templates/shared/asc/byo_storage_target.tmpl`, keeping only the permissions it knows (`services/ascbyo/storage.go`); tests in `services/ascbyo/service_test.go` and `routers/web/shared/byoweb/byoweb_test.go` | M |
 | RepoSettingsStorage | Usage: 38.2 GB split into changes, large files, search indexes plus objects and "read this month" | done | `A:proto/asc/v1/storage.proto` `Storage.GetRepoUsage` (last scan by kind, bytes read this month; scanned in the background, `A:crates/asc-serve/src/storage/usage.rs`); `H:services/ascbyo/storage_usage.go`, the Usage card of `H:templates/shared/asc/byo_storage_repo.tmpl` with Count again (`POST .../asc/storage/usage/refresh`); tests in `services/ascbyo/service_test.go` and `routers/web/shared/byoweb/byoweb_test.go` | M |
 | RepoSettingsStorage | Moving data: 64% progress, Pause, Cancel and keep current | needs-both | `StartMigration/GetMigration/CancelMigration` exist; no Pause RPC; hub progress UI | M |
-| RepoSettingsStorage | Managed storage selected: "38.2 GB of 100 GB on your plan", Use my own bucket | needs-both | plan quota from `H:models/quota`; usage as above | M |
+| RepoSettingsStorage | Managed storage selected: "38.2 GB of 100 GB on your plan", Use my own bucket | done | asc part: `GetRepoStorageUsageResponse` names where new objects go (`target_id`, `has_fallback`, `fallback_target_id`), which only asc knows; hub part: the owner's quota on repository data (`H:models/quota/limit.go` `AllowanceFor`), shown with a meter and Use my own bucket in the usage card when the repository is on the server's storage (`H:routers/web/shared/byoweb/plan.go`); asc's count is recorded as the repository size so the quota counts it; the target in use is selected in Where new objects go; `TestRepoStoragePlan`, `TestAllowanceFor`, `TestRepoStorageAssignShowsTheCurrentTarget` | M |
 | RepoSettingsStorage | Local-option and http refused message | done | `H:services/ascbyo/validate.go` | S |
 | RepoSettingsStorage | Bucket settings changed bar with Discard / Save and test | done | `H:templates/shared/asc/byo_storage_target.tmpl` savebar; `StorageUpdate` saves a changed target, tests it and shows both results | S |
 | RepoSettingsStorage | Meaning-search index enabling link ("An admin can enable the index in storage settings") | done | hub only, re-judged: the Search indexes card of `H:templates/shared/asc/byo_storage_repo.tmpl` reads `CodeIntel.IndexStatus` (`H:services/ascbyo/searchindex.go`): text and meaning coverage, the embedding model and the lag; the meaning index is on when the asc server has an embedding model and the repository has not switched meaning search off (link to the settings); a refused meaning search says "An admin can enable the index in storage settings" and links admins there; `TestRepoStorageSearchIndexes`, `TestSearchIndexOf`, `TestAscSearchMeaningIndexOff` | M |
@@ -409,12 +409,12 @@ Total rows: 263.
 
 | Status | Rows |
 | --- | --- |
-| done | 254 |
+| done | 255 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 9 |
+| needs-both | 8 |
 | total | 263 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -443,7 +443,7 @@ Audit of 2026-10-30: the counts above were recomputed from the table rows (the e
 | RepoSettingsWebhooks | 10 | 0 | 0 | 0 | 0 |
 | RepoSettingsSecrets | 6 | 0 | 0 | 1 | 2 |
 | RepoSettingsAI | 6 | 0 | 0 | 0 | 0 |
-| RepoSettingsStorage | 5 | 0 | 0 | 1 | 2 |
+| RepoSettingsStorage | 6 | 0 | 0 | 1 | 1 |
 | Mobile-Repo | 1 | 0 | 0 | 0 | 0 |
 | Mobile-Code | 1 | 0 | 0 | 0 | 0 |
 | Mobile-History | 1 | 0 | 0 | 0 | 0 |

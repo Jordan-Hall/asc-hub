@@ -785,3 +785,21 @@ on for this repository yet. An admin can enable the index in storage settings.",
 repository admins, **Open storage**. Code: `services/ascbyo/searchindex.go`, `routers/web/shared/byoweb/storage.go`,
 `templates/shared/asc/byo_storage_repo.tmpl`, `templates/repo/asc_search.tmpl`. Tests: TestSearchIndexOf,
 TestRepoStorageSearchIndexes, TestAscSearchMeaningIndexOff.
+
+## The plan on the storage page
+
+When quotas are on (`[quota] ENABLED = true`) and an asc repository keeps its objects on the server's storage, the
+**Usage** card of its storage page shows how much of the owner's plan is used, for example "38.2 GB of 100 GB on
+your plan", with a meter (amber from 80%, red when full) and **Use my own bucket**, which goes to the target select,
+or to Add a target when the repository has none it may use. The plan is the hub's quota: the limit on repository data
+(`size:git:all`, or a rule on `size:all` that contains it) of the owner's quota groups, the group that leaves the
+most room, or `[quota.default] TOTAL` when the owner is in no group. Without a limit, or with quotas off, there is no
+plan line.
+
+asc says where the repository keeps its objects (the server's storage or a target, and an earlier place objects
+are still in until a migration moves them) and how much it keeps. Each time the page is shown, the hub records asc's
+last count as the repository's size, large files apart, so the quota counts an asc repository like a git one; a
+repository whose objects are all on its own bucket counts as nothing, and while objects are moving the size is left
+as it is. The target in use is selected in **Where new objects go**. Code: `models/quota/limit.go`,
+`routers/web/shared/byoweb/plan.go`, `templates/shared/asc/byo_storage_repo.tmpl`. Tests: TestAllowanceFor,
+TestRepoStoragePlan, TestRepoStorageAssignShowsTheCurrentTarget.
