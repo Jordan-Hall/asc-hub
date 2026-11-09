@@ -35,6 +35,10 @@ func TestChangeFactsRender(t *testing.T) {
 		ctx.Data["ChangeWhere"] = &changeWhere{OnDefault: true, Branch: "main", Tags: []string{"v2.18.0"}}
 		ctx.Data["ChangeChecks"] = []*changeCheck{{Name: "build", State: "success", Tone: "ok"}, {Name: "lint", State: "failure", Tone: "err", Target: "https://ci.example.org/lint"}}
 		ctx.Data["ChangeRevertLink"] = "/user2/repo1/pulls/2/asc/revert"
+		ctx.Data["ChangeBrief"] = &changeBrief{
+			Where:     []AscBriefWhere{{Path: "src/a.go", Line: 7, Note: "the <b>cap</b>", Link: "/user2/repo1/src/commit/abc/src/a.go#L7"}},
+			RiskLevel: "high", RiskNote: "Could stampede.", RiskReasons: []string{"touches retries"},
+		}
 		ctx.Data["AscChangeFiles"] = ascChangeFilesOf(diffOf("src/a.go", "go.sum"), map[string]ascv1.ChangeClass{"go.sum": ascv1.ChangeClass_CHANGE_CLASS_LOCKFILE}, false, "/user2/repo1/commit/abc")
 		ctx.HTML(http.StatusOK, base.TplName(tpl))
 		body := resp.Body.String()
@@ -52,6 +56,16 @@ func TestChangeFactsRender(t *testing.T) {
 	assert.NotContains(t, body, `data-group="generated" open`, "generated files start folded")
 	assert.Contains(t, body, `data-group="behaviour" open`)
 	assert.NotContains(t, body, "change-large")
+	assert.Contains(t, body, `data-testid="change-fact-risk"`)
+	assert.Contains(t, body, "asc_rp.risk_word_high")
+	assert.Contains(t, body, `data-testid="change-brief"`)
+	assert.Contains(t, body, "asc_rp.where_to_look")
+	assert.Contains(t, body, `href="/user2/repo1/src/commit/abc/src/a.go#L7"`)
+	assert.Contains(t, body, "src/a.go:7")
+	assert.Contains(t, body, "the &lt;b&gt;cap&lt;/b&gt;")
+	assert.Contains(t, body, "ds-chip-err")
+	assert.Contains(t, body, "Could stampede.")
+	assert.Contains(t, body, "touches retries")
 
 	// the right rail: review, checks, where it is now and undo
 	rail := render("repo/change_rail")
