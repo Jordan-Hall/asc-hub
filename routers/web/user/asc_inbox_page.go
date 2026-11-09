@@ -472,6 +472,10 @@ func AscInboxRows(ctx *context.Context) {
 		ctx.ServerError("ascInboxBuild", err)
 		return
 	}
+	// the open page keeps the row it shows: a row that comes in is never the chosen one
+	for i := range page.Rows {
+		page.Rows[i].Selected = false
+	}
 	ctx.Data["AscInbox"] = page
 	ctx.HTML(http.StatusOK, tplAscInboxLive)
 }
