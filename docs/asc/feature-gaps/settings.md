@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 155 |
+| done | 156 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 18 |
+| needs-both | 17 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -114,7 +114,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsStorage | Verify handshake: five steps with latency, failure message in words | done | byo_storage_target.tmpl (checks from Storage.VerifyTarget) | - |
 | UserSettingsStorage | Per repository assignment ("where new objects go") | done | byoweb StorageAssign, byo_storage_repo.tmpl | - |
 | UserSettingsStorage | Migration progress (copied/total) and cancel | done | byoweb MigrationStart/Cancel/Status, web_src/js/features/asc-byo.js | - |
-| UserSettingsStorage | Migration Pause/resume, bytes and ETA, mismatch count, paused state | needs-both | asc: proto/asc/v1/storage.proto has no pause RPC, no bytes_total, no mismatch counter; hub: byo_storage_repo.tmpl + asc-byo.js | M |
+| UserSettingsStorage | Migration Pause/resume, bytes and ETA, mismatch count, paused state | done | asc: `Storage.PauseMigration`/`ResumeMigration`, `StorageMigration.paused`, `bytes_total`, `mismatched` (A:crates/asc-serve/src/storage/migrate.rs); hub: Pause, Resume, bytes moved, time left (estimated in the hub from the pace), redone copies in byo_storage_repo.tmpl, asc-byo.js; TestMigrationETA, TestRepoStorageMigrationBytesAndETA | M |
 | UserSettingsStorage | Card text "Used by N repositories - verified 2 days ago" | done | byo_storage_cards.tmpl (where, used by N repositories, verified when, state chip); services/ascbyo/view.go Location, RepoCount, ChipClass | S |
 | UserSettingsAI | Key list with provider, hint, model, tested time, spend meter, Test/Details; add form; state chips | done | routers/web/shared/byoweb/aikeys.go, templates/shared/asc/byo_ai*.tmpl | - |
 | UserSettingsAI | Test connection result with latency (ms), polite live region | done | byo_ai_key.tmpl, AITest | - |
