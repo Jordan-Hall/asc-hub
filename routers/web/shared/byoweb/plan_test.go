@@ -100,6 +100,14 @@ func TestRepoStoragePlan(t *testing.T) {
 		assert.Equal(t, int64(6), got.LFSSize)
 	})
 
+	t.Run("a repository admin who does not administer the owner: no plan", func(t *testing.T) {
+		other := repoLevel(t, false)
+		other.Repo = repo
+		f.RepoUsage = counted("", nil)
+		body := run(t, StorageIndex, other, http.MethodGet, nil, "").body()
+		assert.NotContains(t, body, `data-testid="asc-usage-plan"`, "the plan counts every repository of the owner")
+	})
+
 	t.Run("quotas off: no plan", func(t *testing.T) {
 		defer test.MockVariableValue(&setting.Quota.Enabled, false)()
 		f.RepoUsage = counted("", nil)

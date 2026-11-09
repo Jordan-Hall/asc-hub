@@ -88,6 +88,7 @@ func repoLevel(t *testing.T, withOwner bool) *Level {
 	if withOwner {
 		l.Allowed = append(l.Allowed, mustScope(t, svc.KindUser, "alice"))
 		l.OwnerStorageURL = "/user/settings/asc/storage"
+		l.OwnerAdmin = true
 	}
 	return l
 }
