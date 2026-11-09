@@ -40,7 +40,7 @@ func TestAscHealthSteps(t *testing.T) {
 	for _, c := range healthChecks() {
 		ids = append(ids, c.ID)
 	}
-	assert.Equal(t, []string{"database", "collation", "cache", "runners", "notices"}, ids)
+	assert.Equal(t, []string{"database", "collation", "cache", "disk", "mail", "tls", "clock", "objectstore", "signingkey", "runners", "notices"}, ids)
 
 	t.Run("the page draws every step that applies, ready to run again", func(t *testing.T) {
 		code, body, _ := runHealth(t, "/admin/self_check", "", SelfCheck)
