@@ -542,8 +542,8 @@ The version page then says one of these under the title:
 - **Published from owner/repo at commit**: the run was deleted, or the person cannot read Actions.
 
 With asc on, the line also shows **Signed with release key** when the repository has a published release tagged with
-the version (for example `1.2.0` or `v1.2.0`), the release's tag is the commit the version was published from, and
-asc checked the release's signature as valid. The chip links to the release and its hover names who signed it and the
+the version (for example `1.2.0` or `v1.2.0`), asc cut that release from the commit the version was published from
+(asc's record of the release, not the git tag, which can be moved), and asc checked the release's signature as valid. The chip links to the release and its hover names who signed it and the
 key. It is shown only to people who can read the releases of the repository. A draft release, a release at another
 commit or a signature that is not valid gives no chip.
 
