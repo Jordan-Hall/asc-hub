@@ -260,3 +260,57 @@ export async function initAscInboxBadge() {
     // the badge is a convenience: stay quiet when the request fails
   }
 }
+
+const agentsKey = 'asc-agents-count';
+const agentsMaxAgeMs = 30 * 1000;
+
+// The words of the pill for n runs: data-word-one for one, data-word-other for more, with {n} for the number.
+export function agentsPillText(pill, n) {
+  const words = (n === 1 ? pill.getAttribute('data-word-one') : pill.getAttribute('data-word-other')) || '{n}';
+  return words.replace('{n}', String(n));
+}
+
+// Shows the "N agents running" pill of the header and the phone top bar while the person has an active agent
+// run. The count is kept for 30 seconds in the session storage, like the inbox count; any failure keeps it hidden.
+export async function initAscAgentsPill() {
+  const pills = Array.from(document.querySelectorAll('[data-asc-agents-url]'));
+  const url = pills[0]?.getAttribute('data-asc-agents-url');
+  if (!url) return;
+  const show = (n) => {
+    for (const pill of pills) {
+      if (!Number.isInteger(n) || n <= 0) {
+        pill.classList.add('tw-hidden');
+        continue;
+      }
+      const text = agentsPillText(pill, n);
+      const num = pill.querySelector('[data-asc-agents-n]');
+      if (num) num.textContent = String(n);
+      const word = pill.querySelector('[data-asc-agents-text]');
+      if (word) word.textContent = text;
+      pill.setAttribute('aria-label', text);
+      pill.classList.remove('tw-hidden');
+    }
+  };
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(agentsKey) || 'null');
+    if (cached && Date.now() - cached.at < agentsMaxAgeMs) {
+      show(cached.n);
+      return;
+    }
+  } catch {
+    // no storage: ask the server
+  }
+  try {
+    const res = await GET(url, {cache: 'no-store'});
+    if (!res.ok) return;
+    const data = await res.json();
+    show(data.count);
+    try {
+      sessionStorage.setItem(agentsKey, JSON.stringify({at: Date.now(), n: data.count}));
+    } catch {
+      // storage is full or blocked
+    }
+  } catch {
+    // the pill is a convenience: stay quiet when the request fails
+  }
+}

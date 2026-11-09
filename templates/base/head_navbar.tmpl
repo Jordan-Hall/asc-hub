@@ -82,6 +82,8 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 				{{end}}
 
 				{{if AscEnabled}}
+				{{/* the person's agent runs, filled in by asc-keys.js (initAscAgentsPill); hidden while there are none */}}
+				<a class="ds-agents-pill{{if .PageIsAscAgents}} is-active{{end}} tw-hidden" href="{{AppSubUrl}}/-/asc/agents" data-asc-agents-url="{{AppSubUrl}}/-/asc/agents/count" data-word-one="{{ctx.Locale.Tr "asc_shell.agents_running_one"}}" data-word-other="{{ctx.Locale.Tr "asc_shell.agents_running_n"}}" data-testid="hdr-agents"{{if .PageIsAscAgents}} aria-current="page"{{end}}><span class="ds-agents-dot" aria-hidden="true"></span><span data-asc-agents-n></span><span class="ds-agents-word" data-asc-agents-text></span></a>
 				<a class="ds-hdr-link{{if .PageIsAscInbox}} is-active{{end}}" href="{{$inboxHref}}"{{if .PageIsAscInbox}} aria-current="page"{{end}} data-asc-inbox-link>
 					<span>{{ctx.Locale.Tr "user.asc_inbox"}}</span>
 					<span class="ds-count ds-count-hot tw-hidden" data-asc-count-url="{{AppSubUrl}}/-/asc/inbox/count" data-asc-count></span>
@@ -120,6 +122,7 @@ The script in web_src/js/features/ds-shell.js opens and closes the overlays: ele
 		</a>
 		<span class="ds-topbar-sp"></span>
 		{{if .IsSigned}}
+			{{if AscEnabled}}<a class="ds-agents-pill{{if .PageIsAscAgents}} is-active{{end}} tw-hidden" href="{{AppSubUrl}}/-/asc/agents" data-asc-agents-url="{{AppSubUrl}}/-/asc/agents/count" data-word-one="{{ctx.Locale.Tr "asc_shell.agents_running_one"}}" data-word-other="{{ctx.Locale.Tr "asc_shell.agents_running_n"}}" data-testid="topbar-agents"{{if .PageIsAscAgents}} aria-current="page"{{end}}><span class="ds-agents-dot" aria-hidden="true"></span><span data-asc-agents-n></span><span class="ds-agents-word" data-asc-agents-text></span></a>{{end}}
 			{{if not .HideNavbarLinks}}
 			<a class="ds-ti" href="{{$exploreHref}}" data-ds-open="ds-palette" aria-haspopup="dialog" aria-controls="ds-palette" aria-label="{{ctx.Locale.Tr "asc_shell.search_label"}}">{{svg "dsi-search" 20}}</a>
 			{{end}}

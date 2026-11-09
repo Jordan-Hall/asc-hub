@@ -14,10 +14,12 @@ import (
 // registerAscAgentsUserRoutes registers the person-level agent pages (PLAN unit H5).
 //
 //	GET  /-/asc/agents            the agent features switch, the person's runs, their repositories
+//	GET  /-/asc/agents/count      the person's active runs, for the header pill
 //	POST /-/asc/agents/features   turn the switch on or off
 //	GET  /-/asc/changeset/new     "New changeset" of the Create menu: the repositories the person can write
 func registerAscAgentsUserRoutes(m *web.Route, reqSignIn any) {
 	m.Get("/-/asc/agents", reqSignIn, user.AscAgentsHome)
+	m.Get("/-/asc/agents/count", reqSignIn, user.AscAgentsCount)
 	m.Get("/-/asc/changeset/new", reqSignIn, user.AscChangesetNew)
 	m.Post("/-/asc/agents/features", reqSignIn, user.AscAgentsFeaturesPost)
 }

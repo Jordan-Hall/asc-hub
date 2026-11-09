@@ -2660,3 +2660,64 @@ body.ds-lock {
   align-items: center;
   min-height: 32px;
 }
+
+/* the "N agents running" pill of the header and the phone top bar (board Shell): a cyan dot, the count and, on
+   a wide header, the words; asc-keys.js shows it only while the person has a run that is active */
+.ds-agents-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgb(34 211 238 / 35%);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ds-agents-pill:hover,
+.ds-agents-pill.is-active {
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.ds-agents-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ds-agents-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.ds-agents-pill [data-asc-agents-n] {
+  display: none;
+}
+
+.ds-topbar .ds-agents-pill {
+  min-height: 32px;
+  padding: 0 8px;
+}
+
+.ds-topbar .ds-agents-pill [data-asc-agents-n] {
+  display: inline;
+}
+
+.ds-topbar .ds-agents-word {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ds-agents-dot {
+    animation: ds-agents-pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes ds-agents-pulse {
+  50% { opacity: 0.45; }
+}
