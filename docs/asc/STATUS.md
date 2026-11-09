@@ -1053,19 +1053,19 @@ Board copy not found word for word in locale, templates or scripts: People and a
 
 #### IssueView (ASC Hub issue)
 
-Area repo. Rows 5: done 2, partial 0, missing 3. Copy found in the hub: 69% of 54 copy strings (mobile twin 69%). Template(s): view.tmpl, view_content.tmpl, view_title.tmpl. Mobile twin: yes.
+Area repo. Rows 5: done 3, partial 0, missing 2. Copy found in the hub: 69% of 54 copy strings (mobile twin 69%). Template(s): view.tmpl, view_content.tmpl, view_title.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Retries stampede the provider after an outage; Agreed. Keep the ceiling in config and add a metric for exhausted retries so we...; Leave a comment. Markdown works; type @ to mention a person or an agent.; Due Nov 14; Linked stacks.
 
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Timeline, comment box, close/reopen, assignees, labels, milestone, participants, lock | done | templates/repo/issue/view_content.tmpl:10 (best match) | - |
-| Agent chip on comments and assignees; agents cannot approve or merge | missing (hub+asc) | logged as not built (not re-probed) | asc agent identity surfaced to hub users (no agent principal in hub models/user); view_content/show_role.tmpl |
+| Agent chip on comments and assignees; agents cannot approve or merge | done | templates/shared/user/authorlink.tmpl, templates/repo/issue/view_content/sidebar/assignees.tmpl, models/issues/review.go (ErrAgentMayNotApprove), services/pull/merge.go (IsUserAllowedToMerge) | - |
 | Linked stacks rail ("1 of 4 landed") and timeline event "coder-2 opened stack" | missing (hub) | logged as not built (not re-probed) | same link table; templates/repo/issue/view_content/sidebar, comments.tmpl |
 | Closed by a landed stack banner with Reopen | missing (hub) | logged as not built (not re-probed) | view_content.tmpl + close reason on the issue |
 | Comment draft kept; Cmd+Enter posts | done | templates/repo/issue/view_content.tmpl:23 (best match) | - |
 | Board note: Comment box keeps a draft; Cmd+Enter posts | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Agent comments carry an Agent chip and cannot approve or merge | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Agent comments carry an Agent chip and cannot approve or merge | done | TestAuthorLinkMarksAgents, TestAssigneesMarkAgents, TestSubmitReviewRefusesAnAgentApproval, TestAnAgentIsNotAllowedToMerge | - |
 | Board note: Linked stack shows the rail; landing closes the issue with an undo | unverified | not tracked in the gap files | needs a row and a test |
 | Board note: Open issue with discussion, agent comment, linked stack event; closed by stack; locked; l... | unverified | not tracked in the gap files | needs a row and a test |
 

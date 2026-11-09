@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 171 |
+| done | 172 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 2 |
+| needs-both | 1 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -209,7 +209,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | Issues | New issue as a dialog that keeps a draft ("Save as draft") | done | repo/issue/new_dialog.tmpl on the issue list (repo-issue-dialog.js); title and body kept as a server draft (POST issues/new/draft) shared with the new issue page; Save as draft, Discard, Open full form | M |
 | Issues | No results with "Clear filters", loading skeleton | done | shared/issuelist.tmpl empty state with Clear filters; issue-list-loading.js puts skeleton rows (aria-busy, a status for screen readers) in place of the list while a filter, a state chip, a rail label or the search loads the page; issue-list-loading.test.js, tests/integration/issue_list_filters_test.go TestIssueListNoResults | - |
 | IssueView | Timeline, comment box, close/reopen, assignees, labels, milestone, participants, lock | done | templates/repo/issue/view*.tmpl | - |
-| IssueView | Agent chip on comments and assignees; agents cannot approve or merge | needs-both | asc agent identity surfaced to hub users (no agent principal in hub models/user); view_content/show_role.tmpl | M |
+| IssueView | Agent chip on comments and assignees; agents cannot approve or merge | done | Hub only: an agent is its bot account (agent-<name>, `User.IsAscAgent`). The author link draws the Agent chip on comments, reviews and the timeline; the assignees sidebar and its picker draw it too. `issues_model.SubmitReview` refuses an approval by an agent (web: flash `repo.issues.review.agent.approval`; API: 422) and `pull_service.IsUserAllowedToMerge` is false for an agent, so the merge box, the API merge, auto-merge and stack merges refuse it; comments and change requests stay allowed. Tests TestIsAscAgent, TestSubmitReviewRefusesAnAgentApproval, TestAnAgentIsNotAllowedToMerge, TestAssigneesMarkAgents, TestAuthorLinkMarksAgents | - |
 | IssueView | Linked stacks rail ("1 of 4 landed") and timeline event "coder-2 opened stack" | done | Linked stacks card in the sidebar of an issue (`templates/repo/issue/view_content/sidebar.tmpl`): the stacks that name the issue with "1 of 4 landed", each entry with its state, and a note when the stack closes the issue. `services/pull/asc_issue_stacks.go`: no table; the link is read from the reference comments that a pull request leaves on the issue it names, so it follows the pull request's text; a stack counts once however many of its pull requests name the issue; the state is the stack panel's (open, landed, closed). The timeline already carries the reference events; tests: TestStacksNamingAnIssue  | - |
 | IssueView | Closed by a landed stack banner with Reopen | done | Banner above the timeline of a closed issue that a landed stack fixed (`AscClosingStackLanded`: the issue is closed, a pull request of a stack names it with a closing word, and that pull request has merged), with a link to the Reopen button of the comment form (`templates/repo/issue/view_content.tmpl`); tests: TestStacksNamingAnIssue  | - |
 | IssueView | Comment draft kept; Cmd+Enter posts | done | ComboMarkdownEditor.js has Ctrl+Enter but no draft store | S |
