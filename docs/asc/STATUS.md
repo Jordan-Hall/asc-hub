@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 242, partial 15, missing 60. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 243, partial 14, missing 60. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -644,7 +644,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Profile (ASC Hub profile)
 
-Area shell/settings. Rows 13: done 7, partial 1, missing 5. Copy found in the hub: 58% of 73 copy strings (mobile twin 56%). Template(s): asc_agents.tmpl, asc_heatmap.tmpl, header.tmpl, profile.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 13: done 8, partial 0, missing 5. Copy found in the hub: 58% of 73 copy strings (mobile twin 56%). Template(s): asc_agents.tmpl, asc_heatmap.tmpl, header.tmpl, profile.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; Online, local time 14:20; Draft: provider failover table; Fix clock skew in token expiry; Customer dashboard and checkout. Cursor pagination for every list..
 
@@ -657,7 +657,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | templates/user/overview/header.tmpl (file) | - |
 | Working-now list (stack, draft, ready) | done | templates/user/profile.tmpl (file) | - |
 | Pinned repositories (up to six) with Customize dialog and drag reorder | done | templates/user/settings/pins_form.tmpl, web_src/js/features/asc-pins.js, routers/web/user/asc_profile_tabs.go `ascPinRows` | Cards show stacks and changes; drag the cards, or Customize in a dialog with Move up and Move down (TestAscProfilePins) |
-| Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for ag... | partial (hub+asc) | logged as not built (not re-probed) | One-colour grid exists (asc_heatmap.tmpl) with a text total. Agent attribution needs asc (changeset author kind via changes.proto... |
+| Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for ag... | done | routers/web/user/asc_profile_contrib.go, templates/user/asc_heatmap.tmpl | Hub only: agent days from pull_request_asc_run, reviews and median turnaround from review rows (TestAscProfileContributions) |
 | "Agents Priya runs" with New agent | done | routers/web/user/asc_profile_agents.go `ascProfileAgents`, templates/user/profile.tmpl | Runs the person created, at most five, New agent on one's own profile (TestTheProfileHasTheAgentsThePersonRuns) |
 | Recent activity | done | templates/user/profile.tmpl:76 | - |
 | "Knows best" (path share of changes and reviews, six months) | missing (hub+asc) | logged as not built (not re-probed) | No code. Aggregate asc LastCommits / blame data per user: new RPC or hub job |

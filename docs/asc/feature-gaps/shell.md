@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 193 |
+| done | 194 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 2 |
+| needs-both | 1 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 14, L 3.
+Open rows by size: S 0, M 14, L 2.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -273,7 +273,7 @@ Open rows by size: S 0, M 14, L 3.
 | Profile | Tabs Overview, Work (11), Reviews (34), Repositories (9), Activity | done | Tabs today: Overview, Repositories, Projects, Packages, Code, Activity, Stars (`overview/header.tmpl`). Add Work (`ascProfileWork`) and Reviews with counts | M |
 | Profile | Working-now list (stack, draft, ready) | done | `profile.tmpl`, `ascProfileWork` | - |
 | Profile | Pinned repositories (up to six) with Customize dialog and drag reorder | done | Cards show stacks and changes; the owner drags cards (saved at once) or opens Customize as a dialog with Move up and Move down and an announced position (`templates/user/settings/pins_form.tmpl`, `asc-pins.js`, `POST /user/settings/pins` with `inline=1` answers 204; `TestAscPinSettingsPostInline`, `TestAscProfilePins`, `asc-pins.test.js`) | M |
-| Profile | Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for agent-authored changes, cell opens the day, table alternative | needs-both | One-colour grid exists (`asc_heatmap.tmpl`) with a text total. Agent attribution needs asc (changeset author kind via `changes.proto`); turnaround from review timestamps | L |
+| Profile | Contributions: year switch, summary (changes, reviews, median turnaround), violet cells for agent-authored changes, cell opens the day, table alternative | done | Hub only, re-judged 2026-11-09: agent changes are the pull requests of agent runs the person started (`pull_request_asc_run.started_by`), reviews and turnaround come from the hub's review rows. `routers/web/user/asc_profile_contrib.go`, `templates/user/asc_heatmap.tmpl`; OPERATIONS.md "Contributions on a profile" (TestAscContribCounts, TestAscProfileContributions) | L |
 | Profile | "Agents Priya runs" with New agent | done | routers/web/user/asc_profile_agents.go `ascProfileAgents`, templates/user/profile.tmpl `data-asc-pf-agents`; asc SummarizeAgents `created_by` (TestTheProfileHasTheAgentsThePersonRuns) | - |
 | Profile | Recent activity | done | `profile.tmpl` feed | - |
 | Profile | "Knows best" (path share of changes and reviews, six months) | needs-both | No code. Aggregate asc `LastCommits` / blame data per user: new RPC or hub job | L |
