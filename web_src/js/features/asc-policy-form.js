@@ -29,6 +29,7 @@ export function addChips(field) {
     box.type = 'checkbox';
     box.name = name;
     box.value = entry;
+    box.defaultChecked = true; // the checked attribute, as on the chips the server renders
     box.checked = true;
     const text = document.createElement('span');
     text.className = 'ds-mono';
