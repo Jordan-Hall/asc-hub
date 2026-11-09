@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/log"
 	repo_module "forgejo.org/modules/repository"
 	"forgejo.org/modules/setting"
+	"forgejo.org/services/ascagentui"
 	"forgejo.org/services/context"
 	"forgejo.org/services/mailer"
 	org_service "forgejo.org/services/org"
@@ -218,10 +219,21 @@ func ascRoleName(ctx *context.Context, role string) string {
 
 // DeleteCollaboration delete a collaboration for a repository
 func DeleteCollaboration(ctx *context.Context) {
+	// an agent's runs on the repository stop when it is removed; the pull requests it opened stay open
+	removed, _ := user_model.GetUserByID(ctx, ctx.FormInt64("id"))
 	if err := repo_module.DeleteCollaboration(ctx, ctx.Repo.Repository, ctx.FormInt64("id")); err != nil {
 		ctx.Flash.Error("DeleteCollaboration: " + err.Error())
 	} else {
 		ctx.Flash.Success(ctx.Tr("repo.settings.remove_collaborator_success"))
+		if removed != nil && removed.IsBot() {
+			stopped, err := ascagentui.StopRemovedAgent(ctx, ctx.Doer, removed, ctx.Repo.Repository)
+			if err != nil {
+				log.Warn("asc access: stop the runs of removed agent %d: %v", removed.ID, err)
+				ctx.Flash.Warning(ctx.Tr("asc_rp.access_agent_stop_failed", removed.GetDisplayName()))
+			} else if stopped > 0 {
+				ctx.Flash.Info(ctx.TrN(stopped, "asc_rp.access_agent_stopped_one", "asc_rp.access_agent_stopped_n", removed.GetDisplayName(), stopped))
+			}
+		}
 	}
 
 	ctx.JSONRedirect(ctx.Repo.RepoLink + "/settings/collaboration")
