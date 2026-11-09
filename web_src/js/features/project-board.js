@@ -58,7 +58,18 @@ export async function setColumnHidden(board, control, reload = () => window.loca
   return false;
 }
 
-/** The project board (templates/projects/view.tmpl): Add card, and hiding and showing columns. */
+/** Use as Landed column and Stop using as Landed column (the column menu): a card moves there when its stack lands. */
+export async function setColumnLanded(board, control, reload = () => window.location.reload()) {
+  const result = await postBoardForm(control.getAttribute('data-url'), {landed: control.getAttribute('data-landed')});
+  if (result.ok) {
+    reload();
+    return true;
+  }
+  showBoardError(board, refusalText(result, board.getAttribute('data-column-failed'), board.getAttribute('data-column-failed-no-id')));
+  return false;
+}
+
+/** The project board (templates/projects/view.tmpl): Add card, hiding and showing columns, and the Landed column. */
 export function initProjectBoard(doc = document) {
   const board = doc.querySelector('#project-board[data-moved]');
   if (!board) return;
@@ -68,11 +79,15 @@ export function initProjectBoard(doc = document) {
     submitAddCard(form);
   });
   const visibility = (e) => {
-    const control = e.target.closest('.project-column-visibility');
+    const control = e.target.closest('.project-column-visibility, .project-column-landed');
     if (!control) return;
     if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
-    setColumnHidden(board, control);
+    if (control.classList.contains('project-column-landed')) {
+      setColumnLanded(board, control);
+    } else {
+      setColumnHidden(board, control);
+    }
   };
   doc.addEventListener('click', visibility);
   doc.addEventListener('keydown', visibility);

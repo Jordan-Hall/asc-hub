@@ -120,6 +120,7 @@
 							{{len (index $.IssuesMap .ID)}}
 						</div>
 						<span class="project-column-title-label">{{.Title}}</span>
+						{{if .AscLanded}}<span class="ds-chip ds-chip-ok" title="{{ctx.Locale.Tr "asc_work.pj_landed_column_title"}}" data-testid="project-column-landed">{{ctx.Locale.Tr "asc_work.pj_landed_column"}}</span>{{end}}
 					</div>
 					{{if $canWriteProject}}
 						<div class="ui dropdown jump item">
@@ -130,6 +131,10 @@
 								<a class="item show-modal button" data-modal="#edit-project-column-modal-{{.ID}}">
 									{{svg "octicon-pencil"}}
 									{{ctx.Locale.Tr "repo.projects.column.edit"}}
+								</a>
+								<a class="item project-column-landed" role="button" tabindex="0" data-url="{{$.Link}}/{{.ID}}/landed" data-landed="{{if .AscLanded}}false{{else}}true{{end}}" data-testid="project-column-set-landed">
+									{{svg "octicon-git-merge"}}
+									{{if .AscLanded}}{{ctx.Locale.Tr "asc_work.pj_unset_landed"}}{{else}}{{ctx.Locale.Tr "asc_work.pj_set_landed"}}{{end}}
 								</a>
 								{{if not .Default}}
 									<a class="item project-column-visibility" role="button" tabindex="0" data-url="{{$.Link}}/{{.ID}}/hidden" data-hidden="true" data-testid="project-column-hide">

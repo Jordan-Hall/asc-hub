@@ -52,6 +52,11 @@
 		</div>
 		{{end}}
 		{{end}}
+		{{if $.Page.AscCardStacks}}{{with index $.Page.AscCardStacks .ID}}{{if .Entries}}
+		<div class="meta tw-my-1">
+			<a class="ds-chip {{if .Done}}ds-chip-ok{{else}}ds-chip-outline{{end}}" href="{{.Top.Link}}{{if $.Issue.IsPull}}#asc-stack-title{{end}}" data-testid="project-card-stack">{{if $.Issue.IsPull}}{{ctx.Locale.Tr "asc_work.pj_card_stack"}}{{else if .Closes}}{{ctx.Locale.Tr "repo.issues.asc_chip_fixed" .Top.Index}}{{else}}{{ctx.Locale.Tr "repo.issues.asc_chip_open" .Top.Index}}{{end}} &middot; {{ctx.Locale.Tr "repo.issues.asc_stack_landed" .Landed (len .Entries)}}</a>
+		</div>
+		{{end}}{{end}}{{end}}
 		{{$tasks := .GetTasks}}
 		{{if gt $tasks 0}}
 			<div class="meta tw-my-1">

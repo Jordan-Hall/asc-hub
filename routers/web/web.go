@@ -1345,6 +1345,7 @@ func registerRoutes(m *web.Route) {
 						m.Delete("", org.DeleteProjectColumn)
 						m.Post("/default", org.SetDefaultProjectColumn)
 						m.Post("/hidden", org.SetProjectColumnHidden)
+						m.Post("/landed", org.SetProjectColumnLanded)
 
 						m.Post("/move", org.MoveIssues)
 					})
@@ -1733,6 +1734,7 @@ func registerRoutes(m *web.Route) {
 						m.Delete("", repo.DeleteProjectColumn)
 						m.Post("/default", repo.SetDefaultProjectColumn)
 						m.Post("/hidden", repo.SetProjectColumnHidden)
+						m.Post("/landed", repo.SetProjectColumnLanded)
 
 						m.Post("/move", repo.MoveIssues)
 					})

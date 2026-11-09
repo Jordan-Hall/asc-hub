@@ -47,6 +47,9 @@ type Column struct {
 	Color   string `xorm:"VARCHAR(7)"`
 	// Hidden takes the column off the board; its cards stay in it, and it can be shown again
 	Hidden bool `xorm:"NOT NULL DEFAULT false"`
+	// AscLanded marks the Landed column of the project (at most one): a card moves there when the stack it follows has
+	// landed (services/pull MoveAscLandedCards).
+	AscLanded bool `xorm:"'asc_landed' NOT NULL DEFAULT false"`
 
 	ProjectID int64 `xorm:"INDEX NOT NULL unique(project_sorting)"`
 	CreatorID int64 `xorm:"NOT NULL"`
@@ -250,6 +253,35 @@ func SetColumnHidden(ctx context.Context, projectID, columnID int64, hidden bool
 		}
 	}
 	return nil
+}
+
+// SetLandedColumn makes the column the Landed column of the project, or stops it being one. A project has at most one
+// Landed column, so marking a column unmarks the one before it.
+func SetLandedColumn(ctx context.Context, projectID, columnID int64, landed bool) error {
+	return db.WithTx(ctx, func(ctx context.Context) error {
+		if _, err := GetColumnInProject(ctx, projectID, columnID); err != nil {
+			return err
+		}
+		if landed {
+			if _, err := db.GetEngine(ctx).Where(builder.Eq{"project_id": projectID, "asc_landed": true}).
+				Cols("asc_landed").Update(&Column{AscLanded: false}); err != nil {
+				return err
+			}
+		}
+		_, err := db.GetEngine(ctx).ID(columnID).Where(builder.Eq{"project_id": projectID}).
+			Cols("asc_landed").Update(&Column{AscLanded: landed})
+		return err
+	})
+}
+
+// GetLandedColumn returns the Landed column of the project, or nil when it has none.
+func GetLandedColumn(ctx context.Context, projectID int64) (*Column, error) {
+	column := new(Column)
+	has, err := db.GetEngine(ctx).Where(builder.Eq{"project_id": projectID, "asc_landed": true}).OrderBy("id").Get(column)
+	if err != nil || !has {
+		return nil, err
+	}
+	return column, nil
 }
 
 // GetColumnInProject fetches a column only when it belongs to the project.

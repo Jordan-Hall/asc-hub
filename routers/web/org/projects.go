@@ -16,6 +16,7 @@ import (
 	"forgejo.org/models/unit"
 	"forgejo.org/modules/base"
 	"forgejo.org/modules/json"
+	"forgejo.org/modules/log"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
@@ -24,6 +25,7 @@ import (
 	"forgejo.org/services/context"
 	"forgejo.org/services/forms"
 	issue_service "forgejo.org/services/issue"
+	pull_service "forgejo.org/services/pull"
 )
 
 const (
@@ -392,6 +394,11 @@ func ViewProject(ctx *context.Context) {
 	project.RenderedContent = templates.RenderMarkdownToHtml(ctx, project.Description)
 	ctx.Data["Title"] = project.Title
 	ctx.Data["LinkedPRs"] = linkedPrsMap
+	if cardStacks, err := pull_service.AscProjectCardStacks(ctx, ctx.Doer, issuesMap); err != nil {
+		log.Warn("asc project card stacks: %v", err)
+	} else if len(cardStacks) > 0 {
+		ctx.Data["AscCardStacks"] = cardStacks
+	}
 	ctx.Data["PageIsViewProjects"] = true
 	ctx.Data["CanWriteProjects"] = canWriteProjects(ctx)
 	ctx.Data["Project"] = project
@@ -592,6 +599,20 @@ func SetProjectColumnHidden(ctx *context.Context) {
 	}
 	if err := project_model.SetColumnHidden(ctx, project.ID, column.ID, hidden); err != nil {
 		ctx.ServerError("SetColumnHidden", err)
+		return
+	}
+	ctx.JSONOK()
+}
+
+// SetProjectColumnLanded makes a column the Landed column of the board, or stops it being one: a card moves there
+// when its stack lands (pull_service.MoveAscLandedCards).
+func SetProjectColumnLanded(ctx *context.Context) {
+	project, column := CheckProjectColumnChangePermissions(ctx)
+	if ctx.Written() {
+		return
+	}
+	if err := project_model.SetLandedColumn(ctx, project.ID, column.ID, ctx.FormBool("landed")); err != nil {
+		ctx.ServerError("SetLandedColumn", err)
 		return
 	}
 	ctx.JSONOK()

@@ -147,6 +147,57 @@ func MoveIssuesOnProjectColumn(ctx context.Context, column *Column, sortedIssueI
 	})
 }
 
+// MoveCardsToColumnEnd moves the cards of the issues that are on the project of the column into it, after its last
+// card, in the order given. A card already in the column stays where it is; an issue that is not on the project is
+// skipped. It returns the issue ids of the cards it moved.
+func MoveCardsToColumnEnd(ctx context.Context, column *Column, issueIDs []int64) ([]int64, error) {
+	if len(issueIDs) == 0 {
+		return nil, nil
+	}
+	var moved []int64
+	err := db.WithTx(ctx, func(ctx context.Context) error {
+		sess := db.GetEngine(ctx)
+		var cards []ProjectIssue
+		if err := sess.Where("project_id=? AND project_board_id<>?", column.ProjectID, column.ID).
+			In("issue_id", issueIDs).Find(&cards); err != nil {
+			return err
+		}
+		if len(cards) == 0 {
+			return nil
+		}
+		byIssue := make(map[int64]ProjectIssue, len(cards))
+		for _, c := range cards {
+			byIssue[c.IssueID] = c
+		}
+		res := struct {
+			MaxSorting int64
+			IssueCount int64
+		}{}
+		if _, err := sess.Select("max(sorting) as max_sorting, count(*) as issue_count").Table("project_issue").
+			Where("project_board_id=?", column.ID).Get(&res); err != nil {
+			return err
+		}
+		next := util.Iif(res.IssueCount > 0, res.MaxSorting+1, 0)
+		for _, id := range issueIDs {
+			card, ok := byIssue[id]
+			if !ok {
+				continue
+			}
+			delete(byIssue, id)
+			if _, err := sess.Exec("UPDATE `project_issue` SET project_board_id=?, sorting=? WHERE id=?", column.ID, next, card.ID); err != nil {
+				return err
+			}
+			next++
+			moved = append(moved, id)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return moved, nil
+}
+
 func (c *Column) moveIssuesToAnotherColumn(ctx context.Context, newColumn *Column) error {
 	if c.ProjectID != newColumn.ProjectID {
 		return errors.New("columns have to be in the same project")
