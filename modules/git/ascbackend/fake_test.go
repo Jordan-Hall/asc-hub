@@ -53,6 +53,8 @@ type fakeAsc struct {
 	tamper func(method string, resp any)
 	// fail answers a method with an error instead of working.
 	fail map[string]error
+	// countPage, when set, is how many commits a count_only Log counts a call before it answers truncated.
+	countPage int
 
 	mu    sync.Mutex
 	calls map[string]int
@@ -573,7 +575,7 @@ func (f *fakeAsc) Log(req *ascv1.LogRequest, st grpc.ServerStreamingServer[ascv1
 	if err := f.checkRepo(req.GetRepo(), ascv1.IdMode_ID_MODE_GIT); err != nil {
 		return err
 	}
-	if req.GetCountOnly() || len(req.GetPickaxe()) > 0 {
+	if len(req.GetPickaxe()) > 0 {
 		return status.Error(codes.Unimplemented, "not available on this server yet")
 	}
 	args := []string{"log", "--format=%H"}
@@ -630,6 +632,9 @@ func (f *fakeAsc) Log(req *ascv1.LogRequest, st grpc.ServerStreamingServer[ascv1
 	if err != nil {
 		return status.Error(codes.Internal, "internal error")
 	}
+	if req.GetCountOnly() {
+		return f.countLog(req, out, st)
+	}
 	var entries []*ascv1.LogEntry
 	for oid := range strings.SplitSeq(out, "\n") {
 		if oid == "" {
@@ -653,6 +658,31 @@ func (f *fakeAsc) Log(req *ascv1.LogRequest, st grpc.ServerStreamingServer[ascv1
 			return nil
 		}
 	}
+}
+
+// countLog answers a count_only Log like asc serve: one message with the count. With countPage set it counts that
+// many commits a call and answers truncated with the offset to go on from as the page token.
+func (f *fakeAsc) countLog(req *ascv1.LogRequest, out string, st grpc.ServerStreamingServer[ascv1.LogResponse]) error {
+	var oids []string
+	for oid := range strings.SplitSeq(out, "\n") {
+		if oid != "" {
+			oids = append(oids, oid)
+		}
+	}
+	from := 0
+	if tok := req.GetPageToken(); tok != "" {
+		n, err := strconv.Atoi(tok)
+		if err != nil || n < 0 || n > len(oids) {
+			return status.Error(codes.InvalidArgument, "malformed page token")
+		}
+		from = n
+	}
+	resp := &ascv1.LogResponse{Count: uint64(len(oids) - from)}
+	if f.countPage > 0 && len(oids)-from > f.countPage {
+		resp = &ascv1.LogResponse{Count: uint64(f.countPage), Truncated: true, NextPageToken: strconv.Itoa(from + f.countPage)}
+	}
+	f.applyTamper("Log", resp)
+	return st.Send(resp)
 }
 
 func (f *fakeAsc) MergeBase(_ context.Context, req *ascv1.MergeBaseRequest) (*ascv1.MergeBaseResponse, error) {

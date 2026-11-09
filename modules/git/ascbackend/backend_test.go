@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/git"
 	"forgejo.org/modules/git/ascbackend"
 
@@ -438,6 +439,26 @@ func TestLogAndCountMatchGit(t *testing.T) {
 	count, err := fx.asc.Count(t.Context(), git.LogQuery{From: []git.ObjectID{id("c4")}, NoMerges: true})
 	require.NoError(t, err)
 	assert.Equal(t, int64(len(collectLog(t, fx.git, queries["no merges"]))), count)
+
+	// A plain count is counted by asc: one Log call, and a count asc stops at its page cap goes on from the token.
+	before := fx.fake.callCount("Log")
+	whole, err := fx.asc.Count(t.Context(), queries["from master"])
+	require.NoError(t, err)
+	assert.Equal(t, 1, fx.fake.callCount("Log")-before)
+	fx.fake.countPage = 2
+	paged, err := fx.asc.Count(t.Context(), queries["from master"])
+	require.NoError(t, err)
+	assert.Equal(t, whole, paged)
+	assert.Greater(t, fx.fake.callCount("Log")-before, 2, "the count went on over several calls")
+	fx.fake.countPage = 0
+	fx.fake.tamper = func(method string, resp any) {
+		if r, ok := resp.(*ascv1.LogResponse); ok && method == "Log" {
+			r.Truncated, r.NextPageToken = true, ""
+		}
+	}
+	_, err = fx.asc.Count(t.Context(), queries["from master"])
+	require.Error(t, err, "a truncated count without a token is a bad answer")
+	fx.fake.tamper = nil
 
 	for _, bad := range []git.LogQuery{
 		{}, {From: []git.ObjectID{id("c4")}, Skip: -1}, {From: []git.ObjectID{id("c4")}, Follow: true},
