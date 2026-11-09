@@ -356,3 +356,20 @@ forgejo doctor check --run asc-default-branch --fix      # tells asc the hub's d
 The check is idempotent: a repository whose trunk is right is not touched, and every change asc makes is in its audit
 log as `repo.default_branch` (with `from` and `to`). Empty repositories and repositories still being migrated are
 skipped. Run it once after updating the hub and asc together; new repositories need nothing.
+
+## Who can install a package
+
+A package is as visible as its owner, and the package lists show it as a chip next to the type and version:
+
+- **Public**: the owner is public. Anyone can install the package.
+- **Internal**: the owner is limited, or the hub has `[service] REQUIRE_SIGNIN_VIEW = true`. Only people signed in to
+  the hub can install it.
+- **Private**: the owner is private. Only members of the organization (or the user) can install it.
+
+The hover text of the chip names the owner. There is no visibility per package. The registries serve indexes of all the
+packages of an owner of one type (Debian, RPM, Alpine, Arch, Helm, Conda, CRAN), so a private package of a public owner
+would be listed in them. To keep a package private, publish it from a private organization.
+
+The chip is `VisibilityOf` in `routers/web/shared/packages/asc_list.go`, which follows the access check of the
+registries (`DeterminePackageAccessMode`). Tests: TestAPackageIsAsVisibleAsItsOwner,
+TestThePackageListShowsTheVisibilityOfEachPackage.

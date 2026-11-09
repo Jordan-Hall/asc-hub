@@ -52,7 +52,7 @@ Other findings that cross boards:
 
 ## 3. Per-area counts and boards
 
-- **shell/settings**: 47 boards, 317 rows, done 205, partial 26, missing 86. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
+- **shell/settings**: 47 boards, 317 rows, done 206, partial 26, missing 85. Boards: About, AdminAudit, AdminBackups, AdminConfig, AdminDashboard, AdminHealth, AdminHooks, AdminModeration, AdminMonitor, AdminNotices, AdminOrgs, AdminPackages, AdminRepos, AdminRunners, AdminUser, AdminUsers, Dashboard, Docs, Download, Drafts, Errors, Explore, ExploreOrgs, ExploreUsers, GetStarted, Inbox, Install, Main, NewOrg, OrgPeople, OrgProfile, OrgSettings, OrgTeams, Packages, Profile, Projects, Shell, UserSettingsAI, UserSettingsAccount, UserSettingsAppearance, UserSettingsNotifications, UserSettingsOrgs, UserSettingsPrivacy, UserSettingsProfile, UserSettingsRepos, UserSettingsStorage, UserSettingsUsage.
 - **repo**: 24 boards, 274 rows, done 140, partial 25, missing 109. Boards: Changeset, Code, Compare, Dependencies, GitNote, History, Insights, InsightsPeople, IssueView, Issues, NewRepo, Refs, Releases, Repo, RepoSettingsAI, RepoSettingsAccess, RepoSettingsGeneral, RepoSettingsPolicy, RepoSettingsRules, RepoSettingsSecrets, RepoSettingsStorage, RepoSettingsWebhooks, Search, Stacks.
 - **review**: 5 boards, 88 rows, done 35, partial 15, missing 38. Boards: ChangeChecks, Checks, NewChange, Review, ReviewVersions.
 - **agents-ops**: 12 boards, 126 rows, done 96, partial 7, missing 23. Boards: AgentAccess, AgentNew, AgentRun, Agents, Audit, Ops, Policy, Queue, Security, WorkflowDef, WorkflowRun, Workflows.
@@ -628,7 +628,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 
 #### Packages (ASC Hub packages)
 
-Area shell/settings. Rows 7: done 4, partial 0, missing 3. Copy found in the hub: 62% of 61 copy strings (mobile twin 64%). Template(s): list.tmpl, packages_cleanup_rules_edit.tmpl, view.tmpl. Mobile twin: yes.
+Area shell/settings. Rows 7: done 5, partial 0, missing 2. Copy found in the hub: 62% of 61 copy strings (mobile twin 64%). Template(s): list.tmpl, packages_cleanup_rules_edit.tmpl, view.tmpl. Mobile twin: yes.
 
 Board copy not found word for word in locale, templates or scripts: Skip to content; London and remote; Filter packages; - published Today; - published Today; design-tokens.
 
@@ -636,7 +636,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Package list with type, version, downloads, filter by type | done | templates/package/shared/list.tmpl:1 | - |
 | Type chips with counts (a select today) | done | templates/package/shared/list.tmpl, models/packages/asc_package_type_count.go | - |
-| Visibility chip per package (Public/Private/Internal) | missing (hub) | logged as not built (not re-probed) | packages inherit owner visibility; per-package flag in models/packages |
+| Visibility chip per package (Public/Private/Internal) | done | templates/package/shared/list.tmpl, routers/web/shared/packages/asc_list.go | - |
 | Package page views Install/Versions/Dependencies/Settings as tabs | missing (UI) | logged as not built (not re-probed) | templates/package/view.tmpl (single page + /versions) |
 | "Published from acme/payments by a landed stack", "Signed with release key" | missing (hub+asc) | logged as not built (not re-probed) | asc: publish provenance and release signature record; hub: package metadata + view.tmpl |
 | Cleanup rule preview ("removes 14 versions of 6 packages, frees 1.3 GB") | done | templates/org/settings/packages_cleanup_rules_preview.tmpl:3 | - |
