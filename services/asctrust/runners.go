@@ -41,6 +41,19 @@ type AgentRunner struct {
 // Busy is whether the runner is executing a run.
 func (r AgentRunner) Busy() bool { return len(r.Runs) > 0 }
 
+// pathPart is whether s can be one segment of a repository's link: letters, digits, '.', '-' and '_', not "." or "..".
+func pathPart(s string) bool {
+	if s == "" || s == "." || s == ".." {
+		return false
+	}
+	for _, c := range s {
+		if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '.' || c == '-' || c == '_') {
+			return false
+		}
+	}
+	return true
+}
+
 // LoadAgentRunners lists the agent runners, online first. The call must be made as the site administrator. A runner
 // without a name, or a run without an id or whose repository is not owner/name, is a bad answer.
 func LoadAgentRunners(ctx context.Context, conn grpc.ClientConnInterface) ([]AgentRunner, error) {
@@ -59,7 +72,7 @@ func LoadAgentRunners(ctx context.Context, conn grpc.ClientConnInterface) ([]Age
 		}
 		for _, run := range r.GetRuns() {
 			owner, name, ok := strings.Cut(run.GetRepo(), "/")
-			if run.GetId() == 0 || !ok || owner == "" || name == "" || strings.Contains(name, "/") {
+			if run.GetId() == 0 || !ok || !pathPart(owner) || !pathPart(name) {
 				return nil, ErrBadAnswer
 			}
 			runner.Runs = append(runner.Runs, AgentRunnerRun{
