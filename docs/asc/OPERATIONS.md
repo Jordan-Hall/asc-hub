@@ -374,6 +374,20 @@ queues, runners (when Actions is on), mail and object storage.
 Code: `routers/web/admin/overview.go` (mailRow, storageRow), `services/mailer/queue_watch.go`. Tests:
 TestTheSystemCardShowsTheMailQueue, TestTheSystemCardShowsObjectStorage, TestTheQueueWatch*.
 
+### The figures at the top of the dashboard
+
+- **People** counts the accounts of people; under it is how many were created in the last seven days. This is the
+  hub's own data.
+- **Changesets today** and **Agent runs today** come from asc serve (Usage.GetActivity, `usage-activity.v1`, asked as
+  the site administrator) and count the whole server since 00:00 UTC. A change counts once, on the day its first
+  version was published; it is an agent's when an agent published it or an agent run holds it. Under the runs is the
+  share of the ended runs that succeeded (failed, over budget, expired and cancelled runs are the rest), or how many
+  are running when none has ended. The figures are kept for a minute, and asked again when the UTC day changes.
+- When asc is off, has no activity figures or does not answer in three seconds, the dashboard shows Organizations and
+  Issues in their places.
+
+Test: TestTheDashboardShowsTodaysActivity, TestTodaysActivityIsKeptForAMinute, TestNewPeopleThisWeek.
+
 ## Usage and agents on a person's page
 
 The page of a person in site administration (Overview tab) has a **Usage** card (storage and agent minutes this

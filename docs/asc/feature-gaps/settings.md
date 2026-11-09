@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 166 |
+| done | 167 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 7 |
+| needs-both | 6 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -153,7 +153,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | NewOrg | Display name field, "Who owns it", "Create a first team Everyone", "Allow agents" switch | done | create.tmpl full_name, owner block, create_everyone and allow_agents switches; org.go CreatePost makes the Everyone team (read on every unit, all repositories, creator in it) and turns agents on through asctrust.AllowOrgAgents (the rest of the agent policy kept); a failure of either is a warning and the organization stays; routers/web/org/org_create_test.go | - |
 | NewOrg | Handle availability check as you type, reserved-name error, live preview card, loading button | done | GET /org/create/check (routers/web/org/org.go checkOrgName: length, characters, reserved names and patterns, taken) answered under the field as it is typed (web_src/js/features/org-new.js, latest answer only); preview card with initial, address and visibility; the create button shows is-loading once sent; org-new.test.js, tests/integration/new_org_test.go TestNewOrganizationHandleCheck | M |
 | AdminDashboard | Stat tiles linking to pages (people, repos, orgs, issues) | done | templates/admin/dashboard.tmpl, routers/web/admin/overview.go | - |
-| AdminDashboard | Tiles "Changesets today (31% by agents)", "Agent runs today (96.4% finished)", "+38 this week" | needs-both | asc: new admin stats RPC; hub: overview.go dashboardFacts | M |
+| AdminDashboard | Tiles "Changesets today (31% by agents)", "Agent runs today (96.4% finished)", "+38 this week" | done | asc: Usage.GetActivity (feature usage-activity.v1, site admin): changes first published and agent runs created on the whole server since the start of the UTC day. Hub: "+N this week" is the hub's own count of new people (overview.go newPeopleSince); routers/web/admin/overview.go todaysActivity (kept a minute, asked again on a new UTC day), services/asctrust/activity.go; the two tiles take the places of Organizations and Issues when asc answers | M |
 | AdminDashboard | Needs attention: runners offline, reports, notices | done | overview.go dashboardFacts | - |
 | AdminDashboard | Needs attention: backup overdue with "Back up now" | done | asc: Backups.ListBackups status (overdue, last success and failure, running). Hub: routers/web/admin/overview.go backupAttention adds the row when backups are overdue or the last one failed, with a Back up now button posting to /admin/asc/backups/run (Open while a backup runs); services/asctrust/backups.go BackupHealth | M |
 | AdminDashboard | System card rows: object storage usage and mail queue age (database, queues, runners exist) | done | asc: Usage.GetUsage for the instance (storage meter). Hub: routers/web/admin/overview.go storageRow and mailRow; services/mailer/queue_watch.go keeps the write time of each queued mail, the last send and the last failure | M |
