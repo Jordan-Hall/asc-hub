@@ -1,0 +1,6 @@
+{{/* The Storage column of a repository: pass its admin.RepoStorage. */}}
+{{if .Unknown}}<span class="ds-c-2">{{ctx.Locale.Tr "asc_admin.storage_unknown"}}</span>
+{{- else if .Name}}{{.Name}}
+{{- else}}{{ctx.Locale.Tr "asc_admin.storage_server_default"}}{{end}}
+{{- if .Moving}} <span class="adm-who-sub" data-testid="repo-storage-moving">{{ctx.Locale.Tr "asc_admin.storage_moving"}}</span>{{end}}
+{{- if .Warning}} <span class="adm-who-sub adm-warn" role="note" data-testid="repo-storage-warning">{{ctx.Locale.Tr .Warning}}</span>{{end}}

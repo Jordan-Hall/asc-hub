@@ -35,7 +35,7 @@
 						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_repo"}}</th>
 						<th scope="col">{{ctx.Locale.Tr "asc_admin.visibility"}}</th>
 						<th scope="col" class="ds-r">{{ctx.Locale.Tr "admin.repos.size"}}</th>
-						<th scope="col" class="ds-r">{{ctx.Locale.Tr "admin.repos.issues"}}</th>
+						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_storage"}}</th>
 						<th scope="col">{{ctx.Locale.Tr "asc_admin.col_activity"}}</th>
 						<th scope="col"><span class="ds-sr">{{ctx.Locale.Tr "asc_admin.col_actions"}}</span></th>
 					</tr>
@@ -49,7 +49,7 @@
 							</td>
 							<td>{{template "admin/repo/visibility_chip" .}}</td>
 							<td class="ds-r ds-num">{{template "admin/repo/size" .}}</td>
-							<td class="ds-r ds-num">{{.NumIssues ctx}}</td>
+							<td data-testid="repo-storage">{{template "admin/repo/storage" (index $.RepoStorage .ID)}}</td>
 							<td>{{DateUtils.TimeSince .UpdatedUnix}}</td>
 							<td class="ds-r">
 								<div class="adm-acts">
@@ -72,6 +72,7 @@
 						<div class="ds-chips adm-chip-row">{{template "admin/repo/visibility_chip" .}}</div>
 						<div class="ds-li-meta">
 							<span>{{template "admin/repo/size" .}}</span>
+							<span data-testid="repo-storage">{{template "admin/repo/storage" (index $.RepoStorage .ID)}}</span>
 							<span>{{ctx.Locale.Tr "org.repo_updated" (DateUtils.TimeSince .UpdatedUnix)}}</span>
 						</div>
 						<div class="ds-li-actions">
@@ -113,6 +114,8 @@
 		<p>{{ctx.Locale.Tr "repo.settings.delete_desc"}}</p>
 		{{ctx.Locale.Tr "repo.settings.delete_notices_2" (`<span class="name"></span>`|TrustHTML)}}<br>
 		{{ctx.Locale.Tr "repo.settings.delete_notices_fork_1"}}<br>
+		<label class="adm-confirm-name" for="delete-repo-name">{{ctx.Locale.Tr "asc_admin.repo_delete_confirm_label" (`<strong class="name"></strong>`|TrustHTML)}}</label>
+		<input id="delete-repo-name" class="ds-input" type="text" autocomplete="off" spellcheck="false" data-confirm-name data-testid="repo-delete-name">
 	</div>
 	{{template "base/modal_actions_confirm" .}}
 </div>

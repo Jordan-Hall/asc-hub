@@ -83,6 +83,9 @@ type Fake struct {
 	RepoUsage *ascv1.GetRepoStorageUsageResponse
 	// UsageRefreshes counts the GetRepoUsage calls that asked for a new count.
 	UsageRefreshes int
+	// Placements is what ListRepoPlacements answers, keyed by the lower-case "owner/name"; a repository not in it is
+	// unknown to the fake.
+	Placements map[string]*ascv1.RepoPlacement
 	// InUse makes DeleteTarget answer STORAGE_IN_USE.
 	InUse bool
 	// TestStatus is the provider status TestKey answers with ("ok" by default).
@@ -553,6 +556,23 @@ func (f *Fake) GetRepoUsage(_ context.Context, r *ascv1.GetRepoStorageUsageReque
 		return f.RepoUsage, nil
 	}
 	return &ascv1.GetRepoStorageUsageResponse{ComputedAt: 1_700_000_000, Month: "2026-11"}, nil
+}
+
+func (f *Fake) ListRepoPlacements(_ context.Context, r *ascv1.ListRepoPlacementsRequest) (*ascv1.ListRepoPlacementsResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if len(r.GetRepos()) > ascbyo.MaxPlacementsPerCall {
+		return nil, status.Error(codes.InvalidArgument, "too many repositories")
+	}
+	out := &ascv1.ListRepoPlacementsResponse{}
+	for _, n := range r.GetRepos() {
+		if p, ok := f.Placements[strings.ToLower(n)]; ok {
+			c := proto.Clone(p).(*ascv1.RepoPlacement)
+			c.Repo = n
+			out.Placements = append(out.Placements, c)
+		}
+	}
+	return out, nil
 }
 
 func (f *Fake) CancelMigration(_ context.Context, r *ascv1.CancelStorageMigrationRequest) (*ascv1.CancelStorageMigrationResponse, error) {

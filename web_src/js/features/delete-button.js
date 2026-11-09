@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import {POST} from '../modules/fetch.js';
+import {showErrorToast} from '../modules/toast.js';
 
 const focusable = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -28,6 +29,30 @@ export function dialogKeydown(e, dialog, close) {
   }
 }
 
+/** The input listener bindConfirmName last added to each input, so that opening the dialog again replaces it. */
+const confirmSyncs = new WeakMap();
+
+/**
+ * Makes a dialog with an input[data-confirm-name] ask for name typed: the input is emptied and the approve button
+ * stays disabled until the input holds the name (case is ignored, as the server ignores it). Returns the input, or
+ * null when the dialog does not ask.
+ */
+export function bindConfirmName(dialog, name) {
+  const input = dialog.querySelector('input[data-confirm-name]');
+  if (!input) return null;
+  const ok = dialog.querySelector('.ok.button');
+  const want = String(name ?? '').toLowerCase();
+  const sync = () => {
+    if (ok) ok.disabled = input.value.trim().toLowerCase() !== want;
+  };
+  input.value = '';
+  input.removeEventListener('input', confirmSyncs.get(input));
+  confirmSyncs.set(input, sync);
+  input.addEventListener('input', sync);
+  sync();
+  return input;
+}
+
 /** Opens the modal a .delete-button names (data-modal-id) and, when approved, sends its form, its htmx request or a POST of its data. */
 export function showDeletePopup(e) {
   e.preventDefault();
@@ -48,15 +73,20 @@ export function showDeletePopup(e) {
   }
 
   const trigger = $this[0];
+  const confirmName = bindConfirmName($dialog[0], $this.data('name'));
   const onKeydown = (ev) => dialogKeydown(ev, $dialog[0], () => $dialog.modal('hide'));
   $dialog.modal({
     closable: false,
-    onVisible: () => document.addEventListener('keydown', onKeydown, true),
+    onVisible: () => {
+      document.addEventListener('keydown', onKeydown, true);
+      if (confirmName) confirmName.focus();
+    },
     onHidden: () => {
       document.removeEventListener('keydown', onKeydown, true);
       if (trigger.isConnected) trigger.focus();
     },
     onApprove: async () => {
+      if (confirmName && $dialog[0].querySelector('.ok.button')?.disabled) return false;
       if ($this.data('type') === 'form') {
         document.querySelector($this.data('form')).requestSubmit();
         return;
@@ -75,10 +105,15 @@ export function showDeletePopup(e) {
         }
       }
 
+      if (confirmName) postData.append('confirm_name', confirmName.value.trim());
+
       const response = await POST($this.data('url'), {data: postData});
       if (response.ok) {
         const data = await response.json();
         window.location.href = data.redirect;
+      } else if (confirmName) {
+        const data = await response.json().catch(() => ({}));
+        showErrorToast(data.errorMessage || response.statusText);
       }
     },
   }).modal('show');

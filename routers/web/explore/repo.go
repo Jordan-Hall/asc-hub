@@ -33,6 +33,9 @@ type RepoSearchOptions struct {
 	PageSize         int
 	OnlyShowRelevant bool
 	TplName          base.TplName
+	// Loaded, when set, is called with the repositories of the page before it renders, to add what only that
+	// page shows.
+	Loaded func([]*repo_model.Repository)
 }
 
 // RenderRepoSearch render repositories search page
@@ -183,6 +186,10 @@ func RenderRepoSearch(ctx *context.Context, opts *RepoSearchOptions) {
 		ctx.Data["StarredRepos"] = starred // may be empty: the template shows the Star button only when the map was made
 	}
 	ctx.Data["IsRepoIndexerEnabled"] = setting.Indexer.RepoIndexerEnabled
+
+	if opts.Loaded != nil {
+		opts.Loaded(repos)
+	}
 
 	pager := context.NewPagination(int(count), opts.PageSize, page, 5)
 	pager.SetDefaultParams(ctx)

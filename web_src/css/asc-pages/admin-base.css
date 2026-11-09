@@ -316,6 +316,22 @@ a.adm-who-name:hover {
   font-size: 13px;
 }
 
+/* a storage placement that disagrees with where the objects are */
+.adm-who-sub.adm-warn {
+  color: var(--warn);
+}
+
+/* the delete dialog that asks for the full name typed */
+.adm-confirm-name {
+  display: block;
+  margin-block-start: 12px;
+}
+
+.adm-confirm-name + .ds-input {
+  inline-size: 100%;
+  margin-block-start: 6px;
+}
+
 .adm-mono {
   font-family: var(--font-mono);
   font-size: 13px;

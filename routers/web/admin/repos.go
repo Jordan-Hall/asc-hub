@@ -35,6 +35,9 @@ func Repos(ctx *context.Context) {
 		PageSize:         setting.UI.Admin.RepoPagingNum,
 		TplName:          tplRepos,
 		OnlyShowRelevant: false,
+		Loaded: func(repos []*repo_model.Repository) {
+			ctx.Data["RepoStorage"] = loadRepoStorage(ctx, repos)
+		},
 	})
 }
 
@@ -43,6 +46,12 @@ func DeleteRepo(ctx *context.Context) {
 	repo, err := repo_model.GetRepositoryByID(ctx, ctx.FormInt64("id"))
 	if err != nil {
 		ctx.ServerError("GetRepositoryByID", err)
+		return
+	}
+
+	// The dialog asks for the full name typed, so a click on the wrong row cannot delete a repository.
+	if !strings.EqualFold(ctx.FormString("confirm_name"), repo.FullName()) {
+		ctx.JSONError(ctx.Tr("asc_admin.repo_delete_name_mismatch"))
 		return
 	}
 
