@@ -12,16 +12,16 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 189 |
+| done | 190 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 6 |
+| needs-both | 5 |
 | total | 195 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
-Open rows by size: S 0, M 15, L 6.
+Open rows by size: S 0, M 14, L 6.
 
 ## Shell: header, menus, palette, notifications, footer
 
@@ -252,7 +252,7 @@ Open rows by size: S 0, M 15, L 6.
 | Inbox | Row hover actions (Review, Answer, Mark done, Snooze) | done | `templates/user/asc_inbox.tmpl` `[data-asc-row-acts]`: Review, Answer (agent rows that wait), Mark done or Restore, Snooze 4h, each posting to `/-/asc/inbox/state`; tests in `routers/web/user/asc_inbox_test.go` | S |
 | Inbox | Select rows (x, checkbox); bulk bar "2 selected: Mark done, Snooze, Unwatch" in a live region | done | `asc_inbox.tmpl` bulk bar: ticked box (clears, as Escape does), count in a polite live region, Mark done, Snooze, Unwatch (`ds-bulk.js`); `AscInboxStatePost` `do=unwatch` turns the issue watch off and moves the item to Done | - |
 | Inbox | Mark done (e) with fade and undo toast; Done keeps 30 days and can be restored | done | `done_unix` on `asc_inbox_state` (migration `v18l_asc_inbox_done.go`); `SetAscInboxDone`; `do=done` and `do=restore` in `AscInboxStatePost`; an item comes back when the pull request changes; the Done tab lists it for `AscInboxDoneKeep` (30 days); fade and once-only send in `initAscInboxDone` (`asc-keys.js`); undo toast `[data-asc-undo]` | M |
-| Inbox | Snooze menu: Later today 17:00, Tomorrow 09:00, Monday 09:00, When the checks finish, Pick a date | needs-both | Menu has 1 h, 4 h, tomorrow, week. "When the checks finish" needs a check-completion wake (asc `ci.proto` events); date picker is UI | M |
+| Inbox | Snooze menu: Later today 17:00, Tomorrow 09:00, Monday 09:00, When the checks finish, Pick a date | done | `templates/user/asc_inbox.tmpl` (`.wk-snooze-menu`; Later today off after 17:00, When the checks finish off while no check runs, a date field from tomorrow to a year), `ascInboxSnoozeUntil` in `routers/web/user/asc_inbox_page.go` (hours of the hub time zone), `asc_inbox_state.snooze_head` (migration v19a, `SetAscInboxSnoozeChecks`, `IsSnoozedFor`) and `ascinbox.ChecksRunning` (latest status of each check of the head): the snooze ends when no check runs, the head moves, or after a day; tests TestAscInboxSnoozeChoices, TestAscInboxSnoozeMenu, TestAscInboxSnoozePost, TestAscInboxStateSnoozeChecks, TestChecksRunning | - |
 | Inbox | Detail pane: why waiting, changed since last look, policy line (approvals 1 of 2), thread, reply box with Approve and Request changes | done | `asc_inbox.tmpl` | - |
 | Inbox | "Ask agent to change" (comment becomes an instruction for the author agent) | needs-both | Reply form has Approve, Request changes, Reply only. Hub: POST to `CreateRun` or `SendInput`; asc: instruction flag on review comments (`review.proto` `AddComment`) | L |
 | Inbox | Keys j k, x select, e done, s snooze, a approve, r request changes, p pin, Enter | done | `asc-keys.js`: j k, e (focused row or open item), s, p, g i; x in `ds-bulk.js`; a and r put the focus on Approve and Request changes of the reply form (Enter sends); Enter opens the row link | - |

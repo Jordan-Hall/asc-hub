@@ -525,6 +525,21 @@ Past its section, each row of **Needs you** says what it is about:
 A fact that cannot be read (asc off or not answering, a pull request gone) leaves the row as it was; the rest of the
 dashboard shows.
 
+## Snoozing an item of the inbox
+
+**Snooze** (key `s`) on the chosen item of the inbox hides it until a time and counts it in "N snoozed pull requests
+are hidden". The menu offers:
+
+- **Later today 17:00**, off after 17:00;
+- **Tomorrow 09:00** and **Monday 09:00** (on a Monday, the next one);
+- **When the checks finish**, while a check of the pull request runs (its latest status is pending). The item comes
+  back as soon as no check of that head commit runs, when a new version is pushed, or after a day at the latest;
+- **Pick a date**: a day from tomorrow to a year ahead, at 09:00.
+
+The hours are those of the hub's time zone (`[time] DEFAULT_UI_LOCATION`). Snooze on a row of the list, the bulk bar
+and a left swipe on a phone hide the item for four hours. Another snooze replaces the one before; Mark done and Wake
+end it. A day in the past or more than a year ahead is refused.
+
 ## New items, in the open inbox
 
 While the inbox is open and in view, the page asks the hub every minute for the rows of the same tab, repository,
