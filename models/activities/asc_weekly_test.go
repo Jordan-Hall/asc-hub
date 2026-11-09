@@ -87,6 +87,16 @@ func TestTheWeeklyActivityOfTheDirectories(t *testing.T) {
 		assert.Zero(t, got[19].Total)
 	})
 
+	t.Run("An organization does not show the actions of a person who keeps activity private", func(t *testing.T) {
+		act(8, 8, 23, false, ago(time.Minute))
+		_, err := e.Exec("UPDATE `user` SET keep_activity_private = ? WHERE id = 8", true)
+		require.NoError(t, err)
+		got, err := activities_model.AscOrgActivity(ctx, []int64{17}, now)
+		require.NoError(t, err)
+		assert.EqualValues(t, 1, got[17].Total)
+		assert.Equal(t, ago(30*time.Minute), got[17].Last)
+	})
+
 	t.Run("No accounts", func(t *testing.T) {
 		got, err := activities_model.AscUserActivity(ctx, nil, now)
 		require.NoError(t, err)
