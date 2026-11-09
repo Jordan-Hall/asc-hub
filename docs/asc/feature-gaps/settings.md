@@ -18,12 +18,12 @@ Size: S under half a day, M one to three days, L more than three days (including
 
 | Status | Rows |
 | --- | --- |
-| done | 158 |
+| done | 159 |
 | partial | 0 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 15 |
+| needs-both | 14 |
 | total | 173 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
@@ -76,7 +76,7 @@ Paths: `templates/`, `routers/`, `models/`, `services/`, `modules/`, `web_src/` 
 | UserSettingsAppearance | Date and time format (12/24 h, order) | done | A "Date and time" card on Settings, Appearance (`templates/user/settings/appearance.tmpl`, `POST /user/settings/appearance/time_format`, `UpdateUserTimeFormat`) saves the clock (24-hour, 12-hour) and the date order (day first, month first, year first) with the account (`models/user/asc_prefs.go` `AscTimeFormat`, user settings `asc.clock` and `asc.date_order`; a value it does not know reads as the default). Every page carries a choice that is not the default on `<html data-clock data-date-order>` (`services/context/context_response.go`); `web_src/js/features/local-time.js` redraws the times in the zone of the profile with them, the `absolute-date` element follows the order and the `relative-time` tooltip the clock. Tests: TestAscTimeFormat, TestTimeFormatIsSavedAndDrawnOnEveryPage, local-time.test.js, absolute-date.test.js, relative-time.test.js | - |
 | UserSettingsAppearance | Apply instantly with an undo toast (no Save step); an app-wide toast/undo component does not exist | done | new web_src/js/features/ds-toast.js; reused by Appearance, Notifications, Privacy, Org people | M |
 | UserSettingsNotifications | Page itself (not in the settings menu; only the Forgejo email preference on Account and /notifications/subscriptions exist) | done | `templates/user/settings/notifications.tmpl` and the Notifications entry of the settings menu (`routers/web/user/setting/notifications.go`): email per event, email mode, quiet hours with time zone, watched repositories, web push (found built during the audit of 2026-10-31; the row was out of date) | - |
-| UserSettingsNotifications | Event x channel matrix (Inbox/Email/Push for review requested, mention, agent question, run finished, checks failed, restack conflict, queue result, policy change); needs-you rows locked on | needs-both | hub: new model asc_notify_pref + migration + dispatch in services/notify and routers/web/user/asc_inbox.go; asc: proto/asc/v1/inbox.proto has no preference or channel field | L |
+| UserSettingsNotifications | Event x channel matrix (Inbox/Email/Push for review requested, mention, agent question, run finished, checks failed, restack conflict, queue result, policy change); needs-you rows locked on | done | hub: services/ascnotify (per-event email and push choices), routers/private/asc_event.go (events asc serve reports), templates/user/settings/notifications.tmpl (inbox locked on); asc: crates/asc-serve/src/notify; found built during the audit of 2026-11-09, the row was out of date | - |
 | UserSettingsNotifications | Email frequency (right away / per-thread limit) and daily summary at a time | done | services/mailer (digest job in services/cron), user prefs | M |
 | UserSettingsNotifications | Quiet hours (from/until, time zone aware) | done | prefs + services/mailer + push; needs time zone from Profile | M |
 | UserSettingsNotifications | Push channel, permission prompt and denied state | done | web push (VAPID keys, service worker in public/, subscription table) | L |
