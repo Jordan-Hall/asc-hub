@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	_ "forgejo.org/modules/highlight/tsrx" // a ```tsrx fence is highlighted with the TSRX lexer
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/markup"
 	"forgejo.org/modules/markup/common"
