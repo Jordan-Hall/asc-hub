@@ -129,17 +129,58 @@ const MaxOpenAgentReports = 100
 // ErrAgentReportLimit is returned when an agent token already has MaxOpenAgentReports open reports.
 var ErrAgentReportLimit = errors.New("moderation: this agent token has too many open reports")
 
+// AgentReportLock is one row per agent token. ReportAbuseByAgent updates the row of its token first in its transaction;
+// the update holds the row until the transaction ends, so two reports of one token are stored one after the other, even
+// from two hub processes, and the duplicate check and the open-report bound see each other's report.
+type AgentReportLock struct {
+	Token string `xorm:"VARCHAR(64) PK"`
+	Seq   int64  `xorm:"NOT NULL DEFAULT 0"`
+}
+
+// TableName is the table of AgentReportLock.
+func (AgentReportLock) TableName() string { return "asc_agent_report_lock" }
+
+// ensureAgentReportLock makes the lock row of a token, outside any transaction: when two callers insert it at once,
+// one insert fails on the key and the row is there all the same.
+func ensureAgentReportLock(ctx context.Context, token string) error {
+	if has, err := db.GetEngine(ctx).Exist(&AgentReportLock{Token: token}); err != nil || has {
+		return err
+	}
+	if _, err := db.GetEngine(ctx).Insert(&AgentReportLock{Token: token}); err != nil {
+		has, existErr := db.GetEngine(ctx).Exist(&AgentReportLock{Token: token})
+		if existErr != nil || !has {
+			return err
+		}
+	}
+	return nil
+}
+
 // IsAgentReport tells whether an agent sent the report.
 func (r *AbuseReport) IsAgentReport() bool { return r.ReporterAgentToken != "" }
 
 // ReportAbuseByAgent stores a report an agent sent with its agent token, with the status Open. When the same token
-// already has an open report on the same content, that report is returned and created is false. The reporter is no
+// already has an open report on the same content, that report is returned. The reporter is no
 // person (ReporterID 0).
 func ReportAbuseByAgent(ctx context.Context, report *AbuseReport) (existing *AbuseReport, err error) {
 	if report.ReporterAgentToken == "" || report.ReporterAgent == "" {
 		return nil, errors.New("moderation: an agent report needs the agent and its token")
 	}
+	if err := ensureAgentReportLock(ctx, report.ReporterAgentToken); err != nil {
+		return nil, err
+	}
 	err = db.WithTx(ctx, func(ctx context.Context) error {
+		// take the lock of the token before reading anything (see AgentReportLock)
+		res, err := db.GetEngine(ctx).Exec("UPDATE asc_agent_report_lock SET seq = seq + 1 WHERE token = ?", report.ReporterAgentToken)
+		if err != nil {
+			return err
+		}
+		locked, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if locked != 1 {
+			return errors.New("moderation: the report lock of the agent token is missing")
+		}
 		open := new(AbuseReport)
 		has, err := db.GetEngine(ctx).Where(builder.Eq{
 			"status":               ReportStatusTypeOpen,
@@ -175,6 +216,7 @@ func init() {
 	// or any missing columns if the table was previously created.
 	// It will not drop or rename existing columns (when struct has changed).
 	db.RegisterModel(new(AbuseReport))
+	db.RegisterModel(new(AgentReportLock))
 }
 
 // IsShadowCopyNeeded reports whether one or more reports were already submitted
