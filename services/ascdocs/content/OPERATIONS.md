@@ -501,7 +501,9 @@ who is not an owner reads without changing. When asc cannot be asked the card ke
 Each row of **Needs you** on the dashboard has one button that does the next step without opening the pull request:
 
 - a review asked of the person: **Approve** sends an approving review at the head of the pull request, as Approve on
-  the review page; a person cannot approve their own pull request;
+  the review page; a person cannot approve their own pull request. The button names the head commit the row showed
+  (`head`): when the pull request was pushed to since, nothing is approved and the dashboard says it changed, so
+  nobody approves commits they did not see. A row whose head the hub could not read opens the pull request instead;
 - a change ready to land in a repository with the asc merge queue: **Add to merge queue** queues the stack up to it, as
   "Merge when ready" (the same permission checks). The dashboard then shows "Added to merge queue" with **Undo** for
   10 seconds, longer while the pointer or the focus is on it; Undo takes the stack out of the queue again;
@@ -513,6 +515,12 @@ A pull request the person may not read is a 404; a refusal (no permission, the q
 repository, a closed pull request) is a message on the dashboard. An agent run that waits for the person in **Agents
 working now** has an answer box; Send posts the answer to the run (`.../asc/agents/runs/{id}/input` with
 `back=dash`) and comes back to the dashboard.
+
+While the dashboard is open, **Needs you**, the merge queue and **Agents working now** load again with the Today card,
+once a minute (`GET /-/asc/dash/work`, `Cache-Control: private, no-store`), so a review asked, a change landed or a
+run that finished shows without a reload. They do not change while the person uses them: the focus in them, or an
+answer to an agent typed and not yet sent; the next minute tries again. A failed load keeps them as they are, and the
+Today card shows the offline state.
 
 ## Chips, agent rows and who is active, in the people directory
 
