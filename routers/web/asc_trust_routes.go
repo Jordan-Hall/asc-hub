@@ -100,6 +100,8 @@ func registerAscTrustAdminRoutes(m *web.Route) {
 //	POST .../settings/asc/policy/check           validate a draft
 //	POST .../settings/asc/policy/propose         propose a draft as a change
 //	POST .../settings/asc/policy/protection      propose a switch of a protection
+//	POST .../settings/asc/refs                   propose a protected ref rule (new or edited)
+//	POST .../settings/asc/refs/remove            propose removing one
 //	GET  .../settings/asc/security               secret scanning: findings, rules, allowlist
 //	POST .../settings/asc/security/finding       set the state of a finding
 //	POST .../settings/asc/security/scan          scan the default branch now
@@ -118,6 +120,10 @@ func registerAscTrustRepoSettingsRoutes(m *web.Route) {
 			m.Post("/form", repo_setting.AscPolicyForm)
 			m.Post("/propose", context.RepoMustNotBeArchived(), repo_setting.AscPolicyPropose)
 			m.Post("/protection", context.RepoMustNotBeArchived(), repo_setting.AscPolicyProtection)
+		})
+		m.Group("/refs", func() {
+			m.Post("", context.RepoMustNotBeArchived(), repo_setting.AscRefRuleSave)
+			m.Post("/remove", context.RepoMustNotBeArchived(), repo_setting.AscRefRuleRemove)
 		})
 		m.Group("/security", func() {
 			m.Get("", repo_setting.AscSecurity)

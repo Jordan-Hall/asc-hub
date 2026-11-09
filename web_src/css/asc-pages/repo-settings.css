@@ -718,3 +718,71 @@
 .rp-access-role {
   color: var(--text-2);
 }
+
+/* ---- asc protected refs (Rules page): the table, and the side panel beside it from 1024px ---- */
+.asc-refs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.asc-refs {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.asc-refs-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.asc-refs-actions form {
+  margin: 0;
+}
+
+.asc-refs-empty {
+  margin-block: 12px 0;
+  color: var(--text-2);
+}
+
+.asc-refs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--line-2);
+}
+
+.asc-refs-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asc-refs-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.asc-refs-panel-head h5 {
+  margin: 0;
+  font-size: 15px;
+}
+
+@media (min-width: 1024px) {
+  .asc-refs-open {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+
+  .asc-refs-panel {
+    padding-block-start: 0;
+    padding-inline-start: 16px;
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--line-2);
+  }
+}

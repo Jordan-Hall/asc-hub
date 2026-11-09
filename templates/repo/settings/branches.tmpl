@@ -59,6 +59,95 @@
 				{{end}}
 				<a class="ds-btn ds-btn-primary" href="{{.AscRules.PolicyURL}}">{{ctx.Locale.Tr "repo.settings.asc_rules.edit"}}</a>
 			</div>
+			{{if and .AscRules.Protection (not .AscRules.Problem)}}
+			{{$r := .AscRules}}
+			<h4 class="ds-card-top asc-refs-head">
+				{{ctx.Locale.Tr "repo.settings.asc_refs.title"}}
+				<a class="ds-btn ds-btn-primary ds-btn-sm" href="{{$r.AddURL}}" data-testid="asc-refs-add">{{ctx.Locale.Tr "repo.settings.asc_refs.add"}}</a>
+			</h4>
+			<div class="ds-card ds-card-attach asc-refs{{if $r.Panel}} asc-refs-open{{end}}" data-testid="asc-refs">
+				<div class="ds-table-wrap asc-refs-list">
+					<table class="ds-table">
+						<thead><tr>
+							<th scope="col">{{ctx.Locale.Tr "repo.settings.asc_refs.pattern"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "repo.settings.asc_refs.kind"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "repo.settings.asc_refs.can_land"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "repo.settings.asc_refs.force"}}</th>
+							<th scope="col">{{ctx.Locale.Tr "repo.settings.asc_refs.signed"}}</th>
+							<th scope="col"><span class="tw-sr-only">{{ctx.Locale.Tr "repo.settings.asc_refs.actions"}}</span></th>
+						</tr></thead>
+						<tbody>
+							{{with $r.Protection}}
+							<tr data-testid="asc-refs-trunk">
+								<td class="ds-mono">{{.Branch}}</td>
+								<td>{{ctx.Locale.Tr "repo.settings.asc_refs.kind_trunk"}}</td>
+								<td>{{ctx.Locale.Tr "repo.settings.asc_refs.land_queue"}}{{if not .QueueOnly}}, {{ctx.Locale.Tr "repo.settings.asc_refs.land_push"}}{{end}}</td>
+								<td>{{if .AllowForcePush}}{{ctx.Locale.Tr "repo.settings.asc_refs.allowed"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_refs.never"}}{{end}}</td>
+								<td>{{if .RequireSigned}}{{ctx.Locale.Tr "repo.settings.asc_refs.required"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_refs.not_required"}}{{end}}</td>
+								<td><a href="{{$r.PolicyURL}}">{{ctx.Locale.Tr "repo.settings.asc_refs.edit"}}</a></td>
+							</tr>
+							{{end}}
+							{{range $r.Refs}}
+							<tr data-testid="asc-refs-row" data-pattern="{{.Pattern}}">
+								<td class="ds-mono">{{.Name}}</td>
+								<td>{{if .IsTags}}{{ctx.Locale.Tr "repo.settings.asc_refs.kind_tags"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_refs.kind_lines"}}{{end}}</td>
+								<td>{{if .Land}}{{range $i, $w := .Land}}{{if $i}}, {{end}}{{ctx.Locale.Tr (printf "repo.settings.asc_refs.land_%s" $w)}}{{end}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_refs.land_nobody"}}{{end}}</td>
+								<td>{{if .Force}}{{ctx.Locale.Tr "repo.settings.asc_refs.allowed"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_refs.never"}}{{end}}{{if .Delete}} · {{ctx.Locale.Tr "repo.settings.asc_refs.deletable"}}{{end}}</td>
+								<td>{{if .Signed}}{{ctx.Locale.Tr "repo.settings.asc_refs.required"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_refs.not_required"}}{{end}}</td>
+								<td class="asc-refs-actions">
+									<a href="{{.EditURL}}">{{ctx.Locale.Tr "repo.settings.asc_refs.edit"}}</a>
+									<form method="post" action="{{$r.RemoveURL}}">
+										{{$.CsrfTokenHtml}}
+										<input type="hidden" name="pattern" value="{{.Pattern}}">
+										<input type="hidden" name="base" value="{{$r.Base}}">
+										<input type="hidden" name="op" value="{{$r.Op}}">
+										<button class="ds-btn ds-btn-ghost ds-btn-sm" aria-label="{{ctx.Locale.Tr "repo.settings.asc_refs.remove_for" .Name}}">{{ctx.Locale.Tr "repo.settings.asc_refs.remove"}}</button>
+									</form>
+								</td>
+							</tr>
+							{{end}}
+						</tbody>
+					</table>
+					{{if not $r.Refs}}<p class="asc-refs-empty">{{ctx.Locale.Tr "repo.settings.asc_refs.only_trunk"}}</p>{{end}}
+				</div>
+				{{with $r.Panel}}
+				<aside class="asc-refs-panel" aria-labelledby="asc-refs-panel-title" data-testid="asc-refs-panel">
+					<div class="asc-refs-panel-head">
+						<h5 id="asc-refs-panel-title">{{if .Was}}{{ctx.Locale.Tr "repo.settings.asc_refs.edit_title"}}{{else}}{{ctx.Locale.Tr "repo.settings.asc_refs.add_title"}}{{end}}</h5>
+						<a class="ds-btn ds-btn-ghost ds-btn-sm" href="{{$r.RulesURL}}">{{ctx.Locale.Tr "repo.settings.asc_refs.close"}}</a>
+					</div>
+					{{if .Problem}}<div class="ds-banner ds-banner-warn" role="alert">{{.Problem}}</div>{{end}}
+					<form method="post" action="{{$r.SaveURL}}">
+						{{$.CsrfTokenHtml}}
+						<input type="hidden" name="was" value="{{.Was}}">
+						<input type="hidden" name="base" value="{{$r.Base}}">
+						<input type="hidden" name="op" value="{{$r.Op}}">
+						<div class="ds-field"><label for="asc-refs-kind">{{ctx.Locale.Tr "repo.settings.asc_refs.kind"}}</label>
+							<select id="asc-refs-kind" class="ds-select" name="kind">
+								<option value="branches"{{if not .Tags}} selected{{end}}>{{ctx.Locale.Tr "repo.settings.asc_refs.kind_lines"}}</option>
+								<option value="tags"{{if .Tags}} selected{{end}}>{{ctx.Locale.Tr "repo.settings.asc_refs.kind_tags"}}</option>
+							</select>
+						</div>
+						<div class="ds-field"><label for="asc-refs-name">{{ctx.Locale.Tr "repo.settings.asc_refs.pattern"}}</label>
+							<input id="asc-refs-name" class="ds-input ds-mono" name="name" required maxlength="256" value="{{.Name}}" placeholder="release/*" aria-describedby="asc-refs-name-help">
+							<p id="asc-refs-name-help" class="ds-help">{{ctx.Locale.Tr "repo.settings.asc_refs.pattern_help"}}</p>
+						</div>
+						<fieldset class="ds-fieldset"><legend>{{ctx.Locale.Tr "repo.settings.asc_refs.who"}}</legend>
+							{{$rule := .Rule}}
+							{{range $r.LandWords}}
+							<div class="ds-check"><input type="checkbox" id="asc-refs-land-{{.}}" name="land" value="{{.}}"{{if $rule.Lets .}} checked{{end}}><label for="asc-refs-land-{{.}}">{{ctx.Locale.Tr (printf "repo.settings.asc_refs.who_%s" .)}}</label></div>
+							{{end}}
+						</fieldset>
+						<label class="ds-switch"><input type="checkbox" role="switch" name="signed"{{if .Rule.Signed}} checked{{end}}><span class="ds-switch-track"></span><span>{{ctx.Locale.Tr "repo.settings.asc_refs.require_signed"}}</span></label>
+						<label class="ds-switch"><input type="checkbox" role="switch" name="force"{{if .Rule.Force}} checked{{end}}><span class="ds-switch-track"></span><span>{{ctx.Locale.Tr "repo.settings.asc_refs.allow_force"}}</span></label>
+						<label class="ds-switch"><input type="checkbox" role="switch" name="delete"{{if .Rule.Delete}} checked{{end}}><span class="ds-switch-track"></span><span>{{ctx.Locale.Tr "repo.settings.asc_refs.allow_delete"}}</span></label>
+						<p class="ds-help">{{ctx.Locale.Tr "repo.settings.asc_refs.proposed"}}</p>
+						<button class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "repo.settings.asc_refs.save"}}</button>
+					</form>
+				</aside>
+				{{end}}
+			</div>
+			{{end}}
 			{{else}}
 			<h4 class="ds-card-top">
 				{{ctx.Locale.Tr "repo.settings.protected_branch"}}

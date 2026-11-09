@@ -4,6 +4,8 @@
 package setting
 
 import (
+	"encoding/hex"
+
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/services/asctrust"
@@ -37,6 +39,23 @@ type ascRulesPage struct {
 	KeepApprovals bool
 	PolicyURL     string
 	Problem       string
+	// Refs are the `[refs]` rules of the policy, one row each under trunk.
+	Refs []ascRefRow
+	// RulesURL is the Rules page; AddURL opens the side panel for a new rule. SaveURL and RemoveURL take the panel
+	// and the removal of a rule.
+	RulesURL, AddURL, SaveURL, RemoveURL string
+	// Base is the changeset the policy was read from (hex) and Op the operation id of a proposal from this page.
+	Base, Op string
+	// LandWords are the words of "Who can land", in order.
+	LandWords []string
+	// Panel is the open side panel, or nil.
+	Panel *ascRefPanel
+}
+
+// ascRefRow is one `[refs]` rule on the Rules page.
+type ascRefRow struct {
+	asctrust.RefRule
+	EditURL string
 }
 
 // prepareAscRules sets AscRules for an asc repository: the protection read from the policy in force.
@@ -45,7 +64,13 @@ func prepareAscRules(ctx *context.Context) {
 		return
 	}
 	repo := ctx.Repo.Repository
-	page := &ascRulesPage{PolicyURL: ctx.Repo.RepoLink + "/settings/asc/policy"}
+	rules := ascRulesLink(ctx)
+	page := &ascRulesPage{
+		PolicyURL: ctx.Repo.RepoLink + "/settings/asc/policy",
+		RulesURL:  rules, AddURL: rules + "?ref_add=1",
+		SaveURL: ctx.Repo.RepoLink + "/settings/asc/refs", RemoveURL: ctx.Repo.RepoLink + "/settings/asc/refs/remove",
+		Op: asctrust.NewOpID(), LandWords: asctrust.LandWords,
+	}
 	ctx.Data["AscRules"] = page
 	name, err := asctrust.RepoName(repo)
 	conn, cerr := asctrust.Conn()
@@ -75,4 +100,9 @@ func prepareAscRules(ctx *context.Context) {
 	f := asctrust.FormOfText(pp.View.Text)
 	page.MaxDepth, page.CleanupDays = f.MaxStackDepth, f.CleanupDays
 	page.RestackOnMove, page.WritersMayPush, page.KeepApprovals = f.RestackOnMove, f.WritersMayPush, f.KeepApprovals
+	page.Base = hex.EncodeToString(pp.Base)
+	for _, r := range asctrust.RefRulesOfText(pp.View.Text) {
+		page.Refs = append(page.Refs, ascRefRow{RefRule: r, EditURL: ascRefEditLink(rules, r.Pattern)})
+	}
+	ascRefPanelOf(ctx, page)
 }
