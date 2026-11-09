@@ -12,9 +12,9 @@ Status words: **done** (present and behaves as the board), **ui-only-missing** (
 
 | Status | Rows |
 | --- | --- |
-| done | 171 |
+| done | 172 |
 | ui-only-missing | 0 |
-| needs-hub-backend | 1 |
+| needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
 | needs-both | 23 |
 | total | 195 |
@@ -117,7 +117,7 @@ Open rows by size: S 0, M 21, L 14.
 | GetStarted | Health check (Git found, signed in, SSH key, shell shim; `asc doctor` on machine and server) | needs-both | Hub card lists email, SSH key and token only. `asc doctor` exists (`crates/asc/src/cli/doctor.rs`) but never reports to the hub: add a report call or show server checks only | L |
 | GetStarted | "This hub" card: Storage, AI providers, Email with Change and Add | done | Data exists (`services/ascbyo`, settings); card missing | S |
 | GetStarted | Shortcuts card | done | Static card; `t` and `?` need handlers (see Shell) | S |
-| GetStarted | "Open the sample project" read-only | needs-hub-backend | No sample repository; seed one at first start (`routers/init.go`, `services/repository`) | M |
+| GetStarted | "Open the sample project" read-only | done | `services/ascsample` makes the sample on the first `POST /-/get-started/sample` (bot owner `asc-sample`, archived, four commits); `[asc] SAMPLE_PROJECT` turns it off | - |
 | GetStarted | Empty-area cards: inbox zero on day one, no repositories, "just you" with Invite | done | Inbox day-one state (`asc_inbox.tmpl`, `DayOne`); dashboard rail cards "No repositories yet" and "It is just you for now" (`asc_home.tmpl`) | - |
 
 ## Download
