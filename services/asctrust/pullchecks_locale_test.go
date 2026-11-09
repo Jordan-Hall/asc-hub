@@ -68,6 +68,6 @@ func TestPullChecksLocalizeTitlesTheIssueOfAFlakyCard(t *testing.T) {
 	}}, CausesKnown: true})
 	if assert.Len(t, pc.Flaky, 1) {
 		pc.Localize(func(key string, args ...any) string { return strings.ToUpper(key) + fmt.Sprint(args...) })
-		assert.Equal(t, "title="+queryEscape("ASC_TRUST.PULL.FLAKY_ISSUE_TITLErefund_timeout"), pc.Flaky[0].IssueQuery)
+		assert.EqualValues(t, "title="+queryEscape("ASC_TRUST.PULL.FLAKY_ISSUE_TITLErefund_timeout"), pc.Flaky[0].IssueQuery)
 	}
 }

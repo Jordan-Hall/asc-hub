@@ -132,7 +132,7 @@ func TestBuildPullChecksFlakyAndQuarantine(t *testing.T) {
 	assert.Equal(t, "refund_webhook_timeout", f.Test)
 	assert.EqualValues(t, 6, f.Flips)
 	assert.Equal(t, strip, f.Strip)
-	assert.Equal(t, "title=Flaky+test%3A+refund_webhook_timeout", f.IssueQuery)
+	assert.EqualValues(t, "title=Flaky+test%3A+refund_webhook_timeout", f.IssueQuery)
 	assert.Empty(t, pc.Causes, "a flaky or quarantined failure is not a reason, and a group without a hit here is not shown")
 	assert.Equal(t, "All checks passed", pc.Headline)
 }
