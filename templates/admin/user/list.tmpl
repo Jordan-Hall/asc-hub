@@ -3,7 +3,7 @@
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "asc_admin.people") "Desc" (ctx.Locale.Tr "asc_admin.people_lead") "ActionLabel" (ctx.Locale.Tr "asc_admin.new_person") "ActionHref" (print AppSubUrl "/admin/users/new") "ActionIcon" "plus")}}
 
 	<div class="adm-filter">
-		<form class="ds-filterbar-form ignore-dirty" id="user-list-search-form" role="search" method="get" action="{{AppSubUrl}}/admin/users">
+		<form class="ds-filterbar-form ignore-dirty" id="user-list-search-form" role="search" method="get" action="{{AppSubUrl}}/admin/users" data-asc-list-filter>
 			<div class="ds-inwrap">
 				{{svg "dsi-search" 16}}
 				<label class="ds-sr" for="adm-user-q">{{ctx.Locale.Tr "asc_admin.people_search"}}</label>
@@ -35,6 +35,16 @@
 		</nav>
 	</div>
 
+	{{/* a chip, the search, the sort or a page loads the page again with the filter in the address; until it does the list shows skeleton rows (asc-list-loading.js) */}}
+	<div class="wk-list-main" data-asc-list-main data-testid="admin-users-main">
+	<div class="ds-card wk-list-loading" role="status" aria-busy="true" aria-label="{{ctx.Locale.Tr "loading"}}" data-asc-list-loading hidden>
+		<ul class="ds-list">
+			<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+			<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+			<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+			<li class="wk-sk-row"><span class="ds-sk wk-sk-av"></span><span class="wk-sk-main"><span class="ds-sk wk-sk-t"></span><span class="ds-sk wk-sk-s"></span></span><span class="ds-sk wk-sk-pill"></span></li>
+		</ul>
+	</div>
 	{{if .Users}}
 		<form class="adm-bulk" id="adm-bulk" method="post" action="{{AppSubUrl}}/admin/users/bulk" data-testid="admin-users-bulk" data-bulk>
 			{{.CsrfTokenHtml}}
@@ -43,7 +53,7 @@
 			<button class="ds-btn ds-btn-danger ds-btn-sm" name="action" value="suspend" data-bulk-action>{{svg "dsi-lock" 16}}{{ctx.Locale.Tr "asc_admin.bulk_suspend"}}</button>
 		</form>
 		<div class="ds-table-wrap adm-only-md">
-			<table class="ds-table">
+			<table class="ds-table adm-rowlink">
 				<caption class="ds-sr">{{ctx.Locale.Tr "admin.users.user_manage_panel"}}</caption>
 				<thead>
 					<tr>
@@ -82,7 +92,7 @@
 			</table>
 		</div>
 
-		<ul class="ds-list adm-only-sm">
+		<ul class="ds-list adm-only-sm adm-rowlink">
 			{{range .Users}}
 				<li class="ds-li">
 					<span class="ds-li-av">{{ctx.AvatarUtils.Avatar . 40}}</span>
@@ -117,4 +127,5 @@
 			{{template "shared/ds/empty" (dict "Icon" "users" "Title" (ctx.Locale.Tr "asc_admin.people_empty_title") "Body" (ctx.Locale.Tr "asc_admin.people_empty_text") "PrimaryLabel" (ctx.Locale.Tr "asc_admin.new_person") "PrimaryHref" (print AppSubUrl "/admin/users/new"))}}
 		</div>
 	{{end}}
+	</div>
 {{template "admin/layout_footer" .}}

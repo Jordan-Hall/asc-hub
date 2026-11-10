@@ -1187,3 +1187,26 @@ a.adm-who-name:hover {
   height: 16px;
   accent-color: var(--fill);
 }
+
+/* the whole row opens the person; the tick and Edit stay their own targets (templates/admin/user/list.tmpl) */
+.adm-rowlink tbody tr,
+.adm-rowlink > .ds-li {
+  position: relative;
+}
+
+.adm-rowlink .adm-who-name::after,
+.adm-rowlink .ds-li-title > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.adm-rowlink tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.adm-rowlink .adm-check-col input,
+.adm-rowlink .ds-btn {
+  position: relative;
+  z-index: 1;
+}
