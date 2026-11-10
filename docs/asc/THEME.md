@@ -36,6 +36,7 @@ Colour mode: `data-theme` on `<html>` is `asc-light`, `asc-dark` or `asc-auto` a
 * Flash messages: `base/alert` draws `.ds-flash` / `.ds-banner`.
 * Keyboard focus: every focusable element shows a 2px ring in `--color-focus` (`web_src/css/asc.css`) on `:focus-visible`, never on a mouse click. The shared button, dropdown, input, form and search components set `outline: none`, so `asc.css` gives the ring back for them by name; a field drawn inside a box (the settings filter `.ds-snav-find`, `.ds-selectpill`) rings the box with `:focus-within` instead. A component on a dark surface (`.ds-hdr`) sets its own ring colour. Do not add `outline: none` without a `:focus-visible` rule beside it.
 * Page wrapper: `<div role="main" aria-label="{{.Title}}" class="ds-main …">`. Legacy pages keep `.page-content` and still work; `.ds-shell > .page-content` grows to fill.
+* One `h1` and one main landmark per page (a test, `TestAscOneHeadingAndOneMainOnEveryPage`, walks the main pages). The repository header (`repo/header`) makes the repository name the `h1`; a repository page with its own `h1` (an issue, a pull request, a status page, the asc pages) passes `(dict "HdrData" . "OwnH1" true)` and the name is then plain text. A page with no visible title keeps a `tw-sr-only` `h1`. Headings inside rendered markdown (`.markup`) are the author's and do not count.
 
 ### Top bar of a page one level down: `shared/ds/subbar`
 
