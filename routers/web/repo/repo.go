@@ -198,6 +198,9 @@ func ownerVisibilities(ctx *context.Context, ctxUser *user_model.User) bool {
 // newRepositoriesInAsc reports whether a repository created now is stored in asc, which is the condition that
 // services/repository applies to pick the asc storage backend: the instance writes through asc and creates new
 // repositories there. The create page uses it to drop the git-only settings.
+// AscTrunk is the trunk a new asc repository is offered.
+const AscTrunk = "master"
+
 func newRepositoriesInAsc() bool {
 	return setting.Asc.Enabled && setting.Asc.Writer == setting.AscWriterAsc && setting.Asc.NewRepositories == setting.AscWriterAsc
 }
@@ -244,6 +247,10 @@ func Create(ctx *context.Context) {
 	ctx.Data["SupportedObjectFormats"] = git.SupportedObjectFormats
 	ctx.Data["DefaultObjectFormat"] = git.Sha1ObjectFormat
 	ctx.Data["NewRepoIsAsc"] = newRepositoriesInAsc()
+	if newRepositoriesInAsc() {
+		// asc's trunk is master (asc init, the docs and the cheat sheet), whatever [repository] DEFAULT_BRANCH says
+		ctx.Data["default_branch"] = AscTrunk
+	}
 	ctx.Data["policy_approvals"] = 2
 	ctx.Data["working_mode"] = repo_service.WorkingModeBranchless
 	prepareAscNewRepo(ctx, ctxUser)
