@@ -382,6 +382,30 @@ Code: `templates/repo/issue/view_content.tmpl`, `templates/repo/issue/view_conte
 `routers/web/repo/asc_issue_stacks.go`, `services/pull/asc_issue_stacks.go`, `web_src/js/features/asc-drafts.js`.
 Tests: TestAscIssueViewBoardNotes, TestStacksNamingAnIssue, asc-drafts.test.js.
 
+## Sign-in sources in Site administration
+
+**Site administration > Authentication** lists the sources people sign in with. The first row is always **Local
+passwords**, the passwords kept on this hub, with how many people use them. Each other source shows its type and its
+number of people. With no other source the page says so and explains that a directory or an identity provider lets
+people sign in with their work account.
+
+**Local passwords: admins only** keeps the local passwords for site admins. Everyone else must sign in through another
+source. A person who is not an admin and tries a local password is refused, on the web and in the API, and a session
+they began before is signed out on its next request.
+
+On a source, **Test sign-in** checks it without signing anyone in or making an account. For a directory or mail source,
+type a name and password: a pass shows the claims the source sent (name, email, groups and so on), a fail shows the
+reason. For an OAuth source, **Test sign-in with the provider** goes to the provider and comes back to the claims. The
+result is shown once. An OAuth source must be turned on before it can be tested.
+
+**Delete** is blocked while people sign in with the source. The page says how many and links to the accounts: move
+them to another source or delete their accounts first. The server refuses the removal in the same case.
+
+Code: `templates/admin/auth/list.tmpl`, `templates/admin/auth/edit.tmpl`, `routers/web/admin/asc_auth_counts.go`,
+`routers/web/admin/asc_auth_probe.go`, `models/auth/asc_local_password.go`. Tests: TestAuthSourceTestSignIn,
+TestLocalPasswordsAdminsOnly, TestAuthSourceRemoveIsBlockedWhilePeopleUseIt,
+TestAuthenticationsPageShowsTheLocalRowAndThePeopleOfEachSource.
+
 ## The wait after wrong passwords
 
 After five wrong passwords for one name from one address, the hub refuses that name from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The name counts as typed, in any case, and is not looked up, so the count does not tell a stranger which email belongs to which account; a username and an email of the same person count apart. One address that gets ten times as many wrong across names waits too, which bounds the tries across the names of one person. Both counts are taken before the password is checked, so tries sent at the same time cannot pass them. The counts live in memory, at most 10000 keys each. A full table drops the key whose count is oldest among those not waiting; when every key waits, it drops the wait that ends soonest. Every key keeps its own count, so a flood never refuses or frees another key, and a try is only given back to the count that took it. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
