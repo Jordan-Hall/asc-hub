@@ -429,6 +429,39 @@ Code: `routers/web/admin/asc_health.go`, `asc_health_more.go`, `services/asctrus
 TestTheDiskCheckSaysHowSoonTheVolumeFills, TestTheTLSCheckReadsTheCertificateTheHubServes, TestTheClockCheck,
 TestTheAscChecksAskAscServeToProbeItself, TestLoadHealthMeasuresTheClocks, TestAscHealthSteps.
 
+## The moderation queue
+
+Site administration, Moderation (`/admin/moderation/reports`, needs `[moderation] ENABLED = true`), lists the open abuse
+reports, one item per reported profile, repository, issue or comment, with how many people and agents reported it. When none is
+open the page says "All caught up". Appeals of earlier decisions wait above the reports, under "Appeals waiting (n)".
+
+Each item has a reason field and separate actions:
+
+| Action | What it does |
+|---|---|
+| Dismiss | Marks the reports ignored. The content is not touched. |
+| Mark handled | Marks the reports handled, for content dealt with elsewhere. |
+| Hide | Takes the content out of public view without deleting it, and marks the reports handled. |
+| Suspend, Delete | Suspends or deletes the account, or deletes the repository, issue or comment. |
+
+Hide, Suspend and Delete need a reason. Every action is written to the asc audit log with its reason. Hide, Suspend and Delete
+are also kept as a decision that the owner reads under `/-/moderation/decisions` and is emailed about, with a link to appeal once.
+
+Hide changes this, and keeps what it changed so it can be put back:
+
+- a profile or an organization becomes private;
+- a repository becomes private (an internal repository is private, not internal, while hidden);
+- the title and text of an issue become "Hidden by a moderator";
+- the text of a comment becomes "Hidden by a moderator". This is not shown as an edit by the owner.
+
+While the hide stands, the owner cannot change the visibility or the text back, on the web or through the API (the API answers
+403). The earlier versions of a hidden issue or comment are shown only to administrators. Administrators can still change
+everything. Hiding content that is hidden already shows a notice and records nothing. An administrator cannot hide their own
+profile.
+
+An appeal is answered with Uphold or Overturn, with a reason. Overturning a hide puts back what it changed and emails the owner
+that the content is visible again. Overturning a suspension lets the account sign in again, unless a newer suspension is in force.
+
 ## Webhooks on the hooks page
 
 Site administration, Hooks and applications (`/admin/hooks`), lists the system webhooks (they fire for every repository) and
