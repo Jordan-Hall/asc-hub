@@ -5,6 +5,7 @@ package repo
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 
 	"forgejo.org/models/avatars"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/moderation"
 	"forgejo.org/modules/log"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/templates"
@@ -39,6 +41,25 @@ func GetContentHistoryOverview(ctx *context.Context) {
 	})
 }
 
+// historyHidden answers 404 when the issue (commentID 0) or the comment is hidden by a moderator and the doer is not an
+// administrator: the earlier revisions hold the text the hide took out of view. It tells whether it answered.
+func historyHidden(ctx *context.Context, issueID, commentID int64) bool {
+	contentType, contentID := moderation.ReportedContentTypeIssue, issueID
+	if commentID != 0 {
+		contentType, contentID = moderation.ReportedContentTypeComment, commentID
+	}
+	err := moderation.CheckNotHidden(ctx, ctx.Doer != nil && ctx.Doer.IsAdmin, contentType, contentID)
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, moderation.ErrHidden) {
+		ctx.JSON(http.StatusNotFound, map[string]any{"message": ctx.Tr("asc_admin.mod_hidden_history")})
+	} else {
+		ctx.ServerError("CheckNotHidden", err)
+	}
+	return true
+}
+
 // GetContentHistoryList  get list
 func GetContentHistoryList(ctx *context.Context) {
 	issue := GetActionIssue(ctx)
@@ -47,6 +68,9 @@ func GetContentHistoryList(ctx *context.Context) {
 	}
 
 	commentID := ctx.FormInt64("comment_id")
+	if historyHidden(ctx, issue.ID, commentID) {
+		return
+	}
 	items, _ := issues_model.FetchIssueContentHistoryList(ctx, issue.ID, commentID)
 
 	// render history list to HTML for frontend dropdown items: (name, value)
@@ -133,6 +157,10 @@ func GetContentHistoryDetail(ctx *context.Context) {
 		ctx.JSON(http.StatusNotFound, map[string]any{
 			"message": "Can not find the content history",
 		})
+		return
+	}
+
+	if historyHidden(ctx, issue.ID, history.CommentID) {
 		return
 	}
 
