@@ -1045,11 +1045,11 @@ Board copy not found word for word in locale, templates or scripts: People and a
 | Review load list ("Agents never review") | done | templates/repo/insights_people.tmpl:58 review_load, agents_never_review | - |
 | Rows open the person or the agent run | done | links in new template | - |
 | Empty, loading, partial-data states | done | new template;; Audit 2026-10-30 (part built): Empty state is there; loading and partial-data states were not found. | - |
-| Board note: Seg controls change who and period; the chart and tiles update together | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: The Table button shows the same numbers as a table | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Rows open the person or the agent run | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Pulse: four tiles, daily landings by people and agents, review time trend, recent and wai... | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Contributors: table with share and 12-week activity, review load, who writes the code; em... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Seg controls change who and period; the chart and tiles update together | done | TestInsightsBoardNotes (links keep each other), asc-insights.test.js (board swapped whole); OPERATIONS Insights: Pulse and Contributors | - |
+| Board note: The Table button shows the same numbers as a table | done | TestInsightsBoardNotes (Table rows match the bars) | - |
+| Board note: Rows open the person or the agent run | done | TestPeopleBoardNotes (profile and runs links), TestInsightsBoardNotes (waiting rows open the change) | - |
+| Board note: Pulse: four tiles, daily landings by people and agents, review time trend, recent and wai... | done | TestInsightsBoardNotes, TestInsightsRender, TestInsightsRenderStates | - |
+| Board note: Contributors: table with share and 12-week activity, review load, who writes the code; em... | done | TestPeopleBoardNotes, TestPeopleRenderStates (empty, loading, partial) | - |
 
 #### IssueView (ASC Hub issue)
 
