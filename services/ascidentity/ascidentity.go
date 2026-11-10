@@ -10,14 +10,14 @@
 // asc-rpc (src/forwarded.rs), four metadata entries:
 //
 //	x-asc-forwarded-user   "<user id>:<login>"
-//	x-asc-forwarded-role   what the hub decided: "admin", "write" or "read" (asc accepts "admin" today; the other two
-//	                       are the hub's proposal, see docs/asc/ARCHITECTURE.md)
+//	x-asc-forwarded-role   what the hub decided: "admin", "write" or "read"; asc never lets a claim do more than its
+//	                       role (a read claim does not write, a write claim does not administer)
 //	x-asc-forwarded-ts     Unix seconds when the hub made the claim
 //	x-asc-forwarded-mac    lower-case hex HMAC-SHA256, under the key only the hub and the server share, of
 //	                       "asc-forwarded-v1\n<user>\n<role>\n<subject>\n<ts>"
 //
 // The subject is the repository ("owner/name", lower case), "org:<name>" for the log of an organisation,
-// "user:<login>" for the account of the person and "instance" for the whole server. A claim made for one subject is no
+// "user:<login>" (the login lower cased; the user entry keeps the person's spelling) for the account of the person and "instance" for the whole server. A claim made for one subject is no
 // claim for another, and one older than MaxSkew is no claim. The key is [asc] FORWARDED_KEY (32 bytes, 64 hex digits).
 //
 // Platform access tokens are not involved: the asc command line, agents and API clients present the platform's own
