@@ -80,3 +80,28 @@ func TestUndoUnblockOfferLastsTenSecondsAndNamesAVisibleUnblockedPerson(t *testi
 	require.NoError(t, user_service.BlockUser(db.DefaultContext, 2, 4))
 	assert.Empty(t, offer(q("user4", now), now))
 }
+
+func TestUndoSwitchOfferLastsTenSecondsAndSendsTheOppositeOfWhatIsStored(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	now := time.Unix(1_700_000_000, 0)
+	offer := func(query string, at time.Time, current map[string]bool) *SwitchUndo {
+		ctx, _ := contexttest.MockContext(t, "user/settings/privacy?"+query)
+		contexttest.LoadUser(t, ctx, 2)
+		return undoSwitchOffer(ctx, at, current)
+	}
+	q := func(name string, t0 time.Time) string {
+		return url.Values{"switched": {name}, "t": {strconv.FormatInt(t0.Unix(), 10)}}.Encode()
+	}
+	got := offer(q("show_online", now), now.Add(2*time.Second), map[string]bool{"show_online": true})
+	require.NotNil(t, got)
+	assert.Equal(t, SwitchUndo{Setting: "show_online", Label: "asc_work.sp_show_online", On: true}, *got)
+	got = offer(q("hide_email", now), now, map[string]bool{"hide_email": false})
+	require.NotNil(t, got)
+	assert.False(t, got.On)
+	assert.Nil(t, offer(q("show_online", now), now.Add(11*time.Second), nil), "after ten seconds there is no offer")
+	assert.Nil(t, offer(q("show_online", now), now.Add(-time.Second), nil), "an address from the future offers nothing")
+	assert.Nil(t, offer(q("is_admin", now), now, nil), "only the switches of the page")
+	assert.Nil(t, offer("switched=show_online&t=x", now, nil))
+	assert.Nil(t, offer("", now, nil))
+	assert.Equal(t, "/user/settings/privacy?switched=show_online&t=1700000000", switchedLink("show_online", now))
+}
