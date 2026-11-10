@@ -78,7 +78,7 @@ func TestAscSettingsAccountBoardNotes(t *testing.T) {
 	})
 
 	t.Run("other settings pages have no tabs either", func(t *testing.T) {
-		for _, p := range []string{"/user/settings", "/user/settings/security", "/user/settings/appearance", "/user/settings/privacy", "/user/settings/repos", "/user/settings/keys", "/user/settings/applications", "/user/settings/organization", "/user/settings/notifications"} {
+		for _, p := range []string{"/user/settings", "/user/settings/security", "/user/settings/appearance", "/user/settings/privacy", "/user/settings/repos", "/user/settings/keys", "/user/settings/applications", "/user/settings/organization", "/user/settings/notifications", "/user/settings/hooks"} {
 			resp := sess.MakeRequest(t, NewRequest(t, "GET", p), NoExpectedStatus)
 			require.Equal(t, http.StatusOK, resp.Code, p+" -> "+resp.Header().Get("Location"))
 			doc := NewHTMLParser(t, resp.Body)
