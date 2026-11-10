@@ -678,9 +678,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Add card, Switch project select, rename and hide columns | done | templates/projects/view.tmpl, services/issue/asc_project_card.go, web_src/js/features/project-board.js | - |
 | Empty, loading and error ("request id") states | done | templates/projects/view.tmpl (empty, error banner, status), project-move.js | - |
 | Board note: Cards move between columns by drag or by the Move menu; a stack card follows its real sta... | done | settings.md row 217; services/pull/asc_project_cards_test.go, routers/web/repo/asc_project_landed_test.go | - |
-| Board note: Cards link to the stack or the issue | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Cards link to the stack or the issue | done | templates/repo/issue/card.tmpl (issue-card-title, project-card-stack); TestAscProjectCardsLinkToTheStackOrTheIssue | - |
 | Board note: Columns can be renamed and hidden | done | settings.md row "Add card, Switch project select, rename and hide columns"; TestProjectBoardCardsAndColumns | - |
-| Board note: Project board with four columns of stacks and issues; empty; loading; error | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Project board with four columns of stacks and issues; empty; loading; error | done | templates/projects/view.tmpl (project-board-empty, aria-busy and status while moving, project-board-error with request id); TestProjectBoardMoveAndStates, TestTheBoardShowsTheStackOfACardAndTheLandedColumn, project-move.test.js | - |
 
 #### Shell (ASC Hub shell: header, menus, palette, footer)
 
