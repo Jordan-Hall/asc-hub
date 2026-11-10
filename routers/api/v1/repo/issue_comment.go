@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/moderation"
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unit"
@@ -637,6 +638,10 @@ func editIssueComment(ctx *context.APIContext, form api.EditIssueCommentOption) 
 	oldContent := comment.Content
 	comment.Content = form.Body
 	if err := issue_service.UpdateComment(ctx, comment, comment.ContentVersion, ctx.Doer(), oldContent); err != nil {
+		if errors.Is(err, moderation.ErrHidden) {
+			ctx.Error(http.StatusForbidden, "UpdateComment", err)
+			return
+		}
 		ctx.Error(http.StatusInternalServerError, "UpdateComment", err)
 		return
 	}

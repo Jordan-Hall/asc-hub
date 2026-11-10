@@ -14,6 +14,7 @@ import (
 	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/moderation"
 	access_model "forgejo.org/models/perm/access"
 	project_model "forgejo.org/models/project"
 	repo_model "forgejo.org/models/repo"
@@ -66,6 +67,11 @@ func ChangeTitle(ctx context.Context, issue *issues_model.Issue, doer *user_mode
 
 	if oldTitle == title {
 		return nil
+	}
+
+	// A hidden issue keeps the title a moderator gave it until the hide is undone.
+	if err := moderation.CheckNotHidden(ctx, doer != nil && doer.IsAdmin, moderation.ReportedContentTypeIssue, issue.ID); err != nil {
+		return err
 	}
 
 	if err := issue.LoadRepo(ctx); err != nil {

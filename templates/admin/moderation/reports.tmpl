@@ -54,6 +54,7 @@
 							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" hx-post="{{$postURL}}" hx-vals='{"report_action": {{$.MarkAsIgnored}}}'>{{ctx.Locale.Tr "asc_admin.mod_dismiss"}}</button>
 							<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" hx-post="{{$postURL}}" hx-vals='{"report_action": {{$.MarkAsHandled}}}'>{{ctx.Locale.Tr "asc_admin.mod_mark_handled"}}</button>
 							{{if .ContentReference}}{{/* the reference is missing when the content was already deleted */}}
+								<button type="button" class="ds-btn ds-btn-secondary ds-btn-sm" hx-post="{{$postURL}}" hx-vals='{"content_action": {{$.ActionHide}}, "report_action": {{$.MarkAsHandled}}}'>{{ctx.Locale.Tr "asc_admin.mod_hide"}}</button>
 								{{if .ReportedContentIsUser}}
 									<button type="button" class="ds-btn ds-btn-danger ds-btn-sm" hx-post="{{$postURL}}" hx-swap="none" hx-vals='{"content_action": {{$.ActionSuspendAccount}}}'>{{ctx.Locale.Tr "moderation.action.account.suspend"}}</button>
 									<button type="button" class="ds-btn ds-btn-danger ds-btn-sm" hx-post="{{$postURL}}" hx-confirm="{{ctx.Locale.Tr "moderation.action.account.delete"}}" hx-vals='{"content_action": {{$.ActionDeleteAccount}}, "report_action": {{$.MarkAsHandled}}}'>{{ctx.Locale.Tr "moderation.action.account.delete"}}</button>

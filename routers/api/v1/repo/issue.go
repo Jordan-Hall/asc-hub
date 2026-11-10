@@ -14,6 +14,7 @@ import (
 
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/moderation"
 	"forgejo.org/models/organization"
 	access_model "forgejo.org/models/perm/access"
 	repo_model "forgejo.org/models/repo"
@@ -857,6 +858,10 @@ func EditIssue(ctx *context.APIContext) {
 	if len(form.Title) > 0 {
 		err = issue_service.ChangeTitle(ctx, issue, ctx.Doer(), form.Title)
 		if err != nil {
+			if errors.Is(err, moderation.ErrHidden) {
+				ctx.Error(http.StatusForbidden, "ChangeTitle", err)
+				return
+			}
 			ctx.Error(http.StatusInternalServerError, "ChangeTitle", err)
 			return
 		}
@@ -866,6 +871,10 @@ func EditIssue(ctx *context.APIContext) {
 		if err != nil {
 			if errors.Is(err, issues_model.ErrIssueAlreadyChanged) {
 				ctx.Error(http.StatusBadRequest, "ChangeContent", err)
+				return
+			}
+			if errors.Is(err, moderation.ErrHidden) {
+				ctx.Error(http.StatusForbidden, "ChangeContent", err)
 				return
 			}
 

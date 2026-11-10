@@ -54,6 +54,7 @@ func AbuseReports(ctx *context.Context) {
 	ctx.Data["ActionDeleteRepo"] = int(moderation_service.ContentActionDeleteRepo)
 	ctx.Data["ActionDeleteIssue"] = int(moderation_service.ContentActionDeleteIssue)
 	ctx.Data["ActionDeleteComment"] = int(moderation_service.ContentActionDeleteComment)
+	ctx.Data["ActionHide"] = int(moderation_service.ContentActionHide)
 
 	if !loadAppeals(ctx) {
 		return
@@ -242,6 +243,8 @@ func PerformAction(ctx *context.Context) {
 		deleteIssue(ctx, contentType, contentID, reportAction)
 	case moderation_service.ContentActionDeleteComment:
 		deleteComment(ctx, contentType, contentID, reportAction)
+	case moderation_service.ContentActionHide:
+		hideContent(ctx, contentType, contentID, reportAction)
 	default:
 		ctx.Flash.Warning(ctx.Tr("moderation.unknown_action"), true)
 		ctx.HTML(http.StatusOK, tplAlert)

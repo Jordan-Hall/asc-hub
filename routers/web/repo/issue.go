@@ -25,6 +25,7 @@ import (
 	"forgejo.org/models/db"
 	git_model "forgejo.org/models/git"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/moderation"
 	"forgejo.org/models/organization"
 	access_model "forgejo.org/models/perm/access"
 	project_model "forgejo.org/models/project"
@@ -2330,6 +2331,10 @@ func UpdateIssueTitle(ctx *context.Context) {
 	}
 
 	if err := issue_service.ChangeTitle(ctx, issue, ctx.Doer, title); err != nil {
+		if errors.Is(err, moderation.ErrHidden) {
+			ctx.JSONError(ctx.Tr("asc_admin.mod_hidden_locked"))
+			return
+		}
 		ctx.ServerError("ChangeTitle", err)
 		return
 	}
@@ -2382,6 +2387,8 @@ func UpdateIssueContent(ctx *context.Context) {
 			} else {
 				ctx.JSONError(ctx.Tr("repo.issues.edit.already_changed"))
 			}
+		} else if errors.Is(err, moderation.ErrHidden) {
+			ctx.JSONError(ctx.Tr("asc_admin.mod_hidden_locked"))
 		} else {
 			ctx.ServerError("ChangeContent", err)
 		}
@@ -3361,6 +3368,8 @@ func UpdateCommentContent(ctx *context.Context) {
 	if err = issue_service.UpdateComment(ctx, comment, contentVersion, ctx.Doer, oldContent); err != nil {
 		if errors.Is(err, issues_model.ErrCommentAlreadyChanged) {
 			ctx.JSONError(ctx.Tr("repo.comments.edit.already_changed"))
+		} else if errors.Is(err, moderation.ErrHidden) {
+			ctx.JSONError(ctx.Tr("asc_admin.mod_hidden_locked"))
 		} else {
 			ctx.ServerError("UpdateComment", err)
 		}

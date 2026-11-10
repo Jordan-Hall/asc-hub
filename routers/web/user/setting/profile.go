@@ -15,6 +15,7 @@ import (
 	"forgejo.org/models/avatars"
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/moderation"
 	"forgejo.org/models/organization"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
@@ -110,6 +111,19 @@ func ProfilePost(ctx *context.Context) {
 				return
 			}
 			ctx.Redirect(setting.AppSubURL + "/user/settings")
+			return
+		}
+	}
+
+	// a profile a moderator hid stays private until the decision is reversed
+	if form.Visibility != ctx.Doer.Visibility {
+		if err := moderation.CheckNotHidden(ctx, ctx.Doer.IsAdmin, moderation.ReportedContentTypeUser, ctx.Doer.ID); err != nil {
+			if errors.Is(err, moderation.ErrHidden) {
+				ctx.Flash.Error(ctx.Tr("asc_admin.mod_hidden_locked"))
+				ctx.Redirect(setting.AppSubURL + "/user/settings")
+			} else {
+				ctx.ServerError("CheckNotHidden", err)
+			}
 			return
 		}
 	}

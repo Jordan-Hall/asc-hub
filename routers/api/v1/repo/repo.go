@@ -15,6 +15,7 @@ import (
 	activities_model "forgejo.org/models/activities"
 	auth_model "forgejo.org/models/auth"
 	"forgejo.org/models/db"
+	"forgejo.org/models/moderation"
 	"forgejo.org/models/organization"
 	"forgejo.org/models/perm"
 	access_model "forgejo.org/models/perm/access"
@@ -790,6 +791,17 @@ func updateBasicProperties(ctx *context.APIContext, opts api.EditRepoOption) err
 		}
 
 		visibilityChanged = repo.IsPrivate != *opts.Private
+		// a repository a moderator hid stays private until the decision is reversed
+		if visibilityChanged {
+			if err := moderation.CheckNotHidden(ctx, ctx.IsUserSiteAdmin(), moderation.ReportedContentTypeRepository, repo.ID); err != nil {
+				code := http.StatusInternalServerError
+				if errors.Is(err, moderation.ErrHidden) {
+					code = http.StatusForbidden
+				}
+				ctx.Error(code, "CheckNotHidden", err)
+				return err
+			}
+		}
 		// when ForcePrivate enabled, you could change public repo to private, but only admin users can change private to public
 		if visibilityChanged && setting.Repository.ForcePrivate && !*opts.Private && !ctx.IsUserSiteAdmin() {
 			err := errors.New("cannot change private repository to public")

@@ -10,6 +10,7 @@ import (
 
 	"forgejo.org/models/db"
 	issues_model "forgejo.org/models/issues"
+	"forgejo.org/models/moderation"
 	repo_model "forgejo.org/models/repo"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/timeutil"
@@ -76,6 +77,12 @@ func CreateIssueComment(ctx context.Context, doer *user_model.User, repo *repo_m
 
 // UpdateComment updates information of comment.
 func UpdateComment(ctx context.Context, c *issues_model.Comment, contentVersion int, doer *user_model.User, oldContent string) error {
+	// A hidden comment keeps the text a moderator gave it until the hide is undone.
+	if c.Content != oldContent {
+		if err := moderation.CheckNotHidden(ctx, doer != nil && doer.IsAdmin, moderation.ReportedContentTypeComment, c.ID); err != nil {
+			return err
+		}
+	}
 	if err := c.LoadReview(ctx); err != nil {
 		return err
 	}

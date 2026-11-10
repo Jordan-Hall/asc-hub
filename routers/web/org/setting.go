@@ -5,6 +5,7 @@
 package org
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 
 	"forgejo.org/models"
 	"forgejo.org/models/db"
+	"forgejo.org/models/moderation"
 	"forgejo.org/models/organization"
 	"forgejo.org/models/perm"
 	repo_model "forgejo.org/models/repo"
@@ -176,6 +178,18 @@ func SettingsPost(ctx *context.Context) {
 		if err := user_service.ReplacePrimaryEmailAddress(ctx, org.AsUser(), form.Email); err != nil {
 			ctx.Data["Err_Email"] = true
 			ctx.RenderWithErr(ctx.Tr("form.email_invalid"), tplSettingsOptions, &form)
+			return
+		}
+	}
+
+	// an organization a moderator hid stays private until the decision is reversed
+	if org.Visibility != form.Visibility {
+		if err := moderation.CheckNotHidden(ctx, ctx.Doer.IsAdmin, moderation.ReportedContentTypeUser, org.ID); err != nil {
+			if errors.Is(err, moderation.ErrHidden) {
+				ctx.RenderWithErr(ctx.Tr("asc_admin.mod_hidden_locked"), tplSettingsOptions, &form)
+			} else {
+				ctx.ServerError("CheckNotHidden", err)
+			}
 			return
 		}
 	}

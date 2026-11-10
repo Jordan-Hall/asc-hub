@@ -16,6 +16,7 @@ import (
 
 	"forgejo.org/models"
 	"forgejo.org/models/db"
+	"forgejo.org/models/moderation"
 	"forgejo.org/models/organization"
 	quota_model "forgejo.org/models/quota"
 	repo_model "forgejo.org/models/repo"
@@ -416,6 +417,17 @@ func SettingsPost(ctx *context.Context) {
 			internal = repo.BaseRepo.IsInternal && form.Private
 		}
 		visibilityChanged := repo.IsPrivate != form.Private || repo.IsInternal != internal
+		// a repository a moderator hid stays private until the decision is reversed
+		if visibilityChanged {
+			if err := moderation.CheckNotHidden(ctx, ctx.Doer.IsAdmin, moderation.ReportedContentTypeRepository, repo.ID); err != nil {
+				if errors.Is(err, moderation.ErrHidden) {
+					ctx.RenderWithErr(ctx.Tr("asc_admin.mod_hidden_locked"), tplSettingsOptions, form)
+				} else {
+					ctx.ServerError("CheckNotHidden", err)
+				}
+				return
+			}
+		}
 		// when ForcePrivate enabled, you could change public repo to private, but only admin users can change private to public
 		if visibilityChanged && setting.Repository.ForcePrivate && !form.Private && !ctx.Doer.IsAdmin {
 			ctx.RenderWithErr(ctx.Tr("form.repository_force_private"), tplSettingsOptions, form)

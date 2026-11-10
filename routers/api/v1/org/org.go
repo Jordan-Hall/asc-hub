@@ -5,11 +5,13 @@
 package org
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	activities_model "forgejo.org/models/activities"
 	"forgejo.org/models/db"
+	"forgejo.org/models/moderation"
 	"forgejo.org/models/organization"
 	"forgejo.org/models/perm"
 	user_model "forgejo.org/models/user"
@@ -411,6 +413,17 @@ func Edit(ctx *context.APIContext) {
 	changeVisibility := optional.None[api.VisibleType]()
 	if form.Visibility != nil {
 		changeVisibility = optional.Some(api.VisibilityModes[*form.Visibility])
+		// an organization a moderator hid stays private until the decision is reversed
+		if api.VisibilityModes[*form.Visibility] != ctx.Org().Organization.Visibility {
+			if err := moderation.CheckNotHidden(ctx, ctx.IsUserSiteAdmin(), moderation.ReportedContentTypeUser, ctx.Org().Organization.ID); err != nil {
+				code := http.StatusInternalServerError
+				if errors.Is(err, moderation.ErrHidden) {
+					code = http.StatusForbidden
+				}
+				ctx.Error(code, "CheckNotHidden", err)
+				return
+			}
+		}
 	}
 
 	opts := &user_service.UpdateOptions{

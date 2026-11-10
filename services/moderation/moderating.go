@@ -44,6 +44,8 @@ const (
 	ContentActionDeleteRepo
 	ContentActionDeleteIssue
 	ContentActionDeleteComment
+	// ContentActionHide takes the content out of public view without deleting it (services/ascmoderation.Hide).
+	ContentActionHide
 )
 
 var allContentActions = []ContentAction{
@@ -53,6 +55,7 @@ var allContentActions = []ContentAction{
 	ContentActionDeleteRepo,
 	ContentActionDeleteIssue,
 	ContentActionDeleteComment,
+	ContentActionHide,
 }
 
 func (ca ContentAction) IsValid() bool {

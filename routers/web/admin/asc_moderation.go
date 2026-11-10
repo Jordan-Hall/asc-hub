@@ -43,6 +43,7 @@ var moderationContentActionNames = map[moderation_service.ContentAction]string{
 	moderation_service.ContentActionDeleteRepo:     "delete_repository",
 	moderation_service.ContentActionDeleteIssue:    "delete_issue",
 	moderation_service.ContentActionDeleteComment:  "delete_comment",
+	moderation_service.ContentActionHide:           "hide",
 }
 
 var moderationReportActionNames = map[moderation_service.ReportAction]string{
@@ -97,6 +98,39 @@ func recordModeration(ctx *context.Context, contentType moderation.ReportedConte
 	asctrust.RecordHostAudit(ctx, asctrust.HostAudit{
 		Action: asctrust.AuditHostModerationActed, Actor: ctx.Doer.Name, Target: target, Request: ctx.Req, Details: details,
 	})
+}
+
+// hideContent takes reported content out of public view without deleting it (Hide on a report): a profile or a
+// repository becomes private, the title and text of an issue and the text of a comment are replaced, and the reports
+// are marked handled when asked. Content already hidden is a notice, not a new decision.
+func hideContent(ctx *context.Context, contentType moderation.ReportedContentType, contentID int64, reportAction moderation_service.ReportAction) {
+	if contentType == moderation.ReportedContentTypeUser && contentID == ctx.Doer.ID {
+		ctx.Flash.Warning(ctx.Tr("asc_admin.mod_hide_self"), true)
+		ctx.HTML(http.StatusOK, tplAlert)
+		return
+	}
+	err := ascmoderation.Hide(ctx, ctx.Doer, contentType, contentID)
+	switch {
+	case errors.Is(err, ascmoderation.ErrAlreadyHidden):
+		ctx.Flash.Info(ctx.Tr("asc_admin.mod_already_hidden"), true)
+		ctx.HTML(http.StatusOK, tplAlert)
+		return
+	case err != nil:
+		ctx.ServerError("Hide", err)
+		return
+	}
+	var markErr error
+	switch reportAction {
+	case moderation_service.ReportActionMarkAsHandled:
+		markErr = moderation.MarkAsHandled(ctx, contentType, contentID)
+	case moderation_service.ReportActionMarkAsIgnored:
+		markErr = moderation.MarkAsIgnored(ctx, contentType, contentID)
+	}
+	if markErr != nil {
+		log.Error("moderation: mark the reports of %d:%d: %v", contentType, contentID, markErr)
+	}
+	ctx.Flash.Success(ctx.Tr("asc_admin.mod_hidden"), true)
+	ctx.HTML(http.StatusOK, tplAlert)
 }
 
 // moderationAppealsShown bounds the appeals the queue lists.
@@ -194,6 +228,9 @@ func AnswerAppeal(ctx *context.Context) {
 		}
 		if overturn && ascmoderation.IsSuspension(d) {
 			return liftSuspension(tx, d)
+		}
+		if overturn && ascmoderation.IsHide(d) {
+			return ascmoderation.Unhide(tx, d.ContentType, d.ContentID)
 		}
 		return nil
 	})

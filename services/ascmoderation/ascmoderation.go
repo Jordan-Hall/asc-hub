@@ -114,6 +114,8 @@ func ActionKey(action int) string {
 		return "asc_admin.mod_action_delete_issue"
 	case moderation_service.ContentActionDeleteComment:
 		return "asc_admin.mod_action_delete_comment"
+	case moderation_service.ContentActionHide:
+		return "asc_admin.mod_action_hide"
 	}
 	return "asc_admin.mod_action_other"
 }
@@ -121,6 +123,11 @@ func ActionKey(action int) string {
 // IsSuspension tells whether a decision suspended an account.
 func IsSuspension(d *moderation.Decision) bool {
 	return moderation_service.ContentAction(d.Action) == moderation_service.ContentActionSuspendAccount
+}
+
+// IsHide tells whether a decision hid content; overturning it puts the content back.
+func IsHide(d *moderation.Decision) bool {
+	return moderation_service.ContentAction(d.Action) == moderation_service.ContentActionHide
 }
 
 // Appealable tells whether the owner of a decision can still appeal it: an account that was deleted cannot.
@@ -207,8 +214,12 @@ func TellAnswer(ctx context.Context, d *moderation.Decision) {
 	loc := translation.NewLocale(u.Language)
 	key := "asc_admin.mod_mail_upheld"
 	if d.AppealStatus == moderation.AppealOverturned {
-		key = "asc_admin.mod_mail_overturned"
-		if !IsSuspension(d) {
+		switch {
+		case IsSuspension(d):
+			key = "asc_admin.mod_mail_overturned"
+		case IsHide(d):
+			key = "asc_admin.mod_mail_overturned_shown"
+		default:
 			key = "asc_admin.mod_mail_overturned_removed"
 		}
 	}
