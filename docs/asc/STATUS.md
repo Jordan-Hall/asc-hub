@@ -744,12 +744,12 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Sign-in methods card (SSO connected, link to Security for passkeys/password) | done | templates/user/settings/security/accountlinks.tmpl (file) | - |
 | Export your data (changesets, reviews, comments, settings; emailed link; requested/ready states) | done | routers/web/user/setting/asc_account.go AscExport, AscExportRequest; services/ascexportmail (the emailed link); tests TestAscExportRequestWatchesTheExportForTheEmail, TestAReadyOrFailedExportIsEmailedOnce | - |
 | Delete account: typed username, 2FA code, blocked state when repos are owned, dialog focus return | done | routers/web/user/setting/account.go DeleteAccount, deleteTwoFactorPassed; web_src/js/features/delete-button.js dialogKeydown; tests TestUserDeleteAccountAsksTwoFactorCode, TestUserDeleteAccountWithRecoveryCode, delete-button.test.js | - |
-| Board note: Primary address is changed from a menu on the verified row | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Primary address is changed from a menu on the verified row | done | templates/user/settings/account.tmpl (email-menu, email-make-primary); TestAscSettingsAccountBoardNotes | - |
 | Board note: Delete requires typing the username and, with 2FA on, a code | done | the delete account row above | - |
-| Board note: Resend is rate limited and says when you can try again | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, unverified address, address added toast, delete confirmation dialog (typed usern... | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Export requested and ready states | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Resend is rate limited and says when you can try again | done | routers/web/user/setting/asc_resend.go; TestMailResendSaysWhenToAskAgain | - |
+| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | done | templates/user/settings/navbar.tmpl (#settings-menu); TestAscSettingsAccountBoardNotes (no tabs on eight settings pages) | - |
+| Board note: Default, unverified address, address added toast, delete confirmation dialog (typed usern... | done | templates/user/settings/account.tmpl (Requires activation, Send activation, add_email_success flash, #delete-email dialog); TestAscSettingsAccountBoardNotes, TestUserDeleteAccountAsksTwoFactorCode | - |
+| Board note: Export requested and ready states | done | routers/web/user/setting/asc_account.go AscExport; TestAscExportPageRequestAndDelete (asc-export-busy, ready download), TestAReadyOrFailedExportIsEmailedOnce | - |
 
 #### UserSettingsAppearance (ASC Hub settings: appearance)
 
