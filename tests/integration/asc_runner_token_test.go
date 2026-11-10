@@ -5,6 +5,7 @@ package integration
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -15,7 +16,6 @@ import (
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/optional"
 	"forgejo.org/modules/timeutil"
-	"forgejo.org/tests"
 
 	runnerv1 "code.forgejo.org/forgejo/actions-proto/runner/v1"
 	"connectrpc.com/connect"
@@ -26,7 +26,11 @@ import (
 // The runners page shows a registration token once, right after it is asked for: it expires after an hour, a reload does
 // not show it again, and an expired token registers no runner.
 func TestRunnerRegistrationTokenShownOnce(t *testing.T) {
-	defer tests.PrepareTestEnv(t)()
+	onApplicationRun(t, func(t *testing.T, _ *url.URL) { testRunnerRegistrationTokenShownOnce(t) })
+}
+
+// the mock runner registers over the network, so the server listens while this runs
+func testRunnerRegistrationTokenShownOnce(t *testing.T) {
 	admin := unittest.AssertExistsAndLoadBean(t, &user_model.User{IsAdmin: true})
 	session := loginUser(t, admin.Name)
 	const page = "/admin/actions/runners"
@@ -41,7 +45,7 @@ func TestRunnerRegistrationTokenShownOnce(t *testing.T) {
 
 	before := time.Now()
 	resp := session.MakeRequest(t, NewRequest(t, "POST", page+"/reset_registration_token"), http.StatusSeeOther)
-	assert.Equal(t, page, resp.Header().Get("Location"))
+	assert.Equal(t, page, strings.TrimSuffix(resp.Header().Get("Location"), "/"))
 	token, err := actions_model.GetLatestRunnerToken(db.DefaultContext, optional.None[int64](), optional.None[int64]())
 	require.NoError(t, err)
 	assert.True(t, token.Usable())
