@@ -5,11 +5,11 @@ package public
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"io"
 	"path"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/klauspost/compress/gzip"
 )
@@ -38,13 +38,15 @@ func compressible(name string) bool {
 	return compressibleExt[strings.ToLower(path.Ext(name))]
 }
 
+// gzipKey names one version of one asset: its cleaned path in the asset tree and the SHA-256 of its bytes. Two files
+// with the same base name, or a custom file over a built-in one with the same time and size, can never share an
+// entry, and a changed file is compressed anew.
 type gzipKey struct {
-	name    string
-	modtime int64
-	size    int64
+	path string
+	sum  [sha256.Size]byte
 }
 
-// gzipCache holds the gzip form of assets, keyed by name, time and size, so a changed file is compressed anew.
+// gzipCache holds the gzip form of assets, keyed by path and content.
 type gzipCache struct {
 	mu    sync.Mutex
 	items map[gzipKey][]byte
@@ -55,7 +57,7 @@ var assetGzip = &gzipCache{items: map[gzipKey][]byte{}}
 
 // get returns the gzip form of content, compressing it on first use. It returns nil, and leaves content where it
 // was, when the asset is too large, the cache is full or the asset does not shrink.
-func (c *gzipCache) get(name string, modtime time.Time, content io.ReadSeeker) []byte {
+func (c *gzipCache) get(assetPath string, content io.ReadSeeker) []byte {
 	size, err := content.Seek(0, io.SeekEnd)
 	if err != nil || size <= 0 || size > gzipMaxFile {
 		_, _ = content.Seek(0, io.SeekStart)
@@ -64,7 +66,12 @@ func (c *gzipCache) get(name string, modtime time.Time, content io.ReadSeeker) [
 	if _, err := content.Seek(0, io.SeekStart); err != nil {
 		return nil
 	}
-	key := gzipKey{name: name, modtime: modtime.UnixNano(), size: size}
+	raw, err := io.ReadAll(io.LimitReader(content, gzipMaxFile+1))
+	_, _ = content.Seek(0, io.SeekStart)
+	if err != nil || int64(len(raw)) != size {
+		return nil
+	}
+	key := gzipKey{path: assetPath, sum: sha256.Sum256(raw)}
 	c.mu.Lock()
 	z, ok := c.items[key]
 	full := c.bytes >= gzipMaxCache
@@ -73,11 +80,6 @@ func (c *gzipCache) get(name string, modtime time.Time, content io.ReadSeeker) [
 		return z
 	}
 	if full {
-		return nil
-	}
-	raw, err := io.ReadAll(io.LimitReader(content, gzipMaxFile+1))
-	_, _ = content.Seek(0, io.SeekStart)
-	if err != nil || int64(len(raw)) != size {
 		return nil
 	}
 	var buf bytes.Buffer

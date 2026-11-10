@@ -80,7 +80,8 @@ func setWellKnownContentType(w http.ResponseWriter, file string) {
 
 func handleRequest(w http.ResponseWriter, req *http.Request, fs fs.FS, file string) {
 	// actually, fs (http.FileSystem) is designed to be a safe interface, relative paths won't bypass its parent directory, it's also fine to do a clean here
-	f, err := fs.Open(util.PathJoinRelX(file))
+	assetPath := util.PathJoinRelX(file)
+	f, err := fs.Open(assetPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			w.WriteHeader(http.StatusNotFound)
@@ -105,15 +106,16 @@ func handleRequest(w http.ResponseWriter, req *http.Request, fs fs.FS, file stri
 		return
 	}
 
-	serveContent(w, req, fi.Name(), fi.ModTime(), f.(io.ReadSeeker))
+	serveContent(w, req, fi.Name(), assetPath, fi.ModTime(), f.(io.ReadSeeker))
 }
 
 type ZstdBytesProvider interface {
 	ZstdBytes() []byte
 }
 
-// serveContent serve http content
-func serveContent(w http.ResponseWriter, req *http.Request, name string, modtime time.Time, content io.ReadSeeker) {
+// serveContent serves an asset: name is its base name (for the content type), assetPath its cleaned path in the
+// asset tree (to key the compressed form).
+func serveContent(w http.ResponseWriter, req *http.Request, name, assetPath string, modtime time.Time, content io.ReadSeeker) {
 	setWellKnownContentType(w, name)
 	if compressible(name) {
 		w.Header().Add("Vary", "Accept-Encoding")
@@ -134,7 +136,7 @@ func serveContent(w http.ResponseWriter, req *http.Request, name string, modtime
 	}
 
 	if encodings.Contains("gzip") && compressible(name) {
-		if z := assetGzip.get(name, modtime, content); z != nil {
+		if z := assetGzip.get(assetPath, content); z != nil {
 			if w.Header().Get("Content-Type") == "" {
 				w.Header().Set("Content-Type", "application/octet-stream")
 			}
