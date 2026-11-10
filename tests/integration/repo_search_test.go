@@ -28,11 +28,16 @@ import (
 func resultFilenames(t testing.TB, doc *HTMLDoc) []string {
 	resultSelections := doc.
 		Find(".repository.search").
-		Find("details.repo-search-result")
+		Find(".repo-search-result")
 
 	result := make([]string, resultSelections.Length())
 	resultSelections.Each(func(i int, selection *goquery.Selection) {
 		assert.Positive(t, selection.Find("div ol li").Length(), 0)
+		assert.Zero(t, selection.Find("summary").Length(), "the header row holds links, so it is not a summary")
+		fold := selection.Find("button.fold-file")
+		assert.Equal(t, 1, fold.Length())
+		assert.Equal(t, "true", fold.AttrOr("aria-expanded", ""))
+		assert.NotEmpty(t, fold.AttrOr("aria-label", ""))
 		assert.Positive(t, selection.Find(".code-inner").Find(".search-highlight").Length(), 0)
 		result[i] = selection.
 			Find(".ds-card-top").

@@ -66,3 +66,33 @@ func TestAscControlsAreNamedAndNotNested(t *testing.T) {
 		assert.Equal(t, "button", typ)
 	})
 }
+
+// Every page has one top heading and one main landmark (axe page-has-heading-one, landmark-one-main,
+// landmark-no-duplicate-main).
+func TestAscOneHeadingAndOneMainOnEveryPage(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	user := loginUser(t, "user2")
+	check := func(path string, doc *HTMLDoc) {
+		t.Helper()
+		// A heading of a rendered document (a README, a comment) is the author's, not the page's.
+		own := doc.doc.Find("h1").FilterFunction(func(_ int, h *goquery.Selection) bool { return h.Closest(".markup").Length() == 0 })
+		assert.Equal(t, 1, own.Length(), path+": one h1")
+		assert.Equal(t, 1, doc.doc.Find("main, [role='main']").Length(), path+": one main landmark")
+	}
+	for _, path := range []string{"/user/login", "/user/sign_up", "/explore/repos", "/explore/users", "/explore/organizations", "/user2/repo1"} {
+		check(path, NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", path), http.StatusOK).Body))
+	}
+	for _, path := range []string{"/no-such-user", "/user2/no-such-repo", "/user2/repo1/src/branch/master/no-such-file"} {
+		req := NewRequest(t, "GET", path)
+		req.Header.Set("Accept", "text/html") // a browser; anything else is told "Not found." in plain text
+		check(path, NewHTMLParser(t, MakeRequest(t, req, http.StatusNotFound).Body))
+	}
+	for _, path := range []string{
+		"/", "/explore/repos", "/user2", "/user2/repo1", "/user2/repo1/issues", "/user2/repo1/issues/1", "/user2/repo1/pulls",
+		"/user2/repo1/pulls/2", "/user2/repo1/pulls/2/files", "/user2/repo1/actions", "/user2/repo1/settings",
+		"/user/settings", "/user/settings/account", "/user/settings/appearance", "/user/settings/security",
+		"/user/settings/keys", "/user/settings/applications", "/user/settings/notifications", "/notifications",
+	} {
+		check(path, NewHTMLParser(t, user.MakeRequest(t, NewRequest(t, "GET", path), http.StatusOK).Body))
+	}
+}
