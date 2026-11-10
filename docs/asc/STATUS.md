@@ -624,7 +624,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Board note: Teams is a view of the organization; selecting a card loads detail below without leaving | done | web_src/js/features/org-team.test.js | - |
 | Board note: Policy owner links a team to a path pattern in merge policy | done | TestTheTeamPageShowsWhatPoliciesGiveTheTeam | - |
 | Board note: Agents can be team members with a path scope | done | TestTheTeamPageManagesAgentMembers | - |
-| Board note: Default with selected team, empty team (add member prompt), team without repositories, de... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Default with selected team, empty team (add member prompt), team without repositories, de... | done | templates/org/team/teams.tmpl (org-team-no-members, org-team-no-repos), new.tmpl (delete-team confirm); TestAscOrgTeamsBoardNotes | - |
 
 #### Packages (ASC Hub packages)
 
