@@ -193,3 +193,15 @@ func TestAscDocsLead(t *testing.T) {
 		assert.Equal(t, md, rest)
 	}
 }
+
+// The tiles of the usage page open these sections (templates/shared/asc_usage.tmpl, asc_usage_meter.tmpl).
+func TestAscDocsHaveTheSectionsTheUsageTilesOpen(t *testing.T) {
+	ctx, resp := contexttest.MockContext(t, "GET /-/docs/storage-and-keys")
+	ctx.SetParams(":slug", "storage-and-keys")
+	AscDocsPage(ctx)
+	require.Equal(t, http.StatusOK, resp.Code)
+	html := string(ctx.Data["DocsHTML"].(template.HTML))
+	for _, id := range []string{"storage-used", "agent-minutes", "ai-spend", "bandwidth", "when-a-limit-is-used-up"} {
+		assert.Contains(t, html, `id="user-content-`+id+`"`, id)
+	}
+}

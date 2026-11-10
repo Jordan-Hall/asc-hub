@@ -200,6 +200,11 @@ func TestUserUsagePage(t *testing.T) {
 	}
 	assert.NotContains(t, r.body, "<b>repo1</b>", "a repository name from the server is escaped")
 	assert.Contains(t, r.body, `data-over="true"`)
+	for id, doc := range map[string]string{"storage": "storage-used", "minutes": "agent-minutes", "ai": "ai-spend", "bandwidth": "bandwidth"} {
+		assert.Contains(t, r.body, `<a class="ds-stat" href="/-/docs/storage-and-keys#user-content-`+doc+`" data-testid="asc-usage-`+id+`"`, "the tile opens the section that explains it")
+	}
+	assert.Contains(t, r.body, `href="#usage-repos-h" data-testid="asc-usage-over-free"`, "over the limit: see what uses the most")
+	assert.Contains(t, r.body, `href="/-/docs/storage-and-keys#user-content-when-a-limit-is-used-up" data-testid="asc-usage-over-limits"`)
 	assert.NotContains(t, r.body, `data-testid="asc-usage-quota"`, "a person cannot set limits")
 	assert.NotContains(t, r.body, `data-testid="asc-usage-owner"`)
 
@@ -298,4 +303,26 @@ func TestAdminUsageNamesTheOwnerAndSetsLimits(t *testing.T) {
 	r = run(t, "POST", "/user/settings/asc/usage/quota", 2, form, func(c *context.Context) { ServeSetQuota(c, userLevel()) })
 	assert.Equal(t, http.StatusForbidden, r.status)
 	assert.Equal(t, n, f.calls())
+}
+
+func TestUsagePageOfAnEmptyMonthAndBroughtStorage(t *testing.T) {
+	f := start(t, asctrust.FeatureUsage)
+	f.usage = func(r *ascv1.GetUsageRequest) (*ascv1.GetUsageResponse, error) {
+		return &ascv1.GetUsageResponse{
+			Period: "2026-10", PeriodStart: 1790812800, ResetsAt: 1793491200,
+			Storage: &ascv1.UsageMeter{Limit: 4 << 30}, AgentMinutes: &ascv1.UsageMeter{}, AiSpend: &ascv1.UsageMeter{}, Bandwidth: &ascv1.UsageMeter{},
+			Empty: true, ByoStorage: true,
+		}, nil
+	}
+	f.spend = func(r *ascv1.ListSpendRequest) (*ascv1.ListSpendResponse, error) {
+		return &ascv1.ListSpendResponse{Total: &ascv1.SpendRow{}}, nil
+	}
+	r := run(t, "GET", "/user/settings/asc/usage", 2, nil, func(c *context.Context) { Serve(c, userLevel()) })
+	require.Equal(t, http.StatusOK, r.status, r.body)
+	assert.Contains(t, r.body, `data-testid="asc-usage-empty">asc_shell.usage_nothing<`)
+	assert.Contains(t, r.body, "asc_shell.usage_byo_storage", "storage the owner brought does not count")
+	assert.NotContains(t, r.body, `data-testid="asc-usage-over"`)
+	assert.NotContains(t, r.body, `data-over="true"`)
+	assert.Contains(t, r.body, "asc_shell.usage_no_limit", "a measure without a limit says so")
+	assert.NotContains(t, r.body, "ds-tabs", "the settings menu is the only navigation")
 }
