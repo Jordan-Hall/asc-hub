@@ -198,8 +198,8 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Queues table with Flush, cron table with Run now, stack traces | done | templates/admin/queue.tmpl (file) | - |
 | Flush confirmation with count; Run now streams output; "Verify audit chain" cron task | done | templates/admin/queue_manage.tmpl, routers/web/admin/queue.go, templates/admin/queue.tmpl (cron-run), web_src/js/features/admin/cronrun.js, modules/taskout, services/asctrust/auditcheck.go (cron verify_asc_audit_chain); tests TestRunNowShowsTheOutputOfTheRun, TestRunAuditCheckFailsOnABrokenChain, cronrun.test.js | - |
 | Board note: Flush asks for confirmation and counts what will be removed | done | templates/admin/queue_manage.tmpl (confirm names the waiting count), QueueRemoveAllItems flash counts the removed items; test TestQueueFlushNamesTheCount | - |
-| Board note: Run now runs a task immediately and streams its output | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, backed-up queue, failed cron task, empty queue, flush confirmation | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Run now runs a task immediately and streams its output | done | templates/admin/queue.tmpl (cron-run), web_src/js/features/admin/cronrun.js, routers/web/admin/admin.go CronOutput; tests TestRunNowShowsTheOutputOfTheRun, cronrun.test.js | - |
+| Board note: Default, backed-up queue, failed cron task, empty queue, flush confirmation | done | templates/admin/queue.tmpl, queue_table.tmpl, queue_manage.tmpl; tests TestMonitorShowsABackedUpQueueAFailedTaskAndTheEmptyState, TestQueueFlushNamesTheCount | - |
 
 #### AdminNotices (ASC Hub admin: notices)
 
