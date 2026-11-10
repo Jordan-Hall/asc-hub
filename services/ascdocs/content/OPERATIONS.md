@@ -1535,3 +1535,22 @@ offers `master` as the trunk, the branch `asc init` makes and the docs use; the 
 then says `asc init` with no `-b`. The owner can type another name. A git repository is offered `[repository]
 DEFAULT_BRANCH`. Code: `routers/web/repo/repo.go` (AscTrunk), `templates/repo/empty.tmpl`. Test:
 TestNewRepoTrunkIsMasterForAsc.
+
+## A push asc refuses
+
+asc judges every push to an asc repository before the hub takes it. When asc refuses, the pusher's git prints the
+reason asc gave, with its code in front, for example:
+
+```text
+remote: NOT_FAST_FORWARD: ! [rejected] refs/heads/topic (fetch first)
+```
+
+A force push (`git push -f`, or `--force-with-lease`) to an ordinary branch is accepted: asc takes the new tip as long
+as the old tip the hub reports is the one it holds. A rewrite of a land branch (the trunk, or a branch the
+repository marks as one) is refused with `fetch first`, as is a push that lost a race to another push; fetch, rebase
+and push again. Other codes name the rule that refused the push (path rules, secret scanning, signing).
+
+Only when asc cannot be reached or fails does the pusher see "The asc server could not take this push; it was
+refused. Try again later."; the hub log then has `asc could not import a push` with the cause. asc and the hub must
+be the same release or newer than this one: an older asc sends refusals whose details disagree with their status,
+which the hub still reads, but other gRPC clients report as an internal error.
