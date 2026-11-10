@@ -796,6 +796,24 @@ access the team gives, its agents and what the policies give it. An owner gets *
 Code: `routers/web/org/teams.go` (Teams), `templates/org/team/teams.tmpl`, `templates/org/team/new.tmpl`. Test:
 TestAscOrgTeamsBoardNotes.
 
+## Project boards
+
+A project (`/<owner>/<repo>/projects/<id>` or `/<owner>/-/projects/<id>`) is a board of columns holding issue and
+pull request cards.
+
+- Every card's title opens its issue or pull request. A card whose pull request is part of a stack has a chip with
+  how much of the stack has landed; the chip opens the stack on that pull request.
+- Cards move by drag or by **Move**, the keyboard menu on each card, which announces the new column. While a move is
+  saved the board is busy and the status line says "Moving ..."; a refused move shows a banner with the request id.
+- One column can be the **Landed** column: a card moves there when its stack lands. Columns can be renamed and hidden;
+  hidden columns wait in a bar above the board, and the default column cannot be hidden.
+- A board with no cards says how to add one; writers get **Add card**.
+
+Code: `routers/web/repo/projects.go`, `templates/projects/view.tmpl`, `templates/repo/issue/card.tmpl`,
+`services/pull/asc_project_cards.go`, `web_src/js/features/project-move.js`. Tests:
+TestAscProjectCardsLinkToTheStackOrTheIssue, TestProjectBoardMoveAndStates, TestProjectBoardCardsAndColumns,
+TestTheBoardShowsTheStackOfACardAndTheLandedColumn, `project-move.test.js`.
+
 ## Teams in path rules and policies
 
 A repository's path rules and its policy (`.asc/policy.toml`) may name `team:<name>`, a team of the organization that
