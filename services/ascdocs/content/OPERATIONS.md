@@ -342,6 +342,28 @@ is off on this hub. Everything works with asc." Its colours come from the theme 
 Code: `templates/repo/clone_asc_tabs.tmpl`, `services/context/repo.go` (AscGitAccess), `web_src/css/asc-pages/repo-home.css`.
 Tests: TestAscGitNoteBoardNotes, TestAscClonePanel.
 
+## Insights: Pulse and Contributors
+
+**Insights** on an asc repository has two boards. Both are computed on the hub from what asc reports for the
+repository, as the viewer, so asc checks again who may see it.
+
+**Pulse** has two controls: Everyone, People or Agents, and 7 days, 30 days or a year. Each is a plain link that keeps
+the other choice, so a period chosen for agents stays on agents. With scripts the board loads in place: the tiles and
+the chart become a skeleton, then the whole board is swapped at once so the numbers never disagree. Under the controls
+are four tiles: landed, opened, median time to first review, and the share of agent changes. The chart shows changes
+landed each day, people and agents stacked. **Table** opens the same numbers day by day, for screen readers and for
+copying. The median review time has a Faster or Slower chip against the weeks before. Recent stacks list the latest
+landings; Waiting lists changes that wait for a review, and each row opens the change.
+
+**Contributors** is a table: who, landed, reviews, median review time, a 12-week line and the share of landed changes.
+A person opens their profile when the hub knows the account and the viewer may see it. An agent opens its runs in this
+repository. Agents do not review, so the review load beside the table lists people only. If the statistics could not
+load, the table still shows with a banner that who writes the code is left out.
+
+Code: `templates/repo/insights_asc.tmpl`, `templates/repo/insights_people.tmpl`, `routers/web/repo/asc_insights.go`,
+`routers/web/repo/asc_insights_people.go`, `web_src/js/features/asc-insights.js`. Tests: TestInsightsBoardNotes,
+TestPeopleBoardNotes, TestInsightsRenderStates, TestPeopleRenderStates, asc-insights.test.js.
+
 ## The wait after wrong passwords
 
 After five wrong passwords for one name from one address, the hub refuses that name from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The name counts as typed, in any case, and is not looked up, so the count does not tell a stranger which email belongs to which account; a username and an email of the same person count apart. One address that gets ten times as many wrong across names waits too, which bounds the tries across the names of one person. Both counts are taken before the password is checked, so tries sent at the same time cannot pass them. The counts live in memory, at most 10000 keys each. A full table drops the key whose count is oldest among those not waiting; when every key waits, it drops the wait that ends soonest. Every key keeps its own count, so a flood never refuses or frees another key, and a try is only given back to the count that took it. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
