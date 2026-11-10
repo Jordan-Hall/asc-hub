@@ -64,6 +64,9 @@ func (repo *Repository) GetLanguageStats(commitID string) (map[string]int64, err
 	id, err := repo.ConvertToGitID(commitID)
 	if err != nil {
 		log.Debug("Unable to get commit for: %s. Err: %v", commitID, err)
+		if IsErrBackendUnavailable(err) {
+			return nil, err // not a missing commit: the backend is down, and the caller tries again
+		}
 		return nil, ErrNotExist{commitID, ""}
 	}
 	commit, err := repo.getCommit(id)

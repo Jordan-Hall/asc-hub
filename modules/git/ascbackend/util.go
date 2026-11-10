@@ -134,6 +134,8 @@ func (e *Error) Is(target error) bool {
 		return e.Code == codes.Unimplemented
 	case ErrTooLarge:
 		return e.Code == codes.ResourceExhausted || e.Code == codes.OutOfRange
+	case git.ErrBackendUnavailable:
+		return e.Code == codes.Unavailable
 	}
 	return false
 }

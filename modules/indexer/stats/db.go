@@ -53,11 +53,17 @@ func (db *DBIndexer) Index(id int64) error {
 			log.Debug("Unable to get commit ID for default branch %s in %s ... skipping this repository", repo.DefaultBranch, repo.RepoPath())
 			return nil
 		}
+		if git.IsErrBackendUnavailable(err) {
+			return err // asc serve is not up yet: the queue tries again
+		}
 		log.Error("Unable to get commit ID for default branch %s in %s. Error: %v", repo.DefaultBranch, repo.RepoPath(), err)
 		return err
 	}
 
 	if err := indexChangesets(ctx, repo, gitRepo, commitID); err != nil {
+		if git.IsErrBackendUnavailable(err) {
+			return err
+		}
 		log.Error("Unable to count the changesets of %s at %s: %v", repo.FullName(), commitID, err)
 		return err
 	}
@@ -70,7 +76,7 @@ func (db *DBIndexer) Index(id int64) error {
 	// Calculate and save language statistics to database
 	stats, err := gitRepo.GetLanguageStats(commitID)
 	if err != nil {
-		if !setting.IsInTesting {
+		if !setting.IsInTesting && !git.IsErrBackendUnavailable(err) {
 			log.Error("Unable to get language stats for ID %s for default branch %s in %s. Error: %v", commitID, repo.DefaultBranch, repo.RepoPath(), err)
 		}
 		return err
