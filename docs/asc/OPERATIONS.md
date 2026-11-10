@@ -429,6 +429,13 @@ Code: `routers/web/admin/asc_health.go`, `asc_health_more.go`, `services/asctrus
 TestTheDiskCheckSaysHowSoonTheVolumeFills, TestTheTLSCheckReadsTheCertificateTheHubServes, TestTheClockCheck,
 TestTheAscChecksAskAscServeToProbeItself, TestLoadHealthMeasuresTheClocks, TestAscHealthSteps.
 
+## System notices
+
+Site administration, Notices (`/admin/notices`), lists what the hub's tasks wrote for an administrator, newest first: a
+failed repository check, a failed mail delivery, a broken audit chain. Each notice has Dismiss, which deletes that notice.
+Dismiss all opens a dialog first and deletes every notice only when confirmed. A dismissed notice is deleted for good.
+When there are none the page says "Nothing to report".
+
 ## The moderation queue
 
 Site administration, Moderation (`/admin/moderation/reports`, needs `[moderation] ENABLED = true`), lists the open abuse
