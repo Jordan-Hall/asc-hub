@@ -267,10 +267,12 @@ func Organization(ctx *context.Context) {
 }
 
 // SettingsOrgRow is one organization of the settings list with the role of the person in it: an owner gets a
-// Settings link, a member gets Leave.
+// Settings link, and everyone gets Leave, which asks first. The last owner cannot leave until someone else is an
+// owner (the leave action refuses it too, with organization.ErrLastOrgOwner).
 type SettingsOrgRow struct {
-	Org     *organization.Organization
-	IsOwner bool
+	Org         *organization.Organization
+	IsOwner     bool
+	IsLastOwner bool
 }
 
 func settingsOrgRows(ctx *context.Context, orgs []*organization.Organization, uid int64) ([]SettingsOrgRow, error) {
@@ -282,6 +284,13 @@ func settingsOrgRows(ctx *context.Context, orgs []*organization.Organization, ui
 			return nil, err
 		}
 		row.IsOwner = isOwner
+		if isOwner {
+			owners, err := org.GetOwnerTeam(ctx)
+			if err != nil {
+				return nil, err
+			}
+			row.IsLastOwner = owners.NumMembers <= 1
+		}
 		rows = append(rows, row)
 	}
 	return rows, nil
