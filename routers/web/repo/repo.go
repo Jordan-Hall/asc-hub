@@ -323,6 +323,22 @@ func CreatePost(ctx *context.Context) {
 	prepareAscNewRepo(ctx, ctxUser)
 	prepareNewRepoImport(ctx)
 
+	// The form is drawn again when it has an error: it needs each owner's visibility, and keeps the one chosen.
+	ctx.Data["visibility"] = "public"
+	if getRepoPrivate(ctx) {
+		ctx.Data["visibility"] = "private"
+	}
+	ctx.Data["IsForcedPrivate"] = setting.Repository.ForcePrivate
+	if !ownerVisibilities(ctx, ctxUser) {
+		return
+	}
+	switch {
+	case form.Visibility == "private" || form.Visibility == "internal" || form.Visibility == "public":
+		ctx.Data["visibility"] = form.Visibility
+	case form.Private:
+		ctx.Data["visibility"] = "private"
+	}
+
 	if !ctx.CheckQuota(quota_model.LimitSubjectSizeReposAll, ctxUser.ID, ctxUser.Name) {
 		return
 	}
