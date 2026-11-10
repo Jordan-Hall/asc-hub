@@ -41,14 +41,32 @@ func FileHandlerFunc() http.HandlerFunc {
 	}
 }
 
-// parseAcceptEncoding parse Accept-Encoding: deflate, gzip;q=1.0, *;q=0.5 as compress methods
+// parseAcceptEncoding parses Accept-Encoding (deflate, gzip;q=1.0, *;q=0.5) into the codings it names. A coding
+// with q=0 is refused and left out, and so is the wildcard: only a coding the client names is used.
 func parseAcceptEncoding(val string) container.Set[string] {
-	parts := strings.Split(val, ";")
 	types := make(container.Set[string])
-	for v := range strings.SplitSeq(parts[0], ",") {
-		types.Add(strings.TrimSpace(v))
+	for part := range strings.SplitSeq(val, ",") {
+		name, params, _ := strings.Cut(part, ";")
+		name = strings.ToLower(strings.TrimSpace(name))
+		if name == "" || name == "*" || refused(params) {
+			continue
+		}
+		types.Add(name)
 	}
 	return types
+}
+
+// refused reports whether the parameters of a coding give it q=0.
+func refused(params string) bool {
+	for p := range strings.SplitSeq(params, ";") {
+		k, v, ok := strings.Cut(strings.TrimSpace(p), "=")
+		if !ok || !strings.EqualFold(strings.TrimSpace(k), "q") {
+			continue
+		}
+		v = strings.TrimRight(strings.TrimSpace(v), "0")
+		return v == "" || v == "." || v == "0" || v == "0."
+	}
+	return false
 }
 
 // setWellKnownContentType will set the Content-Type if the file is a well-known type.
@@ -97,6 +115,9 @@ type ZstdBytesProvider interface {
 // serveContent serve http content
 func serveContent(w http.ResponseWriter, req *http.Request, name string, modtime time.Time, content io.ReadSeeker) {
 	setWellKnownContentType(w, name)
+	if compressible(name) {
+		w.Header().Add("Vary", "Accept-Encoding")
+	}
 
 	encodings := parseAcceptEncoding(req.Header.Get("Accept-Encoding"))
 	if encodings.Contains("zstd") {
@@ -112,6 +133,16 @@ func serveContent(w http.ResponseWriter, req *http.Request, name string, modtime
 		}
 	}
 
+	if encodings.Contains("gzip") && compressible(name) {
+		if z := assetGzip.get(name, modtime, content); z != nil {
+			if w.Header().Get("Content-Type") == "" {
+				w.Header().Set("Content-Type", "application/octet-stream")
+			}
+			w.Header().Set("Content-Encoding", "gzip")
+			httpcache.ServeContentWithCacheControl(w, req, name, modtime, bytes.NewReader(z))
+			return
+		}
+	}
+
 	httpcache.ServeContentWithCacheControl(w, req, name, modtime, content)
-	return
 }
