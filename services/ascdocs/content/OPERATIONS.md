@@ -436,6 +436,15 @@ and creation date, and Open goes to the organization page. Search matches the na
 A search with no match says "No organization matches this search." and Clear filters goes back to the full list. A fresh
 install with no organizations says "No organizations yet" and offers New organization.
 
+## Packages and the cleanup preview
+
+Site administration, Packages (`/admin/packages`), lists every published package with its owner, type and size. With none
+published the page says "No packages yet"; a search with no match offers Clear filters. "Cleanup rules, with a preview"
+(`/admin/packages/cleanup/rules`) lists every enabled cleanup rule with its owner, its package type and how many versions, in
+how many packages, it would delete if it ran now. Looking deletes nothing. "Run the rules now" deletes exactly those versions
+and is switched off when nothing would be deleted. With no rule enabled the page says "No cleanup rule is enabled." The
+rules also run every day by themselves.
+
 ## System notices
 
 Site administration, Notices (`/admin/notices`), lists what the hub's tasks wrote for an administrator, newest first: a
