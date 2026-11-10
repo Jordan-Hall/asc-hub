@@ -23,7 +23,7 @@ func TestAscDashboardStates(t *testing.T) {
 	skeleton := page.Find(".wk-dash-main [data-asc-list-main] > [data-asc-list-loading][hidden]")
 	assert.Equal(t, 1, skeleton.Length())
 	assert.Equal(t, 3, skeleton.Find(".wk-sk-row").Length())
-	page.AssertElement(t, "[data-asc-list-main] > section [id='wk-needs-title']", true)
+	page.AssertElement(t, "[data-asc-list-main] > .wk-dash-work > section [id='wk-needs-title']", true)
 
 	today := page.Find("[data-asc-dash-today]")
 	assert.Equal(t, 1, today.Length())

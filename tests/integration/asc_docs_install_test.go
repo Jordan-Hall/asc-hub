@@ -87,6 +87,6 @@ func TestAscDocsInstall(t *testing.T) {
 		page := NewHTMLParser(t, MakeRequest(t, NewRequest(t, "GET", "/-/docs/why"), http.StatusOK).Body)
 		assert.Equal(t, 1, page.doc.Find("h1").Length(), "the source's own first heading is not shown twice")
 		page.AssertElement(t, "[data-asc-docs-install]", false)
-		page.AssertElement(t, "aside.site-toc a[href='/-/docs/install']", true)
+		page.AssertElement(t, "nav.site-docs-side a[href='/-/docs/install']", true)
 	})
 }
