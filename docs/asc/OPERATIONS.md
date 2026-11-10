@@ -579,6 +579,19 @@ when it is ready. Code: `services/asctrust/audit.go` (AuditRow, AuditChange), `t
 `web_src/js/features/asc-audit.js`. Tests: TestAuditPageOfBuildsTheRecordAndTheDiff, TestAscAdminAuditBoardNotes,
 `asc-audit.test.js`.
 
+## A person's page, and no acting as them
+
+Site administration > People > a person (`/admin/users/{id}`) has five tabs that are views of the same person: Overview,
+Emails, Keys, Sessions and Activity (`?tab=`). Reset 2FA and Suspend each ask for a reason; an empty reason changes nothing,
+and the reason goes to the audit log with the change. An administrator cannot suspend themselves.
+
+- A suspended person has a red banner and Unsuspend in place of Suspend. An account not activated yet has a warning banner.
+- A person who still owns repositories cannot be deleted: the page says how many, links to them, and Delete is switched off.
+  Move or delete the repositories first.
+- Nobody acts as another person. Support works through these documented actions. The API's `sudo` parameter and `Sudo`
+  header are refused with 403 unless `[api] ENABLE_SUDO = true`, which is off by default. Switch it on only for scripted
+  seeding, and off again after.
+
 ## Usage and agents on a person's page
 
 The page of a person in site administration (Overview tab) has a **Usage** card (storage and agent minutes this
