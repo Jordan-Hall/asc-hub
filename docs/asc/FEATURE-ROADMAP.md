@@ -4,15 +4,15 @@ Source of truth for what is left between the product and the design boards (`pro
 
 Status words: **done**, **ui-only-missing** (data and routes exist, markup or script missing), **needs-hub-backend**, **needs-asc-backend**, **needs-both**.
 
-## Counts (audit of 2026-10-28)
+## Counts (recounted from the rows on 2026-11-10)
 
 | Group | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both | total |
 |---|---|---|---|---|---|---|
-| shell | 0 | 0 | 0 | 0 | 0 | 0 |
-| settings | 0 | 0 | 0 | 0 | 0 | 0 |
-| repo | 0 | 0 | 0 | 0 | 0 | 0 |
-| review | 0 | 0 | 0 | 0 | 0 | 0 |
-| **all** | 0 | 0 | 0 | 0 | 0 | 0 |
+| shell | 195 | 0 | 0 | 0 | 0 | 195 |
+| settings | 174 | 0 | 0 | 0 | 0 | 174 |
+| repo | 263 | 0 | 0 | 0 | 0 | 263 |
+| review | 214 | 0 | 0 | 0 | 0 | 214 |
+| **all** | 846 | 0 | 0 | 0 | 0 | 846 |
 
 ## Order of work
 

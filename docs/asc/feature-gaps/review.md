@@ -8,18 +8,18 @@ Status words: **done** (present and wired), **ui-only-missing** (data and routes
 
 | Status | Rows |
 | --- | --- |
-| done | 213 |
+| done | 214 |
 | ui-only-missing | 0 |
 | needs-hub-backend | 0 |
 | needs-asc-backend | 0 |
-| needs-both | 1 |
+| needs-both | 0 |
 | total | 214 |
 
 Audit of 2026-10-30: the counts above were recomputed from the table rows (the earlier header counts were not updated as rows were marked). Rows that were read in the tree and corrected carry an Audit note in their Where cell. Per-board counts and the verified status of every board are in `docs/asc/STATUS.md`; the per-board count table below is not maintained.
 
 | Board | done | ui-only-missing | needs-hub-backend | needs-asc-backend | needs-both |
 |---|---|---|---|---|---|
-| Review | 29 | 0 | 0 | 0 | 1 |
+| Review | 30 | 0 | 0 | 0 | 0 |
 | ReviewVersions | 13 | 0 | 0 | 0 | 0 |
 | NewChange | 13 | 0 | 0 | 0 | 0 |
 | Checks | 13 | 0 | 0 | 0 | 0 |
