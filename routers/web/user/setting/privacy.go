@@ -5,6 +5,7 @@ package setting
 
 import (
 	"net/http"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -44,6 +45,13 @@ func Privacy(ctx *context.Context) {
 	}
 	ctx.Data["BlockedUsers"] = blocked
 	ctx.Data["AscUndoUnblock"] = undoUnblockOffer(ctx, time.Now())
+	ctx.Data["AscUndoSwitch"] = undoSwitchOffer(ctx, time.Now(), map[string]bool{
+		"show_activity":   ctx.Data["ShowActivity"].(bool),
+		"show_online":     ctx.Data["ShowOnline"].(bool),
+		"show_local_time": ctx.Data["ShowLocalTime"].(bool),
+		"agents_profile":  ctx.Data["AgentsReadProfile"].(bool),
+		"hide_email":      ctx.Data["HideEmail"].(bool),
+	})
 	ctx.HTML(http.StatusOK, tplSettingsPrivacy)
 }
 
@@ -60,24 +68,21 @@ func PrivacyPost(ctx *context.Context) {
 			ctx.ServerError("SetShowOnline", err)
 			return
 		}
-		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
-		ctx.Redirect(privacyLink())
+		ctx.Redirect(switchedLink(ctx.FormString("setting"), time.Now()))
 		return
 	case "show_local_time":
 		if err := ascpresence.SetShowLocalTime(ctx, ctx.Doer.ID, on); err != nil {
 			ctx.ServerError("SetShowLocalTime", err)
 			return
 		}
-		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
-		ctx.Redirect(privacyLink())
+		ctx.Redirect(switchedLink(ctx.FormString("setting"), time.Now()))
 		return
 	case "agents_profile":
 		if err := user_model.SetAscAgentsMayReadProfile(ctx, ctx.Doer.ID, on); err != nil {
 			ctx.ServerError("SetAscAgentsMayReadProfile", err)
 			return
 		}
-		ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
-		ctx.Redirect(privacyLink())
+		ctx.Redirect(switchedLink(ctx.FormString("setting"), time.Now()))
 		return
 	case "hide_email":
 		opts.KeepEmailPrivate = optional.Some(on)
@@ -89,8 +94,46 @@ func PrivacyPost(ctx *context.Context) {
 		ctx.ServerError("UpdateUser", err)
 		return
 	}
-	ctx.Flash.Success(ctx.Tr("settings.update_profile_success"))
-	ctx.Redirect(privacyLink())
+	ctx.Redirect(switchedLink(ctx.FormString("setting"), time.Now()))
+}
+
+// switchLabels names each switch of the privacy page by the locale key of its label.
+var switchLabels = map[string]string{
+	"show_activity":   "asc_work.sp_show_activity",
+	"show_online":     "asc_work.sp_show_online",
+	"show_local_time": "asc_work.sp_show_local_time",
+	"agents_profile":  "asc_work.sp_agents_profile",
+	"hide_email":      "asc_work.sp_hide_email",
+}
+
+// switchedLink is the privacy page after a switch saved: the page then says what changed and offers Undo for ten seconds.
+func switchedLink(name string, at time.Time) string {
+	return privacyLink() + "?" + url.Values{"switched": {name}, "t": {strconv.FormatInt(at.Unix(), 10)}}.Encode()
+}
+
+// SwitchUndo is the offer to put a switch back: the switch, its label, whether it is on now, and the value Undo sends.
+type SwitchUndo struct {
+	Setting string
+	Label   string
+	On      bool
+}
+
+// undoSwitchOffer is the switch the page offers to put back, or nil: the address names a known switch that saved less
+// than undoWindow ago. Undo sends the opposite of the value the switch has now, so it is judged on what is stored.
+func undoSwitchOffer(ctx *context.Context, now time.Time, current map[string]bool) *SwitchUndo {
+	name := ctx.FormTrim("switched")
+	label, ok := switchLabels[name]
+	if !ok {
+		return nil
+	}
+	at, err := strconv.ParseInt(ctx.FormString("t"), 10, 64)
+	if err != nil {
+		return nil
+	}
+	if age := now.Sub(time.Unix(at, 0)); age < 0 || age > undoWindow {
+		return nil
+	}
+	return &SwitchUndo{Setting: name, Label: label, On: current[name]}
 }
 
 // PrivacyBlock blocks a person by username.
