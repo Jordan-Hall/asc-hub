@@ -1256,6 +1256,16 @@ as it is. The target in use is selected in **Where new objects go**. Code: `mode
 `routers/web/shared/byoweb/plan.go`, `templates/shared/asc/byo_storage_repo.tmpl`. Tests: TestAllowanceFor,
 TestRepoStoragePlan, TestRepoStorageAssignShowsTheCurrentTarget.
 
+## Where a draft is, and keeping drafts local
+
+A draft reaches the hub only from a checkout whose commit cloud is on (`asc.cloud`: `auto` turns it on in branchless
+mode when the server offers the cloud; a public repository never uploads). `asc config asc.cloud off` keeps that
+checkout's drafts on the machine. **Drafts** (`/-/asc/drafts`) says so in its side panel, and each draft's meta line
+says where it is: "On the hub", "On laptop and on the hub", or "Only on laptop" with why it has not uploaded (waiting
+to upload, upload failed, too large to upload, not queued for upload, removed from the hub). The device name is
+`asc.cloud.device`. Code: `routers/web/user/asc_drafts.go` (ascDraftsBuild), `templates/user/asc_drafts.tmpl`.
+Tests: TestAscDraftsLocation, TestAscDraftsPage.
+
 ## Discarding a draft and undoing it
 
 On **Drafts** (`/-/asc/drafts`) each draft on the hub has **Continue** and **Discard**. Continue opens a panel with
