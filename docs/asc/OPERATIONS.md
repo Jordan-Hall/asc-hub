@@ -1527,3 +1527,11 @@ The footer shows the ASC Hub version (a link to Configuration) and the page rend
 Signed-out visitors and other users see neither. `[other] SHOW_FOOTER_VERSION = false` hides the version from admins
 too, except on the admin pages; `SHOW_FOOTER_TEMPLATE_LOAD_TIME = false` hides the render time. Code:
 `templates/base/footer_content.tmpl`. Test: TestFooterContent.
+
+## The trunk of a new repository
+
+When new repositories are stored in asc (`[asc] WRITER = asc` and `NEW_REPOSITORIES = asc`), the new repository form
+offers `master` as the trunk, the branch `asc init` makes and the docs use; the quick guide of the empty repository
+then says `asc init` with no `-b`. The owner can type another name. A git repository is offered `[repository]
+DEFAULT_BRANCH`. Code: `routers/web/repo/repo.go` (AscTrunk), `templates/repo/empty.tmpl`. Test:
+TestNewRepoTrunkIsMasterForAsc.
