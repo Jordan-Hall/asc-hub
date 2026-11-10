@@ -1520,3 +1520,10 @@ the admin dashboard says so. When the check fails (no address set, a refused add
 answer that is not 200 or has no version), the dashboard shows the reason. Code: `modules/updatechecker/`,
 `services/cron/tasks_extended.go` (updateCheckerDefaults), `templates/admin/dashboard.tmpl`. Tests:
 TestUpdateCheckerDefaults, TestUpdateCheckerSource, TestDNSUpdate, TestAscInstallUpdateCheckerOff.
+
+## The version and render time in the footer
+
+The footer shows the ASC Hub version (a link to Configuration) and the page render time to site admins only.
+Signed-out visitors and other users see neither. `[other] SHOW_FOOTER_VERSION = false` hides the version from admins
+too, except on the admin pages; `SHOW_FOOTER_TEMPLATE_LOAD_TIME = false` hides the render time. Code:
+`templates/base/footer_content.tmpl`. Test: TestFooterContent.
