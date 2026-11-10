@@ -5,6 +5,7 @@ package context
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -182,7 +183,8 @@ func (b *Base) FormString(key string) string {
 // FormStrings returns a string slice for the provided key from the form
 func (b *Base) FormStrings(key string) []string {
 	if b.Req.Form == nil {
-		if err := b.Req.ParseMultipartForm(32 << 20); err != nil {
+		// a url-encoded body is parsed too: ParseMultipartForm fills Form and then answers ErrNotMultipart
+		if err := b.Req.ParseMultipartForm(32 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
 			return nil
 		}
 	}
