@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"path"
 	"strings"
 	"testing"
 	"time"
@@ -26,7 +27,7 @@ func serve(t *testing.T, name, body, acceptEncoding string) *httptest.ResponseRe
 		req.Header.Set("Accept-Encoding", acceptEncoding)
 	}
 	rec := httptest.NewRecorder()
-	serveContent(rec, req, name, time.Unix(1_800_000_000, 0), strings.NewReader(body))
+	serveContent(rec, req, path.Base(name), name, time.Unix(1_800_000_000, 0), strings.NewReader(body))
 	return rec
 }
 
@@ -76,37 +77,51 @@ func TestCompressedFormatsAreNotGzippedAgain(t *testing.T) {
 }
 
 // The compressed form is made once per version of a file: a second request is served from the cache, and a file
-// that changed (another time or size) is compressed anew. A file that would not shrink is sent as it is.
+// that changed is compressed anew. A file that would not shrink is sent as it is.
 func TestTheGzipCacheIsKeyedByTheVersionOfTheFile(t *testing.T) {
 	c := &gzipCache{items: map[gzipKey][]byte{}}
-	at := time.Unix(1_800_000_000, 0)
 	body := strings.Repeat("a{color:red}\n", 500)
 
-	first := c.get("css/x.css", at, strings.NewReader(body))
+	first := c.get("css/x.css", strings.NewReader(body))
 	require.NotNil(t, first)
 	assert.Len(t, c.items, 1)
-	again := c.get("css/x.css", at, strings.NewReader(body))
+	again := c.get("css/x.css", strings.NewReader(body))
 	assert.Equal(t, &first[0], &again[0], "the same bytes, from the cache")
 
-	changed := c.get("css/x.css", at.Add(time.Second), strings.NewReader(body+"b{}"))
+	changed := c.get("css/x.css", strings.NewReader(body+"b{}"))
 	require.NotNil(t, changed)
 	assert.Len(t, c.items, 2)
 	assert.Equal(t, body+"b{}", gunzip(t, changed))
 
-	assert.Nil(t, c.get("css/tiny.css", at, strings.NewReader("a")), "gzip of one byte is larger than the byte")
-	assert.Nil(t, c.get("css/empty.css", at, strings.NewReader("")))
+	assert.Nil(t, c.get("css/tiny.css", strings.NewReader("a")), "gzip of one byte is larger than the byte")
+	assert.Nil(t, c.get("css/empty.css", strings.NewReader("")))
 
 	// A full cache compresses nothing more and keeps what it has.
 	c.bytes = gzipMaxCache
-	assert.Nil(t, c.get("css/new.css", at, strings.NewReader(body)))
-	assert.NotNil(t, c.get("css/x.css", at, strings.NewReader(body)))
+	assert.Nil(t, c.get("css/new.css", strings.NewReader(body)))
+	assert.NotNil(t, c.get("css/x.css", strings.NewReader(body)))
+}
+
+// Two assets with one base name, the same size and the same time (as a build or a custom override can make) are
+// distinct entries: each request gets its own file back.
+func TestTheGzipCacheNeverServesOneFileForAnother(t *testing.T) {
+	c := &gzipCache{items: map[gzipKey][]byte{}}
+	a := strings.Repeat("a{color:red}\n", 500)
+	b := strings.Repeat("b{color:red}\n", 500)
+	require.Len(t, b, len(a))
+
+	assert.Equal(t, a, gunzip(t, c.get("css/x.css", strings.NewReader(a))))
+	assert.Equal(t, b, gunzip(t, c.get("js/x.css", strings.NewReader(b))), "another path with the same base name")
+	assert.Equal(t, b, gunzip(t, c.get("css/x.css", strings.NewReader(b))), "a custom file over the built-in one")
+	assert.Equal(t, a, gunzip(t, c.get("css/x.css", strings.NewReader(a))))
+	assert.Len(t, c.items, 3)
 }
 
 // The content is left at its start whatever happens, so the raw file can still be sent.
 func TestTheGzipCacheLeavesTheContentAtItsStart(t *testing.T) {
 	c := &gzipCache{items: map[gzipKey][]byte{}}
 	r := strings.NewReader("a")
-	assert.Nil(t, c.get("css/tiny.css", time.Unix(1, 0), r))
+	assert.Nil(t, c.get("css/tiny.css", r))
 	b, err := io.ReadAll(r)
 	require.NoError(t, err)
 	assert.Equal(t, "a", string(b))
