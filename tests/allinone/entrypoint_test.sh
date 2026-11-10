@@ -205,6 +205,8 @@ t_first_boot() {
 	hasnt "toml holds no forwarded key" "$toml" "$(cat "$b/forwarded-key")"
 	has "toml token file" "$toml" "internal_token_file = \"$b/internal-token\""
 	has "toml git" "$toml" "enabled = true"
+	toml_has "toml code index on" "$toml" codeintel "enabled = true"
+	toml_has "toml code index memory" "$toml" codeintel 'memory = "512MiB"'
 	hasnt "toml holds no secret" "$toml" "$(cat "$b/internal-token")"
 
 	# order: migrate, then the hub, then asc serve
@@ -533,6 +535,8 @@ t_validation() {
 	t_refused s3_without_keys "needs ASC_S3_ACCESS_KEY_ID" ASC_S3_ENDPOINT=https://s3.example.org
 	t_refused s3_bucket "ASC_S3_BUCKET is not valid" ASC_S3_BUCKET=Bad_Bucket
 	t_refused git_flag "ASC_GIT_ENABLED is not valid" ASC_GIT_ENABLED=maybe
+	t_refused codeintel_flag "ASC_CODEINTEL_ENABLED is not valid" ASC_CODEINTEL_ENABLED=yes
+	t_refused codeintel_memory "ASC_CODEINTEL_MEMORY is not valid" ASC_CODEINTEL_MEMORY=lots
 	t_refused db_scheme "ASC_DATABASE_URL must start with" ASC_DATABASE_URL=mysql://u:p@h/db
 	t_refused quote "must not contain quotes" "ASC_CACHE_DISK=2GiB\"x"
 	t_refused log_format "ASC_LOG_FORMAT is not valid" ASC_LOG_FORMAT=xml
@@ -623,13 +627,15 @@ t_variants() {
 	start ASC_S3_ENDPOINT=https://s3.example.org:3900 ASC_S3_BUCKET=my-bucket ASC_S3_REGION=eu-west-1 \
 		ASC_S3_ACCESS_KEY_ID=AKIDTEST ASC_S3_SECRET_ACCESS_KEY=s3cr3tkey \
 		"ASC_DATABASE_URL=postgres://asc:dbpass@db.internal:5432/asc?sslmode=require" \
-		FORGEJO__asc__BRIDGE=LAZY ASC_GIT_ENABLED=true
+		FORGEJO__asc__BRIDGE=LAZY ASC_GIT_ENABLED=true ASC_CODEINTEL_ENABLED=false ASC_CODEINTEL_MEMORY=2GiB
 	wait_ready || { end_case; return; }
 	local toml="$T/work/asc/asc-serve.toml"
 	has "s3 store" "$toml" "store = 's3://my-bucket?endpoint=https://s3.example.org:3900&region=eu-west-1&path_style=true'"
 	has "postgres db" "$toml" "db = 'postgres://asc:dbpass@db.internal:5432/asc?sslmode=require'"
 	has "lazy: no promote" "$toml" "bridge_promote = false"
 	has "lazy: git layer from the variable" "$toml" "enabled = true"
+	toml_has "code index off from the variable" "$toml" codeintel "enabled = false"
+	toml_has "code index memory from the variable" "$toml" codeintel 'memory = "2GiB"'
 	eq "asc has the S3 key id" AKIDTEST "$(env_of asc.env AWS_ACCESS_KEY_ID)"
 	eq "asc has the S3 secret" s3cr3tkey "$(env_of asc.env AWS_SECRET_ACCESS_KEY)"
 	eq "asc has the region" eu-west-1 "$(env_of asc.env AWS_REGION)"
