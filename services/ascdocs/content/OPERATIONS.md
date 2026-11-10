@@ -753,6 +753,25 @@ someone else). The pill is `ascpresence.Of` (`services/ascpresence`), filled in 
 in `templates/shared/user/profile_big_avatar.tmpl`. Tests: TestThePillSaysOnlineAndTheLocalTime,
 TestTheProfileShowsAPresencePill.
 
+## The privacy page and blocking people
+
+**Settings > Privacy** (`/user/settings/privacy`) has switches for showing your activity, when you are online, your
+local time, whether agents may read your profile, and hiding your email address. Each switch saves the moment it
+changes. The page then says what changed ("Hide my email from commits" is on.) and offers **Undo** for ten seconds; Undo
+sends the opposite of what is stored now.
+
+Below are the people you block. With nobody blocked the list says so. **Block** takes a username and asks in a dialog
+first; a name that does not exist, an organization and an account you cannot see all get the same "not found" answer.
+Blocking someone removes their follows both ways, their watches on your repositories, their collaborator access, and
+the review requests that still wait between you on open pull requests. **Unblock** asks nothing and offers **Undo**
+for ten seconds, which blocks the person again.
+
+Code: `templates/user/settings/privacy.tmpl`, `routers/web/user/setting/privacy.go`,
+`routers/web/user/setting/blocked_users.go`, `services/user/block.go`. Tests: TestAscSettingsPrivacyBoardNotes,
+TestUndoSwitchOfferLastsTenSecondsAndSendsTheOppositeOfWhatIsStored,
+TestUndoUnblockOfferLastsTenSecondsAndNamesAVisibleUnblockedPerson, TestPrivacyBlockDoesNotRevealHiddenAccounts,
+TestBlockUser.
+
 ## The agents pill in the header
 
 While a signed-in person has an agent run that is queued, running or waiting, the header (beside Inbox) and the phone
