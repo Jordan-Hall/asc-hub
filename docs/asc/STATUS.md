@@ -985,11 +985,11 @@ Board copy not found word for word in locale, templates or scripts: Collapsed (d
 | Body copy: "A push arrives as changes and goes through policy... Stacks appear as branches nam... | done | see where-cell | - |
 | Bridge switched off by admin: one sentence "The Git remote is off on this hub. Everything work... | done | templates/repo/clone_asc_tabs.tmpl:1 | - |
 | Inline variant in the repository home hero card; also in settings Working mode when branches a... | done | `home_dir.tmpl`, `settings/asc_branchless.tmpl`, `empty.tmpl` | - |
-| Board note: The whole row is one disclosure button; Enter and Space open it | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: The URL is copyable only after expanding | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: When the admin switches the Git remote off the row says so in a single sentence and has n... | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Collapsed, expanded, switched off and inline | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Dark and light through the Theme tweak | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: The whole row is one disclosure button; Enter and Space open it | done | TestAscGitNoteBoardNotes (summary holds the row, nothing else to press) | - |
+| Board note: The URL is copyable only after expanding | done | TestAscGitNoteBoardNotes (address and copy inside the body) | - |
+| Board note: When the admin switches the Git remote off the row says so in a single sentence and has n... | done | TestAscGitNoteBoardNotes (one sentence, no controls), TestAscClonePanel | - |
+| Board note: Collapsed, expanded, switched off and inline | done | TestAscGitNoteBoardNotes, TestAscClonePanel (closed by default; home_cards, empty, asc_branchless include it) | - |
+| Board note: Dark and light through the Theme tweak | done | TestAscGitNoteBoardNotes (colours are theme tokens only) | - |
 
 #### History (ASC Hub history and graph)
 
