@@ -504,6 +504,11 @@ Code: `routers/web/shared/actions/asc_agent_runners.go`, `services/asctrust/runn
 
 Site administration > Monitor lists the queues and the scheduled tasks.
 
+- Queues with waiting items or busy workers are listed first; idle queues are folded under "n idle queues". A queue
+  with more than 100 waiting items shows "Backed up". With no queue at all the section says "The hub has no queues."
+- The task list is folded. When the last run of any task failed, the list opens and its summary shows "n failed";
+  each failed task shows Failed next to its last run.
+
 - **Run now** starts the task and opens a run panel above the task table. The panel shows who started the run, when,
   how long it has taken, and the lines the task writes, as it writes them (the page asks the hub once a second). It
   ends with OK or Failed; a failed run ends with the error. A task that writes nothing shows "The task has written no
