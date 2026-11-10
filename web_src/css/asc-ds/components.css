@@ -2001,6 +2001,13 @@ a.ds-stat:hover {
   .ds-empty { padding: 48px 24px; }
 }
 
+.ds-empty-cmd {
+  max-inline-size: 36rem;
+  margin-block-start: 14px;
+  margin-inline: auto;
+  text-align: start;
+}
+
 /* ================================================================ command and terminal blocks */
 .ds-cmd {
   display: flex;

@@ -1,6 +1,6 @@
 {{/*
 An empty, no-result or error state with words and the next step.
-Props: Icon (a ds-* icon name, default "book"), Title, Body (optional), Tone ("err" for an error), PrimaryLabel + PrimaryHref, SecondaryLabel + SecondaryHref, SecondaryGhost (a ghost button; all optional).
+Props: Icon (a ds-* icon name, default "book"), Title, Body (optional), Tone ("err" for an error), PrimaryLabel + PrimaryHref, SecondaryLabel + SecondaryHref, SecondaryGhost (a ghost button), Command (a shell command to run, with Copy; all optional).
 Put it inside a .ds-card or .ds-list.
 */}}
 {{$icon := "book"}}{{if .Icon}}{{$icon = .Icon}}{{end}}
@@ -8,6 +8,9 @@ Put it inside a .ds-card or .ds-list.
 	<div class="ds-empty-ic" aria-hidden="true">{{svg (print "dsi-" $icon) 34}}</div>
 	<h2>{{.Title}}</h2>
 	{{if .Body}}<p>{{.Body}}</p>{{end}}
+	{{if .Command}}
+		<div class="ds-cmd ds-cmd-scroll ds-empty-cmd" data-testid="empty-command"><span class="ds-pr" aria-hidden="true">$</span><code tabindex="0">{{.Command}}</code><button type="button" class="ds-copy" data-ds-toast-copied="{{ctx.Locale.Tr "asc_download.copied_toast"}}" data-clipboard-text="{{.Command}}">{{svg "dsi-copy" 14}} {{ctx.Locale.Tr "asc_download.copy"}}</button></div>
+	{{end}}
 	{{if or .PrimaryHref .SecondaryHref}}
 		<div class="ds-empty-acts">
 			{{if .PrimaryHref}}<a class="ds-btn ds-btn-primary" href="{{.PrimaryHref}}">{{.PrimaryLabel}}</a>{{end}}

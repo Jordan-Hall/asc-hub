@@ -89,7 +89,7 @@
 			{{end}}
 		</ul>
 		{{else}}
-			{{template "shared/ds/empty" (dict "Icon" "key" "Title" (ctx.Locale.Tr "asc_work.sp_ssh_empty") "Body" (ctx.Locale.Tr "asc_work.sp_ssh_empty_body"))}}
+			{{template "shared/ds/empty" (dict "Icon" "key" "Title" (ctx.Locale.Tr "asc_work.sp_ssh_empty") "Body" (ctx.Locale.Tr "asc_work.sp_ssh_empty_body") "Command" (print `ssh-keygen -t ed25519 -C "` $.SignedUser.Email `"`))}}
 		{{end}}
 	</div>
 	<div class="ui g-modal-confirm delete modal" id="delete-ssh">
