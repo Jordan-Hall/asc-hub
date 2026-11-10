@@ -1756,9 +1756,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Sources list with edit and add | done | templates/admin/auth/list.tmpl (file) | - |
 | People count per source; Local passwords row (admins only option); Test sign-in showing claims... | done | Built: the people per source (`routers/web/admin/asc_auth_counts.go`, a People column and the built-in Local passwords row, which is listed even when it is the only source) and the refusal to remove a source that ... | - |
-| Board note: Test sign-in runs the full flow and shows the claims received | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Local passwords can be limited to admins | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, test sign-in result (pass/fail), no sources (setup), remove blocked by people wh... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Test sign-in runs the full flow and shows the claims received | done | TestAuthSourceTestSignIn (password claims, refusal, OAuth round trip, shown once, admins only); OPERATIONS Sign-in sources in Site administration | - |
+| Board note: Local passwords can be limited to admins | done | TestLocalPasswordsAdminsOnly (web, API, old sessions signed out) | - |
+| Board note: Default, test sign-in result (pass/fail), no sources (setup), remove blocked by people wh... | done | TestAuthSourceRemoveIsBlockedWhilePeopleUseIt (setup state, blocked Remove), TestAuthSourceTestSignIn (pass/fail), TestAuthenticationsPageShowsTheLocalRowAndThePeopleOfEachSource | - |
 
 #### Onboarding (ASC Hub sign in and sign up)
 
