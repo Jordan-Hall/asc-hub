@@ -540,6 +540,21 @@ func TestCallErrorReadsTheRefusalOutOfAStatusMismatch(t *testing.T) {
 	assert.False(t, ok)
 }
 
+// A push that rewrites a branch asc holds as a land branch, or that lost a race, is git's "fetch first": asc sends
+// it typed, with the status details restating the rejection, and the pusher reads it as such, not "try again".
+func TestCallErrorReadsAFetchFirstRejection(t *testing.T) {
+	native, err := status.New(codes.FailedPrecondition, "! [rejected] refs/heads/topic (fetch first)").
+		WithDetails(&ascv1.ErrorDetail{Code: "NOT_FAST_FORWARD", Paths: []string{"refs/heads/topic"}})
+	require.NoError(t, err)
+	var rej *RejectError
+	require.ErrorAs(t, callError("import push", native.Err()), &rej)
+	assert.Equal(t, "NOT_FAST_FORWARD", rej.Code)
+	assert.Equal(t, "NOT_FAST_FORWARD: ! [rejected] refs/heads/topic (fetch first)", rej.Message)
+	msg, ok := RejectMessage(rej)
+	require.True(t, ok)
+	assert.Contains(t, msg, "(fetch first)")
+}
+
 // The refusal of asc in its two forms: the typed ErrorDetail as an Any in the status details (native), and the
 // Internal answer with the status in its text (older asc). Both must give the pusher the code, the text and the files.
 func TestCallErrorReadsTypedRefusalsInBothForms(t *testing.T) {
