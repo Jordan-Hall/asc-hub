@@ -1571,3 +1571,16 @@ asc serve cannot be reached yet; 12 repositories wait for their language stats a
 If that line keeps coming after the boot, asc serve is down or the hub cannot reach it: check `asc serve` in the
 container log and the `[asc]` address in the hub's configuration. Other failures to read a repository are still
 logged as errors, once each.
+
+## Compression of static assets
+
+The hub's scripts, styles, icons and other text assets under `/assets/` are always sent compressed to a browser that
+asks for it: zstd when the build embeds the assets and the browser takes zstd, gzip otherwise (assets on disk, or a
+browser without zstd). The gzip form of each file is made once, on first request, and kept in memory (files up to
+16 MiB, 64 MiB in all; a file that changes is compressed anew). Images and fonts that are compressed already are sent
+as they are. Every compressible asset answers with `Vary: Accept-Encoding`, so a proxy or CDN in front keeps the
+forms apart.
+
+The main script and style shrink from about 2.3 MB to about 0.55 MB, which is most of the wait for a first page on a
+slow link. Assets carry nothing about the person, so this needs no setting. Pages themselves are compressed only with
+`[server] ENABLE_GZIP = true` (off by default; a reverse proxy can compress them instead).
