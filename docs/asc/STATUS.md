@@ -382,7 +382,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Continue (open in editor or show asc stack resume) and Discard buttons, 30-day undo, discarded... | done | routers/web/user/asc_drafts.go (ascDraftsAct); TestAscDraftsDiscardAndUndo | - |
 | Board note: Continue opens the draft in the editor or shows the asc command to resume | done | templates/user/asc_drafts.tmpl (wk-draft-resume); TestAscDraftsDiscardAndUndo | Shows the command; there is no editor URI handler to open |
 | Board note: Discard asks nothing: it is in the operation log and can be undone for 30 days | done | routers/web/user/asc_drafts.go (ascDraftsUndoDays); TestAscDraftsDiscardAndUndo | - |
-| Board note: Drafts sync when you opt in; local-only drafts say so | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Drafts sync when you opt in; local-only drafts say so | done | templates/user/asc_drafts.tmpl (drafts-sync callout, wk-draft-where); TestAscDraftsPage, TestAscDraftsLocation | - |
 | Board note: Drafts from the terminal and the hub, where each lives, empty, discarded with undo, loadi... | done | templates/user/asc_drafts.tmpl; TestAscDraftsPage, TestAscDraftsLocation, TestAscDraftsDiscardAndUndo | - |
 
 #### Errors (ASC Hub error and status pages)
