@@ -21,8 +21,10 @@
 		</li>
 	{{end}}
 </ul>
+{{else}}
+<div data-testid="oauth2-apps-empty">{{template "shared/ds/empty" (dict "Icon" "puzzle" "Title" (ctx.Locale.Tr "asc_work.sp_apps_empty") "Body" (ctx.Locale.Tr "asc_work.sp_apps_empty_body") "PrimaryHref" "#application-name" "PrimaryLabel" (ctx.Locale.Tr "asc_work.sp_apps_new"))}}</div>
 {{end}}
-<form class="ui form ds-form wk-card-form ignore-dirty" action="{{.Link}}/oauth2" method="post">
+<form class="ui form ds-form wk-card-form ignore-dirty" action="{{.Link}}/oauth2" method="post" data-testid="oauth2-app-form">
 	{{.CsrfTokenHtml}}
 	<h3 class="ds-t-h3">{{ctx.Locale.Tr "settings.create_oauth2_application"}}</h3>
 	<div class="required field ds-field {{if .Err_AppName}}error{{end}}">
