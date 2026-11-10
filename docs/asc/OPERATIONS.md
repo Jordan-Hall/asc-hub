@@ -63,6 +63,7 @@ Each `FORGEJO__<section>__<KEY>` variable you set wins over the defaults above. 
 | `ASC_DATABASE_URL` | SQLite file `/var/lib/gitea/asc/asc.db` | Database of `asc serve`: a `sqlite://`, `postgres://` or `postgresql://` URL. |
 | `ASC_S3_ENDPOINT`, `ASC_S3_BUCKET` (`asc-hub`), `ASC_S3_REGION` (`garage`), `ASC_S3_ACCESS_KEY_ID`, `ASC_S3_SECRET_ACCESS_KEY` | none | With an endpoint, the objects of `asc serve` go to an S3-compatible bucket (path-style) instead of `/var/lib/gitea/asc/objects`. The endpoint must be an `https://` URL without credentials, query or fragment; both keys are required with it. This is the operator's storage, not a per-user setting. |
 | `ASC_CACHE_MEMORY`, `ASC_CACHE_DISK`, `ASC_TEXT_MEMORY` | `256MiB`, `2GiB`, `256MiB` | Cache sizes of `asc serve`: a number and a unit such as `MiB`. |
+| `ASC_CODEINTEL_ENABLED`, `ASC_CODEINTEL_MEMORY` | `true`, `512MiB` | The code index of `asc serve` (`[codeintel]`), which text, symbol and meaning search read; its segments live on the cache disk. `false` turns repository search off, and the search page then says this kind of search is not available. |
 | `ASC_GIT_ENABLED` | `false` | Git layer of `asc serve` when the bridge is `lazy` or `off` (always on for `eager`): `true` or `false`. |
 | `ASC_LOG`, `ASC_LOG_FORMAT` | `info`, `text` | Log filter and format (`text` or `json`) of `asc serve`. |
 
