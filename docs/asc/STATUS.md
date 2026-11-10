@@ -236,8 +236,8 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | Packages table and delete | done | templates/admin/packages/list.tmpl:54 | - |
 | Run cleanup rules with a preview of counts (hub runs CleanupExpiredData directly) | done | `services/packages/cleanup/preview.go` PreviewRules (per enabled rule: owner, type, versions and packages it would delete; deletes nothing), `routers/web/admin/asc_packages_cleanup.go` (`GET/POST ... | - |
-| Board note: Cleanup shows exactly what it will delete before it runs | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, empty, cleanup preview with counts | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Cleanup shows exactly what it will delete before it runs | done | templates/admin/packages/cleanup_rules.tmpl, routers/web/admin/asc_packages_cleanup.go; test TestAscAdminPackagesBoardNotes | - |
+| Board note: Default, empty, cleanup preview with counts | done | templates/admin/packages/list.tmpl, cleanup_rules.tmpl; test TestAscAdminPackagesBoardNotes | - |
 
 #### AdminRepos (ASC Hub admin: repositories)
 
