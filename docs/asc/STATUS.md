@@ -1064,10 +1064,10 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Linked stacks rail ("1 of 4 landed") and timeline event "coder-2 opened stack" | done | Linked stacks card in the sidebar of an issue (`templates/repo/issue/view_content/sidebar.tmpl`): the stacks that name the issue with "1 of 4 landed", each entry with its state, and a note when the stack closes the ... | - |
 | Closed by a landed stack banner with Reopen | done | Banner above the timeline of a closed issue that a landed stack fixed (`AscClosingStackLanded`: the issue is closed, a pull request of a stack names it with a closing word, and that pull request has merged), with a ... | - |
 | Comment draft kept; Cmd+Enter posts | done | templates/repo/issue/view_content.tmpl:23 (best match) | - |
-| Board note: Comment box keeps a draft; Cmd+Enter posts | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Comment box keeps a draft; Cmd+Enter posts | done | TestAscIssueViewBoardNotes (content textarea in the markdown editor, js-quick-submit), asc-drafts.test.js; OPERATIONS An issue page | - |
 | Board note: Agent comments carry an Agent chip and cannot approve or merge | done | TestAuthorLinkMarksAgents, TestAssigneesMarkAgents, TestSubmitReviewRefusesAnAgentApproval, TestAnAgentIsNotAllowedToMerge | - |
-| Board note: Linked stack shows the rail; landing closes the issue with an undo | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Open issue with discussion, agent comment, linked stack event; closed by stack; locked; l... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Linked stack shows the rail; landing closes the issue with an undo | done | TestAscIssueViewBoardNotes (rail, timeline event, closed-by-stack banner with Reopen), TestStacksNamingAnIssue | - |
+| Board note: Open issue with discussion, agent comment, linked stack event; closed by stack; locked; l... | done | TestAscIssueViewBoardNotes (open, linked stack, closed by stack, locked), TestAuthorLinkMarksAgents | - |
 
 #### Issues (ASC Hub issues)
 
