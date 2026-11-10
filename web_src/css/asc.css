@@ -55,6 +55,22 @@ video {
   outline-offset: 2px;
 }
 
+/* The shared components set `outline: none` with more weight than the ring above (WCAG 2.4.7): give it back for
+   keyboard focus. */
+.ui.button:focus-visible,
+.ui.dropdown:focus-visible,
+.ui.dropdown .menu > .item:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-primary));
+  outline-offset: 2px;
+}
+
+.ui.input > input:focus-visible,
+.ui.form :is(input, select, textarea):focus-visible,
+.ui.search > .prompt:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-primary));
+  outline-offset: 0;
+}
+
 /* cards */
 .ui.card,
 .ui.cards > .card {

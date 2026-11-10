@@ -555,6 +555,11 @@
   color: var(--text-3);
 }
 
+.ds-snav-find:focus-within {
+  border-color: var(--fill);
+  box-shadow: 0 0 0 2px var(--primary-soft), 0 0 0 1px var(--fill);
+}
+
 .ds-snav-find input {
   flex: 1;
   min-width: 0;
