@@ -1554,3 +1554,20 @@ Only when asc cannot be reached or fails does the pusher see "The asc server cou
 refused. Try again later."; the hub log then has `asc could not import a push` with the cause. asc and the hub must
 be the same release or newer than this one: an older asc sends refusals whose details disagree with their status,
 which the hub still reads, but other gRPC clients report as an internal error.
+
+## Language stats while asc serve starts
+
+The all-in-one container starts the hub first and `asc serve` once the hub answers, so for a few seconds after every
+boot the hub cannot read the repositories it stores in asc. The language stats queue does not log those reads as
+errors and does not give up on them: a repository whose read fails because asc cannot be reached goes back to the
+queue and is tried again a few seconds later, so its language bar fills in once asc is up, with no push needed.
+
+While asc stays unreachable the log says so at most once a minute, at Info:
+
+```text
+asc serve cannot be reached yet; 12 repositories wait for their language stats and are tried again
+```
+
+If that line keeps coming after the boot, asc serve is down or the hub cannot reach it: check `asc serve` in the
+container log and the `[asc]` address in the hub's configuration. Other failures to read a repository are still
+logged as errors, once each.
