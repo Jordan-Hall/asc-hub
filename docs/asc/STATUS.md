@@ -210,8 +210,8 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Element | Status | Evidence | Gap |
 |---|---|---|---|
 | Notices list, dismiss, dismiss all with confirm | done | templates/admin/notice.tmpl:31 | - |
-| Board note: Dismiss removes one; Dismiss all asks to confirm | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, empty (nothing to report) | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Dismiss removes one; Dismiss all asks to confirm | done | templates/admin/notice.tmpl, routers/web/admin/notice.go, services/context/base.go FormStrings; tests TestAscAdminNoticesBoardNotes, TestFormStringsReadsAURLEncodedBody | - |
+| Board note: Default, empty (nothing to report) | done | templates/admin/notice.tmpl; test TestAscAdminNoticesBoardNotes | - |
 
 #### AdminOrgs (ASC Hub admin: organizations)
 
