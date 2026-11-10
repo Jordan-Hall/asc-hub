@@ -875,10 +875,10 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | By repository table (storage, agent minutes, AI spend) | done | see where-cell | - |
 | Over-quota banner, empty month, "BYO does not count" note | done | see where-cell | - |
 | Menu entry always shown (hub hides it unless quota is enabled) | done | see where-cell | - |
-| Board note: Tiles open the page that explains each limit | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: BYO storage and keys do not count against the server quota | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, over-quota (banner + upgrade or free space), empty month | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Tiles open the page that explains each limit | done | usageweb TestUserUsagePage (tile hrefs), TestAscDocsHaveTheSectionsTheUsageTilesOpen | - |
+| Board note: BYO storage and keys do not count against the server quota | done | usageweb TestUserUsagePage (asc-usage-byo), TestUsagePageOfAnEmptyMonthAndBroughtStorage; STORAGE-AND-KEYS.md Usage and limits | - |
+| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | done | TestUsagePageOfAnEmptyMonthAndBroughtStorage (no ds-tabs), TestAscSettingsAccountBoardNotes | - |
+| Board note: Default, over-quota (banner + upgrade or free space), empty month | done | TestUserUsagePage (over banner with free-space and raise links), TestUsagePageOfAnEmptyMonthAndBroughtStorage (empty month) | - |
 
 ### Area: repo
 
