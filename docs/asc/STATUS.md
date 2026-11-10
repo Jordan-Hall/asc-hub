@@ -224,7 +224,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Organizations table | done | templates/admin/org/list.tmpl (file) | - |
 | Storage column (garage-eu / Server default) and Open button | done | templates/admin/org/list.tmpl and storage.tmpl: Storage column in place of Teams, the enabled storage targets of the organization from asc Storage.ListTargets (8 asked at a time), "Server default" without one or without asc, "Not known" when asc cannot be asked; Open goes to the organization page (routers/web/admin/asc_org_storage.go); tests TestLoadOrgStorage, TestAdminOrgsStorageColumn | - |
 | Board note: Open goes to the organization page; admin actions are inside organization settings | done | list.tmpl Open href .HomeLink; TestAdminOrgsStorageColumn | - |
-| Board note: Default, empty fresh install, search with no match | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Default, empty fresh install, search with no match | done | templates/admin/org/list.tmpl; test TestAscAdminOrgsBoardNotes | - |
 
 #### AdminPackages (ASC Hub admin: packages)
 
