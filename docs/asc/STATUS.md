@@ -811,11 +811,11 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Allow agents to read my profile | done | privacy.tmpl switch (sp_agents_profile) over models/user/asc_agent_profile.go (default yes, no when the choice cannot be read); the hub API hides the profile from Actions task tokens (services/convert/user.go); asc serve Agents.GetPerson asks the hub on every call through `POST /api/internal/asc/agent-profile` (routers/private/asc_agent_profile.go) and audits agent.profile.read; tests asc_agent_profile_test.go (convert, private), an_agent_gets_the_profile_of_a_person_only_when_the_hub_says_the_person_allows_it | - |
 | Blocked people list, block by username, unblock | done | templates/user/settings/blocked_users.tmpl (file) | - |
 | Block confirm dialog, 10 s undo on unblock; blocking also drops pending review requests (only... | done | `web_src/js/features/asc-confirm.js` (data-confirm-modal: the hub's styled confirm modal `block-user-modal` in `privacy.tmpl` opens before the block form is sent, also for the Enter key); Unblock redirects to the ... | - |
-| Board note: Unblock asks no questions and is undoable for 10 s | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Blocking someone removes their follows and pending review requests | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, empty blocked list, block confirmation dialog, username not found | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Switches save immediately with an undo toast | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Unblock asks no questions and is undoable for 10 s | done | TestAscSettingsPrivacyBoardNotes (no confirm on Unblock, undo-unblock banner 10 s), TestUndoUnblockOfferLastsTenSecondsAndNamesAVisibleUnblockedPerson | - |
+| Board note: Blocking someone removes their follows and pending review requests | done | services/user/block_test.go TestBlockUser (Follow, Review requests) | - |
+| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | done | TestAscSettingsAccountBoardNotes (privacy page has no tabs) | - |
+| Board note: Default, empty blocked list, block confirmation dialog, username not found | done | TestAscSettingsPrivacyBoardNotes (empty list, block-user-modal, not-found flash), TestPrivacyBlockDoesNotRevealHiddenAccounts | - |
+| Board note: Switches save immediately with an undo toast | done | TestAscSettingsPrivacyBoardNotes (undo-switch banner), TestUndoSwitchOfferLastsTenSecondsAndSendsTheOppositeOfWhatIsStored | - |
 
 #### UserSettingsProfile (ASC Hub settings: profile)
 
