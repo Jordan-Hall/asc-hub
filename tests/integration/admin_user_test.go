@@ -40,9 +40,9 @@ func TestAdminViewUsers(t *testing.T) {
 		resp := session.MakeRequest(t, req, http.StatusOK)
 		htmlDoc := NewHTMLParser(t, resp.Body)
 
-		// 6th column is the 2FA column.
+		// the 4th column is the 2FA column (after the tick, the person and the role).
 		// One user that has TOTP and another user that has WebAuthn.
-		assert.Equal(t, 2, htmlDoc.Find(".ds-settings-body table tbody tr td:nth-child(3) .ds-chip-ok").Length())
+		assert.Equal(t, 2, htmlDoc.Find(".ds-settings-body table tbody tr td:nth-child(4) .ds-chip-ok").Length())
 
 		// account type 5 is for remote users (eg. users from the federation)
 		req = NewRequest(t, "GET", "/admin/users?status_filter[account_type]=5")
