@@ -243,8 +243,11 @@
 				<div class="ds-min0">
 					<h2 id="adm-del" class="ds-t-h4">{{ctx.Locale.Tr "asc_admin.delete_person"}}</h2>
 					<p class="ds-t-small ds-c-2">{{ctx.Locale.Tr "asc_admin.delete_person_text"}}</p>
+					{{if .User.NumRepos}}
+						<p class="ds-t-small ds-c-err ds-mt-8" data-testid="delete-blocked">{{ctx.Locale.TrN .User.NumRepos "asc_admin.delete_person_blocked_one" "asc_admin.delete_person_blocked_other" .User.NumRepos}} <a class="ds-link" href="{{AppSubUrl}}/admin/repos?q={{QueryEscape .User.Name}}">{{ctx.Locale.Tr "asc_admin.delete_person_blocked_link"}}</a></p>
+					{{end}}
 				</div>
-				<button type="button" class="ds-btn ds-btn-danger show-modal" data-modal="#adm-delete-user">{{ctx.Locale.Tr "asc_admin.delete"}}</button>
+				<button type="button" class="ds-btn ds-btn-danger show-modal" data-modal="#adm-delete-user"{{if .User.NumRepos}} disabled{{end}}>{{ctx.Locale.Tr "asc_admin.delete"}}</button>
 			</div>
 		</section>
 		{{template "shared/ds/confirm" (dict "Data" . "ID" "adm-delete-user" "Title" (ctx.Locale.Tr "settings.delete_account_title") "Body" (ctx.Locale.Tr "settings.delete_account_desc") "Action" (print .Link "/delete") "Confirm" (ctx.Locale.Tr "asc_admin.delete") "Danger" true)}}
