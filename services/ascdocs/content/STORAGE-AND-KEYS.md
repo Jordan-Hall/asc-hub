@@ -35,6 +35,44 @@ The instance default (the operator's own S3 setting) is always available as "The
 3. **Details** show the models the key can use, this month's usage by model and by day (requests, tokens, cost) and the spend against the cap. A key at its cap is paused until the month ends or the cap is raised.
 4. **Disable**, **enable** and **remove** a key. Asc refuses removal while a live run or token uses it.
 
+## Usage and limits
+
+The usage page (`/user/settings/asc/usage` for an account, `/org/<org>/settings/asc/usage` for an organization,
+`/admin/asc/usage` for the site administrator) shows four tiles. Each tile opens its section below. A tile with a limit
+has a meter and "of N"; one without says "No limit". Counts of a month start again on the first day of the next month
+(UTC), as the page says under the period switch.
+
+### Storage used
+
+The size of the objects of the owner's repositories kept in the server's own storage. It is a size now, not a monthly
+count. Repositories on storage the owner brought (see Storage above) are not counted; the page says so when there are
+any.
+
+### Agent minutes
+
+The minutes agents ran in the owner's repositories this month, from start to end of each run.
+
+### AI spend
+
+What AI requests made with the server's keys cost this month. Spend on the owner's own AI keys is not counted against
+the limit; the page shows it apart, with its total. The spend table below the tiles groups the requests by key, person,
+repository, day or month.
+
+### Bandwidth
+
+The data the server sent out for the owner's repositories this month.
+
+### When a limit is used up
+
+The tile of the measure says "Over the limit of N" and a banner at the top says that things which count against it may
+be refused until the month ends or the limit is raised. The banner links to the repositories table, which lists what
+each repository used so you can see where to free space, and to this section.
+
+Limits are set by the site administrator on `/admin/asc/usage`: default limits for every account and organization, and
+limits of one owner (pick the owner with the form at the top). An empty field is no limit; for one owner it means the
+server default. To raise a limit, ask a site administrator. Bringing your own storage or AI keys takes that use off the
+server's limits.
+
 ## What is protected, and where
 
 - **Secrets are write-only.** The access key id, secret access key, session token and API keys are fields of type password with no autofill, are never prefilled, are sent to asc and dropped. After a failed submit the page is shown again with them empty. Asc returns a hint only: the start and end of an access key id ("AKIA...WXYZ") and the last four characters of an API key. Asc encrypts them at rest under its master key.
