@@ -185,3 +185,16 @@ func TestAscPostInstallPage(t *testing.T) {
 	assert.Contains(t, body, ">Download ASC</a>")
 	assert.Contains(t, body, `data-ins-wait hidden`)
 }
+
+// The update checker is offered unticked: it reads ASC Hub releases from an address the admin names first.
+func TestAscInstallUpdateCheckerOff(t *testing.T) {
+	translation.InitLocales(context.Background())
+	r := Routes()
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
+	require.Equal(t, http.StatusOK, w.Code)
+	body := w.Body.String()
+	assert.Contains(t, body, `<input id="enable_update_checker" name="enable_update_checker" type="checkbox">`)
+	assert.Contains(t, body, "Off by default. When on, ASC Hub checks once a week for newer ASC Hub releases")
+	assert.NotContains(t, body, "release.forgejo.org")
+}
