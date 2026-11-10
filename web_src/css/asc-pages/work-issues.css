@@ -243,10 +243,11 @@
   }
 }
 
+/* the margin keeps 24px around each box (WCAG 2.5.8 spacing) */
 .wk-issue-check {
   width: 20px;
   height: 20px;
-  margin: 0;
+  margin: 2px;
 }
 
 .wk-issue-icon svg.text.green,

@@ -603,9 +603,11 @@
   vertical-align: top;
 }
 
+/* the margin keeps 24px around each button (WCAG 2.5.8 spacing) */
 .wk-units td input[type="radio"] {
   width: 20px;
   height: 20px;
+  margin: 2px;
 }
 
 .wk-form-actions {

@@ -1182,9 +1182,11 @@ a.adm-who-name:hover {
   width: 40px;
 }
 
+/* the margin keeps 24px around each box (WCAG 2.5.8 spacing) */
 .adm-check-col input {
   width: 16px;
   height: 16px;
+  margin: 4px;
   accent-color: var(--fill);
 }
 
