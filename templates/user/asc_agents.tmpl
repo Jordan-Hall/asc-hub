@@ -6,7 +6,7 @@ Template Attributes:
 * CsrfTokenHtml
 */}}
 {{template "base/head" .}}
-<div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-agents">
+<div role="main" aria-label="{{.Title}}" class="ds-main wk-page wk-myagents">
 	{{template "shared/ds/subbar" (dict "Data" . "Title" (ctx.Locale.Tr "asc_myagents.title") "BackHref" (print AppSubUrl "/") "BackLabel" (ctx.Locale.Tr "asc_work.dashboard"))}}
 	<div class="ds-container ds-container-wide">
 		{{template "base/alert" .}}
