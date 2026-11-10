@@ -315,6 +315,19 @@ Code: `templates/user/settings/account.tmpl`, `routers/web/user/setting/account.
 `routers/web/user/setting/asc_account.go`. Tests: TestAscSettingsAccountBoardNotes, TestMailResendSaysWhenToAskAgain,
 TestAscExportPageRequestAndDelete, TestUserDeleteAccountAsksTwoFactorCode.
 
+## Your organizations in settings
+
+**Settings > Organizations** (`/user/settings/organization`) lists the organizations you belong to, with your role
+(Owner or Member), the number of people and repositories. An owner has a **Settings** link. **Leave** asks in a dialog
+before you leave. The last owner of an organization cannot leave: the button is disabled and the row says to make
+someone else an owner first, with a link to People; the server refuses the leave action for the last owner too.
+With no organizations the page says where they will appear and offers **New organization** when you may create one.
+Invitations waiting for you are listed under them with who invited you, the role, **Decline** and **Accept**.
+
+Code: `templates/user/settings/organization.tmpl`, `routers/web/user/setting/profile.go`,
+`routers/web/user/setting/asc_org_invites.go`. Tests: TestAscSettingsOrgsBoardNotes, TestSettingsOrgRows,
+TestOrganizationPageRows.
+
 ## The wait after wrong passwords
 
 After five wrong passwords for one name from one address, the hub refuses that name from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The name counts as typed, in any case, and is not looked up, so the count does not tell a stranger which email belongs to which account; a username and an email of the same person count apart. One address that gets ten times as many wrong across names waits too, which bounds the tries across the names of one person. Both counts are taken before the password is checked, so tries sent at the same time cannot pass them. The counts live in memory, at most 10000 keys each. A full table drops the key whose count is oldest among those not waiting; when every key waits, it drops the wait that ends soonest. Every key keeps its own count, so a flood never refuses or frees another key, and a try is only given back to the count that took it. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
