@@ -298,6 +298,23 @@ If an account named `asc-sample` already exists and is not a bot (someone regist
 
 Step 3 imports a repository in place. Import opens a form with three choices: From a Git URL (the form), From GitHub or GitLab (the full migration page, for issues and other data) and Start empty. The form posts `clone_addr` to `POST /-/get-started/import`, which queues the same task as `/repo/migrate` with history only: the repository is private, owned by the person and named after the last part of the address. Only `https` addresses are taken, and the address must pass the `[migrations]` allow and block lists (`ALLOWED_DOMAINS`, `BLOCKED_DOMAINS`, `ALLOW_LOCALNETWORKS`). With `DISABLE_MIGRATIONS`, or when the person is over their repository quota, the form says so and nothing is queued. While the task runs the page asks `GET /-/get-started/import/status?repo=<name>` every 1.5 seconds and shows "Reading history"; the answer is JSON `{"status", "message", "commits", "count", "link"}` (status `queued`, `running`, `failed` or `done`), never cached, and only for a task the person started. When it is done the page shows the commits read on the default branch and a link to the repository; a failed task shows its reason with any address credentials removed. After three failed answers in a row the page stops asking and links to the repository.
 
+## Email addresses and the account page
+
+**Settings > Account** (`/user/settings/account`) lists your email addresses. The primary address, which receives
+notifications and sign-in alerts, has a Primary chip and no actions. A verified address has a menu (the dots button)
+with **Make primary** and **Delete**. An address waiting for its link says "Requires activation" and has **Send
+activation** and **Delete**; Send activation is limited to one mail every 3 minutes and a second try says how many
+seconds are left. Adding an address says "The new email address has been added." (or that a link was sent, when the
+server asks for confirmation). Deleting an address asks in a dialog first.
+
+The same page exports your data (requested, then ready with a download link and an emailed link) and deletes the
+account, which needs your username typed and, with two-factor sign-in on, a code. The settings menu on the left is the
+only navigation for settings; no page repeats it as tabs.
+
+Code: `templates/user/settings/account.tmpl`, `routers/web/user/setting/account.go`, `routers/web/user/setting/asc_resend.go`,
+`routers/web/user/setting/asc_account.go`. Tests: TestAscSettingsAccountBoardNotes, TestMailResendSaysWhenToAskAgain,
+TestAscExportPageRequestAndDelete, TestUserDeleteAccountAsksTwoFactorCode.
+
 ## The wait after wrong passwords
 
 After five wrong passwords for one name from one address, the hub refuses that name from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The name counts as typed, in any case, and is not looked up, so the count does not tell a stranger which email belongs to which account; a username and an email of the same person count apart. One address that gets ten times as many wrong across names waits too, which bounds the tries across the names of one person. Both counts are taken before the password is checked, so tries sent at the same time cannot pass them. The counts live in memory, at most 10000 keys each. A full table drops the key whose count is oldest among those not waiting; when every key waits, it drops the wait that ends soonest. Every key keeps its own count, so a flood never refuses or frees another key, and a try is only given back to the count that took it. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
