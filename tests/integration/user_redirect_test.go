@@ -123,7 +123,7 @@ func TestUserRedirect(t *testing.T) {
 			resp := session.MakeRequest(t, req, http.StatusOK)
 			htmlDoc := NewHTMLParser(t, resp.Body)
 
-			return htmlDoc.Find("input[name='name'] + .ds-hint").Text()
+			return htmlDoc.Find("input[name='name'] ~ p.ds-hint").Text()
 		}
 
 		t.Run("No cooldown", func(t *testing.T) {
