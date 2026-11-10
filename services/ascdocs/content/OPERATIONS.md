@@ -1504,3 +1504,19 @@ scopes it has. A form without the boxes (`scopes_sent`) keeps them too. Code: `m
 `routers/web/shared/actions/variables.go`, `templates/shared/secrets/`, `templates/shared/variables/variable_list.tmpl`.
 Tests: TestAscRunScope, TestFetchActionSecretsByScope, TestGetVariablesOfRunByScope, TestGetSecretsOfJobForAgentRuns,
 TestActionsSecretsScopes, TestActionsVariablesScopes, Test_addAscRunScopes.
+
+## The update checker
+
+The update checker is off on a new install, and the installer offers it unticked. ASC Hub contacts no outside host
+for releases until an admin sets where its releases are published in `[cron.update_checker]`:
+
+- `DOMAIN_ENDPOINT`: a DNS name whose TXT record reads `asc_hub_versions=<version>[,<version>...]`, the supported
+  releases. It is read first.
+- `HTTP_ENDPOINT`: an https address of a JSON document `{"latest":{"version":"<version>"}}`. An http address, or one
+  with credentials, is refused.
+
+It runs once a week (`SCHEDULE = @every 168h`). When a newer release of the running line, or a newer line, is listed,
+the admin dashboard says so. When the check fails (no address set, a refused address, no matching TXT record, an
+answer that is not 200 or has no version), the dashboard shows the reason. Code: `modules/updatechecker/`,
+`services/cron/tasks_extended.go` (updateCheckerDefaults), `templates/admin/dashboard.tmpl`. Tests:
+TestUpdateCheckerDefaults, TestUpdateCheckerSource, TestDNSUpdate, TestAscInstallUpdateCheckerOff.
