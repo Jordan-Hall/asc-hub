@@ -7,6 +7,7 @@ import {svg} from '../svg.js';
 //
 export function setFileFolding(fileContentBox, foldArrow, newFold) {
   foldArrow.innerHTML = svg(`octicon-chevron-${newFold ? 'right' : 'down'}`, 18);
+  foldArrow.setAttribute('aria-expanded', String(!newFold));
   fileContentBox.setAttribute('data-folded', newFold);
   if (newFold && fileContentBox.getBoundingClientRect().top < 0) {
     fileContentBox.scrollIntoView();

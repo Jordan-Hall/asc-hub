@@ -125,7 +125,7 @@
 					<div class="diff-file-box diff-box file-content rv-file {{TabSizeClass $.Editorconfig $file.Name}}" id="diff-{{$file.NameHash}}" data-asc-class="{{if $.AscFileClassBadges}}{{index $.AscFileClassBadges $file.Name}}{{end}}" data-old-filename="{{$file.OldName}}" data-new-filename="{{$file.Name}}" {{if or ($file.ShouldBeHidden) (not $isExpandable)}}data-folded="true"{{end}}>
 						<div class="diff-file-header sticky-2nd-row rv-fhead">
 							<div class="diff-file-name rv-fname">
-								<button class="fold-file rv-btn rv-btn-ghost rv-btn-icon{{if not $isExpandable}} tw-invisible{{end}}" type="button" aria-label="{{ctx.Locale.Tr "repo.diff.toggle_file"}}">
+								<button class="fold-file rv-btn rv-btn-ghost rv-btn-icon{{if not $isExpandable}} tw-invisible{{end}}" type="button" aria-expanded="{{if $file.ShouldBeHidden}}false{{else}}true{{end}}" aria-label="{{ctx.Locale.Tr "repo.diff.toggle_file"}}">
 									{{if $file.ShouldBeHidden}}
 										{{svg "octicon-chevron-right" 18}}
 									{{else}}
