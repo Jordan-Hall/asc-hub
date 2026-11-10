@@ -328,6 +328,20 @@ Code: `templates/user/settings/organization.tmpl`, `routers/web/user/setting/pro
 `routers/web/user/setting/asc_org_invites.go`. Tests: TestAscSettingsOrgsBoardNotes, TestSettingsOrgRows,
 TestOrganizationPageRows.
 
+## The Git compatibility note
+
+Repository pages put the asc command first. Under it, one row "For tools that only speak Git" with **Compatibility
+note** opens a short note: what Git sees, the `git clone` address with a copy button, and how to put a token in the
+address. The whole row is one native disclosure, so Enter and Space open it and screen readers hear whether it is open.
+The address and its copy button are inside, so nothing can be copied until the note is open. The note is in the clone
+dialog, on the repository home card, on an empty repository and in **Settings > Working mode** while branches are on.
+
+With `[asc] BRIDGE = off` there is no Git remote, and the note is one sentence with nothing to press: "The Git remote
+is off on this hub. Everything works with asc." Its colours come from the theme tokens, so it follows dark and light.
+
+Code: `templates/repo/clone_asc_tabs.tmpl`, `services/context/repo.go` (AscGitAccess), `web_src/css/asc-pages/repo-home.css`.
+Tests: TestAscGitNoteBoardNotes, TestAscClonePanel.
+
 ## The wait after wrong passwords
 
 After five wrong passwords for one name from one address, the hub refuses that name from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The name counts as typed, in any case, and is not looked up, so the count does not tell a stranger which email belongs to which account; a username and an email of the same person count apart. One address that gets ten times as many wrong across names waits too, which bounds the tries across the names of one person. Both counts are taken before the password is checked, so tries sent at the same time cannot pass them. The counts live in memory, at most 10000 keys each. A full table drops the key whose count is oldest among those not waiting; when every key waits, it drops the wait that ends soonest. Every key keeps its own count, so a flood never refuses or frees another key, and a try is only given back to the count that took it. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
