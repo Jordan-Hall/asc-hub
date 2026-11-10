@@ -41,6 +41,14 @@ func TestTheHeaderCarriesTheAgentsRunningPill(t *testing.T) {
 		assert.Equal(t, "page", doc.Find(`a[data-testid="hdr-agents"]`).AttrOr("aria-current", ""))
 	})
 
+	t.Run("Your agents keeps the page gutters", func(t *testing.T) {
+		doc := NewHTMLParser(t, s.MakeRequest(t, NewRequest(t, "GET", "/-/asc/agents"), http.StatusOK).Body)
+		main := doc.Find(`[role="main"].wk-myagents`)
+		assert.Equal(t, 1, main.Length())
+		assert.False(t, main.HasClass("wk-agents"), "wk-agents is the dashboard's run list, a grid without padding")
+		assert.Equal(t, 1, main.Children().Filter(".ds-container").Length())
+	})
+
 	t.Run("The count of a person without agent features is zero", func(t *testing.T) {
 		resp := s.MakeRequest(t, NewRequest(t, "GET", "/-/asc/agents/count"), http.StatusOK)
 		assert.Equal(t, "private, no-store", resp.Header().Get("Cache-Control"))
