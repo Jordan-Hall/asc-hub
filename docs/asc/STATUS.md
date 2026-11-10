@@ -299,11 +299,11 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Counts on the filter chips (Admins 6, 2FA off 212 ...) | done | `routers/web/admin/asc_user_counts.go` adminUserCounts (one count per chip, whatever the search or chip in use), shown by the existing pill count in `templates/admin/user/list.tmpl`; a zero is not drawn; tests: ... | - |
 | Row checkboxes, "2 selected" bar, Require 2FA and Suspend bulk actions with affected-people di... | done | ticks and the bar on list.tmpl (`asc-bulk.js`), `POST /admin/users/bulk` (`routers/web/admin/asc_users_bulk.go`): a confirm page with the affected people and a reason, then each change in the audit log ... | - |
 | New person, Edit | done | templates/admin/user/new.tmpl (file) | - |
-| Board note: Filter chips narrow in place and sync to the address | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Row click opens the person; Edit opens the edit form | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Bulk actions confirm with a dialog that lists who is affected | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, bulk selection bar, suspended user, no matches, loading skeleton, empty (fresh i... | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Suspended people stay visible with a red chip | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Filter chips narrow in place and sync to the address | done | templates/admin/user/list.tmpl chips (status_filter in the address), data-asc-list-main skeleton; test TestAscAdminUsersBoardNotes | - |
+| Board note: Row click opens the person; Edit opens the edit form | done | templates/admin/user/list.tmpl adm-rowlink, admin-base.css; test TestAscAdminUsersBoardNotes | - |
+| Board note: Bulk actions confirm with a dialog that lists who is affected | done | routers/web/admin/asc_users_bulk.go, templates/admin/user/bulk.tmpl; test TestAdminUsersBulkActions | - |
+| Board note: Default, bulk selection bar, suspended user, no matches, loading skeleton, empty (fresh i... | done | templates/admin/user/list.tmpl; tests TestAscAdminUsersBoardNotes, TestAdminUsersBulkActions (a fresh install lists its first administrator) | - |
+| Board note: Suspended people stay visible with a red chip | done | templates/admin/user/role_chip.tmpl; test TestAscAdminUsersBoardNotes | - |
 
 #### Dashboard (ASC Hub dashboard)
 
