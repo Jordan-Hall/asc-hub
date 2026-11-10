@@ -782,6 +782,20 @@ agents**: the agents that ran in the asc repositories of the organization the vi
 the organizations of the page are taken in page order, at most 50 for the whole page, so an organization far down a
 page with many repositories can show fewer agents than it has. A failed lookup leaves that part out of the row.
 
+## The teams page
+
+An organization's **Teams** (`/org/<org>/teams`) shows a card per team. Selecting a card shows that team below the
+cards without leaving the page (`?team=<name>` keeps it in the address): its members, its repositories with the
+access the team gives, its agents and what the policies give it. An owner gets **Edit team** and **Add member**.
+
+- A team with no one in it says "No one is in this team yet." and, for an owner, offers **Add member**.
+- A team with no repositories says its members reach only what other teams give them and, for an owner, offers
+  **Add repository**, which opens the team's repositories page.
+- **Delete team** is on the edit page and asks to confirm first.
+
+Code: `routers/web/org/teams.go` (Teams), `templates/org/team/teams.tmpl`, `templates/org/team/new.tmpl`. Test:
+TestAscOrgTeamsBoardNotes.
+
 ## Teams in path rules and policies
 
 A repository's path rules and its policy (`.asc/policy.toml`) may name `team:<name>`, a team of the organization that
