@@ -5,9 +5,11 @@ package repo
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 
 	"forgejo.org/models/unittest"
+	user_model "forgejo.org/models/user"
 	ascv1 "forgejo.org/modules/ascproto/ascv1"
 	"forgejo.org/modules/templates"
 	"forgejo.org/services/contexttest"
@@ -99,4 +101,29 @@ func TestPeopleRenderStates(t *testing.T) {
 	assert.Contains(t, body, `data-testid="asc-people-empty"`)
 	assert.Contains(t, body, "asc_rp.people_empty_title")
 	assert.NotContains(t, body, `data-testid="asc-people-partial"`)
+}
+
+// The board notes of Contributors: a person opens the profile, an agent its runs, each row has a share and the
+// 12-week line, and the review load lists people only.
+func TestPeopleBoardNotes(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	u2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
+	body := renderPeople(t, &insPeoplePage{
+		Range: "30d", HasAgentPct: true, AgentPct: 40, PeoplePct: 60,
+		Rows: []insPerson{
+			{Name: "user2", User: u2, Landed: 6, Reviews: 4, SharePct: 60, Spark: "0,24 50,12 100,0"},
+			{Name: "coder-2", Agent: true, RunsLink: "/user2/repo1/asc/agents?agent=coder-2", Landed: 4, SharePct: 40},
+		},
+		ReviewLoad: []insPerson{{Name: "user2", User: u2, Reviews: 4}},
+	})
+	assert.Contains(t, body, `<a href="`+u2.HomeLink()+`" data-testid="asc-people-person">`)
+	assert.Contains(t, body, `href="/user2/repo1/asc/agents?agent=coder-2" data-testid="asc-people-agent"`)
+	assert.Contains(t, body, `<td class="ds-r ds-num">60%</td>`)
+	assert.Contains(t, body, `<td class="ds-r ds-num">40%</td>`)
+	assert.Contains(t, body, `<polyline points="0,24 50,12 100,0"`)
+	assert.Equal(t, 1, strings.Count(body, "<polyline"), "a row with no weeks draws no line")
+	assert.Contains(t, body, "asc_rp.agents_never_review")
+	for _, rng := range []string{"7d", "30d", "year"} {
+		assert.Contains(t, body, `href="?range=`+rng+`"`)
+	}
 }
