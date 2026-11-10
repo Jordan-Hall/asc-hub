@@ -2045,6 +2045,53 @@ a.ds-stat:hover {
   display: none;
 }
 
+/* Scroll cue for a scroller whose scrollbar is hidden: the edge with more content fades out.
+   A scroll timeline drives the fade, so nothing fades when the content fits. Browsers without
+   scroll timelines show a thin scrollbar instead. */
+@property --ds-fade-s {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --ds-fade-e {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes ds-scroll-fade {
+  0% { --ds-fade-s: 0px; --ds-fade-e: 28px; }
+  8% { --ds-fade-s: 28px; }
+  92% { --ds-fade-e: 28px; }
+  100% { --ds-fade-s: 28px; --ds-fade-e: 0px; }
+}
+
+.ds-scroll-cue,
+.ds-cmd-scroll code {
+  mask-image: linear-gradient(to right, transparent, #000 var(--ds-fade-s), #000 calc(100% - var(--ds-fade-e)), transparent);
+}
+
+.ds-scroll-cue:dir(rtl),
+.ds-cmd-scroll code:dir(rtl) {
+  mask-image: linear-gradient(to left, transparent, #000 var(--ds-fade-s), #000 calc(100% - var(--ds-fade-e)), transparent);
+}
+
+@supports (animation-timeline: scroll()) {
+  .ds-scroll-cue,
+  .ds-cmd-scroll code {
+    animation: ds-scroll-fade linear both;
+    animation-timeline: scroll(self inline);
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .ds-scroll-cue,
+  .ds-cmd-scroll code {
+    scrollbar-width: thin;
+  }
+}
+
 .ds-cmd .ds-pr,
 .ds-term .ds-pr { color: var(--term-prompt); user-select: none; }
 .ds-term .ds-cm { color: var(--term-comment); }

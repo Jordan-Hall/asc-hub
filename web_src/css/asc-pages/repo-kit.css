@@ -338,6 +338,11 @@ details.dropdown.rp-dd[open] > .content.rp-pop::before {
   display: none;
 }
 
+/* the mask of the scroll cue would hide the More sheet, which is fixed inside the strip */
+.rp-tabs-in:has(details[open]) {
+  mask-image: none;
+}
+
 .rp-tab {
   position: relative;
   display: inline-flex;
@@ -432,6 +437,12 @@ details.dropdown.rp-dd[open] > .content.rp-pop::before {
   .rp-tabs {
     margin: 0;
     border-bottom: 0;
+  }
+
+  /* the strip wraps here, so it needs no scroll cue, and the More menu drops below it */
+  .rp-tabs .rp-tabs-in.ds-scroll-cue {
+    mask-image: none;
+    animation: none;
   }
 
   .rp-tabs-in {

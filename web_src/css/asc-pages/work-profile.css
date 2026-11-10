@@ -285,8 +285,10 @@
   list-style: none;
 }
 
+/* the count moves under the name when the column cannot hold both, instead of squeezing the name */
 .wk-pf-repos li {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
@@ -300,6 +302,7 @@
 }
 
 .wk-pf-repos a {
+  flex: 1 1 12ch;
   min-width: 0;
   color: var(--text);
   overflow-wrap: anywhere;
@@ -325,6 +328,15 @@
   color: var(--text);
   font-weight: 600;
   text-decoration: none;
+}
+
+.wk-pf-orgs a img {
+  flex: none;
+}
+
+.wk-pf-orgs a span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* contribution grid */
