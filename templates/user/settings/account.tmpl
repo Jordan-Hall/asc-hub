@@ -13,16 +13,6 @@
 						</div>
 					</div>
 					<div class="wk-row-acts">
-						{{if not .IsPrimary}}
-							{{if .CanBePrimary}}
-								<form action="{{AppSubUrl}}/user/settings/account/email" method="post">
-									{{$.CsrfTokenHtml}}
-									<input name="_method" type="hidden" value="PRIMARY">
-									<input name="id" type="hidden" value="{{.ID}}">
-									<button class="ds-btn ds-btn-secondary ds-btn-sm">{{ctx.Locale.Tr "settings.primary_email"}}</button>
-								</form>
-							{{end}}
-						{{end}}
 						{{if not .IsActivated}}
 							<form action="{{AppSubUrl}}/user/settings/account/email" method="post">
 								{{$.CsrfTokenHtml}}
@@ -36,7 +26,23 @@
 							</form>
 						{{end}}
 						{{if not .IsPrimary}}
-							<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-email" data-url="{{AppSubUrl}}/user/settings/account/email/delete" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_email"}}</button>
+							{{if .CanBePrimary}}
+								{{/* a verified address: Make primary and Delete wait in its menu */}}
+								<details class="wk-menu wk-menu-end" data-testid="email-menu">
+									<summary class="ds-btn ds-btn-ghost ds-btn-icon ds-btn-sm" aria-label="{{ctx.Locale.Tr "asc_work.sp_email_more" .Email}}">{{svg "dsi-dots" 16}}</summary>
+									<div class="wk-menu-list" role="group">
+										<form class="wk-menu-form" action="{{AppSubUrl}}/user/settings/account/email" method="post">
+											{{$.CsrfTokenHtml}}
+											<input name="_method" type="hidden" value="PRIMARY">
+											<input name="id" type="hidden" value="{{.ID}}">
+											<button class="wk-menu-item" data-testid="email-make-primary">{{ctx.Locale.Tr "settings.primary_email"}}</button>
+										</form>
+										<button type="button" class="wk-menu-item wk-menu-danger delete-button" data-modal-id="delete-email" data-url="{{AppSubUrl}}/user/settings/account/email/delete" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_email"}}</button>
+									</div>
+								</details>
+							{{else}}
+								<button type="button" class="ds-btn ds-btn-danger ds-btn-sm delete-button" data-modal-id="delete-email" data-url="{{AppSubUrl}}/user/settings/account/email/delete" data-id="{{.ID}}">{{ctx.Locale.Tr "settings.delete_email"}}</button>
+							{{end}}
 						{{end}}
 					</div>
 				</li>

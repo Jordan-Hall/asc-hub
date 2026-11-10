@@ -341,6 +341,10 @@
   cursor: pointer;
 }
 
+.wk-menu-form {
+  display: grid;
+}
+
 .wk-menu-item:hover,
 .wk-menu-item:focus-visible {
   background: var(--surface-2);
