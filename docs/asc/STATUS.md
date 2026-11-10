@@ -1818,12 +1818,12 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Rotate action that keeps the old key verifying past signatures | done | services/asctrust/rotate.go (file) | - |
 | Sign my changesets by default switch | done | templates/user/settings/asc_keys.tmpl (asc-keys-default card), routers/web/user/setting/asc_keys.go AscKeysDefault (POST /user/settings/asc/keys/default), services/asctrust/ops.go SetSigningDefault; asc keeps the value with the account (Signing.GetSigningDefaults/SetSigningDefaults, audit signing.defaults.set) and the CLI follows it through asc signing default and asc.signByDefault | - |
 | Delete confirm that lists what stops working | done | templates/user/settings/keys_gpg.tmpl:92 (best match) | - |
-| Board note: Delete asks to confirm and lists what stops working | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Rotate keeps the old key verifying past signatures | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Last used helps spot keys that can go | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default list, empty list with command to generate a key, invalid key error, key added toa... | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Signing on and off | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Delete asks to confirm and lists what stops working | done | templates/user/settings/keys_ssh.tmpl #delete-ssh (wk-stops), tests/integration/asc_settings_keys_test.go Delete subtest | - |
+| Board note: Rotate keeps the old key verifying past signatures | done | services/asctrust/rotate.go RotateKey (add then revoke), services/asctrust/rotate_test.go; asc-serve signing/store.rs verifies a revoked key for signatures before revoked_at | - |
+| Board note: Last used helps spot keys that can go | done | templates/user/settings/keys_ssh.tmpl ds-li-meta, tests/integration/asc_settings_keys_test.go Last used subtest | - |
+| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | done | tests/integration/asc_settings_account_test.go other settings pages have no tabs (/user/settings/keys) | - |
+| Board note: Default list, empty list with command to generate a key, invalid key error, key added toa... | done | templates/user/settings/keys_ssh.tmpl empty state with ssh-keygen command, tests/integration/asc_settings_keys_test.go empty, invalid key and added toast subtests | - |
+| Board note: Signing on and off | done | routers/web/user/setting/asc_keys_test.go TestAscKeysSignByDefaultSwitch, TestAscKeysWithoutSignByDefault | - |
 
 #### UserSettingsSecurity (ASC Hub settings: security)
 
