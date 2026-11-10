@@ -864,3 +864,7 @@
   inline-size: auto;
   min-inline-size: 12rem;
 }
+
+.wk-team-none {
+  flex-wrap: wrap;
+}

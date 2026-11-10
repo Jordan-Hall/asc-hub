@@ -68,7 +68,10 @@
 							{{range .Members}}
 								<li><a class="wk-team-row-main" href="{{.HomeLink}}">{{ctx.AvatarUtils.Avatar . 32}}<b>{{.DisplayName}}</b></a></li>
 							{{else}}
-								<li class="ds-c-2">{{ctx.Locale.Tr "org.teams.members.none"}}</li>
+								<li class="wk-team-none" data-testid="org-team-no-members">
+									<span class="ds-c-2">{{ctx.Locale.Tr "asc_work.org_team_no_members"}}</span>
+									{{if $.IsOrganizationOwner}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.OrgLink}}/teams/{{$.SelectedTeam.LowerName | PathEscape}}">{{svg "dsi-plus" 16}} {{ctx.Locale.Tr "asc_work.org_add_member"}}</a>{{end}}
+								</li>
 							{{end}}
 						</ul>
 					</div>
@@ -78,7 +81,10 @@
 							{{range .Repos}}
 								<li><a class="wk-team-row-main" href="{{.Link}}"><b>{{.FullName}}</b></a><span class="ds-chip ds-chip-outline">{{ctx.Locale.Tr (print "asc_work.org_access_" $.SelectedTeam.AccessMode)}}</span></li>
 							{{else}}
-								<li class="ds-c-2">{{ctx.Locale.Tr "org.teams.repos.none"}}</li>
+								<li class="wk-team-none" data-testid="org-team-no-repos">
+									<span class="ds-c-2">{{ctx.Locale.Tr "asc_work.org_team_no_repos"}}</span>
+									{{if $.IsOrganizationOwner}}<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.OrgLink}}/teams/{{$.SelectedTeam.LowerName | PathEscape}}/repositories">{{svg "dsi-plus" 16}} {{ctx.Locale.Tr "asc_work.org_add_repo"}}</a>{{end}}
+								</li>
 							{{end}}
 						</ul>
 					</div>
