@@ -267,7 +267,7 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Registration token that expires in one hour, shown once, in a copy block | done | templates/admin/actions.tmpl (adm-reg), routers/web/shared/actions/runners.go RunnerResetRegistrationToken | - |
 | Board note: Details shows labels, jobs and logs; Drain stops new jobs | done | tests TestDrainingRunnerIsGivenNoNewTask, TestRunnerDrainPostSetsAndClearsTheSwitchForAnAdministrator | - |
 | Board note: Registration token expires and is shown once | done | tests/integration/asc_runner_token_test.go TestRunnerRegistrationTokenShownOnce | - |
-| Board note: Online, idle, offline (with since), draining, no runners (illustration + register command) | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Online, idle, offline (with since), draining, no runners (illustration + register command) | done | templates/admin/runner_state.tmpl (Draining chip), templates/admin/actions.tmpl; test TestAscAdminRunnersBoardNotes | - |
 
 #### AdminUser (ASC Hub admin: dana lee)
 
