@@ -18,6 +18,7 @@ import (
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/taskout"
 	"forgejo.org/modules/templates"
+	"forgejo.org/modules/test"
 	"forgejo.org/modules/web"
 	"forgejo.org/services/contexttest"
 	"forgejo.org/services/cron"
@@ -179,4 +180,50 @@ func TestRunNowShowsTheOutputOfTheRun(t *testing.T) {
 	assert.NotContains(t, runPanel(t, "?run=nope"), `data-testid="cron-run"`)
 	code, _ = cronOutput(t, "nope", "0")
 	assert.Equal(t, http.StatusNotFound, code)
+}
+
+// The monitor page shows a queue that backs up, a scheduled task whose last run failed, and an empty state when no queue
+// is managed.
+func TestMonitorShowsABackedUpQueueAFailedTaskAndTheEmptyState(t *testing.T) {
+	require.NoError(t, unittest.PrepareTestDatabase())
+	m := queue.GetManager()
+	saved := m.Queues
+	m.Queues = map[int64]queue.ManagedWorkerPoolQueue{}
+	defer func() { m.Queues = saved }()
+
+	page := func() string {
+		ctx, rec := contexttest.MockContext(t, "GET /admin/monitor/queue")
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadUser(t, ctx, 1)
+		Queues(ctx)
+		require.Equal(t, http.StatusOK, rec.Code)
+		return rec.Body.String()
+	}
+	defer test.MockVariableValue(&setting.IsProd, true)() // no development test queue
+	body := page()
+	assert.Contains(t, body, "asc_admin.queue_none", "no queue: the empty state")
+	assert.NotContains(t, body, "asc_admin.queue_status_backed")
+
+	q, err := queue.NewWorkerPoolQueueWithContext(t.Context(), "asc-backed-test", setting.QueueSettings{
+		Type: "level", Datadir: t.TempDir(), Length: 1000, BatchLength: 1, MaxWorkers: 1,
+	}, func(items ...string) []string { return nil }, false)
+	require.NoError(t, err)
+	for i := range 101 {
+		require.NoError(t, q.Push(strconv.Itoa(i)))
+	}
+	m.AddManagedQueue(q)
+	body = page()
+	assert.NotContains(t, body, "asc_admin.queue_none")
+	assert.Contains(t, body, "asc-backed-test")
+	assert.Contains(t, body, "asc_admin.queue_status_backed", "more than 100 waiting: backed up")
+
+	// a task whose last run failed is counted on the closed list, which opens
+	assert.NotContains(t, body, "asc_admin.monitor_failed_tasks")
+	defer cron.UseTestTask("asc_test_fails", func(gocontext.Context, *user_model.User, cron.Config) error {
+		return errors.New("the bucket did not answer")
+	})()
+	cron.LookupTask("asc_test_fails").RunWithUser(&user_model.User{ID: 1, Name: "user1"}, nil)
+	body = page()
+	assert.Contains(t, body, "asc_admin.monitor_failed_tasks")
+	assert.Contains(t, body, `<details class="adm-idle" open>`)
 }
