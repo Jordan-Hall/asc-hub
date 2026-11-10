@@ -1,10 +1,10 @@
 {{template "admin/layout_head" (dict "ctxData" . "pageClass" "admin-dashboard")}}
 	{{if .NeedMajorUpdate}}
-		<div class="ds-banner ds-banner-err flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.new_major_version_hint" .RemoteVersion AppVer "https://forgejo.org/releases/"}}</p></div>
+		<div class="ds-banner ds-banner-err flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.new_major_version_hint" .RemoteVersion AppVer}}</p></div>
 	{{else if .NeedMinorUpdate}}
-		<div class="ds-banner ds-banner-warn flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.new_minor_version_hint" .RemoteVersion AppVer "https://forgejo.org/releases/"}}</p></div>
+		<div class="ds-banner ds-banner-warn flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.new_minor_version_hint" .RemoteVersion AppVer}}</p></div>
 	{{else if .UpdateCheckerError}}
-		<div class="ds-banner ds-banner-warn flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.update_checker_error" .UpdateCheckerError "https://forgejo.org/releases/"}}</p></div>
+		<div class="ds-banner ds-banner-warn flash-error ds-mt-12" role="alert">{{svg "dsi-alert" 18}}<p class="ds-banner-body">{{ctx.Locale.Tr "admin.dashboard.update_checker_error" .UpdateCheckerError}}</p></div>
 	{{end}}
 
 	{{template "admin/head" (dict "Title" (ctx.Locale.Tr "admin.dashboard") "Desc" (ctx.Locale.Tr "asc_admin.dashboard_lead") "ActionLabel" (ctx.Locale.Tr "asc_admin.run_self_check") "ActionHref" (print AppSubUrl "/admin/self_check") "ActionIcon" "activity" "Secondary" true)}}

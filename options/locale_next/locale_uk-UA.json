@@ -975,9 +975,6 @@
 	"repo.watch.pull_requests": "Запити на злиття",
 	"repo.watch.releases": "Випуски",
 	"repo.watch.releases.hint": "(Тільки email)",
-	"admin.dashboard.new_major_version_hint": "Версія Forgejo %[2]s більше не підтримується. Для неї не випускатимуться виправлення помилок чи оновлення безпеки. Вийшла версія Forgejo %[1]s. Перегляньте інформацію про <a target=\"_blank\" rel=\"noreferrer\" href=\"%[3]s\">поточні випуски</a>, щоб дізнатися більше.",
-	"admin.dashboard.new_minor_version_hint": "Вийшла версія Forgejo %[1]s, ви використовуєте %[2]s. Це оновлення містить виправлення помилок та вразливостей. Настійно рекомендуємо оновитися. Перегляньте інформацію про <a target=\"_blank\" rel=\"noreferrer\" href=\"%[3]s\">поточні випуски</a>, щоб дізнатися більше.",
-	"admin.dashboard.update_checker_error": "Під час перевірки наявності оновлень для Forgejo сталася помилка. Перевірте інформацію про <a target=\"_blank\" rel=\"noreferrer\" href=\"%[2]s\">поточні випуски</a> вручну. Помилка: %[1]s",
 	"members.user_already_invited_to_org": "Цього користувача вже запрошено до організації.",
 	"members.user_already_invited_to_team": "Цього користувача вже запрошено до команди."
 }

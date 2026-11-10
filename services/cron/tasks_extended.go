@@ -138,21 +138,27 @@ func registerDeleteOldActions() {
 	})
 }
 
-func registerUpdateGiteaChecker() {
-	type UpdateCheckerConfig struct {
-		BaseConfig
-		HTTPEndpoint   string
-		DomainEndpoint string
-	}
-	RegisterTaskFatal("update_checker", &UpdateCheckerConfig{
+// UpdateCheckerConfig is [cron.update_checker]: where the supported ASC Hub releases are read from.
+type UpdateCheckerConfig struct {
+	BaseConfig
+	HTTPEndpoint   string
+	DomainEndpoint string
+}
+
+// updateCheckerDefaults is off with no source: an admin who turns the checker on names where ASC Hub releases are
+// published, so a new install contacts no outside host.
+func updateCheckerDefaults() *UpdateCheckerConfig {
+	return &UpdateCheckerConfig{
 		BaseConfig: BaseConfig{
-			Enabled:    true,
+			Enabled:    false,
 			RunAtStart: false,
 			Schedule:   "@every 168h",
 		},
-		HTTPEndpoint:   "https://dl.gitea.com/gitea/version.json",
-		DomainEndpoint: "release.forgejo.org",
-	}, func(ctx context.Context, _ *user_model.User, config Config) error {
+	}
+}
+
+func registerUpdateGiteaChecker() {
+	RegisterTaskFatal("update_checker", updateCheckerDefaults(), func(ctx context.Context, _ *user_model.User, config Config) error {
 		updateCheckerConfig := config.(*UpdateCheckerConfig)
 		return updatechecker.GiteaUpdateChecker(updateCheckerConfig.HTTPEndpoint, updateCheckerConfig.DomainEndpoint)
 	})

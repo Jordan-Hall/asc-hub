@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"forgejo.org/modules/json"
@@ -33,18 +34,25 @@ func (r *CheckerState) Name() string {
 	return "update-checker"
 }
 
-// GiteaUpdateChecker returns error when new version of Gitea is available
+// ErrNoSource is stored when the checker runs with neither a DNS name nor an https address to read releases from.
+var ErrNoSource = errors.New("no release source is set: set DOMAIN_ENDPOINT or HTTP_ENDPOINT in [cron.update_checker]")
+
+// GiteaUpdateChecker reads the supported ASC Hub releases from domainEndpoint (a TXT record) or, when that is empty,
+// from httpEndpoint (an https JSON document) and stores them, or the error, for the admin dashboard.
 func GiteaUpdateChecker(httpEndpoint, domainEndpoint string) error {
 	var version []string
 	var err error
-	if domainEndpoint != "" {
+	switch {
+	case domainEndpoint != "":
 		version, err = getVersionDNS(domainEndpoint)
-	} else {
-		v, err := getVersionHTTP(httpEndpoint)
-		if err != nil {
-			return nil
+	case httpEndpoint != "":
+		var v string
+		v, err = getVersionHTTP(httpEndpoint)
+		if err == nil {
+			version = []string{v}
 		}
-		version = []string{v}
+	default:
+		err = ErrNoSource
 	}
 
 	return UpdateRemoteVersion(context.Background(), version, err)
@@ -53,8 +61,8 @@ func GiteaUpdateChecker(httpEndpoint, domainEndpoint string) error {
 var lookupTXT = net.LookupTXT
 
 // getVersionDNS will request the TXT records for the domain. If a record starts
-// with "forgejo_versions=" everything after that will be used as the latest
-// version available.
+// with "asc_hub_versions=" everything after that is the list of supported
+// releases.
 func getVersionDNS(domainEndpoint string) (version []string, err error) {
 	records, err := lookupTXT(domainEndpoint)
 	if err != nil {
@@ -67,7 +75,7 @@ func getVersionDNS(domainEndpoint string) (version []string, err error) {
 
 	var supportedVersions []string
 	for _, record := range records {
-		if after, ok := strings.CutPrefix(record, "forgejo_versions="); ok {
+		if after, ok := strings.CutPrefix(record, "asc_hub_versions="); ok {
 			// Get all supported versions, separated by a comma.
 			for v := range strings.SplitSeq(after, ",") {
 				supportedVersions = append(supportedVersions, strings.TrimSpace(v))
@@ -85,6 +93,10 @@ func getVersionDNS(domainEndpoint string) (version []string, err error) {
 // content is JSON. The "latest.version" path's value will be used as the latest
 // version available.
 func getVersionHTTP(httpEndpoint string) (version string, err error) {
+	u, err := url.Parse(httpEndpoint)
+	if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil {
+		return "", fmt.Errorf("HTTP_ENDPOINT %q must be an https address without credentials", httpEndpoint)
+	}
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			Proxy: proxy.Proxy(),
@@ -100,7 +112,10 @@ func getVersionHTTP(httpEndpoint string) (version string, err error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("HTTP_ENDPOINT answered %s", resp.Status)
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
 		return "", err
 	}
@@ -114,6 +129,9 @@ func getVersionHTTP(httpEndpoint string) (version string, err error) {
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
 		return "", err
+	}
+	if respData.Latest.Version == "" {
+		return "", errors.New("HTTP_ENDPOINT gave no latest.version")
 	}
 	return respData.Latest.Version, nil
 }
