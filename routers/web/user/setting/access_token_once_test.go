@@ -54,6 +54,9 @@ func TestSettingsOrgRows(t *testing.T) {
 	owned, err := org.IsOwnedBy(ctx, ctx.Doer.ID)
 	require.NoError(t, err)
 	assert.Equal(t, owned, rows[0].IsOwner)
+	owners, err := org.GetOwnerTeam(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, owned && owners.NumMembers <= 1, rows[0].IsLastOwner)
 }
 
 // An owner's row links to the organization's settings; a member's row offers Leave.
@@ -74,7 +77,11 @@ func TestOrganizationPageRows(t *testing.T) {
 		if r.IsOwner {
 			owners++
 			assert.Contains(t, body, `href="`+r.Org.OrganisationLink()+`/settings"`)
-			assert.NotContains(t, body, `data-url="`+r.Org.OrganisationLink()+`/members/action/leave"`)
+			if r.IsLastOwner {
+				assert.NotContains(t, body, `data-url="`+r.Org.OrganisationLink()+`/members/action/leave"`, "the last owner cannot leave")
+			} else {
+				assert.Contains(t, body, `data-url="`+r.Org.OrganisationLink()+`/members/action/leave"`, "an owner who is not the last can leave")
+			}
 		} else {
 			assert.Contains(t, body, `data-url="`+r.Org.OrganisationLink()+`/members/action/leave"`)
 		}
