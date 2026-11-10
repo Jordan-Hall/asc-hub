@@ -12,6 +12,7 @@ import (
 
 	"forgejo.org/models/db"
 	"forgejo.org/models/moderation"
+	repo_model "forgejo.org/models/repo"
 	"forgejo.org/models/unittest"
 	user_model "forgejo.org/models/user"
 	"forgejo.org/modules/templates"
@@ -166,4 +167,68 @@ func TestOverturningAnOlderSuspensionLeavesTheNewerInForce(t *testing.T) {
 	assert.Equal(t, moderation.AppealOverturned, got.AppealStatus)
 	u := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 4})
 	assert.True(t, u.ProhibitLogin, "the newer suspension stays")
+}
+
+func TestHideOnAReportRecordsADecisionAndOverturningItPutsTheContentBack(t *testing.T) {
+	f := startInstanceAgents(t, asctrust.FeatureAuditAppend)
+	ctx0 := t.Context()
+	hide := strconv.Itoa(int(moderation_service.ContentActionHide))
+	handled := strconv.Itoa(int(moderation_service.ReportActionMarkAsHandled))
+	repoType := strconv.Itoa(int(moderation.ReportedContentTypeRepository))
+	act := func(form url.Values) (int, string) {
+		ctx, rec := contexttest.MockContext(t, "POST /admin/abuse_reports/act")
+		ctx.Render = templates.HTMLRenderer()
+		contexttest.LoadUser(t, ctx, 1)
+		ctx.IsSigned = true
+		ctx.Req.Form, ctx.Req.PostForm = form, form
+		PerformAction(ctx)
+		return rec.Code, rec.Body.String()
+	}
+
+	// hiding needs a reason like any content action
+	code, _ := act(url.Values{"content_type": {repoType}, "content_id": {"1"}, "content_action": {hide}, "report_action": {handled}})
+	require.Equal(t, http.StatusOK, code)
+	assert.Empty(t, f.appends)
+	assert.False(t, unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1}).IsPrivate)
+
+	code, body := act(url.Values{"content_type": {repoType}, "content_id": {"1"}, "content_action": {hide}, "report_action": {handled}, "reason": {"Phishing page."}})
+	require.Equal(t, http.StatusOK, code, body)
+	assert.True(t, unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1}).IsPrivate, "hidden, not deleted")
+	require.Len(t, f.appends, 1)
+	assert.Equal(t, "hide", f.appends[0].GetDetails()["content_action"])
+	assert.Equal(t, "Phishing page.", f.appends[0].GetDetails()["reason"])
+	ds, err := moderation.DecisionsOf(ctx0, 2, 10)
+	require.NoError(t, err)
+	require.Len(t, ds, 1)
+	assert.Equal(t, int(moderation_service.ContentActionHide), ds[0].Action)
+	assert.Equal(t, "user2/repo1", ds[0].ContentRef)
+
+	// hiding it again is a notice and no second decision
+	code, _ = act(url.Values{"content_type": {repoType}, "content_id": {"1"}, "content_action": {hide}, "report_action": {handled}, "reason": {"again"}})
+	require.Equal(t, http.StatusOK, code)
+	assert.Len(t, f.appends, 1)
+	ds, err = moderation.DecisionsOf(ctx0, 2, 10)
+	require.NoError(t, err)
+	assert.Len(t, ds, 1)
+
+	// an administrator cannot hide their own profile
+	code, _ = act(url.Values{"content_type": {"1"}, "content_id": {"1"}, "content_action": {hide}, "report_action": {handled}, "reason": {"self"}})
+	require.Equal(t, http.StatusOK, code)
+	assert.Len(t, f.appends, 1)
+
+	// the owner appeals and the appeal is accepted: the repository is public again
+	require.NoError(t, moderation.Appeal(ctx0, ds[0].ID, 2, "It was a demo of our own login page."))
+	ctx, rec := contexttest.MockContext(t, "POST /admin/moderation/appeals/1")
+	ctx.Render = templates.HTMLRenderer()
+	contexttest.LoadUser(t, ctx, 1)
+	ctx.IsSigned = true
+	ctx.SetParams(":id", strconv.FormatInt(ds[0].ID, 10))
+	form := url.Values{"answer": {"overturn"}, "reason": {"A demo on the owner's own domain."}}
+	ctx.Req.Form, ctx.Req.PostForm = form, form
+	AnswerAppeal(ctx)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	assert.False(t, unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 1}).IsPrivate)
+	hidden, err := moderation.IsHidden(ctx0, moderation.ReportedContentTypeRepository, 1)
+	require.NoError(t, err)
+	assert.False(t, hidden)
 }
