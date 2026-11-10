@@ -22,6 +22,7 @@ import (
 
 	"github.com/gobwas/glob"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAPIAdminCreateAndDeleteSSHKey(t *testing.T) {
@@ -86,6 +87,7 @@ func TestAPIAdminDeleteUnauthorizedKey(t *testing.T) {
 
 func TestAPISudoUser(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	defer test.MockVariableValue(&setting.API.EnableSudo, true)()
 	adminUsername := "user1"
 	normalUsername := "user2"
 	token := getUserToken(t, adminUsername, auth_model.AccessTokenScopeReadUser)
@@ -102,6 +104,7 @@ func TestAPISudoUser(t *testing.T) {
 // Variation of TestAPISudoUser which verifies the usability of `sudo` with various access token restrictions.
 func TestAPISudoUserAuthorizationReducer(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	defer test.MockVariableValue(&setting.API.EnableSudo, true)()
 	adminUsername := "user1"
 	normalUsername := "user2"
 	session := loginUser(t, adminUsername)
@@ -136,8 +139,27 @@ func TestAPISudoUserAuthorizationReducer(t *testing.T) {
 	})
 }
 
+// Acting as another person is off unless the server switches it on: support works through the documented admin actions.
+func TestAPISudoIsOffByDefault(t *testing.T) {
+	defer tests.PrepareTestEnv(t)()
+	require.False(t, setting.API.EnableSudo)
+	token := getUserToken(t, "user1", auth_model.AccessTokenScopeReadUser)
+	for _, req := range []*RequestWrapper{
+		NewRequest(t, "GET", "/api/v1/user?sudo=user2").AddTokenAuth(token),
+		NewRequest(t, "GET", "/api/v1/user").AddTokenAuth(token).SetHeader("Sudo", "user2"),
+	} {
+		resp := MakeRequest(t, req, http.StatusForbidden)
+		assert.Contains(t, resp.Body.String(), "ENABLE_SUDO")
+	}
+	// without sudo the administrator is themselves
+	var user api.User
+	DecodeJSON(t, MakeRequest(t, NewRequest(t, "GET", "/api/v1/user").AddTokenAuth(token), http.StatusOK), &user)
+	assert.Equal(t, "user1", user.UserName)
+}
+
 func TestAPISudoUserForbidden(t *testing.T) {
 	defer tests.PrepareTestEnv(t)()
+	defer test.MockVariableValue(&setting.API.EnableSudo, true)()
 	adminUsername := "user1"
 	normalUsername := "user2"
 
