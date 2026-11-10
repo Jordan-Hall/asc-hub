@@ -794,9 +794,9 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Organization rows with role chip, "38 people - 14 repositories", Settings for owners | done | templates/user/settings/organization.tmpl:1 | - |
 | Pending invitations with Accept and Decline | done | templates/user/settings/organization.tmpl (Invitations card: inviter, role, age, Decline, Accept); routers/web/user/setting/asc_org_invites.go (orgInviteRows, inviteRole, DeclineOrgInvite) | - |
 | Last owner cannot leave (explains transfer first) | done | an owner leaves from the People page, which refuses the last owner (routers/web/org/people.go) | - |
-| Board note: Leave asks to confirm; the last owner must transfer first | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, pending invitation, empty (illustration + New organization), last owner cannot l... | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Leave asks to confirm; the last owner must transfer first | done | TestAscSettingsOrgsBoardNotes (leave-organization dialog; last owner disabled with note, server refuses) | - |
+| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | done | TestAscSettingsAccountBoardNotes (organization page has no tabs) | - |
+| Board note: Default, pending invitation, empty (illustration + New organization), last owner cannot l... | done | TestAscSettingsOrgsBoardNotes (rows, pending invitation with Decline/Accept, empty state with New organization, last owner) | - |
 
 #### UserSettingsPrivacy (ASC Hub settings: privacy)
 
