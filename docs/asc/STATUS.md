@@ -1798,12 +1798,12 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 |---|---|---|---|
 | OAuth2 apps, authorized apps with revoke, client secret shown once, regenerate | done | templates/user/settings/grants_oauth2.tmpl:2 (best match) | - |
 | Webhooks table: events column, last delivery status text and time, Replay from the list | done | templates/shared/webhook/rows.tmpl (host over URL, events as chips with "+N more", last delivery dot with status and time, Edit or Replay when the last delivery failed), services/webhook/rows.go ListRows, ... | - |
-| Board note: Client secrets are shown once and can be regenerated | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Webhook Replay re-sends the last failed delivery | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Revoke removes the grant and every token issued under it | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, empty applications (illustration + New application), webhook failing, secret sho... | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Revoked toast | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Client secrets are shown once and can be regenerated | done | tests/integration/asc_settings_apps_test.go TestAscSettingsAppsBoardNotes (secret shown once, not on reload, Regenerate gives a new one) | - |
+| Board note: Webhook Replay re-sends the last failed delivery | done | templates/shared/webhook/list.tmpl Replay (settings list), tests/integration/asc_settings_apps_test.go failing webhook subtest | - |
+| Board note: Revoke removes the grant and every token issued under it | done | tests/integration/asc_settings_apps_test.go Revoke subtest (grant gone, token 401, refresh refused) | - |
+| Board note: Left menu is the only navigation for settings: no tabs repeat these pages | done | tests/integration/asc_settings_account_test.go other settings pages have no tabs (applications and hooks included) | - |
+| Board note: Default, empty applications (illustration + New application), webhook failing, secret sho... | done | templates/user/settings/applications_oauth2_list.tmpl oauth2-apps-empty, tests/integration/asc_settings_apps_test.go empty subtest | - |
+| Board note: Revoked toast | done | tests/integration/asc_settings_apps_test.go Revoke subtest checks the revoked flash | - |
 
 #### UserSettingsKeys (ASC Hub settings: ssh and signing keys)
 
