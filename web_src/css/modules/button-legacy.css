@@ -415,7 +415,7 @@ It needs some tricks to tweak the left/right borders with active state */
 .ui.basic.purple.button,
 .ui.basic.purple.buttons .button:focus,
 .ui.basic.purple.button:focus {
-  color: var(--color-purple);
+  color: var(--color-thin-purple, var(--color-purple));
   border-color: var(--color-purple);
 }
 
