@@ -296,6 +296,7 @@ func EditAuthSource(ctx *context.Context) {
 		return
 	}
 	ctx.Data["Source"] = source
+	ctx.Data["SourcePeople"] = authSourceCounts(ctx)[source.ID]
 	ctx.Data["HasTLS"] = source.HasTLS()
 	_, ctx.Data["CanProbe"] = source.Cfg.(auth.Prober)
 	takeOAuthProbe(ctx, source.ID)
@@ -332,6 +333,7 @@ func EditAuthSourcePost(ctx *context.Context) {
 		return
 	}
 	ctx.Data["Source"] = source
+	ctx.Data["SourcePeople"] = authSourceCounts(ctx)[source.ID]
 	ctx.Data["HasTLS"] = source.HasTLS()
 
 	if ctx.HasError() {

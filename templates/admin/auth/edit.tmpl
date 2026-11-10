@@ -348,9 +348,14 @@
 				</div></section>
 		<div class="ds-sticky-actions">
 			<a class="ds-btn ds-btn-secondary" href="{{AppSubUrl}}/admin/auths">{{ctx.Locale.Tr "cancel"}}</a>
-			<button type="button" class="ds-btn ds-btn-danger delete-button" data-url="{{$.Link}}/delete" data-id="{{.Source.ID}}" data-modal-id="delete-auth-source">{{ctx.Locale.Tr "admin.auths.delete"}}</button>
+			{{if .SourcePeople}}
+			<button type="button" class="ds-btn ds-btn-danger" disabled aria-describedby="auth-delete-blocked" data-testid="auth-delete-blocked">{{ctx.Locale.Tr "admin.auths.delete"}}</button>
+			{{else}}
+			<button type="button" class="ds-btn ds-btn-danger delete-button" data-url="{{$.Link}}/delete" data-id="{{.Source.ID}}" data-modal-id="delete-auth-source" data-testid="auth-delete">{{ctx.Locale.Tr "admin.auths.delete"}}</button>
+			{{end}}
 			<button type="submit" class="ds-btn ds-btn-primary">{{ctx.Locale.Tr "admin.auths.update"}}</button>
 		</div>
+		{{if .SourcePeople}}<p class="ds-t-small ds-c-2" id="auth-delete-blocked" data-testid="auth-delete-note">{{ctx.Locale.TrN .SourcePeople "asc_admin.auth_delete_blocked_one" "asc_admin.auth_delete_blocked_other" .SourcePeople}} <a href="{{AppSubUrl}}/admin/users">{{ctx.Locale.Tr "asc_admin.auth_delete_blocked_link"}}</a></p>{{end}}
 	</form>
 
 	<section class="ds-card adm-sec" id="auth-test" aria-labelledby="adm-auth-test" data-testid="auth-test">
