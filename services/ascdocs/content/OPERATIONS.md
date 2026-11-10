@@ -1379,6 +1379,19 @@ page. Repository and organization webhook lists keep Replay on the webhook's pag
 
 Settings pages have no tabs: the left menu is the only navigation.
 
+## SSH and signing keys in your settings
+
+**Settings > SSH / GPG keys** lists your SSH keys with the fingerprint, the day each was added and the day it was last
+used ("No recent activity" for a key that has not been used), so a key nobody uses any more is easy to spot. With no
+keys, the card shows the command that generates one, `ssh-keygen -t ed25519 -C "<your email>"`, with Copy; add the
+`.pub` file it writes, never the private key. A key that cannot be read is refused with the reason and nothing is
+added; an added key is confirmed in a toast. **Delete** asks first and lists what stops working: Git over SSH from
+every computer that uses the key, and the verified mark on commits signed with it.
+
+**Settings > Signing keys** lists the keys asc signs changesets with. **Rotate** adds the new key first and then
+revokes the old one, so there is never a moment without a live key. The old key stays in the list as revoked, and
+asc keeps verifying the signatures it made before it was revoked; only signatures made after that time fail.
+
 ## Signing changesets by default
 
 **Settings > Signing keys** has a **Sign my changesets by default** switch. When it is on, every changeset you author
