@@ -502,6 +502,13 @@ no hook is set, the table is replaced by "No webhooks" and the two Add buttons s
 Code: `routers/web/admin/hooks.go`, `routers/web/repo/setting/webhook.go`, `templates/shared/webhook/rows.tmpl`. Tests:
 TestAdminHooksOneList, TestAscAdminHooksBoardNotes.
 
+## Runner states on the runners page
+
+Each row of Site administration > Runners says what the runner is doing: "Running a job", "Idle" when it reported in the
+last minutes but has no job, or "Offline" with "Last seen" and when. A runner that never reported says "Never". A runner set
+to drain (Details, Taking new jobs) also carries "Draining": it finishes the job it has and is given no new one. With no
+runners the page says "No runners yet", and the Register a runner card beside it gives the token and the command.
+
 ## Agent runners on the runners page
 
 Site administration > Runners lists the hub's Actions runners and, under them, the agent runners: the asc serve
