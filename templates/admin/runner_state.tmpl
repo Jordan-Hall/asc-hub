@@ -1,4 +1,5 @@
-{{/* The state of a runner as a chip with words. Pass the runner. */}}
+{{/* The state of a runner as a chip with words, and Draining when it takes no new job. Pass the runner. */}}
 {{if .IsActive}}<span class="ds-chip ds-chip-info"><span class="ds-dot ds-dot-info" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_active"}}</span>
 {{else if .IsIdle}}<span class="ds-chip ds-chip-ok"><span class="ds-dot ds-dot-ok" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_idle"}}</span>
 {{else}}<span class="ds-chip ds-chip-err"><span class="ds-dot ds-dot-err" aria-hidden="true"></span>{{ctx.Locale.Tr "asc_admin.runners_status_offline"}}</span>{{end}}
+{{if .Draining}}<span class="ds-chip ds-chip-warn" data-testid="runner-draining">{{ctx.Locale.Tr "actions.runners.drain.state"}}</span>{{end}}
