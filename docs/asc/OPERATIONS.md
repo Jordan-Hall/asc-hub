@@ -429,6 +429,13 @@ Code: `routers/web/admin/asc_health.go`, `asc_health_more.go`, `services/asctrus
 TestTheDiskCheckSaysHowSoonTheVolumeFills, TestTheTLSCheckReadsTheCertificateTheHubServes, TestTheClockCheck,
 TestTheAscChecksAskAscServeToProbeItself, TestLoadHealthMeasuresTheClocks, TestAscHealthSteps.
 
+## The organizations list
+
+Site administration, Organizations (`/admin/orgs`), lists every organization with its people, repositories, storage target
+and creation date, and Open goes to the organization page. Search matches the name; the sort keeps alphabetical as the default.
+A search with no match says "No organization matches this search." and Clear filters goes back to the full list. A fresh
+install with no organizations says "No organizations yet" and offers New organization.
+
 ## System notices
 
 Site administration, Notices (`/admin/notices`), lists what the hub's tasks wrote for an administrator, newest first: a
