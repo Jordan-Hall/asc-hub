@@ -1,5 +1,6 @@
 <div role="main" aria-label="{{.Title}}" class="page-content user notification" id="notification_div" data-sequence-number="{{.SequenceNumber}}">
 	<div class="ds-container">
+		<h1 class="tw-sr-only">{{ctx.Locale.Tr "notifications"}}</h1>
 		{{$notificationUnreadCount := call .NotificationUnreadCount}}
 		<div class="tw-flex tw-items-center tw-justify-between tw-mb-4 tw-gap-2">
 			<div class="switch">
@@ -18,7 +19,7 @@
 				{{if and (eq .Status 1)}}
 					<form class="{{if not $notificationUnreadCount}}tw-hidden{{end}}" action="{{AppSubUrl}}/notifications/purge" method="post">
 						<div>
-							<button class="primary button" title="{{ctx.Locale.Tr "notification.mark_all_as_read"}}">
+							<button class="primary button" title="{{ctx.Locale.Tr "notification.mark_all_as_read"}}" aria-label="{{ctx.Locale.Tr "notification.mark_all_as_read"}}">
 								{{svg "octicon-checklist"}}
 							</button>
 						</div>

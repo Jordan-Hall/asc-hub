@@ -1,11 +1,12 @@
 {{/*
 The top of every repository page: the sub bar on a phone, the title row (owner / name, visibility, watch, star, fork) and the one tab strip of the repository.
 Pass the page data as ".", or (dict "HdrData" . "SubTitle" "History of main" "SubBack" "/path") to name the phone bar yourself.
+A page with its own h1 adds "OwnH1" true: the name of the repository is then not a heading, so the page has one h1.
 Settings pages (PageIsRepoSettings) bring their own sub bar.
 */}}
-{{$d := .}}{{$subTitle := ""}}{{$subBack := ""}}
-{{if .HdrData}}{{$d = .HdrData}}{{$subTitle = .SubTitle}}{{$subBack = .SubBack}}{{end}}
+{{$d := .}}{{$subTitle := ""}}{{$subBack := ""}}{{$own := false}}
+{{if .HdrData}}{{$d = .HdrData}}{{$subTitle = .SubTitle}}{{$subBack = .SubBack}}{{$own = .OwnH1}}{{end}}
 {{if not $d.PageIsRepoSettings}}
 	{{template "shared/ds/subbar" (dict "Data" $d "Title" (or $subTitle $d.Repository.FullName) "BackHref" (or $subBack $d.Repository.Owner.HomeLink) "BackLabel" $d.Repository.Owner.Name)}}
 {{end}}
-{{template "repo/header_main" $d}}
+{{template "repo/header_main" (dict "HdrMainData" $d "OwnH1" $own)}}

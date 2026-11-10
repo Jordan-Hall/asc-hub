@@ -9,7 +9,7 @@ The text of the policy file and every text from asc was cleaned by services/asct
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	{{with .AscGate}}
 	<div class="rv rv-page" data-testid="asc-gate">
 		{{template "base/alert" $}}

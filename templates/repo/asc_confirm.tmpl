@@ -15,7 +15,7 @@ Every text comes from the locale or from the handler; pull request titles are es
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository asc-confirm asc-repo-page rv-trust-page">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	<div class="rv rv-page">
 		{{template "base/alert" .}}
 		<div class="rv-narrow asc-confirm-box" data-testid="asc-confirm" data-asc-op="{{.AscOp}}">

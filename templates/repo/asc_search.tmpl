@@ -1,6 +1,6 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main page-content repository asc-repo-page asc-search rp-page rp-searchpage">
-	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.s_title") "SubBack" .RepoLink)}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true "SubTitle" (ctx.Locale.Tr "asc_rp.s_title") "SubBack" .RepoLink)}}
 	<div class="ds-container rp-body">
 		<h1 class="tw-sr-only">{{ctx.Locale.Tr "asc_rp.s_title"}}</h1>
 		<form id="asc-search-form" class="asc-search-form ds-form" method="get" action="{{.RepoLink}}/asc/search" role="search" data-loading-form>

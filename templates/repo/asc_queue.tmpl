@@ -10,7 +10,7 @@ Entry reasons are written by the queue worker from fixed texts and pull request 
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	<div class="rv rv-page" data-testid="asc-queue">
 		{{template "base/alert" .}}
 		<div class="rv-area">{{template "repo/asc_stack_nav" (dict "Tab" "queue" "Link" .RepoLink)}}</div>

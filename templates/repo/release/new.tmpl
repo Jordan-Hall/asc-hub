@@ -1,6 +1,6 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main page-content repository new release rp-page">
-	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "repo.release.new_release") "SubBack" (print .RepoLink "/releases"))}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true "SubTitle" (ctx.Locale.Tr "repo.release.new_release") "SubBack" (print .RepoLink "/releases"))}}
 	<div class="ds-container ds-container-form rp-body rp-skin">
 		<h1 class="ds-t-h2 rp-h1 rp-form-title">{{if .PageIsEditRelease}}{{ctx.Locale.Tr "repo.release.edit_release"}}{{else}}{{ctx.Locale.Tr "repo.release.new_release"}}{{end}}</h1>
 		<p class="ds-c-2 ds-mt-0">{{if .PageIsEditRelease}}{{ctx.Locale.Tr "repo.release.edit_subheader"}}{{else}}{{ctx.Locale.Tr "repo.release.new_subheader"}}{{end}}</p>

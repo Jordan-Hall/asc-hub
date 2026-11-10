@@ -1,6 +1,6 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository view issue pull asc-repo-page asc-review-page">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	{{$rail := and .Issue.IsPull .PageIsPullConversation .AscStackPanel}}
 	<div class="ds-container">
 		<div class="rv rv-review-wrap{{if $rail}} rv-review rv-review-rail rv-review-rail2{{end}}">

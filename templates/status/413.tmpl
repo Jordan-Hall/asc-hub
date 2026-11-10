@@ -1,6 +1,6 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main st-main{{if .IsRepo}} repository{{end}}">
-	{{if .IsRepo}}{{template "repo/header" .}}{{end}}
+	{{if .IsRepo}}{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}{{end}}
 	<div class="ds-container st-wrap">
 		<section class="st-card" aria-labelledby="st-title">
 			<span class="st-ic" aria-hidden="true">{{svg "dsi-package" 40}}</span>

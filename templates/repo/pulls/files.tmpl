@@ -4,7 +4,7 @@
 <input type="hidden" id="issueIndex" value="{{.Issue.Index}}">
 
 <div role="main" aria-label="{{.Title}}" class="page-content repository view issue pull files diff asc-repo-page asc-review-page rv-review-page">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	<div class="rv rv-page rv-review{{if .AscStackPanel}} rv-review-rail{{end}}" data-testid="asc-review">
 		<div class="rv-review-title">
 			{{template "repo/issue/view_title" .}}

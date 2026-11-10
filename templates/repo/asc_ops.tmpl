@@ -9,7 +9,7 @@ Texts that come from asc (ref names, actors) are cleaned in services/asctrust an
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository rv-trust-page">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	<div class="rv rv-page">
 		{{template "base/alert" .}}
 		<div class="rv-area">{{template "repo/asc_stack_nav" (dict "Tab" "ops" "Link" .RepoLink)}}</div>

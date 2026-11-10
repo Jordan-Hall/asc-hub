@@ -12,7 +12,7 @@ Every text from asc (paths, file text) is escaped by the template engine.
 */}}
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository asc-conflicts-page asc-repo-page rv-trust-page">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	<div class="rv rv-page">
 		{{template "base/alert" .}}
 		<div class="asc-conflicts" data-testid="asc-conflicts" data-state="{{.AscConflicts.State}}">

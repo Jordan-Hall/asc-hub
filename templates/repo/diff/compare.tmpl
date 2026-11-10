@@ -1,6 +1,6 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="ds-main page-content repository diff asc-repo-page asc-review-page rp-page rp-compare {{if .PageIsComparePull}}compare pull{{end}}">
-	{{template "repo/header" (dict "HdrData" . "SubTitle" (ctx.Locale.Tr "asc_rp.compare") "SubBack" .RepoLink)}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true "SubTitle" (ctx.Locale.Tr "asc_rp.compare") "SubBack" .RepoLink)}}
 	{{$showDiffBox := false}}
 	{{$canReadPullRequests := .Permission.CanRead $.UnitTypePullRequests}}
 	<div class="ds-container rp-body">

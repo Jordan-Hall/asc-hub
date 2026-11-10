@@ -1,6 +1,6 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{.Title}}" class="page-content repository milestone-issue-list">
-	{{template "repo/header" .}}
+	{{template "repo/header" (dict "HdrData" . "OwnH1" true)}}
 	<div class="ds-container">
 		{{template "base/alert" .}}
 		<div class="tw-flex tw-items-center tw-justify-between">
