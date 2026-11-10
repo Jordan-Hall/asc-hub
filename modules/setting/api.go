@@ -18,6 +18,9 @@ var API = struct {
 	DefaultPagingNum       int
 	DefaultGitTreesPerPage int
 	DefaultMaxBlobSize     int64
+	// EnableSudo lets a site administrator act as another person through the API (sudo parameter or Sudo header). Off by
+	// default: support acts through the documented admin actions, each written to the audit log, not as the person.
+	EnableSudo bool
 }{
 	EnableSwagger:          true,
 	SwaggerURL:             "",

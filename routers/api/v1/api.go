@@ -102,6 +102,12 @@ func sudo() func(ctx *context.APIContext) {
 		}
 
 		if len(sudo) > 0 {
+			if !setting.API.EnableSudo {
+				ctx.JSON(http.StatusForbidden, map[string]string{
+					"message": "Acting as another person is switched off on this server ([api] ENABLE_SUDO).",
+				})
+				return
+			}
 			if ctx.IsSigned() && ctx.IsUserSiteAdmin() {
 				user, err := user_model.GetUserByName(ctx, sudo)
 				if err != nil {

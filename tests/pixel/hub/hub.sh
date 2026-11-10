@@ -284,6 +284,9 @@ DEFAULT_THEME = asc-auto
 ENABLED = true
 [quota]
 ENABLED = true
+[api]
+; the seed creates content as its people
+ENABLE_SUDO = true
 INI
   if [ "$ASC_MODE" = serve ]; then
     cat >> "$RUN/custom/conf/app.ini" <<INI
