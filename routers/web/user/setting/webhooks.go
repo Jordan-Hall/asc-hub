@@ -26,6 +26,7 @@ func Webhooks(ctx *context.Context) {
 	ctx.Data["BaseLinkNew"] = setting.AppSubURL + "/user/settings/hooks"
 	ctx.Data["WebhookList"] = webhook_service.List()
 	ctx.Data["Description"] = ctx.Tr("settings.hooks.desc")
+	ctx.Data["WebhookReplayInList"] = true // the settings board replays a failed delivery from the list
 
 	ws, err := db.Find[webhook.Webhook](ctx, webhook.ListWebhookOptions{OwnerID: ctx.Doer.ID})
 	if err != nil {

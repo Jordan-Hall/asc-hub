@@ -1,6 +1,8 @@
 {{/* Webhooks as a list: where each sends and what kind it is, which events, how its last delivery went (or that it keeps
-failing), an Active switch that pauses or resumes it at once, and Edit. Replay and the deliveries are on the hook's page.
-Props: Rows (webhook ListRow), BaseLink (the webhook pages), ListLink (this list, where the switch comes back to). */}}
+failing), an Active switch that pauses or resumes it at once, and Edit. Replay and the deliveries are on the hook's page;
+with Replay set (your own webhooks in settings) a row whose last delivery failed also offers Replay here.
+Props: Rows (webhook ListRow), BaseLink (the webhook pages), ListLink (this list, where the switch and Replay come back
+to), Replay (optional). */}}
 <ul class="wh-list">
 {{range .Rows}}
 	<li class="ds-li wh-li">
@@ -32,6 +34,12 @@ Props: Rows (webhook ListRow), BaseLink (the webhook pages), ListLink (this list
 				<input type="hidden" name="redirect_to" value="{{$.ListLink}}">
 				<button class="ds-switch-btn" type="submit" role="switch" aria-checked="{{.IsActive}}" aria-label="{{ctx.Locale.Tr "asc_hooks.active_label" .URL}}"><span class="ds-switch-track" aria-hidden="true"></span><span class="wh-active" aria-hidden="true">{{ctx.Locale.Tr "asc_hooks.col_active"}}</span></button>
 			</form>
+			{{if and $.Replay .Failed .Last}}
+			<form method="post" action="{{$.BaseLink}}/{{.ID}}/replay/{{.Last.UUID}}">
+				<input type="hidden" name="redirect_to" value="{{$.ListLink}}">
+				<button class="ds-btn ds-btn-secondary ds-btn-sm"{{if not .IsActive}} disabled title="{{ctx.Locale.Tr "repo.settings.webhook.replay.description_disabled"}}"{{end}} aria-label="{{ctx.Locale.Tr "asc_hooks.replay"}}: {{.URL}}">{{ctx.Locale.Tr "asc_hooks.replay"}}</button>
+			</form>
+			{{end}}
 			<a class="ds-btn ds-btn-secondary ds-btn-sm" href="{{$.BaseLink}}/{{.ID}}" aria-label="{{ctx.Locale.Tr "edit"}}: {{.URL}}">{{ctx.Locale.Tr "edit"}}</a>
 		</div>
 	</li>

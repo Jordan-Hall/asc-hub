@@ -7,7 +7,7 @@
 		<button type="button" class="ds-btn ds-btn-primary ds-btn-sm wh-add-btn" data-wh-add-open>{{ctx.Locale.Tr "repo.settings.add_webhook"}}</button>
 	</div>
 	{{if .Webhooks}}
-		{{template "shared/webhook/list" (dict "Rows" .Webhooks "BaseLink" .BaseLink "ListLink" .BaseLink)}}
+		{{template "shared/webhook/list" (dict "Rows" .Webhooks "BaseLink" .BaseLink "ListLink" .BaseLink "Replay" .WebhookReplayInList)}}
 	{{else}}
 		<div class="ds-card-b">
 			{{template "shared/ds/empty" (dict "Icon" "link" "Title" (ctx.Locale.Tr "asc_hooks.none_title") "Body" (ctx.Locale.Tr "asc_hooks.none_text"))}}
