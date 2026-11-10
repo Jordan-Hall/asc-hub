@@ -282,10 +282,10 @@ Board copy not found word for word in locale, templates or scripts: Skip to cont
 | Reset 2FA and Suspend as separate buttons that ask for a reason written to the audit log (toda... | done | routers/web/admin/users.go, Audit.Append host.user.* (section 17) | - |
 | Usage block (storage, agent minutes) and agents owned | done | user_tabs.go loadUserUsage, loadUserAgents; view.tmpl `admin-user-agents`; tests/integration/asc_admin_user_agents_test.go | - |
 | Sessions tab (devices, revoke) | done | view.tmpl Sessions tab with Revoke (section 17) | - |
-| Board note: Tabs are views of one person: Overview, Emails, Keys, Sessions, Activity | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Reset 2FA and Suspend ask for a reason, which goes to the audit log | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: No impersonation: support acts through documented actions | unverified | not tracked in the gap files | needs a row and a test |
-| Board note: Default, suspended (banner), pending verification, deletion blocked by owned repositories | unverified | not tracked in the gap files | needs a row and a test |
+| Board note: Tabs are views of one person: Overview, Emails, Keys, Sessions, Activity | done | routers/web/admin/user_tabs.go, templates/admin/user/view.tmpl; test TestAdminUserTabs | - |
+| Board note: Reset 2FA and Suspend ask for a reason, which goes to the audit log | done | routers/web/admin/users.go UserSuspend, UserReset2FA; test TestAdminUserResetAndSuspendWantAReason | - |
+| Board note: No impersonation: support acts through documented actions | done | routers/api/v1/api.go sudo refused unless [api] ENABLE_SUDO; test TestAPISudoIsOffByDefault | - |
+| Board note: Default, suspended (banner), pending verification, deletion blocked by owned repositories | done | templates/admin/user/view.tmpl banners and delete-blocked; test TestAscAdminUserBoardNotes | - |
 
 #### AdminUsers (ASC Hub admin: people)
 
