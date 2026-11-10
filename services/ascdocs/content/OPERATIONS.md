@@ -1362,6 +1362,23 @@ When you may adopt or delete repositories (site administrators, or when the serv
 lists directories under your name in the repository root that have no repository record, up to 100 at a time; adopt or
 delete them to see more.
 
+## Applications and webhooks in your settings
+
+**Settings > Applications** has two cards. **OAuth2 applications** lists the apps you built. With none, the card shows
+an empty state whose **New application** button moves to the form below it. Creating an app or pressing **Regenerate
+secret** shows the client secret once, on the page that follows; the hub keeps only a hash, so copy it then. A new
+secret replaces the old one at once.
+
+**Authorized applications** lists the apps that can act as you. **Revoke** deletes the grant and every access and
+refresh token issued under it, so the app gets 401 on its next request and cannot refresh; a toast confirms it. The
+app must ask you again to get access back.
+
+**Settings > Webhooks** lists your own webhooks. A row whose last delivery failed offers **Replay**, which sends that
+delivery again and returns to the list; a paused webhook's Replay is disabled. The deliveries are on the webhook's own
+page. Repository and organization webhook lists keep Replay on the webhook's page.
+
+Settings pages have no tabs: the left menu is the only navigation.
+
 ## Signing changesets by default
 
 **Settings > Signing keys** has a **Sign my changesets by default** switch. When it is on, every changeset you author
