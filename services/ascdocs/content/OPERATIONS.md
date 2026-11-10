@@ -579,6 +579,20 @@ when it is ready. Code: `services/asctrust/audit.go` (AuditRow, AuditChange), `t
 `web_src/js/features/asc-audit.js`. Tests: TestAuditPageOfBuildsTheRecordAndTheDiff, TestAscAdminAuditBoardNotes,
 `asc-audit.test.js`.
 
+## The people list
+
+Site administration > People (`/admin/users`) lists every account with its role, 2FA, repositories, last sign-in and
+creation date.
+
+- Chips: All, Admins, 2FA off, Inactive, Suspended and Restricted, each with its count. A chip narrows the list and puts the
+  filter in the address, so the view can be bookmarked or shared; the search and the sort keep the chip in use. Until the
+  next list arrives the page shows skeleton rows.
+- Clicking a row opens the person. Edit opens the edit form. The tick selects the row for a bulk action.
+- Bulk actions: tick people and choose Require 2FA or Suspend. A confirmation page lists everyone affected (never
+  yourself) and asks for a reason; each change goes to the audit log.
+- Suspended people stay in the list with a red Suspended chip.
+- A search with no match says so and offers Clear filters. A fresh install lists its first administrator.
+
 ## A person's page, and no acting as them
 
 Site administration > People > a person (`/admin/users/{id}`) has five tabs that are views of the same person: Overview,
