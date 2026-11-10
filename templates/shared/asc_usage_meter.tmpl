@@ -1,7 +1,8 @@
 {{/*
-One measure of the usage board. Props: Label, M (asctrust.Meter), Unit (a word after the figure, or empty), Id.
+One measure of the usage board. Props: Label, M (asctrust.Meter), Unit (a word after the figure, or empty), Id, Doc (the
+heading of the documentation that explains how the measure is counted and limited). The tile opens that section.
 */}}
-<div class="ds-stat" data-testid="asc-usage-{{.Id}}"{{if .M.Over}} data-over="true"{{end}}>
+<a class="ds-stat" href="{{AppSubUrl}}/-/docs/storage-and-keys#user-content-{{.Doc}}" data-testid="asc-usage-{{.Id}}"{{if .M.Over}} data-over="true"{{end}}>
 	<div class="ds-stat-label">{{.Label}}</div>
 	<div class="ds-stat-value">{{.M.UsedText}}{{if .Unit}} <span class="ds-stat-sub">{{.Unit}}</span>{{end}}</div>
 	{{if .M.Limit}}
@@ -10,4 +11,4 @@ One measure of the usage board. Props: Label, M (asctrust.Meter), Unit (a word a
 	{{else}}
 		<div class="ds-stat-sub">{{ctx.Locale.Tr "asc_shell.usage_no_limit"}}</div>
 	{{end}}
-</div>
+</a>

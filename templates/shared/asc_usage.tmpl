@@ -40,14 +40,14 @@ Template data: AscUsage (usageweb.View), CsrfTokenHtml
 			</div>
 
 			{{if .OverQuota}}
-			<div class="ds-banner ds-banner-err" role="status" data-testid="asc-usage-over"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.usage_over"}}</div></div>
+			<div class="ds-banner ds-banner-err" role="status" data-testid="asc-usage-over"><span aria-hidden="true">{{svg "dsi-alert" 18}}</span><div class="ds-banner-body">{{ctx.Locale.Tr "asc_shell.usage_over"}} <a class="ds-link" href="#usage-repos-h" data-testid="asc-usage-over-free">{{ctx.Locale.Tr "asc_shell.usage_over_free"}}</a> &middot; <a class="ds-link" href="{{AppSubUrl}}/-/docs/storage-and-keys#user-content-when-a-limit-is-used-up" data-testid="asc-usage-over-limits">{{ctx.Locale.Tr "asc_shell.usage_over_raise"}}</a></div></div>
 			{{end}}
 
 			<div class="ds-grid-stats" role="group" aria-label="{{ctx.Locale.Tr "asc_shell.usage_measures"}}" data-testid="asc-usage-meters">
-				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_storage") "M" .Storage "Unit" "" "Id" "storage")}}
-				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_minutes") "M" .Minutes "Unit" (ctx.Locale.Tr "asc_shell.usage_unit_minutes") "Id" "minutes")}}
-				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_ai") "M" .AISpend "Unit" "" "Id" "ai")}}
-				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_bandwidth") "M" .Bandwidth "Unit" "" "Id" "bandwidth")}}
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_storage") "M" .Storage "Unit" "" "Id" "storage" "Doc" "storage-used")}}
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_minutes") "M" .Minutes "Unit" (ctx.Locale.Tr "asc_shell.usage_unit_minutes") "Id" "minutes" "Doc" "agent-minutes")}}
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_ai") "M" .AISpend "Unit" "" "Id" "ai" "Doc" "ai-spend")}}
+				{{template "shared/asc_usage_meter" (dict "Label" (ctx.Locale.Tr "asc_shell.usage_bandwidth") "M" .Bandwidth "Unit" "" "Id" "bandwidth" "Doc" "bandwidth")}}
 			</div>
 
 			{{if or .BYOSpend .BYOStorage}}
