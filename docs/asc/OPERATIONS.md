@@ -364,6 +364,24 @@ Code: `templates/repo/insights_asc.tmpl`, `templates/repo/insights_people.tmpl`,
 `routers/web/repo/asc_insights_people.go`, `web_src/js/features/asc-insights.js`. Tests: TestInsightsBoardNotes,
 TestPeopleBoardNotes, TestInsightsRenderStates, TestPeopleRenderStates, asc-insights.test.js.
 
+## An issue page
+
+The comment box at the bottom of an issue keeps what you type on this device: a closed tab or a lost connection does
+not lose it, and it is dropped when the comment is posted. Ctrl+Enter, or Cmd+Enter on a Mac, posts the comment.
+
+When a stack names the issue, the rail shows **Linked stacks**: the pull request that names it, how many of the stack
+have landed ("1 of 2 landed"), each pull request with its state, and whether the stack closes the issue. The timeline
+has the event of the stack. When that stack lands with a closing word such as "fixes", the issue closes and a banner
+above the timeline says which stack closed it, with **Reopen** that goes to the comment form.
+
+Comments and assignees that are agents carry an **Agent** chip. An agent cannot approve or merge. On a locked issue,
+people who may not write read "This discussion has been locked. Commenting is limited to contributors." instead of the
+comment box.
+
+Code: `templates/repo/issue/view_content.tmpl`, `templates/repo/issue/view_content/sidebar.tmpl`,
+`routers/web/repo/asc_issue_stacks.go`, `services/pull/asc_issue_stacks.go`, `web_src/js/features/asc-drafts.js`.
+Tests: TestAscIssueViewBoardNotes, TestStacksNamingAnIssue, asc-drafts.test.js.
+
 ## The wait after wrong passwords
 
 After five wrong passwords for one name from one address, the hub refuses that name from that address for five minutes and the sign-in page names the wait (429 with `Retry-After`). The name counts as typed, in any case, and is not looked up, so the count does not tell a stranger which email belongs to which account; a username and an email of the same person count apart. One address that gets ten times as many wrong across names waits too, which bounds the tries across the names of one person. Both counts are taken before the password is checked, so tries sent at the same time cannot pass them. The counts live in memory, at most 10000 keys each. A full table drops the key whose count is oldest among those not waiting; when every key waits, it drops the wait that ends soonest. Every key keeps its own count, so a flood never refuses or frees another key, and a try is only given back to the count that took it. A right password before the limit clears the count. The same count covers linking an account, OpenID connect and basic authentication. Set it in `[security]`:
