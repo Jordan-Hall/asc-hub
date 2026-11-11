@@ -16,7 +16,8 @@ import (
 )
 
 // The build cache of asc speaks plain HTTP, not gRPC: the turbo store under /v8 (artefacts, revision lists and the
-// file-level routes that move one output file at a time) and the CI cache manifests under /actions/v1. The asc
+// file-level routes that move one output file at a time), the CI cache manifests under /actions/v1 and the seed
+// snapshots under /seeds. The asc
 // command line sends them to the same origin as its gRPC calls, which is the hub, so the hub forwards them as well,
 // with the same rules: no credential of the hub, no claim headers from the client, no cookie and no CORS.
 
@@ -51,6 +52,9 @@ var cacheRoutes = []cacheRoute{
 	{segs: []string{"v8", "asc", "ac", "*"}, methods: "GET HEAD PUT"},
 	{segs: []string{"actions", "v1", "*", "*", "*", "*"}, methods: "GET PUT"},
 	{segs: []string{"actions", "v1", "*", "*", "*"}, methods: "GET"},
+	// The newest seed snapshot of a repository: asc answers with a redirect to a presigned download, which the hub
+	// passes on as it is (it never follows it), so the snapshot itself never goes through the hub.
+	{segs: []string{"seeds", "*", "*", "latest"}, methods: "GET HEAD"},
 }
 
 // matchCache finds the route of a path: whether it is one, whether the method is one of its, and whether a PUT of it
@@ -144,7 +148,7 @@ func NewCache(upstream string, tr http.RoundTripper) (*CacheForwarder, error) {
 }
 
 // CachePatterns are the route patterns the hub registers for the cache, each to ServeHTTP for every method.
-var CachePatterns = []string{"/v8/*", "/actions/v1/*"}
+var CachePatterns = []string{"/v8/*", "/actions/v1/*", "/seeds/*"}
 
 // ServeHTTP implements http.Handler.
 func (f *CacheForwarder) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -215,6 +215,12 @@ func NormalRoutes() *web.Route {
 				r.Any(p, cache.ServeHTTP)
 			}
 		}
+		// /.well-known/asc announces /seeds only when asc serve publishes seeds.
+		if d, err := ascforward.NewDiscovery(setting.Asc.ServerURL, nil); err != nil {
+			log.Error("The asc discovery document is not read: %v", err)
+		} else {
+			ascforward.Upstream = d
+		}
 	}
 
 	r.Mount("/", web_routers.Routes())
