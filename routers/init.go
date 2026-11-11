@@ -206,6 +206,15 @@ func NormalRoutes() *web.Route {
 			fwd.Gate = ascforward.TokenGate
 			r.Post("/asc.v1.{service}/{method}", fwd.ServeHTTP)
 		}
+		// The build cache of asc (turbo store and CI cache manifests) goes to the same origin as the gRPC calls.
+		if cache, err := ascforward.NewCache(setting.Asc.ServerURL, nil); err != nil {
+			log.Error("The asc build cache is not forwarded: %v", err)
+		} else {
+			cache.Gate = ascforward.CacheTokenGate
+			for _, p := range ascforward.CachePatterns {
+				r.Any(p, cache.ServeHTTP)
+			}
+		}
 	}
 
 	r.Mount("/", web_routers.Routes())
