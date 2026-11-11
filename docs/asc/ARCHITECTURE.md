@@ -154,7 +154,7 @@ A verifier must:
 
 The hub replaces any `x-asc-forwarded-*` entry that a context already holds, so a caller cannot choose another person. `ascidentity.Verify` is the reference implementation of steps 2 to 4, and the tests pin its behaviour.
 
-`asc serve` today honours the claim with the role `admin` for repairs. Accepting `read` and `write`, and the `org:`, `user:` and `instance` subjects for the audit log, policy, secrets, signing keys and dependency pages, is the server side of this contract; until it does, those pages answer from the server's own refusal.
+`asc serve` honours the claim with every role (`read`, `write`, `admin`) and every subject: repositories, `org:` (audit log, policy, secrets, organisation settings), `user:` (signing keys, sessions, the data export) and `instance` (backups, maintenance, usage) (`crates/asc-rpc/src/forwarded.rs`). A claim never grants more than its role. Which caller each list and search RPC answers (read, write, admin, claim, anonymous) is one test table in asc, `crates/asc-serve/tests/parity.rs`; the hub's side is `routers/private/asc_parity_test.go`.
 
 ## Package map
 
