@@ -90,11 +90,12 @@ const (
 //	OrgSettings Settings and agents of an organisation: the organisation's pages
 //	Sessions    The devices a person is signed in on: the account page
 //	Usage       Quota and spend: the account and administration pages
+//	Maintenance Maintenance mode, health probes and agent runners: the administrators' pages
 var services = map[string]bool{
 	"Repo": true, "Changes": true, "Stacks": true, "Review": true, "Cloud": true, "Projects": true, "CodeIntel": true,
 	"CrossSearch": true, "Inbox": true, "MergeQueue": true, "Policy": true, "Workflows": true, "Agents": true,
 	"AgentTokens": true, "Ci": true, "CiInsights": true, "SecretScan": true, "Signing": true, "Audit": true, "DepsService": true,
-	"Insights": true, "Releases": true,
+	"Insights": true, "Releases": true, "PathRules": true,
 }
 
 // DeniedServices are the services that are never forwarded, and why.
@@ -103,6 +104,7 @@ var DeniedServices = map[string]string{
 	"Storage": "set on the hub's pages", "AiProviders": "set on the hub's pages",
 	"AiKeyShares": "set on the hub's pages", "Backups": "the administrators' pages", "DataExport": "the account page",
 	"OrgSettings": "the organisation's pages", "Sessions": "the account page", "Usage": "the account and administration pages",
+	"Maintenance": "the administrators' pages",
 }
 
 // DeniedMethods are the methods of a forwarded service that are not forwarded, and why.
