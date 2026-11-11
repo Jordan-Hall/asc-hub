@@ -5,11 +5,13 @@ package web
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"forgejo.org/modules/json"
 	"forgejo.org/modules/setting"
 	"forgejo.org/modules/test"
+	"forgejo.org/services/ascforward"
 	"forgejo.org/services/contexttest"
 
 	"github.com/stretchr/testify/assert"
@@ -54,5 +56,24 @@ func TestAscWellKnown(t *testing.T) {
 		var doc map[string]any
 		require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &doc))
 		assert.Equal(t, map[string]any{"server": "https://hub.example.org", "repos": "*"}, doc)
+	})
+
+	t.Run("announces the seeds when asc serve publishes them", func(t *testing.T) {
+		asc := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte(`{"server":"http://127.0.0.1:7890","seeds":"http://127.0.0.1:7890/seeds","repos":"*"}`))
+		}))
+		defer asc.Close()
+		d, err := ascforward.NewDiscovery(asc.URL, http.DefaultTransport)
+		require.NoError(t, err)
+		defer test.MockVariableValue(&ascforward.Upstream, d)()
+		defer test.MockVariableValue(&setting.Asc.Enabled, true)()
+		defer test.MockVariableValue(&setting.Asc.ServerURL, asc.URL)()
+		defer test.MockVariableValue(&setting.Asc.PublicURL, "https://hub.example.org/")()
+		ctx, resp := contexttest.MockContext(t, "GET /.well-known/asc")
+		AscWellKnown(ctx)
+		require.Equal(t, http.StatusOK, resp.Code)
+		var doc map[string]any
+		require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &doc))
+		assert.Equal(t, "https://hub.example.org/seeds", doc["seeds"], "the hub's own origin, which forwards /seeds")
 	})
 }

@@ -58,6 +58,11 @@ func cacheRig(t *testing.T, gate func(*http.Request, bool) string) (string, *see
 		w.Header().Set("Set-Cookie", "s=1")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Content-Type", "application/zstd")
+		if strings.HasPrefix(r.URL.Path, "/seeds/") {
+			w.Header().Set("Location", "https://s3.test/seeds/acme.web/abc.tar.zst?X-Amz-Signature=sig")
+			w.WriteHeader(http.StatusFound)
+			return
+		}
 		if r.URL.Path == "/v8/asc/cas/missing" {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"missing":["ab"]}`))
@@ -134,6 +139,40 @@ func TestOneCacheFileGoesThroughTheHubWithItsQuery(t *testing.T) {
 	} {
 		assert.Equal(t, http.StatusOK, send(t, http.MethodGet, url+p, nil, nil).StatusCode, p)
 	}
+}
+
+// The newest seed is a redirect to a presigned download: the hub passes it on and never follows it, so the snapshot
+// goes from the object store to the client and not through the hub.
+func TestTheSeedRedirectPassesThroughTheHub(t *testing.T) {
+	url, got := cacheRig(t, nil)
+	client := &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	req, err := http.NewRequest(http.MethodGet, url+"/seeds/acme/web/latest", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer the-clients-token")
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusFound, resp.StatusCode)
+	assert.Equal(t, "https://s3.test/seeds/acme.web/abc.tar.zst?X-Amz-Signature=sig", resp.Header.Get("Location"))
+	assert.Empty(t, resp.Header.Get("Set-Cookie"))
+	seen, _ := got.last()
+	require.NotNil(t, seen)
+	assert.Equal(t, "/seeds/acme/web/latest", seen.URL.Path)
+	assert.Equal(t, "Bearer the-clients-token", seen.Header.Get("Authorization"))
+	assert.Equal(t, 1, got.count(), "the hub asked asc once and did not follow the redirect")
+
+	for _, c := range []struct {
+		method, path string
+		want         int
+	}{
+		{http.MethodPut, "/seeds/acme/web/latest", http.StatusMethodNotAllowed},
+		{http.MethodGet, "/seeds/acme/web/abc.tar.zst", http.StatusNotFound},
+		{http.MethodGet, "/seeds/acme/latest", http.StatusNotFound},
+		{http.MethodGet, "/seeds/acme/../latest", http.StatusNotFound},
+	} {
+		assert.Equal(t, c.want, send(t, c.method, url+c.path, nil, nil).StatusCode, "%s %s", c.method, c.path)
+	}
+	assert.Equal(t, 1, got.count(), "nothing refused reaches asc")
 }
 
 func TestOnlyTheCacheRoutesAndTheirMethodsAreForwarded(t *testing.T) {
